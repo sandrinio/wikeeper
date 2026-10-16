@@ -350,7 +350,7 @@ describe("STORY-006-02 S5: a preview row that differs from the writers fails", (
     const joined = problems.join("\n");
     expect(joined).toContain("mode ai");
     expect(joined).toContain("agent claude");
-    expect(joined).toContain("missing [Bash(npx wikeeper ingest *), Bash(wikeeper ingest *)]");
+    expect(joined).toContain("missing [Bash(npx wikeeper ingest *), Bash(wikeeper ingest *), Bash(npx wikeeper search *), Bash(wikeeper search *)]");
     expect(joined).toContain("unexpected [Bash(wikeeper *)]");
   });
 });
