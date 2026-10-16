@@ -15,14 +15,25 @@ afterAll(async () => {
   if (root) await rm(root, { recursive: true, force: true, maxRetries: 3 });
 });
 
+const req = () => ({
+  query: "vendor delay",
+  limit: 10,
+  filters: { ...EMPTY_FILTERS, where: [] },
+  entity: null,
+  misses: false,
+});
+
 describe("search on 500 pages", () => {
   it("executeSearch 'vendor delay' (cache off)", async ({ bench }) => {
     await bench("executeSearch 'vendor delay'", async () => {
-      await executeSearch(
-        root,
-        { query: "vendor delay", limit: 10, filters: { ...EMPTY_FILTERS, where: [] }, entity: null, misses: false },
-        { useCache: false },
-      );
+      await executeSearch(root, req(), { useCache: false });
+    }).run();
+  }, 120_000);
+
+  it("executeSearch 'vendor delay' (warm cache)", async ({ bench }) => {
+    await executeSearch(root, req(), {});
+    await bench("executeSearch 'vendor delay' (warm cache)", async () => {
+      await executeSearch(root, req(), {});
     }).run();
   }, 120_000);
 });
