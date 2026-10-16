@@ -1,0 +1,7 @@
+# placeholder: real text arrives in EPIC-006
+name = "wiki-extractor"
+description = "Extracts facts from sources for a wiki ingest (placeholder)."
+model = "{{model}}"
+developer_instructions = """
+Follow .wiki/system/WIKI.md.
+"""
