@@ -11,6 +11,15 @@ context_source: EPIC-002 (approved 2026-10-16) · architecture.md v0.4 §6 (agen
 actor: Developer installing wikeeper in a repository
 complexity_label: L2
 parallel_eligible: n
+dep_predecessors:
+  - STORY-001-01
+  - STORY-001-04
+  - STORY-001-05
+  - STORY-001-06
+  - STORY-001-07
+  - STORY-002-01
+  - STORY-002-02
+  - STORY-002-03
 expected_bounce_exposure: med
 lane: standard
 db_write_set: []
@@ -33,15 +42,21 @@ last_remote_update: null
 source: local-authored
 last_synced_status: null
 last_synced_body_sha: null
-stamp_error: no ledger rows for work_item_id STORY-002-04
 draft_tokens:
-  input: null
-  output: null
-  cache_creation: null
-  cache_read: null
-  model: null
-  last_stamp: 2026-10-16T13:29:49Z
-  sessions: []
+  input: 0
+  output: 0
+  cache_creation: 0
+  cache_read: 0
+  model: claude-opus-5-5
+  last_stamp: 2026-10-16T13:52:30Z
+  sessions:
+    - session: 0c4a6f7d-67f2-4c9b-b197-e5402f57ab69
+      model: claude-opus-5-5
+      input: 0
+      output: 0
+      cache_read: 0
+      cache_creation: 0
+      ts: 2026-10-16T13:42:19Z
 ---
 
 # STORY-002-04: Integration wiring and doctor checks
@@ -153,7 +168,7 @@ Feature: Integration wiring and doctor checks
 | New Files Needed | Yes — `src/agents/index.ts`, `src/agents/doctor-checks.ts`, `test/agents/integration.test.ts`, `test/agents/doctor-checks.test.ts` |
 
 ### 3.2 Technical Logic
-- `index.ts` exports `agentsIntegration = { init, update, remove, doctor }` and calls `registerIntegration('agents', agentsIntegration)`; `src/program.ts` adds `import './agents/index.js'`.
+- `index.ts` exports `agentsIntegration = { init, update, remove, doctor }` and calls `registerIntegration({ name: 'agents', ...agentsIntegration })` (the single-object form frozen by STORY-001-04); `src/program.ts` adds `import './agents/index.js'`.
 - `init`: `resolveAgents` → save to config via `src/core/config.ts` → `resolveTargets` → for each target `injectIntoFile(path, block)` where `block` comes from the template loader → `installSkills` / `installSubagents` → manifest entries.
 - `remove`: iterate manifest entries by kind in reverse install order; `stripFromFile`; unlink files and links; `rmdir` only on empty directories recorded as created.
 - `doctor-checks.ts`: pure functions over the file system and manifest; the markers-deleted check looks for the block's signature lines (heading plus the `.wiki/system/WIKI.md` reference) outside markers.

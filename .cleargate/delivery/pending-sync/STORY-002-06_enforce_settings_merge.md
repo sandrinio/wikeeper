@@ -11,6 +11,11 @@ context_source: EPIC-002 (approved 2026-10-16) · architecture.md v0.4 §6 (agen
 actor: Developer who wants wiki writes enforced, not just instructed
 complexity_label: L3
 parallel_eligible: n
+dep_predecessors:
+  - STORY-001-02
+  - STORY-001-03
+  - STORY-002-04
+  - STORY-002-05
 expected_bounce_exposure: med
 lane: standard
 db_write_set: []
@@ -40,7 +45,7 @@ draft_tokens:
   cache_creation: null
   cache_read: null
   model: null
-  last_stamp: 2026-10-16T13:31:22Z
+  last_stamp: 2026-10-16T15:31:48Z
   sessions: []
 ---
 
@@ -54,13 +59,24 @@ As a developer who wants the wiki's rules enforced, I want `init` to add a write
 
 ### 1.2 Detailed Requirements
 - **R1 — Turning it on (D-30):** enforcement is enabled by `init --enforce`, by config `enforce: true`, or by answering "y" to an interactive prompt that defaults to no. Non-interactive runs without the flag or config do not enable it and do not prompt. When enabled, `enforce: true` is saved to config.
-- **R2 — Claude (`.claude/settings.json`):** add a `hooks.PreToolUse` entry with matcher `Edit|Write|MultiEdit` running the guard command for claude; add permission rules by `ingest.permission`: `ai` → `permissions.allow` gets `Bash(npx wikeeper *)` and `Bash(wikeeper *)`; `ask` → `permissions.ask` gets `Bash(npx wikeeper ingest start *)` and `Bash(wikeeper ingest start *)`; `whitelist` → no rule (the CLI enforces the whitelist).
-- **R3 — Codex:** `.codex/hooks.json` gets a PreToolUse entry for `apply_patch` (matched as Edit/Write) running the guard for codex; `.codex/rules/wikeeper.rules` gets `prefix_rule(pattern=["npx","wikeeper"], decision="allow")` for `ai` or `prefix_rule(pattern=["npx","wikeeper","ingest","start"], decision="prompt")` for `ask`; nothing for `whitelist`.
+- **R2 — Claude (`.claude/settings.json`):** add a `hooks.PreToolUse` entry with matcher `Edit|Write|MultiEdit` running the guard command for claude; add permission rules by `ingest.permission`: `ai` → `permissions.allow` gets `Bash(npx wikeeper ingest *)` and `Bash(wikeeper ingest *)` (changed by CR-001); `ask` → `permissions.ask` gets `Bash(npx wikeeper ingest start *)` and `Bash(wikeeper ingest start *)`; `whitelist` → no rule (the CLI enforces the whitelist).
+- **R3 — Codex:** `.codex/hooks.json` gets a PreToolUse entry for `apply_patch` (matched as Edit/Write) running the guard for codex; `.codex/rules/wikeeper.rules` gets `prefix_rule(pattern=["npx","wikeeper","ingest"], decision="allow")` for `ai` (changed by CR-001) or `prefix_rule(pattern=["npx","wikeeper","ingest","start"], decision="prompt")` for `ask`; nothing for `whitelist`.
 - **R4 — Antigravity:** `.agents/hooks.json` gets a PreToolUse entry for `write_to_file|replace_file_content` running the guard for antigravity. No permission rules (no project-level file exists).
 - **R5 — Guard command:** use `wikeeper` when it resolves on PATH or in `node_modules/.bin`, otherwise `npx -y wikeeper@<installed version>`; the chosen form is written into every hook entry.
-- **R6 — Safe merge:** parse the existing file strictly; on a parse error stop with exit code 1, leave the file byte-identical and name the file and the error. Before the first change to an existing file, write `<file>.bak`. Keep every user key and the order of existing keys. Re-running adds no duplicate entries.
+- **R6 — Safe merge:** parse the existing file strictly; on a parse error stop with exit code 1, leave the file byte-identical and name the file and the error. Before the first change to an existing file, write `<file>.bak` (user-owned files only — BUG-002). Keep every user key and the order of existing keys. Re-running adds no duplicate entries.
 - **R7 — Ownership and undo:** each added entry is recorded in the manifest (`kind: hook | rule`, file, entry identity). `remove` deletes exactly those entries; a settings file that wikeeper created and that is empty afterwards is deleted.
 - **R8 — Doctor notes:** with enforce on, `doctor` reports `codex-trust` (codex configured: project hooks and rules only apply in trusted projects, approve them with `/hooks`) and `antigravity-ask-fallback` (antigravity configured with `ask`: no project rule file, approval happens in chat).
+- **Spec clarifications (2026-10-16, CR:spec-clarification from `.cleargate/sprint-runs/SPRINT-01/plans/hook-protocols-research.md`; supersede R2–R5/R8 where they differ):**
+  - Claude matcher is `Edit|Write|MultiEdit|NotebookEdit`. Codex matcher stays `apply_patch`. Antigravity matcher is `write_to_file|replace_file_content|multi_replace_file_content`.
+  - `.agents/hooks.json` is keyed by hook name: `{ "wikeeper-guard": { "PreToolUse": [ … ] } }` — the name key is the entry identity for merge and remove (R6/R7). Exact entry shapes for all three files follow the research file.
+  - Permission rules additionally cover other invocation forms, without removing the ones in R2/R3: Codex adds `prefix_rule(pattern=["wikeeper","ingest"], …)` for `ai` (changed by CR-001) and `["wikeeper","ingest","start"]` for `ask`.
+  - R5 command form: bare `wikeeper` only when it resolves on `PATH`; when it is only in `node_modules/.bin`, write a form that works from the hook's working directory without `PATH` (Architect picks it from the research file); otherwise `npx -y wikeeper@<installed version>`.
+  - R4: Antigravity project-scope permission rules exist but live outside the repo (`~/.gemini/config/projects/`), so wikeeper still writes none.
+  - R8: `codex-trust` also says hooks must be re-approved in `/hooks` after `wikeeper update` changes the command. Add note `antigravity-trust` (antigravity configured with enforce on: workspace hooks load only after the folder is trusted).
+- **Review clarifications (2026-10-16, CR:spec-clarification from an external review the human directed into this sprint):**
+  - R6/R7: `remove` restores the original bytes even when the original already held an empty container on wikeeper's path (`"hooks": {}`, `"permissions": { "allow": [] }`).
+  - Malformed settings: `init` with enforce enabled (flag, config or prompt) and any unparseable target settings file exits 1 and leaves the whole repository byte-identical. All settings files are parsed in a preflight before `init` writes anything, and agent-side writes are rolled back if a later step fails.
+  - Hook, rule and backup manifest entries carry `sha256: null`, so `doctor` never reports `manifest-drift` for user edits to settings files; `update` re-renders a pinned `npx -y wikeeper@<version>` guard command with the running version.
 
 ### 1.3 Out of Scope
 The guard command itself (STORY-002-05), the lock file (EPIC-003), Antigravity user-level permission settings, Gemini CLI policies.
@@ -132,7 +148,7 @@ Feature: --enforce hooks and permission rules
 
     Examples:
       | mode      | claude_rule                                         | codex_rule                                           |
-      | ai        | allow "Bash(npx wikeeper *)" and "Bash(wikeeper *)" | prefix_rule ["npx","wikeeper"] decision "allow"      |
+      | ai        | allow "Bash(npx wikeeper ingest *)" and "Bash(wikeeper ingest *)" (changed by CR-001) | prefix_rule ["npx","wikeeper","ingest"] decision "allow" (changed by CR-001)     |
       | ask       | ask "Bash(npx wikeeper ingest start *)" and "Bash(wikeeper ingest start *)" | prefix_rule ["npx","wikeeper","ingest","start"] decision "prompt" |
       | whitelist | no permission rule                                  | no rule                                              |
 
@@ -168,7 +184,7 @@ Feature: --enforce hooks and permission rules
 | Primary File | `src/agents/enforce/index.ts` |
 | Related Files | `src/agents/enforce/claude.ts`, `src/agents/enforce/codex.ts`, `src/agents/enforce/antigravity.ts`, `src/agents/enforce/json-merge.ts`, `src/agents/enforce/guard-command.ts` |
 | Modified Files | `src/agents/index.ts`, `src/agents/doctor-checks.ts` |
-| Test Files | `test/agents/enforce.test.ts`, `test/agents/json-merge.test.ts` |
+| Test Files | `test/agents/enforce.test.ts`, `test/agents/json-merge.test.ts`, `test/e2e/goal.test.ts` (Windows CI timeout only; owned by STORY-002-04) |
 | Fixtures | `test/fixtures/settings/claude-settings-user.json`, `test/fixtures/settings/claude-settings-malformed.json` |
 | New Files Needed | Yes — all files above except the two modified files |
 
@@ -185,16 +201,16 @@ Not applicable — no new command; behaviour is exposed through `init --enforce`
 
 ## Task Breakdown
 
-- [ ] Implement `json-merge.ts` (strict parse, typed error, one-time `.bak`, indentation-preserving write, idempotent identity compare) with unit tests -> R6
-- [ ] Implement `guard-command.ts` resolution order with tests -> R5
-- [ ] Implement `resolveEnforce` (flag / config / prompt default no / non-interactive no) and save `enforce: true` -> R1
-- [ ] Implement the Claude writer: PreToolUse hook entry and permission rules per mode -> R2
-- [ ] Implement the Codex writer: `.codex/hooks.json` entry and `.codex/rules/wikeeper.rules` lines -> R3
-- [ ] Implement the Antigravity writer: `.agents/hooks.json` entry -> R4
-- [ ] Record manifest entries and implement `removeEnforce` (exact entry removal, delete created-and-empty files) -> R7
-- [ ] Add `codex-trust` and `antigravity-ask-fallback` doctor checks -> R8
-- [ ] Wire `applyEnforce` / `removeEnforce` into `src/agents/index.ts`
-- [ ] Write one test per Gherkin scenario in §2.1 using the settings fixtures
+- [x] Implement `json-merge.ts` (strict parse, typed error, one-time `.bak`, indentation-preserving write, idempotent identity compare) with unit tests -> R6
+- [x] Implement `guard-command.ts` resolution order with tests -> R5
+- [x] Implement `resolveEnforce` (flag / config / prompt default no / non-interactive no) and save `enforce: true` -> R1
+- [x] Implement the Claude writer: PreToolUse hook entry and permission rules per mode -> R2
+- [x] Implement the Codex writer: `.codex/hooks.json` entry and `.codex/rules/wikeeper.rules` lines -> R3
+- [x] Implement the Antigravity writer: `.agents/hooks.json` entry -> R4
+- [x] Record manifest entries and implement `removeEnforce` (exact entry removal, delete created-and-empty files) -> R7
+- [x] Add `codex-trust` and `antigravity-ask-fallback` doctor checks -> R8
+- [x] Wire `applyEnforce` / `removeEnforce` into `src/agents/index.ts` (insertion points 1-5 only)
+- [x] Write one test per Gherkin scenario in §2.1 using the settings fixtures (covered by QA-Red test/agents/enforce.red.node.test.ts; no separate enforce.test.ts or json-merge.test.ts)
 
 ## 4. Quality Gates
 

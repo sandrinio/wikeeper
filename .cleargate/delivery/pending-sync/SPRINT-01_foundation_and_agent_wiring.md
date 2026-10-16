@@ -6,18 +6,18 @@ carry_over: false
 lifecycle_init_mode: warn
 remote_id: null
 source_tool: null
-status: Draft
-start_date: null
+status: Active
+start_date: 2026-10-16
 end_date: null
 synced_at: null
 created_at: 2026-10-16T13:40:00Z
-updated_at: 2026-10-16T13:40:00Z
+updated_at: 2026-10-16T14:12:48Z
 created_at_version: strategy-phase-pre-init
-updated_at_version: strategy-phase-pre-init
+updated_at_version: 8f1132e-dirty
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-16T13:32:30Z
+  last_gate_check: 2026-10-16T20:01:49Z
   transition: ready-for-execution
 epics:
   - EPIC-001
@@ -31,7 +31,7 @@ draft_tokens:
   cache_creation: null
   cache_read: null
   model: null
-  last_stamp: 2026-10-16T13:32:26Z
+  last_stamp: 2026-10-16T13:53:02Z
   sessions: []
 ---
 
@@ -60,11 +60,14 @@ Make `npx wikeeper init` produce a safe, idempotent install that every supported
 | `STORY-002-02` | Agent detection and target files | standard | M2 | y | med |
 | `STORY-002-03` | Install skills and sub-agent definitions | standard | M2 | y | med |
 | `STORY-002-05` | `wikeeper hook guard` command | standard | M2 | y | med |
-| `STORY-001-05` | `wikeeper update` | standard | M3 | y | low |
-| `STORY-001-06` | `wikeeper remove` and `--purge` | standard | M3 | y | med |
-| `STORY-001-07` | `wikeeper doctor` and setup state | standard | M3 | y | low |
+| `STORY-001-05` | `wikeeper update` | standard | M3 | n | low |
+| `STORY-001-06` | `wikeeper remove` and `--purge` | standard | M3 | n | med |
+| `STORY-001-07` | `wikeeper doctor` and setup state | standard | M3 | n | low |
 | `STORY-002-04` | Integration wiring and doctor checks | standard | M4 | n | med |
 | `STORY-002-06` | `--enforce` — hooks and permission rules in agent settings | standard | M4 | n | med |
+| `BUG-001` | `.gitignore` without a final newline gains one after `init` → `remove` (walkthrough `UR:bug`) | standard | M5 | y | low |
+| `BUG-002` | `remove` leaves `.claude/settings.json.bak` behind after a permission-mode change (walkthrough `UR:bug`) | standard | M5 | y | low |
+| `CR-001` | `ai` mode allows only ingest commands (walkthrough `CR:approach-change`) | standard | M5 | n | low |
 
 Milestones follow the dependency chain: M1 has no predecessors; M2 needs M1 (`init` needs config, manifest and CLI core); M3 needs `init`; M4 needs every lifecycle command plus 002-01…03 and 002-05, and 002-06 follows 002-04.
 
@@ -72,20 +75,146 @@ Milestones follow the dependency chain: M1 has no predecessors; M2 needs M1 (`in
 
 _Written by the Architect during Sprint Design Review, before Gate 2._
 
+Wave plan: `.cleargate/sprint-runs/SPRINT-01/plans/waves.json` (schema_version 2).
+
 ### 2.1 Phase Plan
-_Pending Sprint Design Review._
+
+N = 13: reader/synth fan-out, contract-first. Contract branches are `contract/S-01-<slug>`; a story that needs code not yet written is cut from a contract instead of `sprint/S-01`.
+
+- **Build set:** all 13 stories build in parallel once their base contract exists. None refused, none empty, no DB writes.
+- **Serial merges:** the six `parallel_eligible: n` stories (001-04, 001-05, 001-06, 001-07, 002-04, 002-06) each merge in their own trailing wave, in dependency order.
+
+**Contracts.** Stacked; one Developer skeleton dispatch writes C1–C8 in order, one commit and one branch per contract.
+
+| Contract | Branch | Base | Owner | Frozen exports | Consumers |
+|---|---|---|---|---|---|
+| C1 | `contract/S-01-cli-core` | `sprint/S-01` | 001-01 | `emitResult`, `emitError`, `ExitCode`, `WikeeperError`, `createProgram(commands = defaultCommands)`, `defaultCommands: Array<{ register(program: Command): void }> = []` | 001-04/05/06/07, 002-02/04/05 |
+| C2 | `contract/S-01-config` | C1 | 001-02 | `loadConfig`, `setConfigValue`, `findRepoRoot`, `resolvePaths`, `toPosixRelative` | 001-04/07, 002-02/03/05/06 |
+| C3 | `contract/S-01-manifest` | C2 | 001-03 | `findPackageRoot`, `templatesDir`, `listTemplateFiles`, `copyTemplate`, `writeManifest`, `readManifest`, `diffManifest`, `sha256File` | 001-04/05/06/07, 002-03/06 |
+| C4 | `contract/S-01-init` | C3 | 001-04 | `registerIntegration({ name, init?, update?, remove?, doctor? })`, `runIntegrations(phase, { root, paths, config, options })`, `applyManagedBlock(text, entries)`, `GITIGNORE_BLOCK_START = '# >>> wikeeper >>>'`, `GITIGNORE_BLOCK_END = '# <<< wikeeper <<<'` | 001-05/06/07, 002-04 |
+| C5 | `contract/S-01-inject` | C4 | 002-01 | `injectBlock`, `stripBlock`, `injectIntoFile`, `stripFromFile` | 002-04 |
+| C6 | `contract/S-01-detect` | C5 | 002-02 | `detectAgentFiles`, `resolveTargets`, `resolveAgents`, `AGENT_FILE_READERS` | 002-04 |
+| C7 | `contract/S-01-skills` | C6 | 002-03 | `mapModel`, `installSkills`, `installSubagents` | 002-04 |
+| C8 | `contract/S-01-agents-index` | C7 | 002-04 | `agentsIntegration = { init, update, remove, doctor }` registered via `registerIntegration({ name: 'agents', ...agentsIntegration })`; empty `src/agents/doctor-checks.ts` | 002-06 |
+
+Skeleton rules:
+- A skeleton commit touches only the owner's frozen-export files — no tests, templates, `package.json` or lockfile.
+- Bodies throw `contract stub Cn`, except: C1 `createProgram` keeps a working register loop (`src/cli.ts` and `test/program.test.ts` call it); C4 `registerIntegration` / `runIntegrations` are no-ops (they run at module load and in every lifecycle command).
+- Owners keep frozen names and types and replace only the bodies.
+
+| Story | Base | Upstream | Layer | Wave |
+|---|---|---|---|---|
+| 001-01 | C1 (own) | — | 0 | wave1 |
+| 001-02 | `sprint/S-01` | — | 0 | wave1 |
+| 001-03 | `sprint/S-01` | — | 0 | wave1 |
+| 002-01 | `sprint/S-01` | — | 0 | wave1 |
+| 002-02 | C2 | 001-01, 001-02 | 1 | wave2 |
+| 002-03 | C3 | 001-01, 001-02, 001-03 | 1 | wave2 |
+| 002-05 | C2 | 001-01, 001-02 | 1 | wave2 |
+| 001-04 | C4 (own) | 001-01, 001-02, 001-03 | 1 | wave3 |
+| 001-05 | C4 | 001-01…001-04 | 2 | wave4 |
+| 001-06 | C4 | 001-01…001-04 | 2 | wave5 |
+| 001-07 | C4 | 001-01…001-04 | 2 | wave6 |
+| 002-04 | C8 (own) | 001-01…001-07, 002-01, 002-02, 002-03 | 3 | wave7 |
+| 002-06 | C8 | 001-01…001-04, 002-01…002-05 | 4 | wave8 |
+
+- **Upstream** = unmet dependencies ∪ earlier story in any real collision ∪ owner of every contract in the base stack.
+- **Integration per story:** merge `sprint/S-01` into `story/<ID>`; on a skeleton-file conflict the owner's file wins and the consumer re-applies its lines; `npm ci` (`yaml` arrives with 001-02); full verification, then QA-Verify on the merged tree.
+- Serial-dispatch hosts ignore contracts/bases and run the waves in order with upstream merged.
 
 ### 2.2 Merge Ordering (Shared-File Surface Analysis)
-_Pending Sprint Design Review._
+
+| Shared File | Stories | Order | Rationale |
+|---|---|---|---|
+| `src/program.ts` | 001-01, 002-05, 001-04, 001-05, 001-06, 001-07, 002-04 | 001-01 first, then wave order | 001-01 creates the `defaultCommands` registry and import region; every other story inserts only its own registration / `import './agents/index.js'` line, re-applied at integration. |
+| `src/core/gitignore.ts` | 001-04, 001-06 | 001-04 → 001-06 | 001-06 adds `stripManagedBlock` to the file 001-04 creates and must use the same markers; 001-06 is cut from C4. |
+| `src/agents/index.ts`, `src/agents/doctor-checks.ts` | 002-04, 002-06 | 002-04 → 002-06 | 002-06 wires `applyEnforce`/`removeEnforce` into 002-04's handlers and adds enforce checks; 002-06 is cut from C8. |
+| `./package.json` | 001-02, 001-03 | any (wave1) | Not a real collision: 001-02 adds `yaml` to `dependencies`; 001-03 adds `"templates"` to `files`. |
+| `./package-lock.json` | 001-02 | — | Only writer; worktrees use `npm ci`. |
+| Contract skeleton files | owner + consumers | owner first | Owner's file wins at integration; consumers edit owner files only in the three ordered-edit rows above. |
 
 ### 2.3 Shared-Surface Warnings
-_Pending Sprint Design Review._
+
+- **`src/program.ts` (001-01 vs every registration story).** Keep the `defaultCommands` array and `register(program: Command): void` shape exactly as frozen in C1; a rename forces rework in six stories.
+- **`src/core/gitignore.ts` (001-04 vs 001-06).** `stripManagedBlock` removes exactly what `applyManagedBlock` writes; both use the exported `GITIGNORE_BLOCK_START/END` constants (added to 001-04's exports by the SDR), never literal marker strings.
+- **`src/agents/index.ts`, `doctor-checks.ts` (002-04 vs 002-06).** 002-06's calls into `init`/`remove`/`doctor` are re-applied on top of 002-04's real bodies at integration.
+- **`registerIntegration` signature.** STORY-002-04 §3.2 originally passed `(name, object)`; corrected to the frozen single-object form `registerIntegration({ name: 'agents', ...agentsIntegration })`.
+- **Stub behaviour.** Consumer tests that exercise a stubbed owner fail inside the build worktree until integration; QA-Verify runs on the merged tree. A red test broken only by a stub is re-scoped by QA-Red, not the Developer.
+- **002-05 ↔ 002-06 command coupling (no shared file).** The hook entry written by `guard-command.ts` must match the `wikeeper hook guard` arguments 002-05 parses; checked at 002-06 integration.
+- **Windows / line endings.** Branches cut before 001-01 merges lack `.gitattributes` and the Windows runner; re-verify at integration.
+- **Unreachable-surface flags (BUG-046).** All 13 digests listed unreachable paths; git confirms each is untracked, not ignored, not in a nested repo and absent on disk — net-new files declared in prose in §3.1 "New Files Needed" (which `collision_surface.sh` does not parse), or created earlier in the sprint (001-06 cut from C4, 002-06 cut from C8). No story refused.
+- **§1 drift fixed.** 001-05/06/07 `Parallel?` corrected to `n` to match story frontmatter.
 
 ### 2.4 Lane Audit
-_Pending Sprint Design Review._
+
+| Story | Lane | Rationale (≤80 chars) |
+|---|---|---|
+| — | — | No fast-lane stories; all 13 are `standard`. |
 
 ### 2.5 ADR-Conflict Flags
-_Pending Sprint Design Review._
+
+- **None against locked decisions** (`architecture.md` D-01…D-33): 002-01/002-04 follow D-11 (existing blocks never modified); 002-02 follows D-12/D-32 (creates `AGENTS.md`, never `CLAUDE.md`); 002-05 follows D-33 (guard fails open); 002-06 follows D-30 (`--enforce` opt-in, default no).
+- **Proposed sections** (§4.1 ownership matrix, §6.3, §6.5, §6.6, §11) are implemented without departure.
+- **Flashcards:** only `#cli #npm` publish cards — relevant to the `0.1.0` release step, not to any story.
+- **In-sprint:** one contract conflict (`registerIntegration` signature), settled by frozen C4.
+
+### Wave Assignment
+
+| Wave | Stories | Parallel? | Rationale |
+|---|---|---|---|
+| wave1 | STORY-001-01, STORY-001-02, STORY-001-03, STORY-002-01 | Yes | Layer 0; no upstream; `package.json` edits on separate keys. |
+| wave2 | STORY-002-02, STORY-002-03, STORY-002-05 | Yes | Layer 1; built from C2/C3; no collision among them. |
+| wave3 | STORY-001-04 | No | `parallel_eligible: n`; built from C4. |
+| wave4 | STORY-001-05 | No | `parallel_eligible: n`; upstream 001-04. |
+| wave5 | STORY-001-06 | No | Ordered edit on `gitignore.ts` after 001-04. |
+| wave6 | STORY-001-07 | No | `parallel_eligible: n`; upstream 001-04. |
+| wave7 | STORY-002-04 | No | Upstream 001-04…001-07, 002-01…002-03; built from C8. |
+| wave8 | STORY-002-06 | No | Ordered edit on `agents/index.ts`, `doctor-checks.ts` after 002-04. |
+
+
+## 4. Execution Log
+
+- 2026-10-16 · Preflight: 5/5 checks pass; devops subagent reachable. Sprint branch `sprint/S-01` cut; state initialised; Goal Acceptance Check confirmed by the human.
+- 2026-10-16 · SDR: BUG-046 unreachable-surface refusal not applied — every flagged path verified net-new (untracked, not ignored, absent); `collision_surface.sh` does not parse prose "New Files Needed" cells.
+- 2026-10-16 · Config: `gates.typecheck/test/precommit` added to `.cleargate/config.yml` (gate commands were unconfigured and reported a silent pass).
+- 2026-10-16 · M1 plan: additive exports accepted (`runCli`, `getOutputContext`, `CommandModule`, `CliIO`, `OutputContext`, `DEFAULT_CONFIG`, `ResolvedPaths.lockFile`, `injectIntoFile().created`); C1 skeleton ships working minimal output/CLI bodies instead of throwing, so command stories' tests run before 001-01 merges.
+- 2026-10-16 · CR:spec-clarification (hook research, `plans/hook-protocols-research.md`): STORY-002-03 (Antigravity `mainAgent: false`), STORY-002-05 (NotebookEdit; Codex `tool_input.command`; Antigravity payload/`TargetFile`/third write tool/allow JSON; shell-applied Codex patches = accepted gap), STORY-002-06 (matchers, Antigravity hooks.json shape, extra rule forms, R5 command form, `antigravity-trust` note). No new scope.
+- 2026-10-16 · Wave 1 merged: STORY-001-01 (0178008), STORY-001-02 (382f0cc, Architect post-flight PASS on planned `yaml` dep), STORY-002-01 (328e3ec), STORY-001-03 (4f87a42). 132 tests green.
+- 2026-10-16 · STORY-001-03 Developer BLOCKED (spec-contradiction): a red test wrote `b.md` and `B.md` in one dir (impossible on case-insensitive FS). Routed back to QA-Red (red-test fix 0b8106f); no counter incremented.
+- 2026-10-16 · FLASHCARD-REJECT 2026-10-16 — two STORY-001-03 cards on case-differing filenames — reason: duplicate of the active #test-harness #windows #macos card.
+- 2026-10-16 · Orchestration deviations: sprint runtime files, agent reports and pre-gate scan output gitignored (readiness check needs a clean tree; reports committed with -f at close); orchestrator housekeeping (flashcards, sprint-context, this log, plans) committed as `chore(sprint)` commits on sprint/S-01; vitest in the main checkout runs with `--dir test` (`.worktrees/` holds other stories' tests).
+- 2026-10-16 · Contract restack: C1–C3 and C5 obsolete after wave 1; C2b `contract/S-01-agent-names` (complete `src/agents/agent-names.ts`, owner 002-02) → C4 → C6 → C7 → C8 stacked on sprint/S-01 (recorded in waves.json `restack_2026_10_16`).
+- 2026-10-16 · M2 plan decisions accepted: agent-names module; `init` rolls back what it created when a handler exits 5/1 (002-02 R6 / 002-03 R6 "nothing is created"); Goal Acceptance Check item 1 runs `init --json --agents claude,codex,antigravity`; init exits 1 on invalid config; `.agents/skills` installed whenever any agent is configured (R1/R2).
+- 2026-10-16 · Wave 2 segments: STORY-002-02, 002-03, 002-05, 001-04 GREEN (0 bounces); STORY-001-05, 001-06, 001-07 BUILT (build-only against C4 stubs). Exports of 002-02/002-03 checked against C6/C7 skeletons: names and types identical.
+- 2026-10-16 · Wave 2 merged: STORY-002-02 (c117136), STORY-002-03 (1434121), STORY-002-05 (4acaf4b), STORY-001-04 (aa8af60; src/program.ts "keep both lines" conflict resolved by DevOps under orchestrator authorisation per M1 risk 9). 244 tests green.
+- 2026-10-16 · FLASHCARD-REJECT 2026-10-16 — four wave-2 cards (dynamic import()/load() helper ×2, frozen-constant red test passes at baseline, `as never` on CliIO) — reason: duplicates of active #qa #test-harness and #qa #contract cards, or a local workaround rather than a lesson.
+- 2026-10-16 · M4 plan decisions accepted: (1) C8 is cut from sprint/S-01 after STORY-001-07 merges and STORY-002-06 is cut from sprint/S-01 after STORY-002-04 merges (M4 serial; supersedes the C7→C8 stack in waves.json `restack_2026_10_16`); (2) guard command order follows the 2026-10-16 spec clarification — bare `wikeeper` when on PATH (ignoring `node_modules/.bin` entries npx injects), else the repo-relative `node_modules/.bin` form, else pinned `npx -y wikeeper@<version>`; (3) STORY-002-04 adds `test/e2e/goal.test.ts`, which runs Goal Acceptance Check items 1–4 against the packed tarball (item 5 = the same test in the 3-OS CI matrix); (4) not built this sprint: doctor suggesting a dev dependency when only npx is available (002-06 §1.5 mitigation, not an R-item).
+- 2026-10-16 · STORY-001-05/06/07 integration: an `integrate` mode was added to the wave workflow (merge sprint/S-01 into the story branch, re-run the full suite, fix own code only, then QA-Verify and post-flight as usual). Raw U+FEFF characters found in src/agents/inject.ts and src/core/config.ts (wave 1) and src/core/gitignore.ts (001-04) — queued for D.5 consolidation (escape as \uFEFF).
+- 2026-10-16 · Integration round (w3i): STORY-001-05 GREEN (4b41691), STORY-001-06 GREEN after 1 arch bounce (18d1107 — Architect post-flight R1: private `isInside` copy replaced by the shared export from hook-protocols.ts), STORY-001-07 GREEN (1625251, Architect post-flight PASS; the red-modified flag was a scanner false positive). Red tests verified byte-identical to their QA-Red commits.
+- 2026-10-16 · Known limitation (STORY-001-06 probe): `init` → `remove` on a `.gitignore` with user lines and no final newline leaves one added trailing newline (applyManagedBlock adds a separator; strip cannot tell). Goal fixtures are unaffected; surfaced to the human at walkthrough as a follow-up bug candidate.
+- 2026-10-16 · Queued for D.5 consolidation: STORY-001-05 update.ts keeps a private `isInside` (same rule as 001-06 R1); one shared package-version reader instead of private copies in init/update/doctor; raw U+FEFF characters → \uFEFF escapes.
+- 2026-10-16 · FLASHCARD-REJECT 2026-10-16 — duplicate scanner false-positive card (001-07) and the readPackageVersion card (a refactor task, moved to the D.5 list).
+- 2026-10-16 · EPIC-001 merged: STORY-001-05 (bd9c5f1), STORY-001-06 (afa2416), STORY-001-07 (728d1ac); src/program.ts "keep both lines" conflicts resolved by DevOps under orchestrator authorisation. 294 tests green; `--help` lists init, update, remove, doctor, setup, hook. Next: STORY-002-04 (wave 7) cut from sprint/S-01.
+- 2026-10-16 · STORY-002-04 GREEN (65f333b, 0 bounces; 338 tests incl. test/e2e/goal.test.ts — Goal Acceptance Check items 1–4 from the packed tarball on the 3 fixtures). Accepted plan deviation: the agents integration registers via `ensureAgentsIntegration()` called by `runCli` for the default program (duplicate-safe), not as an import-time side effect of src/agents/index.ts — two immutable red tests conflict with import-time registration; start-up behaviour per R1 is unchanged. C8 exports and the five INSERTION POINT anchors are present verbatim.
+- 2026-10-16 · FLASHCARD-REJECT 2026-10-16 — 002-04 card on re-registering in beforeEach — reason: superseded by the runCli-registration card.
+- 2026-10-16 · STORY-002-04 merged (6750c4a). 338 tests green; smoke: `init --json --agents claude,codex,antigravity` and `doctor --json` exit 0 in a fresh repo. Next: STORY-002-06 (wave 8) cut from sprint/S-01.
+- 2026-10-16 · STORY-002-06 first pass GREEN (c26def7, 0 bounces; 372 tests). Merge held: the human supplied an external review with 6 findings. Verified against c26def7: (1) empty-container pruning exists but drops containers that pre-existed in the original → no byte restore; (2) confirmed — config.yml, skills and WIKI blocks are written before the settings parse, and init's rollback covers core files only; (3) agents already come from state.agents, in-memory ctx.config not updated; (4) already sha256:null (regression test added); (5) implemented, untested; (6) confirmed, plus 3 raw U+FEFF in 002-06's own files. Accepted as CR:spec-clarification (story §1.2 "Review clarifications"), goal-aligned ("manage it safely"); routed as a Developer rework round (QA-Red tests unchanged), then QA-Verify with the 6 items as required checks, then post-flight. Fix (2) adds an optional `preflight` hook to AgentsExtension and an agent-side rollback in src/agents/index.ts (beyond the five insertion points; authorised because M4 now runs serially). Remaining raw U+FEFF in config.ts, gitignore.ts, inject.ts, doctor-checks.ts, hook.ts → D.5.
+- 2026-10-16 · FLASHCARD-REJECT 2026-10-16 — three 002-06 cards (npx PATH, same-path upsert, .bak byte restore) — reason: duplicates of cards recorded from the M4 plan, or a design choice rather than a lesson.
+- 2026-10-16 · STORY-002-06 rework GREEN (5894e31; QA verified all 6 review items) and merged (533fdec). All 13 stories Done; 381 tests green. Smoke: `init --enforce` → `doctor` → `remove` on a fresh repo, all exit 0, no settings files left.
+- 2026-10-16 · Contract cleanup: `.worktrees/contracts` removed; contract/S-01-{agent-names,cli-core,init} deleted (merged); contract/S-01-{config,detect,manifest,skills} force-deleted — they held only placeholder skeleton commits superseded by the real implementations (export signatures were verified at integration).
+- 2026-10-16 · Goal Acceptance Check run on sprint/S-01 (533fdec): items 1–4 PASS — test/e2e/goal.test.ts in the suite, plus an independent orchestrator script against the packed tarball on the 3 fixtures (full §6.3 file set present, bytes outside the WIKI markers unchanged, no CLAUDE.md/GEMINI.md created, second init and update change 0 bytes, remove leaves pre-existing files byte-identical with only user-owned .wiki/ files kept per §4.1, doctor exit 0 then exit 1 with agent-block-missing). Item 5 (CI on Linux/macOS/Windows) pending: CI triggers only on push to main or a pull request; pushing needs the human's go-ahead.
+- 2026-10-16 · Walkthrough (Phase D) on sprint/S-01 @ 7e55d56: the human installed the packed build, created ~/Documents/Dev/formapass_management and ran `wikeeper init` (claude, --enforce). A Claude Code test agent followed an orchestrator brief (setup interview, dry-run ingest, tooling checks), driven by the orchestrator over cross-session messages at the human's request; permission-mode choices were confirmed by the human directly in that session. Result: setup completed; init/update idempotent; guard denied a page write and allowed other writes.
+- 2026-10-16 · UR:bug → BUG-001 (`.gitignore` without a final newline gains one after init→remove; breaks STORY-001-06 R2). UR:bug → BUG-002 (`remove` leaves a wikeeper-written `.claude/settings.json.bak` and `.claude/` after a permission-mode change + update; breaks STORY-002-06 R7 and Goal Acceptance Check item 3). Sprint→main merge blocked until both are resolved.
+- 2026-10-16 · CR:approach-change → CR-001 (`ai` mode auto-allows every wikeeper command incl. `remove --purge`; narrow to ingest commands). Per spec today; recommended for this sprint before 0.1.0, human decision pending.
+- 2026-10-16 · UR:review-feedback ×16 → CR-002 (CLI polish + scope notes for EPIC-001/002/003/005/006), proposed for SPRINT-02/03; deferral needs explicit human sign-off.
+- 2026-10-16 · Human decisions at SPRINT-02 planning: CR-001 lands in this sprint, before 0.1.0 (approved as recommended: `ai` allows only `wikeeper ingest …`). CR-002 approved for SPRINT-02/03 (block cap 14 lines; `.bak` paths in the managed .gitignore block; me.md via the block line plus a SETUP.md check).
+- 2026-10-17 · Human decisions at the close request: BUG-001 (Option A, fix in SPRINT-01) and BUG-002 (both fixes, fix in SPRINT-01) approved as recommended; both 🟢. BUG-001, BUG-002 and CR-001 added to state.json (genesis events, Ready to Bounce) as milestone M5: wave A = BUG-001 + BUG-002 (disjoint files), wave B = CR-001 (shares `test/agents/enforce.test.ts` with BUG-002). Push of sprint/S-01 and a pull request against main approved, for Goal Acceptance Check item 5 (CI on Linux/macOS/Windows).
+- 2026-10-17 · M5 plan (Architect, plans/M5.md): wave order confirmed (only shared file `test/agents/enforce.test.ts`, append-only). CR:spec-clarification CR-001 — red-test authorisation corrected to lines 233–234, 252, 513–514, 532–533; architecture.md citation corrected to §6.6 line 271. BUG-001 gate reset recorded: QA-Red may rewrite `test/gitignore.red.node.test.ts` lines 13 and 16, which assert the behaviour Option A replaces (orchestrator, from the human's Option A decision; reported to the human). BUG-002 fix extended to `applyEnforce`'s deletion branch, which untracked a recorded `.bak` without deleting it (inside BUG-002's surface; reported). CR-001 stays 🟡 with the downstream-revert box unchecked, as the human accepted on 2026-10-16. Two flashcards recorded (#qa #red-test, #enforce #test-harness).
+- 2026-10-17 · M5 wave A GREEN (0 bounces): BUG-001 (red 3dc0710, dev 6472b05, 393 tests), BUG-002 (red c99fe54, dev df27a51, 392 tests); clean pre-gate scans, no Architect post-flight needed. Flashcards: 1 approved (#qa #remove); FLASHCARD-REJECT 2026-10-17 — the BUG-001 #qa #red-test card and the BUG-002 #enforce #test-harness card — reason: duplicates of the M5-plan cards recorded at planning.
+- 2026-10-17 · M5 wave A merged: BUG-001 (fd1b0d3), BUG-002 (db72fc9); full suite on sprint/S-01 404 passed (39 files; the DevOps count of 796 included the BUG-002 worktree copy). Wave B GREEN (0 bounces): CR-001 (red 7c64715 — authorised lines only: 233–234, 252, 513–514, 532–533; dev b1d8783, 414 tests). Flashcards: 2 approved (#qa #test-harness, #test-harness #worktrees); FLASHCARD-REJECT 2026-10-17 — CR-001 #qa #red-test card — reason: duplicate of the M5-plan card.
+- 2026-10-17 · CR-001 merged (ab2fc10); all 16 items Done. D.5 consolidation 13b9f3c (code-simplifier): `isInside` and new `fromPosixRelative` in src/core/paths.ts, one `readPackageVersion` (src/core/templates.ts), `compareCodeUnits` (new src/core/compare.ts, replaces 8 copies), 7 raw U+FEFF → `\uFEFF`; no red test or fixture touched. QA consolidation PASS (typecheck, 414 tests in 40 files, build). Left for a later pass: duplicate `exists`, read-text-or-null, strict UTF-8 decoding, coded-error helpers, error-message one-liners. sprint-context reuse table updated.
+- 2026-10-17 · PR #1 CI (first Windows run of SPRINT-01 code): Linux and macOS green; windows-latest Node 22 and 24 red — 2 Linux-simulating guard-form red units unrunnable on a win32 host (drive-letter colon), `pathWith(true)` wrote no binary on win32, and the goal e2e test hit the 5 s default timeout. Routed as `bug` → STORY-002-06 re-opened (qa_bounces=1). QA-Red re-scope 981eaa5 (two cases `it.skipIf(IS_WIN)`; the win32 PATHEXT case covers that host). Dev f3e9829 (win32 `wikeeper.cmd` + PATHEXT in the helper; goal test timeouts 120 s, assertions unchanged, `test/e2e/goal.test.ts` self-amended into STORY-002-06 §3.1; `path.posix` for injected non-win32 platforms). QA PASS (414). Flashcard approved (#test-harness #windows). SPRINT-01_REPORT.md written by the Reporter (verdict partial while item 5 was pending).
+- 2026-10-17 · Windows fix merged (ef9f523); PR #1 CI re-run 38963866637 green on ubuntu, macos and windows × Node 22/24. Goal Acceptance Check item 5 PASS — all five items met. Ready for Gate 4.
 
 ## Risks & Dependencies
 

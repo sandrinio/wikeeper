@@ -11,6 +11,7 @@ context_source: EPIC-002 (approved 2026-10-16) · architecture.md v0.4 §6 (agen
 actor: Developer installing wikeeper in a repository
 complexity_label: L2
 parallel_eligible: y
+dep_predecessors: ["STORY-001-02", "STORY-001-03"]
 expected_bounce_exposure: med
 lane: standard
 db_write_set: []
@@ -61,6 +62,7 @@ As a developer installing wikeeper, I want the wiki skills and the extractor/wri
 - **R6 — Ownership:** every written file (or symlink) is recorded in the EPIC-001 manifest with `kind: skill | subagent`, the owning agent and sha256 of the written content. A file already at a target path that is not in the manifest is never overwritten: the install fails with exit code 1 listing the conflicts, and nothing is written.
 - **R7 — Idempotent:** re-running with the same config changes no bytes.
 - **R8 — Placeholders:** create the placeholder templates listed in §3.1 (valid frontmatter / TOML with `{{model}}`); EPIC-006 writes the real text.
+- **Spec clarification (2026-10-16, from `.cleargate/sprint-runs/SPRINT-01/plans/hook-protocols-research.md`):** Antigravity sub-agent files also set `mainAgent: false`, so they do not appear as selectable primary agents.
 
 ### 1.3 Out of Scope
 Calling the installers from `init` / `update` / `remove` (STORY-002-04), skill and prompt wording (EPIC-006), Gemini CLI skill paths beyond `.agents/skills/`.

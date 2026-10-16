@@ -92,6 +92,7 @@ The wiki only works if the user's agent knows it exists and how to use it. Each 
 - [ ] `wikeeper hook guard`: reads the agent's tool-call JSON on stdin and answers allow/deny in that agent's hook protocol.
 - [ ] Integration doctor checks: block present / duplicated / markers missing, Claude with only `AGENTS.md` (needs v2.1.277+), skill links intact, Codex trust reminder when enforce is on.
 - [ ] Plug into `init`, `remove` and `doctor` through the EPIC-001 hook point.
+- [ ] CR-002 scope addition (SPRINT-02): A2 `claude-agents-md-only` is `info` and the summary pluralises; A5 `doctor` reports setup state, permission mode, enforce, hooks and rules, `.bak` files; A6 settings files and backups named in `init`/`update` reports; A7 `.bak` files gitignored ([[CR-002]]).
 
 **❌ OUT-OF-SCOPE (Do NOT Build This)**
 - Skill, sub-agent and pointer-block wording (EPIC-006).

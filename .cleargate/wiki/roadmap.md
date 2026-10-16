@@ -16,7 +16,9 @@ _No sprints currently in flight._
 Sprints not yet started (`activated_at` not set).
 
 
-- [[SPRINT-01]] — status: Draft
+- [[SPRINT-01]] — status: Active
+
+- [[SPRINT-02]] — status: Draft
 
 
 

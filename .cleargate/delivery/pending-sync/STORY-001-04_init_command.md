@@ -11,6 +11,7 @@ context_source: EPIC-001 (approved 2026-10-16) · architecture.md v0.4 · verifi
 actor: Developer installing wikeeper in a repo
 complexity_label: L3
 parallel_eligible: n
+dep_predecessors: ["STORY-001-01", "STORY-001-02", "STORY-001-03"]
 expected_bounce_exposure: med
 lane: standard
 db_write_set: []
@@ -167,12 +168,12 @@ Feature: wikeeper init
 
 ## Task Breakdown
 
-- [ ] Add `templates/kb_instructions.management.md` and `templates/index.md` placeholders.
-- [ ] Implement `src/core/integrations.ts` (register, run, reset-for-tests).
-- [ ] Implement `applyManagedBlock` in `src/core/gitignore.ts` with unit tests (create, replace, preserve).
-- [ ] Implement `src/commands/init.ts` steps 1–8 and register it in `src/program.ts`.
-- [ ] Write the five Gherkin scenarios as tests in `test/init.test.ts` using temp repositories.
-- [ ] Run typecheck, tests and build; run the manual verification steps.
+- [x] Add `templates/kb_instructions.management.md` and `templates/index.md` placeholders.
+- [x] Implement `src/core/integrations.ts` (register, run, reset-for-tests).
+- [x] Implement `applyManagedBlock` in `src/core/gitignore.ts` with unit tests (create, replace, preserve).
+- [x] Implement `src/commands/init.ts` steps 1–8 and register it in `src/program.ts`.
+- [x] Write the five Gherkin scenarios as tests in `test/init.test.ts` using temp repositories.
+- [x] Run typecheck, tests and build; run the manual verification steps.
 
 ## 4. Quality Gates
 

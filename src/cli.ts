@@ -1,4 +1,4 @@
 #!/usr/bin/env node
-import { createProgram } from "./program.js";
+import { runCli } from "./program.js";
 
-await createProgram().parseAsync(process.argv);
+process.exitCode = await runCli(process.argv.slice(2));

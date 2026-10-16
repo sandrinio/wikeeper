@@ -98,6 +98,7 @@ Every other capability (agent wiring, ingest, search, lint) needs a working inst
 - [ ] `doctor`: Node version, config validity, manifest drift, and the integration checks provided by EPIC-002.
 - [ ] `setup --done`: stamps `setup_completed_at` in config.
 - [ ] CI matrix adds macOS and Windows runners.
+- [ ] CR-002 scope addition (SPRINT-02): A1 `init` asks every question before writing; A3 `--json` in every subcommand's help; A4 `remove --purge` help names what is deleted ([[CR-002]]).
 
 **❌ OUT-OF-SCOPE (Do NOT Build This)**
 - Agent file injection, skills, sub-agent definitions and `--enforce` (EPIC-002).
