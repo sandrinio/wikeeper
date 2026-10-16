@@ -28,7 +28,7 @@ export const CLAUDE_ENFORCE: AgentEnforceSpec = {
       },
     ];
     if (permission === "ai") {
-      for (const rule of ["Bash(npx wikeeper *)", "Bash(wikeeper *)"]) {
+      for (const rule of ["Bash(npx wikeeper ingest *)", "Bash(wikeeper ingest *)"]) {
         items.push({ kind: "rule", agent: "claude", identity: `permissions.allow[${rule}]`, value: rule });
       }
     } else if (permission === "ask") {

@@ -5,6 +5,8 @@ import path from "node:path";
 import { Readable, Writable } from "node:stream";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AGENTS_EXTENSIONS, agentsIntegration } from "../../src/agents/index.js";
+import { CLAUDE_ENFORCE } from "../../src/agents/enforce/claude.js";
+import { CODEX_ENFORCE } from "../../src/agents/enforce/codex.js";
 import { runInit } from "../../src/commands/init.js";
 import { runUpdate } from "../../src/commands/update.js";
 import { registerIntegration, resetIntegrations } from "../../src/core/integrations.js";
@@ -232,5 +234,23 @@ describe("BUG-002: no backup for files wikeeper created; recorded backups die wi
     await writeFile(path.join(root, ".claude", "settings.json.bak"), "mine\n");
     expect((await drive(root, ["remove", "--json"])).code).toBe(0);
     expect(await read(root, ".claude/settings.json.bak")).toBe("mine\n");
+  });
+});
+
+describe("CR-001 ai mode allows only ingest commands", () => {
+  it("CLAUDE_ENFORCE ai rules are the ingest-only allow pair", () => {
+    const rules = CLAUDE_ENFORCE.items("CMD", "ai").filter((i) => i.kind === "rule");
+    expect(rules.map((i) => i.value)).toEqual(["Bash(npx wikeeper ingest *)", "Bash(wikeeper ingest *)"]);
+    expect(rules.map((i) => i.identity)).toEqual([
+      "permissions.allow[Bash(npx wikeeper ingest *)]",
+      "permissions.allow[Bash(wikeeper ingest *)]",
+    ]);
+  });
+
+  it("Codex ai rules are the ingest-only prefix pair, npx first", () => {
+    expect(CODEX_ENFORCE[1].items("CMD", "ai").map((i) => i.value)).toEqual([
+      'prefix_rule(pattern=["npx","wikeeper","ingest"], decision="allow")',
+      'prefix_rule(pattern=["wikeeper","ingest"], decision="allow")',
+    ]);
   });
 });
