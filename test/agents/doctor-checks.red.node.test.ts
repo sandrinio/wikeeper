@@ -115,7 +115,7 @@ describe("STORY-002-04 doctor-checks (red)", () => {
     const m = await load();
     const root = await tmp();
     const fired = await m.checkClaudeAgentsMdOnly(input(root));
-    expect(fired).toEqual([expect.objectContaining({ id: "claude-agents-md-only", severity: "warning", file: "AGENTS.md" })]);
+    expect(fired).toEqual([expect.objectContaining({ id: "claude-agents-md-only", severity: "info", file: "AGENTS.md" })]);
     expect(await m.checkClaudeAgentsMdOnly(input(root, { existing: ["AGENTS.md", "CLAUDE.md"] }))).toEqual([]);
     expect(await m.checkClaudeAgentsMdOnly(input(root, { agents: ["codex"] }))).toEqual([]);
   });

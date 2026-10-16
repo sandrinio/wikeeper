@@ -1,10 +1,11 @@
 import { constants as fsConstants } from "node:fs";
-import { copyFile, lstat, rename, rm, rmdir } from "node:fs/promises";
+import { copyFile, lstat, readFile, rename, rm, rmdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { Command } from "commander";
 import { compareCodeUnits } from "../core/compare.js";
 import { loadConfig } from "../core/config.js";
 import { ExitCode, WikeeperError } from "../core/exit-codes.js";
+import { applyManagedBlock, backupPaths, managedIgnoreEntries, stripManagedBlock } from "../core/gitignore.js";
 import { runIntegrations } from "../core/integrations.js";
 import type { IntegrationOptions } from "../core/integrations.js";
 import { readManifest, sha256File, writeManifest } from "../core/manifest.js";
@@ -188,7 +189,32 @@ export async function runUpdate(
   added.push(...report.created);
   replaced.push(...report.replaced);
   removed.push(...report.removed);
+  backedUp.push(...report.backed_up);
   warnings.push(...report.warnings);
+
+  // Keep the managed .gitignore block current; never recreate one that is missing or malformed.
+  const backups = backupPaths(manifest);
+  const giPath = path.join(root, ".gitignore");
+  let giText: string | null = null;
+  try {
+    giText = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(await readFile(giPath));
+  } catch {
+    giText = null;
+  }
+  if (giText !== null && stripManagedBlock(giText).status === "stripped") {
+    const ignore = managedIgnoreEntries(paths, config, backups);
+    const next = applyManagedBlock(giText, ignore.entries);
+    if (next !== giText) {
+      await writeFile(giPath, next);
+      replaced.push(".gitignore");
+    }
+  } else if (backups.length > 0) {
+    warnings.push(
+      `.gitignore has no well-formed wikeeper block, so these backups are not ignored: ${[...backups]
+        .sort(compareCodeUnits)
+        .join(", ")}; run wikeeper init to restore the block`,
+    );
+  }
 
   return {
     replaced: replaced.sort(compareCodeUnits),

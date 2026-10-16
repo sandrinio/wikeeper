@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "wikeeper facts file",
+  "description": "What `wikeeper ingest facts <id>` accepts: the facts an extractor read from one registered source. Unknown keys are errors at both levels.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "source_id",
+    "kind",
+    "rule_version",
+    "facts"
+  ],
+  "properties": {
+    "source_id": {
+      "type": "string",
+      "description": "The id `wikeeper ingest start` printed, e.g. src-2026-10-16-q4-status."
+    },
+    "kind": {
+      "type": "string",
+      "pattern": "^\\s*[A-Za-z0-9][A-Za-z0-9-]*(?:\\s*\\([vV][0-9]+\\))?\\s*$",
+      "description": "A source kind id as listed under ## Source kinds in .wiki/kb_instructions.md, e.g. meeting-notes."
+    },
+    "rule_version": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1,
+      "description": "The (vN) of the kind's rule in .wiki/kb_instructions.md; null when the kind has no rule."
+    },
+    "facts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/fact"
+      }
+    },
+    "new_entities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "\\S"
+      }
+    },
+    "uncovered": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "\\S"
+      }
+    }
+  },
+  "$defs": {
+    "fact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "entity",
+        "field",
+        "value",
+        "status",
+        "as_of",
+        "anchor",
+        "page",
+        "exists"
+      ],
+      "properties": {
+        "entity": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*:\\S(?:.*\\S)?$",
+          "description": "<type>:<name>, e.g. project:atlas."
+        },
+        "field": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "value": {
+          "type": [
+            "string",
+            "number",
+            "boolean"
+          ]
+        },
+        "status": {
+          "enum": [
+            "decided",
+            "tentative"
+          ]
+        },
+        "as_of": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "format": "date",
+          "description": "A real calendar date, YYYY-MM-DD."
+        },
+        "anchor": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "page": {
+          "type": "string",
+          "pattern": "^(?![/\\\\])(?!(?:.*\\/)?\\.\\.(?:\\/|$))[^\\\\]+\\.md$",
+          "description": "The page the fact goes to, relative to pages/, POSIX, ending in .md."
+        },
+        "exists": {
+          "type": "boolean",
+          "description": "Whether that page exists already."
+        }
+      }
+    }
+  }
+}
