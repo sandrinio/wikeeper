@@ -6,6 +6,12 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-17 · #cli #test-harness · The JSON error envelope puts `command` at top level, not in `error`; red tests read json.command.
+2026-10-17 · #paths #ingest · isInside is strict (a dir is not inside itself); a walk that skips the content dir must also test equality.
+2026-10-17 · #search #cache · minisearch 7.2 MiniSearch.loadJS(toJSON(), opts) restores identical scores; reloaded toJSON() key order differs.
+2026-10-17 · #cli #commander · `--type ""` reaches the action as ""; check `!== undefined`, never truthiness, or the empty-value error never fires.
+2026-10-17 · #ingest #plan · Apply the hidden-name skip only below the walked dir: the walkthrough's source dir sits under `.cleargate/`.
+2026-10-17 · #qa #red-test · A red test can pass a deps field the Developer adds later and still typecheck: `SearchDeps & { onRebuild: () => void }`.
 2026-10-17 · #qa #red-test · Re-scope immutable reds by content anchors, not plan line numbers; sort both sides for set equality.
 2026-10-17 · #test-harness #vitest · vitest 5 has no `bench` export; in *.bench.ts use the test-context bench(name, fn).run().
 2026-10-17 · #search #perf · Sequential loadPages on 500 pages costs ~160 ms; parallel readFile keeps search p95 under 500 ms under load.
