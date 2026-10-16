@@ -6,6 +6,12 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-17 · #templates #paths · listTemplateFiles("") returns "/agent-block.md" with a leading slash; strip it or list per top-level dir.
+2026-10-17 · #cli #plural · plural(n, "miss") prints "misss"; spell irregular plurals by hand (`n === 1 ? "miss" : "misses"`).
+2026-10-17 · #e2e #test-harness · Two e2e files building into the shared dist/ race in parallel vitest workers; tsc --outDir a temp stage.
+2026-10-17 · #ci #windows · CI runs only on PRs and main pushes; open the sprint→main draft PR early to see Windows before close.
+2026-10-17 · #templates #sections · Skills cite WIKI.md sections unqualified ("sections "A" and "B""); resolve to the last named protocol file.
+2026-10-17 · #contract #merge · A consumer can merge its owner's Developer commit before the owner merges; the later re-sync gives the same tree.
 2026-10-17 · #qa #red-test · runGuard's HookResponse.stdout is optional (claude allow() has none): red helpers read `res.stdout ?? ""`.
 2026-10-17 · #qa #red-test · writeLogEvent takes `permission` as a string ("ai"); the {mode, approved, …} object is source meta only.
 2026-10-17 · #qa #templates · parsePage takes (text, relPath), not (path, text); a swapped scratch check parses silently with no errors.
