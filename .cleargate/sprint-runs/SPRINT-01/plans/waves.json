@@ -295,7 +295,7 @@
         "STORY-001-04"
       ],
       "parallel": false,
-      "rationale": "parallel_eligible: n \u2014 fail-safe-serialized into its own trailing integration wave (integration layer 1); upstream 001-01, 001-02, 001-03; builds now from its own contract C4; src/program.ts ordered-edit collision with 001-01"
+      "rationale": "parallel_eligible: n — fail-safe-serialized into its own trailing integration wave (integration layer 1); upstream 001-01, 001-02, 001-03; builds now from its own contract C4; src/program.ts ordered-edit collision with 001-01"
     },
     {
       "wave": "wave4",
@@ -303,7 +303,7 @@
         "STORY-001-05"
       ],
       "parallel": false,
-      "rationale": "parallel_eligible: n \u2014 fail-safe-serialized into its own trailing integration wave (integration layer 2); upstream 001-04 (+ C1..C3 owners); builds now from C4; src/program.ts ordered-edit collision with 001-01"
+      "rationale": "parallel_eligible: n — fail-safe-serialized into its own trailing integration wave (integration layer 2); upstream 001-04 (+ C1..C3 owners); builds now from C4; src/program.ts ordered-edit collision with 001-01"
     },
     {
       "wave": "wave5",
@@ -311,7 +311,7 @@
         "STORY-001-06"
       ],
       "parallel": false,
-      "rationale": "parallel_eligible: n \u2014 fail-safe-serialized into its own trailing integration wave (integration layer 2); upstream 001-04 (+ C1..C3 owners); builds now from C4; ordered-edit collisions: src/core/gitignore.ts (created by 001-04, 001-06 adds stripManagedBlock) and src/program.ts (001-01)"
+      "rationale": "parallel_eligible: n — fail-safe-serialized into its own trailing integration wave (integration layer 2); upstream 001-04 (+ C1..C3 owners); builds now from C4; ordered-edit collisions: src/core/gitignore.ts (created by 001-04, 001-06 adds stripManagedBlock) and src/program.ts (001-01)"
     },
     {
       "wave": "wave6",
@@ -319,7 +319,7 @@
         "STORY-001-07"
       ],
       "parallel": false,
-      "rationale": "parallel_eligible: n \u2014 fail-safe-serialized into its own trailing integration wave (integration layer 2); upstream 001-04 (+ C1..C3 owners); builds now from C4; src/program.ts ordered-edit collision with 001-01"
+      "rationale": "parallel_eligible: n — fail-safe-serialized into its own trailing integration wave (integration layer 2); upstream 001-04 (+ C1..C3 owners); builds now from C4; src/program.ts ordered-edit collision with 001-01"
     },
     {
       "wave": "wave7",
@@ -327,7 +327,7 @@
         "STORY-002-04"
       ],
       "parallel": false,
-      "rationale": "parallel_eligible: n \u2014 fail-safe-serialized into its own trailing integration wave (integration layer 3); upstream 001-04..001-07 and 002-01..002-03 (+ C1..C3 owners); builds now from its own contract C8 (stack C1..C7); src/program.ts ordered-edit collision with 001-01"
+      "rationale": "parallel_eligible: n — fail-safe-serialized into its own trailing integration wave (integration layer 3); upstream 001-04..001-07 and 002-01..002-03 (+ C1..C3 owners); builds now from its own contract C8 (stack C1..C7); src/program.ts ordered-edit collision with 001-01"
     },
     {
       "wave": "wave8",
@@ -335,7 +335,7 @@
         "STORY-002-06"
       ],
       "parallel": false,
-      "rationale": "parallel_eligible: n \u2014 fail-safe-serialized into its own trailing integration wave (integration layer 4); upstream 002-04 and 002-05 (+ C1..C7 owners); builds now from C8; ordered-edit collision on src/agents/index.ts and src/agents/doctor-checks.ts (created by 002-04)"
+      "rationale": "parallel_eligible: n — fail-safe-serialized into its own trailing integration wave (integration layer 4); upstream 002-04 and 002-05 (+ C1..C7 owners); builds now from C8; ordered-edit collision on src/agents/index.ts and src/agents/doctor-checks.ts (created by 002-04)"
     }
   ],
   "lane_assignments": {
@@ -403,6 +403,16 @@
       "STORY-001-07": "contract/S-01-init",
       "STORY-002-04": "contract/S-01-agents-index",
       "STORY-002-06": "contract/S-01-agents-index"
+    }
+  },
+  "restack_m4_2026_10_16": {
+    "reason": "M4 plan open decision 1 accepted: M4 runs serially, so C8 has no parallel consumer and is dropped. STORY-002-04 creates src/agents/index.ts and src/agents/doctor-checks.ts with the exact C8 shapes from plans/M4.md (including the five INSERTION POINT anchors for STORY-002-06).",
+    "dropped_contracts": [
+      "C8"
+    ],
+    "story_bases": {
+      "STORY-002-04": "sprint/S-01 (cut after STORY-001-07 merges)",
+      "STORY-002-06": "sprint/S-01 (cut after STORY-002-04 merges)"
     }
   }
 }
