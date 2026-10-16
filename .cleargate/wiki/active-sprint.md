@@ -12,7 +12,9 @@ _No active sprint found._
 ## Planned Sprints
 
 
-- [[SPRINT-01]] — status: Draft
+- [[SPRINT-01]] — status: Active
+
+- [[SPRINT-02]] — status: Draft
 
 
 

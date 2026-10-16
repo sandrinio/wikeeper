@@ -74,3 +74,8 @@
   action: "create"
   target: "CR-002"
   path: ".cleargate/delivery/pending-sync/CR-002_sprint_01_walkthrough_feedback.md"
+- timestamp: "2026-10-16T17:10:29.030Z"
+  actor: "cleargate wiki ingest"
+  action: "create"
+  target: "SPRINT-02"
+  path: ".cleargate/delivery/pending-sync/SPRINT-02_ingest_and_instructions.md"
