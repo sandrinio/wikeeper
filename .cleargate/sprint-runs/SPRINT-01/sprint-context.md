@@ -109,3 +109,6 @@ Exported helpers and modules from already-merged stories in this sprint. The Arc
 ## Mid-Sprint Amendments
 
 _(populated by Architect on CR:scope-change or CR:approach-change; never rewrite, only append. Format: '<ISO-ts> · <ID> · <one-line note>')_
+2026-10-17T00:00:00Z · CR-001 · CR:approach-change from the walkthrough: `ai` mode auto-allows only `wikeeper ingest …` and `npx wikeeper ingest …`; every other wikeeper command goes through the harness's normal permission handling (human, 2026-10-16).
+2026-10-17T00:00:00Z · BUG-001 · walkthrough UR:bug: `applyManagedBlock` inserts a new block at the top of a non-empty file that has no final line break, so `remove` restores the exact bytes (STORY-001-06 R2).
+2026-10-17T00:00:00Z · BUG-002 · walkthrough UR:bug: no `.bak` for a settings file wikeeper created; `removeEnforce` deletes the recorded `.bak` when it deletes or restores the file (STORY-002-06 R7, Goal Acceptance Check item 3).

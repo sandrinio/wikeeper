@@ -17,7 +17,7 @@ updated_at_version: 8f1132e-dirty
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-16T13:52:33Z
+  last_gate_check: 2026-10-16T20:01:49Z
   transition: ready-for-execution
 epics:
   - EPIC-001
@@ -65,6 +65,9 @@ Make `npx wikeeper init` produce a safe, idempotent install that every supported
 | `STORY-001-07` | `wikeeper doctor` and setup state | standard | M3 | n | low |
 | `STORY-002-04` | Integration wiring and doctor checks | standard | M4 | n | med |
 | `STORY-002-06` | `--enforce` — hooks and permission rules in agent settings | standard | M4 | n | med |
+| `BUG-001` | `.gitignore` without a final newline gains one after `init` → `remove` (walkthrough `UR:bug`) | standard | M5 | y | low |
+| `BUG-002` | `remove` leaves `.claude/settings.json.bak` behind after a permission-mode change (walkthrough `UR:bug`) | standard | M5 | y | low |
+| `CR-001` | `ai` mode allows only ingest commands (walkthrough `CR:approach-change`) | standard | M5 | n | low |
 
 Milestones follow the dependency chain: M1 has no predecessors; M2 needs M1 (`init` needs config, manifest and CLI core); M3 needs `init`; M4 needs every lifecycle command plus 002-01…03 and 002-05, and 002-06 follows 002-04.
 
@@ -205,6 +208,8 @@ Skeleton rules:
 - 2026-10-16 · CR:approach-change → CR-001 (`ai` mode auto-allows every wikeeper command incl. `remove --purge`; narrow to ingest commands). Per spec today; recommended for this sprint before 0.1.0, human decision pending.
 - 2026-10-16 · UR:review-feedback ×16 → CR-002 (CLI polish + scope notes for EPIC-001/002/003/005/006), proposed for SPRINT-02/03; deferral needs explicit human sign-off.
 - 2026-10-16 · Human decisions at SPRINT-02 planning: CR-001 lands in this sprint, before 0.1.0 (approved as recommended: `ai` allows only `wikeeper ingest …`). CR-002 approved for SPRINT-02/03 (block cap 14 lines; `.bak` paths in the managed .gitignore block; me.md via the block line plus a SETUP.md check).
+- 2026-10-17 · Human decisions at the close request: BUG-001 (Option A, fix in SPRINT-01) and BUG-002 (both fixes, fix in SPRINT-01) approved as recommended; both 🟢. BUG-001, BUG-002 and CR-001 added to state.json (genesis events, Ready to Bounce) as milestone M5: wave A = BUG-001 + BUG-002 (disjoint files), wave B = CR-001 (shares `test/agents/enforce.test.ts` with BUG-002). Push of sprint/S-01 and a pull request against main approved, for Goal Acceptance Check item 5 (CI on Linux/macOS/Windows).
+- 2026-10-17 · M5 plan (Architect, plans/M5.md): wave order confirmed (only shared file `test/agents/enforce.test.ts`, append-only). CR:spec-clarification CR-001 — red-test authorisation corrected to lines 233–234, 252, 513–514, 532–533; architecture.md citation corrected to §6.6 line 271. BUG-001 gate reset recorded: QA-Red may rewrite `test/gitignore.red.node.test.ts` lines 13 and 16, which assert the behaviour Option A replaces (orchestrator, from the human's Option A decision; reported to the human). BUG-002 fix extended to `applyEnforce`'s deletion branch, which untracked a recorded `.bak` without deleting it (inside BUG-002's surface; reported). CR-001 stays 🟡 with the downstream-revert box unchecked, as the human accepted on 2026-10-16. Two flashcards recorded (#qa #red-test, #enforce #test-harness).
 
 ## Risks & Dependencies
 

@@ -6,7 +6,7 @@ sprint_cleargate_id: null
 carry_over: false
 status: Draft
 approved: true
-context_source: SPRINT-01 walkthrough (walkthrough-wiki test session, 2026-10-16) · architecture.md §7 line 247 (verified) · STORY-002-06 R2/R3 + §2.1 table (verified) · src/agents/enforce/{claude,codex}.ts (verified)
+context_source: SPRINT-01 walkthrough (walkthrough-wiki test session, 2026-10-16) · architecture.md §6.6 line 271 (verified) · STORY-002-06 R2/R3 + §2.1 table (verified) · src/agents/enforce/{claude,codex}.ts (verified)
 complexity_label: L1
 created_at: 2026-10-16T17:10:00Z
 updated_at: 2026-10-16T17:10:00Z
@@ -42,7 +42,7 @@ draft_tokens:
 ## 0.5 Open Questions
 
 - **Question:** Should this land in SPRINT-01 or SPRINT-02?
-- **Recommended:** SPRINT-01, before the 0.1.0 release. Today `ai` mode auto-approves `wikeeper remove --purge --confirm wikeeper`, so a prompt-injected source could delete the wiki and its raw sources without the harness asking. The change is about 4 lines of code plus tests, and the goal says `update`, `remove` and `doctor` must "manage it safely". This is a `CR:approach-change`, not a bug, because the current rule matches architecture.md §7.
+- **Recommended:** SPRINT-01, before the 0.1.0 release. Today `ai` mode auto-approves `wikeeper remove --purge --confirm wikeeper`, so a prompt-injected source could delete the wiki and its raw sources without the harness asking. The change is about 4 lines of code plus tests, and the goal says `update`, `remove` and `doctor` must "manage it safely". This is a `CR:approach-change`, not a bug, because the current rule matches architecture.md §6.6.
 - **Human decision:** SPRINT-01, before 0.1.0 (human, 2026-10-16, SPRINT-02 planning).
 
 - **Question:** What exactly should `ai` mode allow?
@@ -54,7 +54,7 @@ draft_tokens:
 ## 1. The Context Override (Old vs. New)
 
 **Obsolete Logic (What to Remove / Forget):**
-- architecture.md §7: "`ai` → allow `npx wikeeper *` without prompting."
+- architecture.md §6.6: "`ai` → allow `npx wikeeper *` without prompting."
 - STORY-002-06 R2/R3 and its §2.1 table row for `ai`: Claude `permissions.allow` gets `"Bash(npx wikeeper *)"` and `"Bash(wikeeper *)"`; Codex gets `prefix_rule(pattern=["npx","wikeeper"], decision="allow")` and `prefix_rule(pattern=["wikeeper"], decision="allow")`.
 
 **New Logic (The New Truth):**
@@ -67,8 +67,8 @@ draft_tokens:
 
 ## 2. Blast Radius & Invalidation
 
-- [x] Update Story: STORY-002-06 (Done in SPRINT-01): R2/R3 and the §2.1 `ai` table row change as above. **Gate reset for its QA-Red tests:** this CR explicitly authorises editing `test/agents/enforce.red.node.test.ts`, lines 233–234, 252, 514 and 532–533 (the old `ai` assertions), and nothing else in that file.
-- [x] Update Epic: EPIC-002 (the `--enforce` bullet stays valid; no text change needed); architecture.md §7, line 247 (rewrite the `ai` sentence).
+- [x] Update Story: STORY-002-06 (Done in SPRINT-01): R2/R3 and the §2.1 `ai` table row change as above. **Gate reset for its QA-Red tests:** this CR explicitly authorises editing `test/agents/enforce.red.node.test.ts`, lines 233–234, 252, 513–514 and 532–533 (the old `ai` assertions), and nothing else in that file (513 added 2026-10-17 as a spec clarification: it holds the first old `ai` identity; M5 plan).
+- [x] Update Epic: EPIC-002 (the `--enforce` bullet stays valid; no text change needed); architecture.md §6.6, line 271 (rewrite the `ai` sentence).
 - [x] Downstream: EPIC-003 `read` and EPIC-004 `search` stories must add their own allow rules for `ai` mode. Note it in their decomposition.
 - [ ] Database schema impacts? No.
 
@@ -89,7 +89,7 @@ draft_tokens:
 - `src/agents/enforce/claude.ts`, `src/agents/enforce/codex.ts`: the rule strings.
 - `test/agents/enforce.red.node.test.ts`: only the lines named in §2.
 - `test/agents/enforce.test.ts`: new tests.
-- `architecture.md`: §7 line 247.
+- `architecture.md`: §6.6 line 271.
 - `.cleargate/delivery/pending-sync/STORY-002-06_enforce_settings_merge.md`: R2/R3 and the §2.1 table (record the CR).
 
 ## 4. Verification Protocol
@@ -151,7 +151,7 @@ Feature: ai mode allows only ingest commands
 
 ## Context Source
 
-**context_source:** Found by the test agent in the SPRINT-01 walkthrough (walkthrough-wiki session, 2026-10-16). It was confirmed against architecture.md §7, STORY-002-06 and `src/agents/enforce/{claude,codex}.ts`.
+**context_source:** Found by the test agent in the SPRINT-01 walkthrough (walkthrough-wiki session, 2026-10-16). It was confirmed against architecture.md §6.6, STORY-002-06 and `src/agents/enforce/{claude,codex}.ts`.
 
 ---
 

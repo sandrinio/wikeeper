@@ -7,7 +7,7 @@ carry_over: false
 status: Draft
 severity: P2-Medium
 reporter: "Orchestrator (SPRINT-01 walkthrough): found while observing the walkthrough-wiki test session, reproduced in a throwaway repo"
-approved: false
+approved: true
 context_source: STORY-002-06 R6/R7 + Review clarifications (verified) · SPRINT-01 Goal Acceptance Check item 3 · src/agents/enforce/{json-merge,index}.ts (verified) · reproduced with dist/cli.js on sprint/S-01 @ 7e55d56
 complexity_label: L1
 created_at: 2026-10-16T17:02:00Z
@@ -18,7 +18,7 @@ server_pushed_at_version: null
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-16T17:01:00Z
+  last_gate_check: 2026-10-16T20:00:35Z
   transition: ready-for-fix
 pushed_by: null
 pushed_at: null
@@ -47,11 +47,11 @@ draft_tokens:
 - **Recommended:** Both.
   - (1) `saveJsonDoc` and `applyEnforce` do not write a `.bak` for a settings file that wikeeper created, meaning the file's owned manifest entries carry `created: true`. Such a file contains nothing of the user's to back up.
   - (2) Defence in depth: whenever `removeEnforce` deletes a settings file (created and empty after stripping) or restores it from its backup, it also deletes the `.bak` that the manifest records as wikeeper's. A `.bak` is kept only in the existing "file changed since init" case, which stays listed in `kept` with its warning.
-- **Human decision:** {populated during Brief review}
+- **Human decision:** Both, as recommended (human, 2026-10-17).
 
 - **Question:** Fix it in SPRINT-01 or defer it?
 - **Recommended:** Fix it in SPRINT-01. This is a `UR:bug`: it breaks STORY-002-06 R7 (`remove` takes out exactly the entries wikeeper added) and Goal Acceptance Check item 3 ("after `remove`, no wikeeper-owned file or block remains"). The sprint branch must not merge to `main` while it is open.
-- **Human decision:** {populated during Brief review}
+- **Human decision:** Fix it in SPRINT-01 (human, 2026-10-17).
 
 ## 1. The Anomaly (Expected vs. Actual)
 **Expected Behavior:** After `wikeeper remove`, nothing that wikeeper wrote remains. Directories that wikeeper created and that are now empty are deleted. For a `.claude/settings.json` that wikeeper itself created, that covers the file, any backup of it, and `.claude/`.
@@ -176,7 +176,7 @@ Feature: remove leaves no wikeeper backup behind
 ---
 
 ## ClearGate Ambiguity Gate (🟢 / 🟡 / 🔴)
-**Current Status: 🟡 Medium Ambiguity**
+**Current Status: 🟢 Low Ambiguity**
 
 *Evaluate each criterion against its literal text. If you substituted an interpretation, leave the box unchecked and surface the substitution in the Brief.*
 
@@ -185,4 +185,4 @@ Requirements to pass to Green (Ready for Fix):
 - [x] Actual vs. Expected behavior is explicitly defined.
 - [x] Raw error logs/evidence are attached.
 - [x] Verification command (failing test) is provided.
-- [ ] `approved: true` is set in the YAML frontmatter.
+- [x] `approved: true` is set in the YAML frontmatter.
