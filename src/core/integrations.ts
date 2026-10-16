@@ -3,7 +3,7 @@ import type { WikeeperConfig } from "./config.js";
 import type { ResolvedPaths } from "./paths.js";
 import type { Manifest } from "./manifest.js";
 
-export type IntegrationPhase = "init" | "update" | "remove" | "doctor";
+export type IntegrationPhase = "init" | "update" | "remove" | "doctor" | "prepare";
 export type DoctorSeverity = "ok" | "info" | "warning" | "error";
 export interface DoctorCheck {
   id: string; // stable kebab-case
@@ -42,6 +42,8 @@ export type PhaseHandler = (ctx: IntegrationContext) => PhaseReport | void | Pro
 export type DoctorHandler = (ctx: IntegrationContext) => DoctorCheck[] | Promise<DoctorCheck[]>;
 export interface Integration {
   name: string;
+  /** init only, before the first write: may prompt and throw; never writes. */
+  prepare?: (ctx: IntegrationContext) => Promise<void>;
   init?: PhaseHandler;
   update?: PhaseHandler;
   remove?: PhaseHandler;
@@ -83,6 +85,10 @@ export async function runIntegrations(
   };
   const ordered = phase === "remove" ? [...registry].reverse() : [...registry];
   for (const integration of ordered) {
+    if (phase === "prepare") {
+      if (integration.prepare) await integration.prepare(ctx);
+      continue;
+    }
     if (phase === "doctor") {
       const handler = integration.doctor;
       if (!handler) continue;
