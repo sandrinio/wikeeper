@@ -7,6 +7,7 @@ import type { CommandModule } from "../program.js";
 import { ingestStartCommand } from "./ingest-start.js";
 // INSERTION POINT STORY-003-05: import { ingestPlanCommand } from "./ingest-plan.js";
 // INSERTION POINT STORY-003-06: import { ingestFactsCommand } from "./ingest-facts.js";
+import { ingestFactsCommand } from "./ingest-facts.js";
 // INSERTION POINT STORY-003-08: import { ingestApplyCommand } from "./ingest-apply.js"; import { ingestAbortCommand } from "./ingest-abort.js";
 // INSERTION POINT STORY-003-09: import { ingestFinishCommand } from "./ingest-finish.js";
 
@@ -19,6 +20,7 @@ export const ingestSubcommands: readonly IngestSubcommand[] = [
   ingestStartCommand,
   // INSERTION POINT STORY-003-05: ingestPlanCommand,
   // INSERTION POINT STORY-003-06: ingestFactsCommand,
+  ingestFactsCommand,
   // INSERTION POINT STORY-003-08: ingestApplyCommand, ingestAbortCommand,
   // INSERTION POINT STORY-003-09: ingestFinishCommand,
 ];
