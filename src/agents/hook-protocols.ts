@@ -5,7 +5,7 @@ export { isInside } from "../core/paths.js";
 
 export const MAX_PAYLOAD_BYTES = 1_048_576;
 export const GUARD_REASON =
-  "Wiki pages can only change during an ingest. Run `wikeeper ingest apply <id>` first — see .wiki/system/WIKI.md.";
+  "Wiki pages can only change during an ingest's write phase. Run `wikeeper ingest apply <id>` first — see .wiki/system/WIKI.md, section \"Write phase\".";
 
 export interface HookResponse {
   stdout?: string;
