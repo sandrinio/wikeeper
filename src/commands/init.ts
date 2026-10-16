@@ -126,6 +126,18 @@ async function execInit(
 
   const manifestBefore = await readBytes(paths.manifestFile);
 
+  // Every question is asked before the first write.
+  const options: IntegrationOptions = {
+    flags: run.flags,
+    json: run.json,
+    interactive: run.interactive,
+    io: run.io,
+    manifest: { package_version: packageVersion, files: [...(old?.files ?? [])] },
+    templatesDir: tplDir,
+    packageVersion,
+  };
+  await runIntegrations("prepare", { root, paths, config, options });
+
   // Rollback bookkeeping: exactly what this run creates or overwrites.
   const createdFiles: string[] = [];
   const createdDirs: string[] = [];
@@ -216,20 +228,8 @@ async function execInit(
     await writeManifest(working, paths.manifestFile);
 
     // 10. integrations
-    const r = await runIntegrations("init", {
-      root,
-      paths,
-      config,
-      options: {
-        flags: run.flags,
-        json: run.json,
-        interactive: run.interactive,
-        io: run.io,
-        manifest: working,
-        templatesDir: tplDir,
-        packageVersion,
-      },
-    });
+    options.manifest = working;
+    const r = await runIntegrations("init", { root, paths, config, options });
     created.push(...r.created);
     updated.push(...r.replaced);
     skipped.push(...r.skipped);

@@ -168,11 +168,11 @@ describe("STORY-002-04 doctor outline (red)", () => {
     expect(r.code).toBe(0);
   });
 
-  it("claude configured and only AGENTS.md: claude-agents-md-only warning, exit 0", async () => {
+  it("claude configured and only AGENTS.md: claude-agents-md-only info, exit 0", async () => {
     const root = await initialised({ "AGENTS.md": "# Ours\n" }, "agents: [claude]\n");
     expect(await exists(root, "CLAUDE.md")).toBe(false);
     const r = await doctor(root);
-    expect(r.checks.find((c) => c.id === "claude-agents-md-only")?.severity).toBe("warning");
+    expect(r.checks.find((c) => c.id === "claude-agents-md-only")?.severity).toBe("info");
     expect(r.code).toBe(0);
   });
 
