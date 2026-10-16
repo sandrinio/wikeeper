@@ -272,7 +272,7 @@
         "src/search/engine.ts: MissSummary(interface)",
         "src/search/engine.ts: SearchData(interface {mode, query, filters, entity_query, total, results, entity, changes, misses})",
         "src/search/engine.ts: SearchRequest(interface {query, limit, filters, entity, misses})",
-        "src/search/engine.ts: SearchDeps(interface {now?, useCache?})",
+        "src/search/engine.ts: SearchDeps(interface {now?, useCache?, onRebuild?})",
         "src/search/engine.ts: EMPTY_FILTERS(const)",
         "src/search/engine.ts: SearchDoc(interface)",
         "src/search/engine.ts: RankedHit(interface)",
@@ -360,7 +360,8 @@
         "STORY-004-06"
       ],
       "created_by": "STORY-004-02's own Developer commit (not a skeleton): cut from story/STORY-004-02 at the Developer commit; carries the real engine.ts, search.ts, test/bench/search.bench.ts, package.json and package-lock.json",
-      "create_when": "when STORY-004-02's Developer reports done, before its QA-Verify"
+      "create_when": "when STORY-004-02's Developer reports done, before its QA-Verify",
+      "notes": "STORY-004-06 adds optional SearchDeps.onRebuild?: () => void (additive; executeSearch forwards it to loadSearchCorpus) — CR:spec-clarification 2026-10-16, M3 Open decision 2."
     },
     {
       "id": "C14",

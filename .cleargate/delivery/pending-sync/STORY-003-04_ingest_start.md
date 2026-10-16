@@ -20,14 +20,14 @@ lane: standard
 db_write_set: []
 deferred_verification: []
 created_at: 2026-10-16T18:45:00Z
-updated_at: 2026-10-16T18:45:00Z
+updated_at: 2026-10-16T22:39:16Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
 server_pushed_at_version: 4
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-16T19:24:00Z
+  last_gate_check: 2026-10-16T22:39:37Z
   transition: ready-for-execution
 pushed_by: null
 pushed_at: null
@@ -161,7 +161,7 @@ Feature: wikeeper ingest start
   Scenario Outline: Error — denied and malformed starts store nothing
     Given <repo>
     When I run "wikeeper ingest start <args> --json" <stdin>
-    Then the exit code is <exit>, error.code is "<code>" and error.command is "ingest start"
+    Then the exit code is <exit>, error.code is "<code>" and the envelope's top-level command is "ingest start"
     And no file was created under raw/
 
     Examples:
