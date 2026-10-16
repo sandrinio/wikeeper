@@ -1,0 +1,211 @@
+{
+  "schema_version": 2,
+  "sprint": "SPRINT-01",
+  "generated_at": "2026-10-16T13:50:15Z",
+  "contracts": [
+    {
+      "id": "C1",
+      "branch": "contract/S-01-cli-core",
+      "base": "sprint/S-01",
+      "owner_story": "STORY-001-01",
+      "frozen_exports": [
+        "src/core/output.ts: emitResult(ctx, { command, data, message, warnings })",
+        "src/core/output.ts: emitError(ctx, error)",
+        "src/core/exit-codes.ts: ExitCode(OK 0, ERROR 1, USAGE 2, NEEDS_APPROVAL 3, DENIED 4, NEEDS_INPUT 5)",
+        "src/core/exit-codes.ts: WikeeperError(exitCode, code, message, details?)",
+        "src/program.ts: createProgram(commands = defaultCommands)",
+        "src/program.ts: defaultCommands(: Array<{ register(program: Command): void }> = [])"
+      ],
+      "consumers": ["STORY-001-04", "STORY-001-05", "STORY-001-06", "STORY-001-07", "STORY-002-02", "STORY-002-04", "STORY-002-05"],
+      "created_by": "developer skeleton dispatch (one dispatch writes C1..C8 in stack order, one commit per contract)",
+      "create_when": "contract step, before the build set launches"
+    },
+    {
+      "id": "C2",
+      "branch": "contract/S-01-config",
+      "base": "contract/S-01-cli-core",
+      "owner_story": "STORY-001-02",
+      "frozen_exports": [
+        "src/core/config.ts: loadConfig(root)",
+        "src/core/config.ts: setConfigValue(root, keyPath, value)",
+        "src/core/paths.ts: findRepoRoot(cwd)",
+        "src/core/paths.ts: resolvePaths(root, config)",
+        "src/core/paths.ts: toPosixRelative(root, p)"
+      ],
+      "consumers": ["STORY-001-04", "STORY-001-07", "STORY-002-02", "STORY-002-03", "STORY-002-05", "STORY-002-06"],
+      "created_by": "developer skeleton dispatch (no package.json / package-lock.json edit: STORY-001-02 stays the sole lockfile writer)",
+      "create_when": "contract step, after C1"
+    },
+    {
+      "id": "C3",
+      "branch": "contract/S-01-manifest",
+      "base": "contract/S-01-config",
+      "owner_story": "STORY-001-03",
+      "frozen_exports": [
+        "src/core/templates.ts: findPackageRoot(fromUrl: string = import.meta.url)",
+        "src/core/templates.ts: templatesDir()",
+        "src/core/templates.ts: listTemplateFiles(subdir: string)",
+        "src/core/templates.ts: copyTemplate(rel: string, dest: string)",
+        "src/core/manifest.ts: writeManifest(manifest, path)",
+        "src/core/manifest.ts: readManifest(path)",
+        "src/core/manifest.ts: diffManifest(manifest, root)",
+        "src/core/manifest.ts: sha256File(path: string)"
+      ],
+      "consumers": ["STORY-001-04", "STORY-001-05", "STORY-001-06", "STORY-001-07", "STORY-002-03", "STORY-002-06"],
+      "created_by": "developer skeleton dispatch (no package.json edit)",
+      "create_when": "contract step, after C2"
+    },
+    {
+      "id": "C4",
+      "branch": "contract/S-01-init",
+      "base": "contract/S-01-manifest",
+      "owner_story": "STORY-001-04",
+      "frozen_exports": [
+        "src/core/integrations.ts: registerIntegration({ name, init?, update?, remove?, doctor? })",
+        "src/core/integrations.ts: runIntegrations(phase: 'init' | 'update' | 'remove' | 'doctor', ctx: { root, paths, config, options })",
+        "src/core/gitignore.ts: applyManagedBlock(text, entries)",
+        "src/core/gitignore.ts: GITIGNORE_BLOCK_START(= '# >>> wikeeper >>>')",
+        "src/core/gitignore.ts: GITIGNORE_BLOCK_END(= '# <<< wikeeper <<<')"
+      ],
+      "consumers": ["STORY-001-05", "STORY-001-06", "STORY-001-07", "STORY-002-04"],
+      "created_by": "developer skeleton dispatch (registerIntegration / runIntegrations are no-op stubs, not throws: they run at module load and in every lifecycle command)",
+      "create_when": "contract step, after C3"
+    },
+    {
+      "id": "C5",
+      "branch": "contract/S-01-inject",
+      "base": "contract/S-01-init",
+      "owner_story": "STORY-002-01",
+      "frozen_exports": [
+        "src/agents/inject.ts: injectBlock(text, block)",
+        "src/agents/inject.ts: stripBlock(text)",
+        "src/agents/inject.ts: injectIntoFile(path, block)",
+        "src/agents/inject.ts: stripFromFile(path)"
+      ],
+      "consumers": ["STORY-002-04"],
+      "created_by": "developer skeleton dispatch",
+      "create_when": "contract step, after C4"
+    },
+    {
+      "id": "C6",
+      "branch": "contract/S-01-detect",
+      "base": "contract/S-01-inject",
+      "owner_story": "STORY-002-02",
+      "frozen_exports": [
+        "src/agents/detect.ts: detectAgentFiles(root: string)",
+        "src/agents/detect.ts: resolveTargets(agents, existing) => { path, create: boolean }[]",
+        "src/agents/detect.ts: resolveAgents({ flag, config, isTTY, json, existing, ask })",
+        "src/agents/detect.ts: AGENT_FILE_READERS(constant)"
+      ],
+      "consumers": ["STORY-002-04"],
+      "created_by": "developer skeleton dispatch",
+      "create_when": "contract step, after C5"
+    },
+    {
+      "id": "C7",
+      "branch": "contract/S-01-skills",
+      "base": "contract/S-01-detect",
+      "owner_story": "STORY-002-03",
+      "frozen_exports": [
+        "src/agents/model-tiers.ts: mapModel(agent, value) => { model?: string, warning?: string }",
+        "src/agents/skills.ts: installSkills({ root, agents, manifest })",
+        "src/agents/subagents.ts: installSubagents({ root, agents, config, manifest })"
+      ],
+      "consumers": ["STORY-002-04"],
+      "created_by": "developer skeleton dispatch",
+      "create_when": "contract step, after C6"
+    },
+    {
+      "id": "C8",
+      "branch": "contract/S-01-agents-index",
+      "base": "contract/S-01-skills",
+      "owner_story": "STORY-002-04",
+      "frozen_exports": [
+        "src/agents/index.ts: agentsIntegration(: { init(ctx), update(ctx), remove(ctx), doctor(ctx) }) registered via registerIntegration({ name: 'agents', ...agentsIntegration })"
+      ],
+      "consumers": ["STORY-002-06"],
+      "created_by": "developer skeleton dispatch (also creates src/agents/doctor-checks.ts as an empty module so STORY-002-06 can append its enforce checks)",
+      "create_when": "contract step, after C7"
+    }
+  ],
+  "stories": {
+    "STORY-001-01": { "base": "contract/S-01-cli-core", "upstream": [] },
+    "STORY-001-02": { "base": "sprint/S-01", "upstream": [] },
+    "STORY-001-03": { "base": "sprint/S-01", "upstream": [] },
+    "STORY-002-01": { "base": "sprint/S-01", "upstream": [] },
+    "STORY-002-02": { "base": "contract/S-01-config", "upstream": ["STORY-001-01", "STORY-001-02"] },
+    "STORY-002-03": { "base": "contract/S-01-manifest", "upstream": ["STORY-001-01", "STORY-001-02", "STORY-001-03"] },
+    "STORY-002-05": { "base": "contract/S-01-config", "upstream": ["STORY-001-01", "STORY-001-02"] },
+    "STORY-001-04": { "base": "contract/S-01-init", "upstream": ["STORY-001-01", "STORY-001-02", "STORY-001-03"] },
+    "STORY-001-05": { "base": "contract/S-01-init", "upstream": ["STORY-001-01", "STORY-001-02", "STORY-001-03", "STORY-001-04"] },
+    "STORY-001-06": { "base": "contract/S-01-init", "upstream": ["STORY-001-01", "STORY-001-02", "STORY-001-03", "STORY-001-04"] },
+    "STORY-001-07": { "base": "contract/S-01-init", "upstream": ["STORY-001-01", "STORY-001-02", "STORY-001-03", "STORY-001-04"] },
+    "STORY-002-04": { "base": "contract/S-01-agents-index", "upstream": ["STORY-001-01", "STORY-001-02", "STORY-001-03", "STORY-001-04", "STORY-001-05", "STORY-001-06", "STORY-001-07", "STORY-002-01", "STORY-002-02", "STORY-002-03"] },
+    "STORY-002-06": { "base": "contract/S-01-agents-index", "upstream": ["STORY-001-01", "STORY-001-02", "STORY-001-03", "STORY-001-04", "STORY-002-01", "STORY-002-02", "STORY-002-03", "STORY-002-04", "STORY-002-05"] }
+  },
+  "waves": [
+    {
+      "wave": "wave1",
+      "stories": ["STORY-001-01", "STORY-001-02", "STORY-001-03", "STORY-002-01"],
+      "parallel": true,
+      "rationale": "integration layer 0: no upstream; no real collision among them (./package.json shared by 001-02 'dependencies' and 001-03 'files' is insert-only on disjoint keys; 001-02 is the sole package-lock.json writer); 001-01 builds from its own contract C1 so the src/program.ts registry is a common ancestor for every registration story"
+    },
+    {
+      "wave": "wave2",
+      "stories": ["STORY-002-02", "STORY-002-03", "STORY-002-05"],
+      "parallel": true,
+      "rationale": "integration layer 1: upstream 001-01/001-02 (002-02, 002-05 build now from C2) and 001-01/001-02/001-03 (002-03 builds now from C3); 002-05's src/program.ts registration line is a real collision with 001-01 only (ordered-edit, region created by 001-01) and is insert-only against every other registrant; no real collision among the three"
+    },
+    {
+      "wave": "wave3",
+      "stories": ["STORY-001-04"],
+      "parallel": false,
+      "rationale": "parallel_eligible: n — fail-safe-serialized into its own trailing integration wave (integration layer 1); upstream 001-01, 001-02, 001-03; builds now from its own contract C4; src/program.ts ordered-edit collision with 001-01"
+    },
+    {
+      "wave": "wave4",
+      "stories": ["STORY-001-05"],
+      "parallel": false,
+      "rationale": "parallel_eligible: n — fail-safe-serialized into its own trailing integration wave (integration layer 2); upstream 001-04 (+ C1..C3 owners); builds now from C4; src/program.ts ordered-edit collision with 001-01"
+    },
+    {
+      "wave": "wave5",
+      "stories": ["STORY-001-06"],
+      "parallel": false,
+      "rationale": "parallel_eligible: n — fail-safe-serialized into its own trailing integration wave (integration layer 2); upstream 001-04 (+ C1..C3 owners); builds now from C4; ordered-edit collisions: src/core/gitignore.ts (created by 001-04, 001-06 adds stripManagedBlock) and src/program.ts (001-01)"
+    },
+    {
+      "wave": "wave6",
+      "stories": ["STORY-001-07"],
+      "parallel": false,
+      "rationale": "parallel_eligible: n — fail-safe-serialized into its own trailing integration wave (integration layer 2); upstream 001-04 (+ C1..C3 owners); builds now from C4; src/program.ts ordered-edit collision with 001-01"
+    },
+    {
+      "wave": "wave7",
+      "stories": ["STORY-002-04"],
+      "parallel": false,
+      "rationale": "parallel_eligible: n — fail-safe-serialized into its own trailing integration wave (integration layer 3); upstream 001-04..001-07 and 002-01..002-03 (+ C1..C3 owners); builds now from its own contract C8 (stack C1..C7); src/program.ts ordered-edit collision with 001-01"
+    },
+    {
+      "wave": "wave8",
+      "stories": ["STORY-002-06"],
+      "parallel": false,
+      "rationale": "parallel_eligible: n — fail-safe-serialized into its own trailing integration wave (integration layer 4); upstream 002-04 and 002-05 (+ C1..C7 owners); builds now from C8; ordered-edit collision on src/agents/index.ts and src/agents/doctor-checks.ts (created by 002-04)"
+    }
+  ],
+  "lane_assignments": {
+    "STORY-001-01": "standard",
+    "STORY-001-02": "standard",
+    "STORY-001-03": "standard",
+    "STORY-001-04": "standard",
+    "STORY-001-05": "standard",
+    "STORY-001-06": "standard",
+    "STORY-001-07": "standard",
+    "STORY-002-01": "standard",
+    "STORY-002-02": "standard",
+    "STORY-002-03": "standard",
+    "STORY-002-04": "standard",
+    "STORY-002-05": "standard",
+    "STORY-002-06": "standard"
+  }
+}

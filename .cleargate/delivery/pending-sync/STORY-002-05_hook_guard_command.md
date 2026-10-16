@@ -11,6 +11,7 @@ context_source: EPIC-002 (approved 2026-10-16) · architecture.md v0.4 §6 (agen
 actor: AI coding agent writing to the wiki
 complexity_label: L2
 parallel_eligible: y
+dep_predecessors: ["STORY-001-01", "STORY-001-02"]
 expected_bounce_exposure: med
 lane: standard
 db_write_set: []

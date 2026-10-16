@@ -11,6 +11,7 @@ context_source: EPIC-001 (approved 2026-10-16) · architecture.md v0.4 · verifi
 actor: AI coding agent
 complexity_label: L2
 parallel_eligible: n
+dep_predecessors: ["STORY-001-02", "STORY-001-03", "STORY-001-04"]
 expected_bounce_exposure: low
 lane: standard
 db_write_set: []
