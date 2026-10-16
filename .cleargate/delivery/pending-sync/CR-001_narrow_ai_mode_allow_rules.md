@@ -5,7 +5,7 @@ parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
 status: Draft
-approved: false
+approved: true
 context_source: SPRINT-01 walkthrough (walkthrough-wiki test session, 2026-10-16) · architecture.md §7 line 247 (verified) · STORY-002-06 R2/R3 + §2.1 table (verified) · src/agents/enforce/{claude,codex}.ts (verified)
 complexity_label: L1
 created_at: 2026-10-16T17:10:00Z
@@ -16,7 +16,7 @@ server_pushed_at_version: null
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-16T17:03:24Z
+  last_gate_check: 2026-10-16T19:24:07Z
   transition: ready-to-apply
 pushed_by: null
 pushed_at: null
@@ -43,13 +43,13 @@ draft_tokens:
 
 - **Question:** Should this land in SPRINT-01 or SPRINT-02?
 - **Recommended:** SPRINT-01, before the 0.1.0 release. Today `ai` mode auto-approves `wikeeper remove --purge --confirm wikeeper`, so a prompt-injected source could delete the wiki and its raw sources without the harness asking. The change is about 4 lines of code plus tests, and the goal says `update`, `remove` and `doctor` must "manage it safely". This is a `CR:approach-change`, not a bug, because the current rule matches architecture.md §7.
-- **Human decision:** {populated during Brief review}
+- **Human decision:** SPRINT-01, before 0.1.0 (human, 2026-10-16, SPRINT-02 planning).
 
 - **Question:** What exactly should `ai` mode allow?
 - **Recommended:** Only the ingest commands, `wikeeper ingest …` and `npx wikeeper ingest …`, which is what "the AI decides what to ingest" means.
   - Every other wikeeper command (`init`, `update`, `remove`, `doctor`, `setup`) goes through the harness's normal permission handling.
   - The top-level `read` command (EPIC-003) and `search` (EPIC-004) are added to the allow list by the stories that build them, not now.
-- **Human decision:** {populated during Brief review}
+- **Human decision:** Approved as recommended (human, 2026-10-16): `ai` allows only `wikeeper ingest …` and `npx wikeeper ingest …`; `read` and `search` are added by the stories that build them.
 
 ## 1. The Context Override (Old vs. New)
 
@@ -165,5 +165,5 @@ Requirements to pass to Green (Ready for Execution):
 - [ ] All impacted downstream Epics/Stories are identified and reverted to 🔴 High Ambiguity.
 - [x] Execution Sandbox contains exact file paths.
 - [x] Verification command is provided.
-- [ ] `approved: true` is set in the YAML frontmatter.
+- [x] `approved: true` is set in the YAML frontmatter.
 - [x] Existing Surfaces cites at least one source-tree path the CR extends.

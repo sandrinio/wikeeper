@@ -101,10 +101,11 @@ Ingest is where knowledge enters the wiki, and where it can be silently damaged.
 - [ ] `ingest facts <id>`: validate against `facts.schema.json`, store `<id>.facts.json`.
 - [ ] `ingest apply <id>`: take lock, snapshot pages, print facts and the brief template.
 - [ ] `ingest finish <id>`: diff, validate (every changed page cites `[[<id>]]`; no writes outside pages), rebuild `index.md`, write `log/<timestamp>-<id>.md`, regenerate `log.md`, run user hooks, call the lint hook point (EPIC-005), print the report, release lock.
-- [ ] `ingest abort <id> [--drop]`; stale-lock detection (owner pid and age) with `--force-unlock`.
+- [ ] `ingest abort <id> [--drop]`; stale-lock detection (owner pid and age; human decision at SPRINT-02 planning, 2026-10-16: staleness is by age only, 2 h, because the recorded pid belongs to the already-exited `apply` process — the pid is kept for diagnostics) with `--force-unlock`.
 - [ ] `index rebuild` for post-merge recovery (D-28).
 - [ ] User hooks `pre_ingest` / `post_ingest` with `{source_id}` substitution and a timeout.
 - [ ] `read <file|url>`: URL via fetch → linkedom → defuddle; DOCX via mammoth → turndown + GFM; PDF via unpdf; lazy-loaded; "likely scanned" when a PDF yields almost no text per page; "needs a browser" when a page yields no main content.
+- [ ] CR-002 scope addition (SPRINT-02): C1 whitelist `kinds` match a source-kind id ignoring its version; C2 the `read` story adds its `ai`-mode allow rule ([[CR-002]], [[CR-001]]).
 
 **❌ OUT-OF-SCOPE (Do NOT Build This)**
 - How the agent triages, extracts and writes (EPIC-006 instructions).
@@ -145,9 +146,10 @@ Ingest is where knowledge enters the wiki, and where it can be silently damaged.
 - `src/ingest/facts.ts` — schema validation and storage.
 - `src/ingest/lock.ts`, `snapshot.ts`, `diff.ts`, `validate.ts` — write-phase safety.
 - `src/ingest/index-builder.ts`, `log.ts`, `report.ts`, `user-hooks.ts` — post-hook.
-- `src/commands/{ingest,index,read}.ts` — command surfaces.
+- `src/commands/{ingest,index,read}.ts` — command surfaces; each ingest subcommand in `src/commands/ingest-<verb>.ts`, registered by `ingest.ts` (SPRINT-02 decomposition contract 6, human-accepted 2026-10-16).
+- `src/ingest/lint-hook.ts` — the lint hook point `finish` calls; EPIC-005 replaces its default (contract 9, human-accepted 2026-10-16).
 - `src/read/{url,docx,pdf}.ts` — converters.
-- `templates/schemas/facts.schema.json` — facts contract (architecture.md §7.4).
+- `templates/system/schemas/facts.schema.json` — facts contract (architecture.md §7.4); under `templates/system/` so `init`/`update` install it to `.wiki/system/schemas/` (contract 12, human-accepted 2026-10-16).
 - `package.json` — converter dependencies.
 
 **Data Changes:**

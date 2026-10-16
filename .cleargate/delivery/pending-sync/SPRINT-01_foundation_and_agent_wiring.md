@@ -204,6 +204,7 @@ Skeleton rules:
 - 2026-10-16 · UR:bug → BUG-001 (`.gitignore` without a final newline gains one after init→remove; breaks STORY-001-06 R2). UR:bug → BUG-002 (`remove` leaves a wikeeper-written `.claude/settings.json.bak` and `.claude/` after a permission-mode change + update; breaks STORY-002-06 R7 and Goal Acceptance Check item 3). Sprint→main merge blocked until both are resolved.
 - 2026-10-16 · CR:approach-change → CR-001 (`ai` mode auto-allows every wikeeper command incl. `remove --purge`; narrow to ingest commands). Per spec today; recommended for this sprint before 0.1.0, human decision pending.
 - 2026-10-16 · UR:review-feedback ×16 → CR-002 (CLI polish + scope notes for EPIC-001/002/003/005/006), proposed for SPRINT-02/03; deferral needs explicit human sign-off.
+- 2026-10-16 · Human decisions at SPRINT-02 planning: CR-001 lands in this sprint, before 0.1.0 (approved as recommended: `ai` allows only `wikeeper ingest …`). CR-002 approved for SPRINT-02/03 (block cap 14 lines; `.bak` paths in the managed .gitignore block; me.md via the block line plus a SETUP.md check).
 
 ## Risks & Dependencies
 
