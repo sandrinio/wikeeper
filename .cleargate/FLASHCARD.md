@@ -6,6 +6,10 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-17 · #qa #red-test · Re-scope immutable reds by content anchors, not plan line numbers; sort both sides for set equality.
+2026-10-17 · #test-harness #vitest · vitest 5 has no `bench` export; in *.bench.ts use the test-context bench(name, fn).run().
+2026-10-17 · #search #perf · Sequential loadPages on 500 pages costs ~160 ms; parallel readFile keeps search p95 under 500 ms under load.
+2026-10-17 · #contract #insertion-point · Locals that consumers reassign at their anchors must be `let` in the layout contract, not `const`.
 2026-10-17 · #git #doctor · git check-ignore -z dies without --stdin ("-z only makes sense with --stdin"); pass paths NUL-terminated on stdin.
 2026-10-17 · #enforce #qa · A new allow rule in every mode breaks the CR-001/002-06 rule-list red tests; that story's QA-Red re-scopes them.
 2026-10-17 · #cli #commander · Commander usage errors fire before preAction (command "wikeeper"); throw WikeeperError(USAGE) in the action instead.
