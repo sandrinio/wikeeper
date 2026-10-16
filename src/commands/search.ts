@@ -10,6 +10,12 @@ import { ExitCode, WikeeperError } from "../core/exit-codes.js";
 import { emitResult, getOutputContext } from "../core/output.js";
 import { findRepoRoot, resolvePaths, toPosixRelative } from "../core/paths.js";
 import type { CommandModule } from "../program.js";
+import { readLogEvents } from "../ingest/log.js";
+import { resolveEntity, toEntityMatch } from "../search/aliases.js";
+import { factsSince, pagesChangedSince, parseSince } from "../search/since.js";
+import type { SinceBound } from "../search/since.js";
+import type { SinceChanges } from "../search/engine.js";
+import { buildBacklinks } from "../wiki/parse-page.js";
 import { EMPTY_FILTERS, hitSources, loadSearchCorpus, makeSnippet } from "../search/engine.js";
 import type { RankedHit, SearchData, SearchDeps, SearchHit, SearchRequest } from "../search/engine.js";
 import type { Entity, Page } from "../wiki/parse-page.js";
@@ -21,6 +27,59 @@ const warningsOf = new WeakMap<SearchData, string[]>();
 /** Warnings collected while `executeSearch` built `data` (the envelope's `warnings`). */
 export function searchWarnings(data: SearchData): readonly string[] {
   return warningsOf.get(data) ?? [];
+}
+
+/** STORY-004-04: --entity is exclusive with a query and the 004-03 filters (R5); --since must parse (R6). */
+function entitySinceBound(req: SearchRequest): SinceBound | null {
+  if (req.entity !== null && req.entity.trim() === "") {
+    throw new WikeeperError(ExitCode.USAGE, "usage", "--entity needs a name");
+  }
+  if (req.entity !== null && (req.query !== null || hasFilters(req.filters))) {
+    throw new WikeeperError(ExitCode.USAGE, "usage", "--entity cannot be combined with a query, --type, --where or --status");
+  }
+  return req.filters.since === null ? null : parseSince(req.filters.since);
+}
+
+function where(path: string, section: string): string {
+  return section === "" ? path : `${path} › ${section}`;
+}
+
+function renderChanges(c: SinceChanges): string {
+  if (c.facts.length === 0 && c.pages.length === 0) return `no changes since ${c.since}`;
+  const lines = [`changes since ${c.since}: ${plural(c.facts.length, "fact")}, ${plural(c.pages.length, "page change")}`];
+  for (const f of c.facts) lines.push(`- ${f.date} · ${f.status} · ${f.text} (${where(f.path, f.section)})`);
+  for (const p of c.pages) lines.push(`- ${p.change} ${p.path} · ${p.source_id ?? "no source"} · ${p.at}`);
+  return lines.join("\n");
+}
+
+function renderEntity(data: SearchData): string {
+  const e = data.entity;
+  if (e === null) return `no entity named "${data.entity_query ?? ""}"`;
+  const lines = [
+    `${e.name}${e.type === null ? "" : ` (${e.type})`} · ${where(e.path, e.section)}${e.matched === "alias" ? ` · matched alias "${e.matched_alias ?? ""}"` : ""}`,
+  ];
+  if (e.aliases.length > 0) lines.push(`aliases: ${e.aliases.join(", ")}`);
+  if (e.summary !== null && e.summary !== "") lines.push(`summary: ${e.summary}`);
+  for (const t of e.typed_links) lines.push(`${t.key}:: ${t.value}`);
+  for (const f of e.facts) lines.push(`- ${f.date} · ${f.status} · ${f.text}`);
+  if (e.backlinks.length > 0) {
+    lines.push(`linked from ${plural(e.backlinks.length, "place")}:`);
+    for (const b of e.backlinks) lines.push(`  ${where(b.path, b.section)}:${b.line}  ${b.context}`);
+  }
+  if (e.also_matches.length > 0) {
+    lines.push(`also matches: ${e.also_matches.map((m) => `${m.name} (${where(m.path, m.section)})`).join(", ")}`);
+  }
+  return lines.join("\n");
+}
+
+function renderSearch(data: SearchData): string {
+  if (data.mode === "entity") {
+    const head = renderEntity(data);
+    return data.changes === null ? head : `${head}\n\n${renderChanges(data.changes)}`;
+  }
+  if (data.changes === null) return renderHuman(data);
+  if (data.query === null && !hasFilters(data.filters)) return renderChanges(data.changes);
+  return `${renderHuman(data)}\n\n${renderChanges(data.changes)}`;
 }
 
 export async function executeSearch(root: string, req: SearchRequest, deps: SearchDeps = {}): Promise<SearchData> {
@@ -97,6 +156,61 @@ export async function executeSearch(root: string, req: SearchRequest, deps: Sear
     misses: null,
   };
   // INSERTION POINT STORY-004-04: entity mode (req.entity) and the --since changes (req.filters.since).
+  const sinceBound = entitySinceBound(req);
+  if (!req.misses && (req.entity !== null || sinceBound !== null)) {
+    const changedPages =
+      sinceBound === null
+        ? []
+        : pagesChangedSince((await readLogEvents(paths, { type: "ingest", since: sinceBound.instant })).events);
+    const sinceDate = sinceBound === null ? "" : sinceBound.date;
+    if (req.entity !== null) {
+      const res = resolveEntity(corpus.entities, req.entity);
+      let entity = res === null ? null : toEntityMatch(res, corpus.pages, root, paths, buildBacklinks(corpus.pages));
+      let changes: SinceChanges | null = null;
+      if (sinceBound !== null) {
+        if (entity !== null) entity = { ...entity, facts: entity.facts.filter((x) => x.date >= sinceDate) };
+        changes = {
+          since: req.filters.since!,
+          facts: res === null ? [] : factsSince([res.entity], corpus.pages, sinceBound).slice(0, req.limit),
+          pages: res === null ? [] : changedPages.filter((p) => p.path === res.entity.path).slice(0, req.limit),
+        };
+      }
+      data = { ...data, mode: "entity", entity_query: req.entity, total: entity === null ? 0 : 1, results: [], entity, changes };
+    } else if (sinceBound !== null) {
+      const changed = new Set(changedPages.map((p) => p.path));
+      const passes = (e: Entity | undefined): e is Entity =>
+        e !== undefined && (e.facts.some((x) => x.date >= sinceDate) || changed.has(e.path));
+      const sinceOnly = req.query === null && !hasFilters(req.filters);
+      let kept: Entity[] = corpus.entities;
+      if (!sinceOnly) {
+        ranked = ranked.filter((h) => passes(entityByKey.get(h.doc.entityKey)));
+        const keys = new Set(ranked.map((h) => h.doc.entityKey));
+        if (entityHits !== null) {
+          const byHit = new Map(corpus.entities.map((e) => [`${e.path}\u0000${e.line}\u0000${e.name}`, e]));
+          entityHits = entityHits.filter((h) => {
+            const e = byHit.get(`${h.path}\u0000${h.line}\u0000${h.entity}`);
+            if (!passes(e)) return false;
+            keys.add(e.key);
+            return true;
+          });
+        }
+        data = {
+          ...data,
+          total: entityHits === null ? ranked.length : entityHits.length,
+          results: entityHits === null ? ranked.slice(0, req.limit).map(toHit) : entityHits.slice(0, req.limit),
+        };
+        kept = corpus.entities.filter((e) => keys.has(e.key));
+      }
+      const keptPaths = new Set(kept.map((e) => e.path));
+      const facts = factsSince(kept, corpus.pages, sinceBound);
+      const pages = sinceOnly ? changedPages : changedPages.filter((p) => keptPaths.has(p.path));
+      data = {
+        ...data,
+        total: sinceOnly ? facts.length + pages.length : data.total,
+        changes: { since: req.filters.since!, facts: facts.slice(0, req.limit), pages: pages.slice(0, req.limit) },
+      };
+    }
+  }
   // INSERTION POINT STORY-004-05: misses mode (req.misses) and miss recording.
   // 5.
   warningsOf.set(data, warnings);
@@ -122,6 +236,8 @@ interface SearchOptions {
   where?: string[];
   status?: string;
   // INSERTION POINT STORY-004-04: entity?: string; since?: string;
+  entity?: string;
+  since?: string;
   // INSERTION POINT STORY-004-05: misses?: boolean;
 }
 
@@ -143,6 +259,8 @@ export function createSearchCommand(deps: SearchDeps = {}): CommandModule {
         )
         .option("--status <status>", "status:: value, or frontmatter status")
         // INSERTION POINT STORY-004-04: --entity <name>, --since <date>
+        .option("--entity <name>", "look up one entity by name or alias, with its facts and backlinks")
+        .option("--since <date>", "facts dated, and pages changed by an ingest, on or after this date (YYYY-MM-DD or ISO 8601)")
         // INSERTION POINT STORY-004-05: --misses
         .action(async (words: string[], opts: SearchOptions, command: Command) => {
           const ctx = getOutputContext(command);
@@ -158,9 +276,12 @@ export function createSearchCommand(deps: SearchDeps = {}): CommandModule {
           req.filters.where = (opts.where ?? []).map(parseWhere);
           req.filters.status = parseFilterValue("--status", opts.status);
           // INSERTION POINT STORY-004-04: req.entity and req.filters.since from opts
+          if (opts.entity !== undefined) req.entity = opts.entity;
+          if (opts.since !== undefined) req.filters.since = opts.since;
+          entitySinceBound(req);
           // INSERTION POINT STORY-004-05: req.misses from opts
           const data = await executeSearch(findRepoRoot(ctx.cwd), req, deps);
-          emitResult(ctx, { command: "search", data, warnings: [...searchWarnings(data)], message: renderHuman(data) });
+          emitResult(ctx, { command: "search", data, warnings: [...searchWarnings(data)], message: renderSearch(data) });
         });
     },
   };
