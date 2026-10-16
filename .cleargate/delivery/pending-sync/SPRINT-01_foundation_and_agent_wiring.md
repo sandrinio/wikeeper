@@ -6,14 +6,14 @@ carry_over: false
 lifecycle_init_mode: warn
 remote_id: null
 source_tool: null
-status: Draft
-start_date: null
+status: Active
+start_date: 2026-10-16
 end_date: null
 synced_at: null
 created_at: 2026-10-16T13:40:00Z
-updated_at: 2026-10-16T13:40:00Z
+updated_at: 2026-10-16T14:12:48Z
 created_at_version: strategy-phase-pre-init
-updated_at_version: strategy-phase-pre-init
+updated_at_version: 8f1132e-dirty
 cached_gate_result:
   pass: true
   failing_criteria: []
