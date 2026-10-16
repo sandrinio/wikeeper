@@ -1,23 +1,103 @@
 // src/commands/search.ts
-// Contract C10 — contract/S-02-search (owner STORY-004-02). executeSearch is a stub; createSearchCommand has a
-// working body (registers `search`) because src/program.ts runs it at start-up. Consumers write only at their own
-// INSERTION POINT lines; the owner keeps every anchor line exactly as written.
+// Contract C10 (owner STORY-004-02). Consumers write only at their own INSERTION POINT lines; the owner keeps
+// every anchor line exactly as written.
+import { access } from "node:fs/promises";
+import path from "node:path";
 import type { Command } from "commander";
+import { loadConfig } from "../core/config.js";
+import { ExitCode, WikeeperError } from "../core/exit-codes.js";
 import { emitResult, getOutputContext } from "../core/output.js";
-import { findRepoRoot } from "../core/paths.js";
+import { findRepoRoot, resolvePaths, toPosixRelative } from "../core/paths.js";
 import type { CommandModule } from "../program.js";
-import { EMPTY_FILTERS } from "../search/engine.js";
-import type { SearchData, SearchDeps, SearchRequest } from "../search/engine.js";
+import { EMPTY_FILTERS, hitSources, loadSearchCorpus, makeSnippet } from "../search/engine.js";
+import type { RankedHit, SearchData, SearchDeps, SearchHit, SearchRequest } from "../search/engine.js";
+import type { Entity, Page } from "../wiki/parse-page.js";
+import { plural } from "./doctor.js";
 
-function stub(name: string): never {
-  throw new Error(`contract stub: ${name} (C10)`);
+const warningsOf = new WeakMap<SearchData, string[]>();
+
+/** Warnings collected while `executeSearch` built `data` (the envelope's `warnings`). */
+export function searchWarnings(data: SearchData): readonly string[] {
+  return warningsOf.get(data) ?? [];
 }
 
 export async function executeSearch(root: string, req: SearchRequest, deps: SearchDeps = {}): Promise<SearchData> {
+  // 1. usage: req.limit not an integer 1..100; or no query, no filter (type/where/status/since), no entity and no misses
+  //    -> WikeeperError(ExitCode.USAGE, "usage", "give a query or a filter")
+  if (!Number.isInteger(req.limit) || req.limit < 1 || req.limit > 100) {
+    throw new WikeeperError(ExitCode.USAGE, "usage", "--limit must be an integer from 1 to 100");
+  }
+  const f = req.filters;
+  if (
+    req.query === null &&
+    f.type === null &&
+    f.where.length === 0 &&
+    f.status === null &&
+    f.since === null &&
+    req.entity === null &&
+    !req.misses
+  ) {
+    throw new WikeeperError(ExitCode.USAGE, "usage", "give a query or a filter");
+  }
+  // 2. const paths = resolvePaths(root, (await loadConfig(root)).config); no paths.configFile -> ExitCode.ERROR "not_initialised"
+  const paths = resolvePaths(root, (await loadConfig(root)).config);
+  try {
+    await access(paths.configFile);
+  } catch {
+    throw new WikeeperError(ExitCode.ERROR, "not_initialised", "not initialised — run wikeeper init");
+  }
+  // 3. const corpus = await loadSearchCorpus(paths, { useCache: deps.useCache });
+  const corpus = await loadSearchCorpus(paths, { useCache: deps.useCache });
+  const warnings: string[] = [...corpus.warnings];
+  const ranked: RankedHit[] = req.query === null ? [] : corpus.index.query(req.query);
   // INSERTION POINT STORY-004-03: filter step (req.filters.type / .where / .status) on the ranked hits.
+  // 4. build the data
+  const pageByPath = new Map<string, Page>(corpus.pages.map((p) => [p.path, p]));
+  const entityByKey = new Map<string, Entity>(corpus.entities.map((e) => [e.key, e]));
+  const toHit = (r: RankedHit): SearchHit => {
+    const { doc } = r;
+    const entity = entityByKey.get(doc.entityKey);
+    return {
+      path: doc.path,
+      file: toPosixRelative(root, path.join(paths.pagesDir, ...doc.path.split("/"))),
+      title: doc.title,
+      entity: entity?.name ?? doc.title,
+      type: entity?.type ?? null,
+      section: doc.heading,
+      line: doc.line,
+      snippet: makeSnippet(doc.text, r.terms),
+      score: Math.round(r.score * 1000) / 1000,
+      sources: hitSources(pageByPath.get(doc.path)!, doc.section),
+    };
+  };
+  const data: SearchData = {
+    mode: "query",
+    query: req.query,
+    filters: req.filters,
+    entity_query: null,
+    total: ranked.length,
+    results: ranked.slice(0, req.limit).map(toHit),
+    entity: null,
+    changes: null,
+    misses: null,
+  };
   // INSERTION POINT STORY-004-04: entity mode (req.entity) and the --since changes (req.filters.since).
   // INSERTION POINT STORY-004-05: misses mode (req.misses) and miss recording.
-  return stub("executeSearch");
+  // 5.
+  warningsOf.set(data, warnings);
+  return data;
+}
+
+function renderHuman(data: SearchData): string {
+  const query = data.query ?? "";
+  if (data.results.length === 0) return `no results for "${query}"`;
+  const lines = [`${plural(data.total, "result")} for "${query}"`];
+  data.results.forEach((hit, i) => {
+    lines.push(`${i + 1}. ${hit.path}${hit.section === "" ? "" : ` › ${hit.section}`}`);
+    lines.push(`   ${hit.snippet}`);
+    if (hit.sources.length > 0) lines.push(`   sources: ${hit.sources.join(", ")}`);
+  });
+  return lines.join("\n");
 }
 
 interface SearchOptions {
@@ -51,7 +131,7 @@ export function createSearchCommand(deps: SearchDeps = {}): CommandModule {
           // INSERTION POINT STORY-004-04: req.entity and req.filters.since from opts
           // INSERTION POINT STORY-004-05: req.misses from opts
           const data = await executeSearch(findRepoRoot(ctx.cwd), req, deps);
-          emitResult(ctx, { command: "search", data });
+          emitResult(ctx, { command: "search", data, warnings: [...searchWarnings(data)], message: renderHuman(data) });
         });
     },
   };
