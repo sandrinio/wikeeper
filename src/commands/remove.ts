@@ -145,7 +145,7 @@ export const removeCommand: CommandModule = {
     program
       .command("remove")
       .description("Uninstall wikeeper's tooling; --purge also deletes the wiki")
-      .option("--purge", "also delete .wiki/ and the content directory (needs confirmation)")
+      .option("--purge", "also delete .wiki/ (config.yml, kb_instructions.md, me.md) and the wiki content: pages/, raw/, index.md, log/, in .wiki/ or content_dir (needs confirmation)")
       .option("--confirm <word>", `confirmation word for --purge (${CONFIRM_WORD})`)
       .action(async (opts: { purge?: boolean; confirm?: string }, cmd) => {
         const ctx = getOutputContext(cmd);
@@ -226,6 +226,7 @@ export const removeCommand: CommandModule = {
           paths.configFile,
           paths.kbInstructions,
           paths.meFile,
+          paths.projectFile,
           paths.indexFile,
           paths.pagesDir,
           paths.rawDir,
