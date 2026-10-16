@@ -97,12 +97,14 @@ describe("Feature: User ingest hooks", () => {
   it("A hook that runs too long is killed", async () => {
     const cmd = `node -e "setInterval(()=>require('fs').writeFileSync('marker.txt',String(Date.now())),50)"`;
     const t0 = Date.now();
-    const [r] = await runUserHooks("pre_ingest", [cmd], { cwd: dir, sourceId: ID, timeoutMs: 300 });
+    const [r] = await runUserHooks("pre_ingest", [cmd], { cwd: dir, sourceId: ID, timeoutMs: 1200 });
     expect(Date.now() - t0).toBeLessThan(2000);
     expect(r!.status).toBe("timed_out");
     expect(r!.exitCode).toBeNull();
     expect(hookFailed(r!)).toBe(true);
     await sleep(300);
+    // The child must have booted and written at least once before the kill (1200 ms leaves headroom under load).
+    expect(existsSync(join(dir, "marker.txt"))).toBe(true);
     const a = readFileSync(join(dir, "marker.txt"), "utf8");
     await sleep(400);
     expect(readFileSync(join(dir, "marker.txt"), "utf8")).toBe(a);
