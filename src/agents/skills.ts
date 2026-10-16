@@ -1,8 +1,9 @@
 import { lstat, mkdir, readlink, rm, symlink as fsSymlink } from "node:fs/promises";
-import path from "node:path";
 import type { AgentName } from "./agent-names.js";
+import { compareCodeUnits } from "../core/compare.js";
 import { ExitCode, WikeeperError } from "../core/exit-codes.js";
 import type { Manifest, ManifestEntry } from "../core/manifest.js";
+import { fromPosixRelative } from "../core/paths.js";
 import { copyTemplate, listTemplateFiles, templatesDir as defaultTemplatesDir } from "../core/templates.js";
 
 export const SHARED_SKILLS_DIR = ".agents/skills";
@@ -25,12 +26,6 @@ export interface InstallSkillsOptions {
   symlink?: (target: string, linkPath: string) => Promise<void>; // default (t, p) => fs.symlink(t, p, "dir")
 }
 
-const cmp = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
-
-export function abs(root: string, rel: string): string {
-  return path.join(root, ...rel.split("/"));
-}
-
 export async function exists(file: string): Promise<boolean> {
   try {
     await lstat(file);
@@ -45,9 +40,9 @@ export function emptyResult(): InstallResult {
 }
 
 export function finishResult(r: InstallResult): InstallResult {
-  r.created.sort(cmp);
-  r.replaced.sort(cmp);
-  r.skipped.sort(cmp);
+  r.created.sort(compareCodeUnits);
+  r.replaced.sort(compareCodeUnits);
+  r.skipped.sort(compareCodeUnits);
   return r;
 }
 
@@ -56,8 +51,8 @@ export async function ensureDir(root: string, relDir: string, dirs: string[]): P
   const parts = relDir.split("/").filter(Boolean);
   for (let i = 1; i <= parts.length; i++) {
     const rel = parts.slice(0, i).join("/");
-    if (!(await exists(abs(root, rel)))) {
-      await mkdir(abs(root, rel));
+    if (!(await exists(fromPosixRelative(root, rel)))) {
+      await mkdir(fromPosixRelative(root, rel));
       if (!dirs.includes(rel)) dirs.push(rel);
     }
   }
@@ -92,13 +87,13 @@ export async function skillConflicts(options: InstallSkillsOptions): Promise<str
   const out = new Set<string>();
   for (const { name, file } of await skillFiles(base)) {
     const rel = `${SHARED_SKILLS_DIR}/${name}/${file}`;
-    if ((await exists(abs(root, rel))) && !owned(manifest, rel)) out.add(rel);
+    if ((await exists(fromPosixRelative(root, rel))) && !owned(manifest, rel)) out.add(rel);
   }
   if (agents.includes("claude")) {
     const names = [...new Set((await skillFiles(base)).map((s) => s.name))];
     for (const name of names) {
       const rel = `${CLAUDE_SKILLS_DIR}/${name}`;
-      if (!(await exists(abs(root, rel)))) continue;
+      if (!(await exists(fromPosixRelative(root, rel)))) continue;
       if (!ownedTree(manifest, rel)) {
         out.add(rel);
         continue;
@@ -107,11 +102,11 @@ export async function skillConflicts(options: InstallSkillsOptions): Promise<str
       if (isLink) continue;
       for (const s of (await skillFiles(base)).filter((x) => x.name === name)) {
         const frel = `${rel}/${s.file}`;
-        if ((await exists(abs(root, frel))) && !owned(manifest, frel)) out.add(frel);
+        if ((await exists(fromPosixRelative(root, frel))) && !owned(manifest, frel)) out.add(frel);
       }
     }
   }
-  return [...out].sort(cmp);
+  return [...out].sort(compareCodeUnits);
 }
 
 export function conflictError(conflicts: string[]): WikeeperError {
@@ -139,7 +134,7 @@ export async function installSkills(options: InstallSkillsOptions): Promise<Inst
   const copyFiles = async (name: string, destDir: string, agent: string, mode?: "copy"): Promise<void> => {
     for (const s of all.filter((x) => x.name === name)) {
       const rel = `${destDir}/${name}/${s.file}`;
-      const target = abs(root, rel);
+      const target = fromPosixRelative(root, rel);
       const had = await exists(target);
       await ensureDir(root, rel.split("/").slice(0, -1).join("/"), result.dirs);
       const { written, sha256 } = await copyTemplate(`skills/${name}/${s.file}`, target, base);
@@ -155,7 +150,7 @@ export async function installSkills(options: InstallSkillsOptions): Promise<Inst
   if (agents.includes("claude")) {
     for (const name of names) {
       const rel = `${CLAUDE_SKILLS_DIR}/${name}`;
-      const target = abs(root, rel);
+      const target = fromPosixRelative(root, rel);
       const existingLink = manifest.files.some((f) => f.path === rel && f.kind === "link");
       let st = null as Awaited<ReturnType<typeof lstat>> | null;
       try {

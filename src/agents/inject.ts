@@ -8,7 +8,7 @@ export type InjectStatus = "injected" | "skipped";
 export type StripStatus = "stripped" | "absent" | "malformed";
 export type BlockFileStatus = InjectStatus | StripStatus;
 
-const BOM = "﻿";
+const BOM = "\uFEFF";
 
 function fail(code: string, message: string): Error {
   return Object.assign(new Error(message), { code });

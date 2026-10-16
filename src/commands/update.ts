@@ -1,7 +1,8 @@
-import { constants as fsConstants, readFileSync } from "node:fs";
+import { constants as fsConstants } from "node:fs";
 import { copyFile, lstat, rename, rm, rmdir } from "node:fs/promises";
 import path from "node:path";
 import type { Command } from "commander";
+import { compareCodeUnits } from "../core/compare.js";
 import { loadConfig } from "../core/config.js";
 import { ExitCode, WikeeperError } from "../core/exit-codes.js";
 import { runIntegrations } from "../core/integrations.js";
@@ -9,8 +10,14 @@ import type { IntegrationOptions } from "../core/integrations.js";
 import { readManifest, sha256File, writeManifest } from "../core/manifest.js";
 import type { ManifestEntry } from "../core/manifest.js";
 import { emitResult, getOutputContext } from "../core/output.js";
-import { findRepoRoot, resolvePaths, toPosixRelative } from "../core/paths.js";
-import { copyTemplate, findPackageRoot, listTemplateFiles, templatesDir as defaultTemplatesDir } from "../core/templates.js";
+import { findRepoRoot, fromPosixRelative, isInside, resolvePaths, toPosixRelative } from "../core/paths.js";
+import {
+  copyTemplate,
+  listTemplateFiles,
+  readPackageVersion,
+  templatesDir as defaultTemplatesDir,
+} from "../core/templates.js";
+import type { CommandModule } from "../program.js";
 
 export interface UpdateResult {
   replaced: string[];
@@ -23,9 +30,6 @@ export interface UpdateDeps {
   templatesDir?: string;
   packageVersion?: string;
   now?: () => Date;
-}
-interface CommandModule {
-  register(program: Command): void;
 }
 
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -41,18 +45,6 @@ export function formatBackupStamp(d: Date): string {
     pad(d.getUTCSeconds())
   );
 }
-
-function readPackageVersion(): string {
-  const file = path.join(findPackageRoot(), "package.json");
-  return (JSON.parse(readFileSync(file, "utf8")) as { version: string }).version;
-}
-
-function isInside(parent: string, child: string): boolean {
-  const rel = path.relative(parent, child);
-  return rel !== "" && rel !== ".." && !rel.startsWith(".." + path.sep) && !path.isAbsolute(rel);
-}
-
-const cmp = (a: string, b: string) => (a < b ? -1 : a > b ? 1 : 0);
 
 /** Copies `file` to `<file>.bak-<stamp>[-N]` without ever overwriting; returns the backup path. */
 async function backupName(file: string, stamp: string, mode: "copy" | "rename"): Promise<string> {
@@ -105,14 +97,13 @@ export async function runUpdate(
   const pkgPaths = new Set(pkgFiles.map((p) => p.mpath));
 
   // Safety pre-pass: nothing is written unless every target is inside .wiki/system.
-  const oldAbs = (e: ManifestEntry) => path.join(root, ...e.path.split("/"));
   for (const p of pkgFiles) {
     if (!isInside(paths.systemDir, p.dest) || p.dest === paths.manifestFile) {
       throw new WikeeperError(ExitCode.ERROR, "unsafe_path", `refusing to write outside .wiki/system: ${p.mpath}`);
     }
   }
   for (const e of oldSet.values()) {
-    const abs = oldAbs(e);
+    const abs = fromPosixRelative(root, e.path);
     if (!isInside(paths.systemDir, abs) || abs === paths.manifestFile) {
       throw new WikeeperError(ExitCode.ERROR, "unsafe_path", `refusing to touch outside .wiki/system: ${e.path}`);
     }
@@ -162,7 +153,7 @@ export async function runUpdate(
 
   for (const [mpath, old] of oldSet) {
     if (pkgPaths.has(mpath)) continue;
-    const abs = oldAbs(old);
+    const abs = fromPosixRelative(root, old.path);
     let st;
     try {
       st = await lstat(abs);
@@ -200,11 +191,11 @@ export async function runUpdate(
   warnings.push(...report.warnings);
 
   return {
-    replaced: replaced.sort(cmp),
-    added: added.sort(cmp),
-    removed: removed.sort(cmp),
-    backed_up: backedUp.sort(cmp),
-    warnings: warnings.sort(cmp),
+    replaced: replaced.sort(compareCodeUnits),
+    added: added.sort(compareCodeUnits),
+    removed: removed.sort(compareCodeUnits),
+    backed_up: backedUp.sort(compareCodeUnits),
+    warnings: warnings.sort(compareCodeUnits),
   };
 }
 

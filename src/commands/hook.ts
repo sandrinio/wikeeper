@@ -1,18 +1,11 @@
 import { existsSync } from "node:fs";
 import type { Command } from "commander";
 import { isAgentName } from "../agents/agent-names.js";
-import {
-  failOpen,
-  GUARD_REASON,
-  HOOK_ADAPTERS,
-  isInside,
-  MAX_PAYLOAD_BYTES,
-  resolveTarget,
-} from "../agents/hook-protocols.js";
+import { failOpen, GUARD_REASON, HOOK_ADAPTERS, MAX_PAYLOAD_BYTES, resolveTarget } from "../agents/hook-protocols.js";
 import type { HookResponse } from "../agents/hook-protocols.js";
 import { loadConfig } from "../core/config.js";
 import { getOutputContext } from "../core/output.js";
-import { findRepoRoot, resolvePaths } from "../core/paths.js";
+import { findRepoRoot, isInside, resolvePaths } from "../core/paths.js";
 import type { CommandModule } from "../program.js";
 
 export interface GuardInput {
@@ -44,7 +37,7 @@ export async function runGuard(input: GuardInput): Promise<HookResponse> {
     if (text === null) return failOpen(a, "payload larger than 1 MB");
     let payload: unknown;
     try {
-      payload = JSON.parse(text.replace(/^﻿/, ""));
+      payload = JSON.parse(text.replace(/^\uFEFF/, ""));
     } catch {
       return failOpen(a, "payload is not valid JSON");
     }

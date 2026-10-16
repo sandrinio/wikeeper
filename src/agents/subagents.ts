@@ -3,10 +3,11 @@ import { readFile, writeFile } from "node:fs/promises";
 import { AGENT_NAMES, type AgentName } from "./agent-names.js";
 import type { Manifest } from "../core/manifest.js";
 import type { WikeeperConfig } from "../core/config.js";
+import { compareCodeUnits } from "../core/compare.js";
+import { fromPosixRelative } from "../core/paths.js";
 import { templatesDir as defaultTemplatesDir } from "../core/templates.js";
 import { mapModel } from "./model-tiers.js";
 import {
-  abs,
   conflictError,
   emptyResult,
   ensureDir,
@@ -34,8 +35,6 @@ export interface InstallSubagentsOptions {
   templatesDir?: string;
 }
 
-const cmp = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
-
 export function renderModelLine(template: string, model: string | undefined): string {
   const out: string[] = [];
   for (const line of template.split("\n")) {
@@ -59,7 +58,7 @@ async function plan(options: InstallSubagentsOptions): Promise<Planned[]> {
     if (!options.agents.includes(agent)) continue;
     const { dir, ext } = SUBAGENT_TARGETS[agent];
     for (const name of SUBAGENT_NAMES) {
-      const text = await readFile(abs(base, `agents/${agent}/${name}${ext}`), "utf8");
+      const text = await readFile(fromPosixRelative(base, `agents/${agent}/${name}${ext}`), "utf8");
       const value = name === "wiki-extractor" ? options.config.ingest.extractor_model : options.config.ingest.writer_model;
       const mapped = mapModel(agent, value);
       const item: Planned = {
@@ -77,9 +76,10 @@ async function plan(options: InstallSubagentsOptions): Promise<Planned[]> {
 export async function subagentConflicts(options: InstallSubagentsOptions): Promise<string[]> {
   const out: string[] = [];
   for (const p of await plan(options)) {
-    if ((await exists(abs(options.root, p.rel))) && !options.manifest.files.some((f) => f.path === p.rel)) out.push(p.rel);
+    const present = await exists(fromPosixRelative(options.root, p.rel));
+    if (present && !options.manifest.files.some((f) => f.path === p.rel)) out.push(p.rel);
   }
-  return out.sort(cmp);
+  return out.sort(compareCodeUnits);
 }
 
 export async function installSubagents(options: InstallSubagentsOptions): Promise<InstallResult> {
@@ -89,7 +89,7 @@ export async function installSubagents(options: InstallSubagentsOptions): Promis
   const conflicts = await subagentConflicts(options);
   if (conflicts.length > 0) throw conflictError(conflicts);
   for (const p of planned) {
-    const target = abs(root, p.rel);
+    const target = fromPosixRelative(root, p.rel);
     const had = await exists(target);
     let same = false;
     if (had) {
@@ -116,7 +116,7 @@ export async function installSubagents(options: InstallSubagentsOptions): Promis
 }
 
 export async function installAgentAssets(options: InstallSkillsOptions & InstallSubagentsOptions): Promise<InstallResult> {
-  const conflicts = [...(await skillConflicts(options)), ...(await subagentConflicts(options))].sort(cmp);
+  const conflicts = [...(await skillConflicts(options)), ...(await subagentConflicts(options))].sort(compareCodeUnits);
   if (conflicts.length > 0) throw conflictError(conflicts);
   const a = await installSkills(options);
   const b = await installSubagents(options);

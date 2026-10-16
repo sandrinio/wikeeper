@@ -1,17 +1,14 @@
 import { lstat, mkdir, readdir, readFile, readlink, rm, symlink, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { fromPosixRelative } from "../core/paths.js";
 
 /** Directories that agent wiring (skills, sub-agents, settings, rules) writes into. */
 const WATCHED_DIRS = [".claude", ".codex", ".agents"] as const;
 
 type Node = { kind: "file"; bytes: Buffer } | { kind: "link"; target: string } | { kind: "dir" };
 
-function abs(root: string, rel: string): string {
-  return path.join(root, ...rel.split("/"));
-}
-
 async function statNode(root: string, rel: string): Promise<Node | null> {
-  const file = abs(root, rel);
+  const file = fromPosixRelative(root, rel);
   let st;
   try {
     st = await lstat(file);
@@ -29,12 +26,12 @@ async function walk(root: string, rel: string, out: Map<string, Node>): Promise<
   if (!node) return;
   out.set(rel, node);
   if (node.kind !== "dir") return;
-  for (const name of (await readdir(abs(root, rel))).sort()) await walk(root, `${rel}/${name}`, out);
+  for (const name of (await readdir(fromPosixRelative(root, rel))).sort()) await walk(root, `${rel}/${name}`, out);
 }
 
 async function removeNode(root: string, rel: string, node: Node): Promise<void> {
-  if (node.kind === "dir") await rm(abs(root, rel), { recursive: true, force: true, maxRetries: 3 });
-  else await unlink(abs(root, rel)).catch(() => undefined);
+  if (node.kind === "dir") await rm(fromPosixRelative(root, rel), { recursive: true, force: true, maxRetries: 3 });
+  else await unlink(fromPosixRelative(root, rel)).catch(() => undefined);
 }
 
 /**
@@ -68,19 +65,19 @@ export async function snapshotForRollback(root: string, files: readonly string[]
       const node = restore.get(rel)!;
       const cur = await statNode(root, rel);
       if (node.kind === "dir") {
-        if (!cur) await mkdir(abs(root, rel), { recursive: true });
+        if (!cur) await mkdir(fromPosixRelative(root, rel), { recursive: true });
         continue;
       }
       if (node.kind === "file") {
         if (cur?.kind === "file" && cur.bytes.equals(node.bytes)) continue;
         if (cur) await removeNode(root, rel, cur);
-        await mkdir(path.dirname(abs(root, rel)), { recursive: true });
-        await writeFile(abs(root, rel), node.bytes);
+        await mkdir(path.dirname(fromPosixRelative(root, rel)), { recursive: true });
+        await writeFile(fromPosixRelative(root, rel), node.bytes);
       } else {
         if (cur?.kind === "link" && cur.target === node.target) continue;
         if (cur) await removeNode(root, rel, cur);
-        await mkdir(path.dirname(abs(root, rel)), { recursive: true });
-        await symlink(node.target, abs(root, rel));
+        await mkdir(path.dirname(fromPosixRelative(root, rel)), { recursive: true });
+        await symlink(node.target, fromPosixRelative(root, rel));
       }
     }
   };

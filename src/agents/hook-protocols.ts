@@ -1,6 +1,8 @@
 import path from "node:path";
 import type { AgentName } from "./agent-names.js";
 
+export { isInside } from "../core/paths.js";
+
 export const MAX_PAYLOAD_BYTES = 1_048_576;
 export const GUARD_REASON =
   "Wiki pages can only change during an ingest. Run `wikeeper ingest apply <id>` first — see .wiki/system/WIKI.md.";
@@ -38,11 +40,6 @@ export function parsePatchPaths(patch: string): string[] {
 
 export function resolveTarget(cwd: string, p: string): string {
   return path.resolve(cwd, p.replace(/\\/g, "/"));
-}
-
-export function isInside(parent: string, child: string): boolean {
-  const rel = path.relative(parent, child);
-  return rel !== "" && rel !== ".." && !rel.startsWith(".." + path.sep) && !path.isAbsolute(rel);
 }
 
 const claude: HookAdapter = {

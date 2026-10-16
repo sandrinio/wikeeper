@@ -2,6 +2,8 @@ import { createHash } from "node:crypto";
 import { createReadStream } from "node:fs";
 import { lstat, mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { compareCodeUnits } from "./compare.js";
+import { fromPosixRelative } from "./paths.js";
 
 export type ManifestKind =
   | "system"
@@ -43,10 +45,6 @@ function invalid(message: string): Error {
   return Object.assign(new Error(`Invalid manifest: ${message}`), { code: "E_MANIFEST_INVALID" });
 }
 
-function cmp(a: string, b: string): number {
-  return a < b ? -1 : a > b ? 1 : 0;
-}
-
 export function sha256File(file: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const hash = createHash("sha256");
@@ -69,7 +67,12 @@ function canonicalEntry(e: ManifestEntry): ManifestEntry {
 export function serializeManifest(manifest: Manifest): string {
   const files = manifest.files
     .map(canonicalEntry)
-    .sort((a, b) => cmp(a.path, b.path) || cmp(a.kind, b.kind) || cmp(a.identity ?? "", b.identity ?? ""));
+    .sort(
+      (a, b) =>
+        compareCodeUnits(a.path, b.path) ||
+        compareCodeUnits(a.kind, b.kind) ||
+        compareCodeUnits(a.identity ?? "", b.identity ?? ""),
+    );
   return JSON.stringify({ package_version: manifest.package_version, files }, null, 2) + "\n";
 }
 
@@ -138,7 +141,7 @@ export async function readManifest(file: string): Promise<Manifest | null> {
 export async function diffManifest(manifest: Manifest, root: string): Promise<ManifestDiffEntry[]> {
   const out: ManifestDiffEntry[] = [];
   for (const entry of manifest.files) {
-    const abs = path.join(root, ...entry.path.split("/"));
+    const abs = fromPosixRelative(root, entry.path);
     let status: DriftStatus;
     if (entry.sha256 === null) {
       try {

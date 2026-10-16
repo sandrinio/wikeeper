@@ -55,3 +55,14 @@ export function resolvePaths(root: string, config: Pick<WikeeperConfig, "content
 export function toPosixRelative(root: string, p: string): string {
   return path.relative(root, p).split(path.sep).join("/");
 }
+
+/** Inverse of toPosixRelative: the native absolute path of a posix path relative to `root` (the manifest's form). */
+export function fromPosixRelative(root: string, rel: string): string {
+  return path.join(root, ...rel.split("/"));
+}
+
+/** True when `child` is strictly inside `parent`; `parent` itself is not inside. */
+export function isInside(parent: string, child: string): boolean {
+  const rel = path.relative(parent, child);
+  return rel !== "" && rel !== ".." && !rel.startsWith(".." + path.sep) && !path.isAbsolute(rel);
+}

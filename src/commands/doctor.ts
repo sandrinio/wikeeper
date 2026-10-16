@@ -1,6 +1,4 @@
-import { readFileSync } from "node:fs";
 import { stat } from "node:fs/promises";
-import path from "node:path";
 import type { Command } from "commander";
 import { DEFAULT_CONFIG, formatConfigIssue, loadConfig } from "../core/config.js";
 import type { WikeeperConfig } from "../core/config.js";
@@ -12,7 +10,7 @@ import type { Manifest } from "../core/manifest.js";
 import { emitResult, getOutputContext } from "../core/output.js";
 import { findRepoRoot, resolvePaths } from "../core/paths.js";
 import type { ResolvedPaths } from "../core/paths.js";
-import { findPackageRoot, templatesDir } from "../core/templates.js";
+import { readPackageVersion, templatesDir } from "../core/templates.js";
 import type { CommandModule } from "../program.js";
 
 export interface DoctorResult {
@@ -59,10 +57,10 @@ function errMsg(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
 }
 
-function packageVersion(): string {
+/** Doctor reports problems rather than failing on them, so an unreadable package version becomes "". */
+function packageVersionOrEmpty(): string {
   try {
-    const pkg = JSON.parse(readFileSync(path.join(findPackageRoot(), "package.json"), "utf8")) as { version?: string };
-    return pkg.version ?? "";
+    return readPackageVersion();
   } catch {
     return "";
   }
@@ -211,7 +209,7 @@ export async function runDoctor(root: string, run: Run, deps: { nodeVersion?: st
         io: run.io,
         manifest: (manifest as Manifest | null) ?? EMPTY_MANIFEST,
         templatesDir: tpl,
-        packageVersion: packageVersion(),
+        packageVersion: packageVersionOrEmpty(),
       },
     };
     return (await runIntegrations("doctor", ctx)).checks;
