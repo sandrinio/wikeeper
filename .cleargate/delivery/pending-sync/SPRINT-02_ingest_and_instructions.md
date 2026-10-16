@@ -11,13 +11,13 @@ start_date: 2026-10-17
 end_date: null
 synced_at: null
 created_at: 2026-10-16T17:25:00Z
-updated_at: 2026-10-16T23:26:57Z
+updated_at: 2026-10-16T23:58:19Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: fca928d-dirty
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-16T23:27:18Z
+  last_gate_check: 2026-10-16T23:58:40Z
   transition: ready-for-execution
 epics:
   - EPIC-001
@@ -327,6 +327,10 @@ Skeleton rules:
 - 2026-10-17 · Waves 5–6 (four stories built in parallel; two workflow runs): all GREEN first pass, 0 bounces. Merged serially 003-05 a5d7593, 003-06 ef198e2, 004-06 835dfa8, 004-03 40d7d05; 820/820 tests, typecheck clean, no flake on any post-merge run. Under four concurrent story suites the 004-02 p95 test hit ~600 ms once and some 5 s git-test timeouts appeared; isolated, the p95 test passed 3/3 on the merged tree (Goal check 2 holds). The post-flight Architect review runs only when the scan flags, so no `-arch.md` reports exist (scan=0 everywhere). M5 Architect dispatched before M4 returned, to plan waves 9–11 concurrently. 22/27 Done.
 - 2026-10-17 · M4 Architect plan (`plans/M4.md`, waves 7–8: 003-08, 006-04, 004-04; cuts, the 004-04 prototype, snapshot restore and the WIKI.md examples verified in scratch). Orchestrator decisions: all three cut at once from c4c68b0 and built in parallel (every upstream merged); approach notes for 004-04 (a)–(j) and its edits outside the C10 anchors, 003-08's refusal order and new error codes, 006-04's text conventions recorded as Mid-Sprint Amendments; no spec change. Committed c4c68b0 with 5 flashcards.
 - 2026-10-17 · Waves 7–8 (three stories, one workflow run): 006-04 and 004-04 GREEN first pass, merged a51cbec and 13bda5d. STORY-003-08's Developer finished but could not commit: two defects in its own red file (`runGuard`'s optional `stdout` read as a string; a log-event fixture passing the meta `permission` object). QA-Red fixed both at 1a9826f (test-only, no spec change); the uncommitted work was resumed, GREEN, merged cecd0b2. 913/913 tests, typecheck clean. 24/27 Done; the search p95 red test reached 535–1066 ms only while 3–4 story suites ran at once and passed every isolated run.
+- 2026-10-17 · M5 Architect plan (`plans/M5.md`, waves 9–10: 004-05, 003-09, 006-06; cut table; CI analysis: `ci.yml` already runs the e2e tests on ubuntu, macos and windows × Node 22 and 24). Orchestrator decisions: all three built in parallel from 1486858; 006-06 build-only, then re-synced after 004-05 and 003-09 merged, verified and merged last; CR:spec-clarification STORY-003-09 §4.1 (QA-Red covers the end-to-end scenario in-process; the Developer writes `test/e2e/ingest.test.ts` and `test/e2e/pack.ts`, which builds with a staging `tsc --outDir`); CR:spec-clarification STORY-006-06 §3.1 (checker in `test/templates/structure.ts`; `templates/index.md` = `buildIndex([])` text).
+- 2026-10-17 · Wave 9: STORY-004-05 and STORY-003-09 GREEN first pass, 0 bounces; merged 2b04518 and 08b317b. `test/e2e/ingest.test.ts` 4/4 locally (5.9 s).
+- 2026-10-17 · Wave 10: STORY-006-06 built with exactly the 6 expected findings (5 `ingest finish`, 1 `search --misses`), re-synced after wave 9 (integrate mode): 0 findings, GREEN, 0 bounces; merged bcf3663. 27/27 Done; 988/988 tests, typecheck clean. Goal checks 2 and 3 pass isolated; check 1 passes locally (CI waits on push approval). The 004-02 p95 test sometimes fails in a plain full-suite run (532–630 ms vs 500): a CI risk.
+- 2026-10-17 · Walkthrough (Goal check 4) prep: `walkthrough-wiki` backed up (tar and git bundle in the session scratchpad); sprint build packed and installed globally; `wikeeper remove --purge --confirm wikeeper` (now also removes `.claude/settings.json.bak` and `.claude/`, SPRINT-01 note 2.x) and `wikeeper init --agents claude --enforce --yes` both exit 0.
 
 ## Goal Acceptance Check (accepted by the human, 2026-10-16)
 
