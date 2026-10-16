@@ -26,6 +26,8 @@ coverage/
 # readiness check sees a clean checkout; committed with -f at sprint close.
 .cleargate/sprint-runs/*/reports/
 .cleargate/sprint-runs/*/.dev-handoff-*
+# Pre-gate scan output written inside each worktree
+.cleargate/reports/
 
 # Local environment files (API keys, tokens, credentials).
 # Allowlist lines must stay AFTER the .env patterns so the negation wins.
