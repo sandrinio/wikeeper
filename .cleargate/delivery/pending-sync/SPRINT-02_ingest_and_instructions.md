@@ -6,18 +6,18 @@ carry_over: false
 lifecycle_init_mode: warn
 remote_id: null
 source_tool: null
-status: Draft
-start_date: null
+status: Active
+start_date: 2026-10-17
 end_date: null
 synced_at: null
 created_at: 2026-10-16T17:25:00Z
-updated_at: 2026-10-16T20:46:34Z
+updated_at: 2026-10-16T20:50:45Z
 created_at_version: strategy-phase-pre-init
-updated_at_version: strategy-phase-pre-init
+updated_at_version: fca928d-dirty
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-16T20:47:51Z
+  last_gate_check: 2026-10-16T20:50:46Z
   transition: ready-for-execution
 epics:
   - EPIC-001
@@ -313,6 +313,7 @@ Skeleton rules:
 - 2026-10-16 · Human decisions after the planning Brief: the SDR-era recommendations accepted (stale lock by age only; D-11 kept; writer runs `apply`/`finish`; `--reingest` invariant instead of a lock refusal; EPIC-003 §4 amended, so STORY-003-06/08/09 are 🟢; story sizes kept; CR boxes left unchecked; Goal Acceptance Check below). Scope change: no fixed pages, `project.md` per repo, `ONBOARDING.md` per person (decomposition contract 13). STORY-006-02 and 006-03 rewritten, 006-01/04/06 updated, STORY-006-07 added (wave 2, upstream 006-02, `waves.json` updated by the orchestrator: no layer changes, no new real collision besides the template-loader re-scope); EPIC-006, CR-002 (B5) and architecture.md (§4, §5, D-13, D-27, D-31, new D-34–D-36) amended.
 - 2026-10-16 · Human decision after the second Brief: the two setup-file gaps are closed with a `wikeeper doctor` check, not by changing `update` (STORY-002-08 R4 kept). STORY-006-08 added (wave 2, upstream 006-02 and 002-07 for `src/commands/doctor.ts`; its QA-Red re-scopes `test/doctor.red.node.test.ts`); 006-02 step 6 and 006-07 step 5 now read the check instead of running `git check-ignore`; 006-06 checks that named doctor check ids exist and gains 006-08 as a predecessor; EPIC-006 §4 and scope amended; `waves.json` updated by the orchestrator (27 stories, no wave-order violation). Also: 006-02 R1 test exempts the step-4 preview table from its command list (004-02 adds search rows there); `test/paths.red.node.test.ts` re-scoped by 006-02.
 - 2026-10-16 · Gate 2 (Sprint Ready): the human approved the sprint plan, the SDR and all 27 stories (`approved: true`). Kickoff waits for SPRINT-01 to close.
+- 2026-10-17 · Kickoff: SPRINT-01 closed (Gate 4); preflight 5/5 pass (devops reachable — used for 4 merges this session); `sprint/S-02` cut from main at fca928d; `cleargate sprint init` → state.json with 27 stories, all standard, `.active` = SPRINT-02; Goal Acceptance Check copied into sprint-context.md; status Active.
 
 ## Goal Acceptance Check (accepted by the human, 2026-10-16)
 
