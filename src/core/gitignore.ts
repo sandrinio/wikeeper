@@ -33,7 +33,10 @@ function scanLines(text: string): Line[] {
   return lines;
 }
 
-/** Pure: returns `text` with the wikeeper managed block created or replaced in place. */
+/**
+ * Pure: returns `text` with the wikeeper managed block created or replaced in place.
+ * A new block is appended, or inserted at the top (after a BOM) when the text has no final line break.
+ */
 export function applyManagedBlock(text: string, entries: readonly string[]): string {
   const firstNl = text.indexOf("\n");
   const eol = firstNl > 0 && text[firstNl - 1] === "\r" ? "\r\n" : "\n";
@@ -41,8 +44,11 @@ export function applyManagedBlock(text: string, entries: readonly string[]): str
   const lines = scanLines(text);
   const si = lines.findIndex((l) => l.content === GITIGNORE_BLOCK_START);
   if (si === -1) {
-    const sep = text.length > 0 && !text.endsWith("\n") ? eol : "";
-    return text + sep + block;
+    if (text.length > 0 && !text.endsWith("\n")) {
+      const bom = text.startsWith("\uFEFF") ? "\uFEFF" : "";
+      return bom + block + text.slice(bom.length);
+    }
+    return text + block;
   }
   const ei = lines.findIndex((l, i) => i > si && l.content === GITIGNORE_BLOCK_END);
   if (ei === -1) {
