@@ -244,14 +244,14 @@ export const ingestStartCommand: IngestSubcommand;
 
 ## Task Breakdown
 
-- [ ] Create `src/commands/ingest.ts` (group, `ingestSubcommands`, help on bare `ingest`) and register it in `src/program.ts` -> R1
-- [ ] Parse options and resolve the three source shapes with their usage errors, reading stdin only on request -> R2, R3
-- [ ] Validate `--kind`, derive the label, look up the kind rule and `available_kinds` -> R4
-- [ ] Hash, list sources and handle duplicates and `--reingest` -> R5
-- [ ] Evaluate permission and map `needs_approval` / `denied` to exit 3 / 4 with details -> R6
-- [ ] Register the source, run `pre_ingest` hooks, roll back on failure -> R7
-- [ ] Emit `IngestStartResult` and the three-line human output -> R8
-- [ ] Write `test/ingest/ingest-start.test.ts` covering the five scenarios through `runCli` with injected stdin and `now`
+- [x] Create `src/commands/ingest.ts` (group, `ingestSubcommands`, help on bare `ingest`) and register it in `src/program.ts` -> R1
+- [x] Parse options and resolve the three source shapes with their usage errors, reading stdin only on request -> R2, R3
+- [x] Validate `--kind`, derive the label, look up the kind rule and `available_kinds` -> R4
+- [x] Hash, list sources and handle duplicates and `--reingest` -> R5
+- [x] Evaluate permission and map `needs_approval` / `denied` to exit 3 / 4 with details -> R6
+- [x] Register the source, run `pre_ingest` hooks, roll back on failure -> R7
+- [x] Emit `IngestStartResult` and the three-line human output -> R8
+- [x] Write `test/ingest/ingest-start.test.ts` covering the five scenarios through `runCli` with injected stdin and `now`
 
 ## 4. Quality Gates
 
