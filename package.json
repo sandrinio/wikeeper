@@ -28,7 +28,8 @@
     "wikeeper": "dist/cli.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "templates"
   ],
   "engines": {
     "node": ">=22.12.0"
