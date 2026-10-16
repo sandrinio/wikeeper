@@ -35,6 +35,7 @@ export interface PhaseReport {
   replaced?: string[];
   skipped?: string[];
   removed?: string[];
+  backed_up?: string[];
   kept?: string[];
   warnings?: string[];
 }
@@ -54,6 +55,7 @@ export interface IntegrationRunResult {
   replaced: string[];
   skipped: string[];
   removed: string[];
+  backed_up: string[];
   kept: string[];
   warnings: string[];
   checks: DoctorCheck[];
@@ -79,6 +81,7 @@ export async function runIntegrations(
     replaced: [],
     skipped: [],
     removed: [],
+    backed_up: [],
     kept: [],
     warnings: [],
     checks: [],
@@ -112,6 +115,7 @@ export async function runIntegrations(
     result.replaced.push(...(report.replaced ?? []));
     result.skipped.push(...(report.skipped ?? []));
     result.removed.push(...(report.removed ?? []));
+    result.backed_up.push(...(report.backed_up ?? []));
     result.kept.push(...(report.kept ?? []));
     result.warnings.push(...(report.warnings ?? []));
   }

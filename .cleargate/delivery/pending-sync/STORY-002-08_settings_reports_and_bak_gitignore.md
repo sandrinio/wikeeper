@@ -167,12 +167,12 @@ Feature: settings files and backups in reports, backups gitignored
 
 ## Task Breakdown
 
-- [ ] Add `backed_up` to `PhaseReport`, `IntegrationRunResult`, `runIntegrations` and the agents `Acc`/`merge` -> R1
-- [ ] Report backups under `backed_up` and unchanged files under `skipped` in `applyEnforce` -> R1, R2
-- [ ] Add `removed` and `backed_up` to `InitResult` -> R1, R2
-- [ ] Extend `managedIgnoreEntries` with backups; add `backupPaths`; move the `init` `.gitignore` write after the integrations -> R3
-- [ ] Refresh the block in `update` when present, warn when missing; merge `backed_up` -> R1, R4
-- [ ] Write the five scenario tests and a `managedIgnoreEntries` unit test for the backups parameter -> R1–R5
+- [x] Add `backed_up` to `PhaseReport`, `IntegrationRunResult`, `runIntegrations` and the agents `Acc`/`merge` -> R1
+- [x] Report backups under `backed_up` and unchanged files under `skipped` in `applyEnforce` -> R1, R2
+- [x] Add `removed` and `backed_up` to `InitResult` -> R1, R2
+- [x] Extend `managedIgnoreEntries` with backups; add `backupPaths`; move the `init` `.gitignore` write after the integrations -> R3
+- [x] Refresh the block in `update` when present, warn when missing; merge `backed_up` -> R1, R4
+- [x] Write the five scenario tests and a `managedIgnoreEntries` unit test for the backups parameter -> R1–R5
 
 ## 4. Quality Gates
 
