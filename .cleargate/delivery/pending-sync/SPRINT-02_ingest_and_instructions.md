@@ -11,13 +11,13 @@ start_date: 2026-10-17
 end_date: null
 synced_at: null
 created_at: 2026-10-16T17:25:00Z
-updated_at: 2026-10-16T20:50:45Z
+updated_at: 2026-10-16T21:19:00Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: fca928d-dirty
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-16T20:50:46Z
+  last_gate_check: 2026-10-16T21:19:21Z
   transition: ready-for-execution
 epics:
   - EPIC-001
@@ -314,6 +314,7 @@ Skeleton rules:
 - 2026-10-16 · Human decision after the second Brief: the two setup-file gaps are closed with a `wikeeper doctor` check, not by changing `update` (STORY-002-08 R4 kept). STORY-006-08 added (wave 2, upstream 006-02 and 002-07 for `src/commands/doctor.ts`; its QA-Red re-scopes `test/doctor.red.node.test.ts`); 006-02 step 6 and 006-07 step 5 now read the check instead of running `git check-ignore`; 006-06 checks that named doctor check ids exist and gains 006-08 as a predecessor; EPIC-006 §4 and scope amended; `waves.json` updated by the orchestrator (27 stories, no wave-order violation). Also: 006-02 R1 test exempts the step-4 preview table from its command list (004-02 adds search rows there); `test/paths.red.node.test.ts` re-scoped by 006-02.
 - 2026-10-16 · Gate 2 (Sprint Ready): the human approved the sprint plan, the SDR and all 27 stories (`approved: true`). Kickoff waits for SPRINT-01 to close.
 - 2026-10-17 · Kickoff: SPRINT-01 closed (Gate 4); preflight 5/5 pass (devops reachable — used for 4 merges this session); `sprint/S-02` cut from main at fca928d; `cleargate sprint init` → state.json with 27 stories, all standard, `.active` = SPRINT-02; Goal Acceptance Check copied into sprint-context.md; status Active.
+- 2026-10-17 · M1 Architect plan (`plans/M1.md`, wave 1, 10 stories). Orchestrator decisions on its open items: (1) skeleton dispatch split — C1–C4 and C10 now, C5–C9/C11/C12 with the M2 plan before wave 3 (departs from SDR §2.1 "one dispatch writes C1–C12"; stacking unchanged); C14 is cut from 001-08's Developer commit, not a skeleton. (2) CR:spec-clarification STORY-006-02 R12 + "remove keeps project.md" scenario: `data.kept` contains `me.md` and `project.md` and stays sorted (was "right after"; `remove` sorts `kept`, `.wiki/pages` sorts between them). (3) sprint-context.md Locked Versions, Test Stack and Cross-Cutting Rules filled in (were template stubs; Locked Versions said Node ≥24 / TS ^5.8). (4) Test-fixture detail, not a spec gap: 006-01/006-02 "`init --yes` in an empty repository" setups pass `--agents claude`. (5) Approach notes accepted: 004-01 keeps yaml's default `prettyErrors` (`false` drops `linePos`); C10 carries a third insertion-point anchor set in request building. (6) Four flashcards recorded.
 
 ## Goal Acceptance Check (accepted by the human, 2026-10-16)
 

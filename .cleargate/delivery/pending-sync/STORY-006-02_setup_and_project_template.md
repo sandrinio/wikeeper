@@ -17,14 +17,14 @@ lane: standard
 db_write_set: []
 deferred_verification: []
 created_at: 2026-10-16T18:45:00Z
-updated_at: 2026-10-16T20:46:34Z
+updated_at: 2026-10-16T21:18:30Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
 server_pushed_at_version: 3
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-16T20:47:56Z
+  last_gate_check: 2026-10-16T21:18:33Z
   transition: ready-for-execution
 pushed_by: null
 pushed_at: null
@@ -65,7 +65,7 @@ As an AI coding agent in a freshly initialised repository, I want step-by-step s
 - **R9 — Step 8, finish.** Run `wikeeper setup --done`.
 - **R10 — project.md template (contract 13).** `templates/system/templates/project.md`: frontmatter keys exactly `type` (value `project`), `name` and `aliases` (a list); then the sections `## What it is` (what it does, for whom, what problem it solves), `## Scope` (what this wiki covers and what it does not), `## Where things live` (repos, docs and trackers the user ingests from) and `## Core terms` (a handful the agent needs to read sources), in that order, with `<…>` placeholders; one comment line stating that only stable facts belong here and that status, dates, decisions, people and roadmap go into pages through ingests. At most 20 lines. It is not a page template: it lives outside `pages/`, is not indexed or searched, and is not parsed with `parsePage`.
 - **R11 — wiki-setup skill.** `templates/skills/wiki-setup/SKILL.md` keeps frontmatter `name: wiki-setup` and `description`; the description says to use it when `.wiki/config.yml` has no `setup_completed_at` or the user asks to (re)run setup; the body says to follow `.wiki/system/SETUP.md` step by step.
-- **R12 — `projectFile` (contract 13).** `ResolvedPaths` gains `projectFile` = `<wikiDir>/project.md` (`src/core/paths.ts`, next to `meFile`). `wikeeper remove` lists it under `kept` when it exists, right after `me.md`, exactly like the other user-owned files (`src/commands/remove.ts`, `keptCandidates`); remove never deletes it, and `remove --purge` already deletes it with `.wiki/`.
+- **R12 — `projectFile` (contract 13).** `ResolvedPaths` gains `projectFile` = `<wikiDir>/project.md` (`src/core/paths.ts`, next to `meFile`). `wikeeper remove` lists it under `kept` when it exists, exactly like the other user-owned files: its `keptCandidates` entry sits right after `paths.meFile` (`src/commands/remove.ts`), and the reported `kept` list stays sorted by code unit like every other path list; remove never deletes it, and `remove --purge` already deletes it with `.wiki/`.
 
 ### 1.3 Out of Scope
 - ONBOARDING.md and the `me.md` template (STORY-006-07; CR-002 B5 moves there).
@@ -145,7 +145,7 @@ Feature: SETUP.md, project.md template and wiki-setup skill
   Scenario: remove keeps project.md and reports it as kept
     Given an initialised repository with .wiki/me.md and .wiki/project.md written during setup
     When I run "wikeeper remove --json"
-    Then .wiki/project.md is byte-identical and data.kept lists ".wiki/project.md" right after ".wiki/me.md"
+    Then .wiki/project.md is byte-identical and data.kept contains both ".wiki/me.md" and ".wiki/project.md" and is sorted by code unit
     And resolvePaths(root, DEFAULT_CONFIG).projectFile is the path of .wiki/project.md
 
   Scenario: Error — a preview row that differs from the writers fails
