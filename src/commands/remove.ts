@@ -1,6 +1,7 @@
 import { lstat, readdir, readFile, rm, rmdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { createInterface } from "node:readline/promises";
+import { isInside } from "../agents/hook-protocols.js";
 import type { CommandModule } from "../program.js";
 import { loadConfig } from "../core/config.js";
 import { ExitCode, WikeeperError } from "../core/exit-codes.js";
@@ -21,11 +22,6 @@ export interface RemoveResult {
 }
 
 export const CONFIRM_WORD = "wikeeper";
-
-function isInside(parent: string, child: string): boolean {
-  const rel = path.relative(parent, child);
-  return rel !== "" && rel !== ".." && !rel.startsWith(".." + path.sep) && !path.isAbsolute(rel);
-}
 
 const cmp = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
 
@@ -69,13 +65,12 @@ async function exists(p: string): Promise<boolean> {
   }
 }
 
-async function rmdirIfEmpty(dir: string): Promise<boolean> {
+async function rmdirIfEmpty(dir: string): Promise<void> {
   try {
     await rmdir(dir);
-    return true;
   } catch (err) {
     const code = (err as NodeJS.ErrnoException).code;
-    if (code === "ENOTEMPTY" || code === "EEXIST" || code === "ENOENT") return code === "ENOENT";
+    if (code === "ENOTEMPTY" || code === "EEXIST" || code === "ENOENT") return;
     throw err;
   }
 }

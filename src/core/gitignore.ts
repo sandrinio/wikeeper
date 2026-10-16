@@ -120,7 +120,6 @@ export function stripManagedBlock(text: string): { text: string; status: Gitigno
     const rest = current.slice(end + 1);
     if (bom) {
       rest[0] = bom + (rest[0] ?? "");
-      if (rest.length === 0) rest.push(bom);
     }
     current = [...current.slice(0, start), ...rest];
     status = "stripped";
