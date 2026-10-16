@@ -191,15 +191,15 @@ Not applicable — content. Consumes `parsePage` and `pageEntities` (contract 1)
 
 ## Task Breakdown
 
-- [ ] Write sections `Ingest`, `Register`, `Triage and extract` (R3–R5) using the EPIC-003 verbs and flags.
-- [ ] Write `Write phase`, `Facts file`, `Brief`, `Page format` (R6–R9) with the four fenced examples (two page shapes).
-- [ ] Write `Delegation`, `Ambient offers` (R10, R11) with the four-case table.
-- [ ] Write `Search`, `Answering questions`, `Proposing rule changes`, `Log and index` (R12–R15).
-- [ ] Add `test/templates/wiki-protocol.test.ts`: section order and terms outline (R1, all sections).
-- [ ] Add the vocabulary, phase-order, exit-code and length checks, and the error scenario (R2, R4, R6).
-- [ ] Add the embedded-example checks against `validateFacts` and `parsePage` (R7–R9).
-- [ ] Add the delegation table check (R10).
-- [ ] Run `npm test` on the integrated tree after STORY-004-01 and STORY-003-06 merge.
+- [x] Write sections `Ingest`, `Register`, `Triage and extract` (R3–R5) using the EPIC-003 verbs and flags.
+- [x] Write `Write phase`, `Facts file`, `Brief`, `Page format` (R6–R9) with the four fenced examples (two page shapes).
+- [x] Write `Delegation`, `Ambient offers` (R10, R11) with the four-case table.
+- [x] Write `Search`, `Answering questions`, `Proposing rule changes`, `Log and index` (R12–R15).
+- [x] Add `test/templates/wiki-protocol.test.ts`: section order and terms outline (R1, all sections).
+- [x] Add the vocabulary, phase-order, exit-code and length checks, and the error scenario (R2, R4, R6).
+- [x] Add the embedded-example checks against `validateFacts` and `parsePage` (R7–R9).
+- [x] Add the delegation table check (R10).
+- [x] Run `npm test` on the integrated tree after STORY-004-01 and STORY-003-06 merge.
 
 ## 4. Quality Gates
 
