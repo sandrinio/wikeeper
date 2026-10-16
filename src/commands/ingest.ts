@@ -13,6 +13,7 @@ import { ingestFactsCommand } from "./ingest-facts.js";
 import { ingestApplyCommand } from "./ingest-apply.js";
 import { ingestAbortCommand } from "./ingest-abort.js";
 // INSERTION POINT STORY-003-09: import { ingestFinishCommand } from "./ingest-finish.js";
+import { ingestFinishCommand } from "./ingest-finish.js";
 
 export interface IngestSubcommand {
   register(group: Command): void;
@@ -29,6 +30,7 @@ export const ingestSubcommands: readonly IngestSubcommand[] = [
   ingestApplyCommand,
   ingestAbortCommand,
   // INSERTION POINT STORY-003-09: ingestFinishCommand,
+  ingestFinishCommand,
 ];
 
 export function createIngestCommand(subcommands: readonly IngestSubcommand[] = ingestSubcommands): CommandModule {
