@@ -67,12 +67,13 @@ interface Acc {
   replaced: string[];
   skipped: string[];
   removed: string[];
+  backed_up: string[];
   kept: string[];
   warnings: string[];
 }
 
 function acc(): Acc {
-  return { created: [], replaced: [], skipped: [], removed: [], kept: [], warnings: [] };
+  return { created: [], replaced: [], skipped: [], removed: [], backed_up: [], kept: [], warnings: [] };
 }
 
 function merge(into: Acc, r: PhaseReport | void): void {
@@ -81,6 +82,7 @@ function merge(into: Acc, r: PhaseReport | void): void {
   into.replaced.push(...(r.replaced ?? []));
   into.skipped.push(...(r.skipped ?? []));
   into.removed.push(...(r.removed ?? []));
+  into.backed_up.push(...(r.backed_up ?? []));
   into.kept.push(...(r.kept ?? []));
   into.warnings.push(...(r.warnings ?? []));
 }
