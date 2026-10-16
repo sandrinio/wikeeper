@@ -1,0 +1,14 @@
+{
+  "session_id": "019a3c2e-4b7d-7e21-9c1f-5d8e6a7b0c21",
+  "turn_id": "019a3c2e-5c11-7a02-8d3e-0f1a2b3c4d5e",
+  "transcript_path": null,
+  "cwd": "/Users/dev/acme",
+  "hook_event_name": "PreToolUse",
+  "model": "gpt-6-luna",
+  "permission_mode": "default",
+  "tool_name": "apply_patch",
+  "tool_use_id": "call_8Hk2mQ4xV9pL1sT6",
+  "tool_input": {
+    "command": "*** Begin Patch\n*** Update File: src/a.ts\n@@\n-export const a = 1;\n+export const a = 2;\n*** Update File: .wiki/pages/risks.md\n@@\n-Old risk\n+New risk\n*** End Patch\n"
+  }
+}
