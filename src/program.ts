@@ -15,6 +15,7 @@ import { removeCommand } from "./commands/remove.js";
 import { doctorCommand } from "./commands/doctor.js";
 import { setupCommand } from "./commands/setup.js";
 import { hookCommand } from "./commands/hook.js";
+import { searchCommand } from "./commands/search.js";
 import { ingestCommand } from "./commands/ingest.js";
 import { ensureAgentsIntegration } from "./agents/index.js";
 
@@ -35,6 +36,7 @@ export const defaultCommands: CommandModule[] = [
   doctorCommand,
   setupCommand,
   hookCommand,
+  searchCommand,
   ingestCommand,
 ];
 
@@ -47,6 +49,7 @@ export function createProgram(
     .description("A Karpathy-style LLM wiki that your AI coding agent keeps.")
     .version(VERSION, "-v, --version")
     .option("--json", "machine-readable output")
+    .configureHelp({ showGlobalOptions: true })
     .addHelpText(
       "after",
       "\nStatus: pre-alpha. Commands land in upcoming releases: https://github.com/sandrinio/wikeeper",
