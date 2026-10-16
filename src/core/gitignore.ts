@@ -2,6 +2,7 @@ import path from "node:path";
 import { compareCodeUnits } from "./compare.js";
 import type { WikeeperConfig } from "./config.js";
 import { ExitCode, WikeeperError } from "./exit-codes.js";
+import type { Manifest } from "./manifest.js";
 import type { ResolvedPaths } from "./paths.js";
 import { toPosixRelative } from "./paths.js";
 
@@ -72,6 +73,7 @@ function formatEntry(rel: string): string {
 export function managedIgnoreEntries(
   paths: ResolvedPaths,
   config: Pick<WikeeperConfig, "private">,
+  backups: readonly string[] = [],
 ): { entries: string[]; warnings: string[] } {
   const rel = (p: string): string => toPosixRelative(paths.root, p);
   const entries: string[] = [
@@ -81,6 +83,7 @@ export function managedIgnoreEntries(
     rel(path.join(paths.wikiDir, ".cache")) + "/",
     rel(path.join(paths.contentDir, "log.md")),
   ].map(formatEntry);
+  entries.push(...[...new Set(backups.map(formatEntry))].sort(compareCodeUnits));
   const warnings: string[] = [];
   const priv = new Set<string>();
   for (const p of config.private) {
@@ -94,6 +97,11 @@ export function managedIgnoreEntries(
   }
   entries.push(...[...priv].sort(compareCodeUnits));
   return { entries, warnings };
+}
+
+/** Paths of the backups the manifest records as wikeeper's. */
+export function backupPaths(manifest: Manifest): string[] {
+  return manifest.files.filter((e) => e.kind === "hook" && e.identity === "backup").map((e) => e.path);
 }
 
 export type GitignoreStripStatus = "stripped" | "absent" | "malformed";
