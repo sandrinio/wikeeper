@@ -6,6 +6,11 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-17 · #search #since · Date.parse rolls 2026-02-30 over to Mar 2 and accepts T24:00; check the calendar and the hours before trusting it.
+2026-10-17 · #snapshot #fs · fs.cp copies symlinks as links; pass a filter that skips them so the snapshot copy matches hashTree.
+2026-10-17 · #search #filters · entityHit hits carry no entity key; map a filter-only hit back by (path, line, entity name).
+2026-10-17 · #qa #red-test · Unknown-option rows exit 2 usage at baseline; assert json.command === "search" to keep them red.
+2026-10-17 · #git #merge · Insert-only edits with one unchanged line between them merge cleanly; edits on adjacent lines conflict.
 2026-10-17 · #qa #test-harness · Under parallel story load the full suite can hit 5 s timeouts (setup-files git tests): rerun before blaming the diff.
 2026-10-17 · #qa #red-test · Usage-error red rows pass spuriously when the subcommand is unknown (also exit 2): assert the message hint too.
 2026-10-17 · #qa #test-harness · search-perf p95 hit ~600 ms with 4 story suites running at once and passed alone: re-run the file isolated.
