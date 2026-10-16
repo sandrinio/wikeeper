@@ -1,0 +1,53 @@
+{
+  "name": "wikeeper",
+  "version": "0.0.1",
+  "description": "A Karpathy-style LLM wiki that your AI coding agent keeps: gated ingest, cited facts, search. Works with Claude Code, Codex and Antigravity.",
+  "keywords": [
+    "llm",
+    "wiki",
+    "knowledge-base",
+    "ai-agent",
+    "claude-code",
+    "codex",
+    "antigravity",
+    "agents-md",
+    "cli"
+  ],
+  "license": "MIT",
+  "author": "Sandro Suladze",
+  "homepage": "https://github.com/sandrinio/wikeeper#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sandrinio/wikeeper.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sandrinio/wikeeper/issues"
+  },
+  "type": "module",
+  "bin": {
+    "wikeeper": "dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "prepublishOnly": "npm run typecheck && npm test && npm run build"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "commander": "^15.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  }
+}

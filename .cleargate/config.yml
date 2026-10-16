@@ -1,0 +1,27 @@
+# ClearGate per-repo configuration.
+# See config.example.yml for the full schema (gates, ceilings, all options).
+# This file is seeded by `cleargate init`. Edit freely — re-init will not
+# clobber your changes (skipped when it differs, unless you pass --force).
+
+wiki:
+  # Buckets the compiled wiki ingests pages for. `stories` is intentionally
+  # omitted: story pages are too granular/numerous for the awareness layer, so
+  # the wiki tracks epics/sprints/proposals/crs/bugs/initiatives instead.
+  # Stories still sync to ClearGate via `cleargate push` — only the local wiki
+  # skips them. Add `stories` here if you want per-story wiki pages back.
+  ingest_buckets:
+    - epics
+    - sprints
+    - proposals
+    - crs
+    - bugs
+    - initiatives
+    - spikes
+
+vcs:
+  # CR-107: merge the sprint branch to main via a GitHub pull request instead
+  # of a local `git merge`. Requires the `gh` CLI and a GitHub `origin`
+  # remote; close_sprint.mjs's Step 2.8 fails closed if either is missing
+  # when this is true. Off by default — every install without a GitHub
+  # remote keeps the local-merge behaviour unchanged. See config.example.yml.
+  sprint_pr: false

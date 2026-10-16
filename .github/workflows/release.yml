@@ -1,0 +1,26 @@
+# Publishes to npm when a version tag (v*) is pushed.
+# Uses npm trusted publishing (OIDC): no npm token is stored in the repo.
+# One-time setup on npmjs.com → wikeeper → Settings → Trusted publishing:
+#   GitHub Actions · owner: sandrinio · repo: wikeeper · workflow: release.yml
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - run: npm install -g npm@latest
+      - run: npm ci
+      - run: npm publish
