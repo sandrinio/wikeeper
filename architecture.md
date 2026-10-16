@@ -31,24 +31,22 @@ An npm package that installs a Karpathy-style LLM wiki into any repository. The 
 ```
 .wiki/
 ├── system/                    # PACKAGE-OWNED — replaced by `update`
-│   ├── SETUP.md               # setup instructions (agent reads once)
+│   ├── SETUP.md               # setup instructions (once per repo)
+│   ├── ONBOARDING.md          # onboarding instructions (once per person)
 │   ├── WIKI.md                # wiki protocol: ingest / query / lint
 │   ├── profiles/
-│   │   └── management.md      # seed capture rules + page types
-│   └── templates/             # page templates: person, project, risk, decision, source
+│   │   └── management.md      # suggestions: questions, entity types, source kinds
+│   └── templates/             # me.md, project.md and the source page template
 ├── config.yml                 # USER-OWNED — permissions, hooks, agents
 ├── kb_instructions.md         # USER-OWNED — what to capture; evolves over time
 ├── me.md                      # USER-OWNED, gitignored — who the agent works with (§5.4)
+├── project.md                 # USER-OWNED, committed — what the wiki covers (§5.5)
 ├── index.md                   # CLI-generated catalog of pages (deterministic; rebuildable)
 ├── log/                       # one file per event — merge-safe; `log.md` is a generated, gitignored view
 ├── raw/                       # immutable: <id>.<ext> (original), <id>.meta.json, <id>.facts.json, <id>.md (optional)
-└── pages/                     # agent-written knowledge (management profile shown)
-    ├── team.md
-    ├── risks.md
-    ├── glossary.md
-    ├── projects/<name>.md
-    ├── decisions/<slug>.md
-    └── sources/<source-id>.md
+└── pages/                     # agent-written knowledge; page names come from kb_instructions.md
+    ├── <pages named in kb_instructions.md, Entities>
+    └── sources/<source-id>.md   # the only page the package names (one per ingest)
 ```
 
 **[Agreed]** Obsidian (Karpathy's suggested viewer) ignores dot-folders, so `.wiki/pages/` is invisible to it. A `content_dir` config key moves `pages/`, `raw/`, `index.md` and `log/` to a visible folder; the default stays `.wiki/`.
@@ -62,7 +60,8 @@ An npm package that installs a Karpathy-style LLM wiki into any repository. The 
 | Agent skills, hook and permission entries (§6.3, §6.6) | package | create | replace | delete | delete |
 | `config.yml` | user | create if missing | never | keep | delete |
 | `kb_instructions.md` | user | seed from profile if missing | never | keep | delete |
-| `me.md` (gitignored) | user | written during setup | never | keep | delete |
+| `me.md` (gitignored) | user | written during onboarding | never | keep | delete |
+| `project.md` | user | written during setup | never | keep | delete |
 | `index.md`, `log/` | user (CLI-maintained) | create if missing | never | keep | delete |
 | `raw/**`, `pages/**` | user | create dirs | never | keep | delete |
 
@@ -74,7 +73,8 @@ Two kinds of instruction **[Agreed]**, plus the user's evolving rules:
 
 | File | Owner | Read when | Answers |
 |---|---|---|---|
-| `system/SETUP.md` | package | once, after `init` | *How do I get this wiki running for this user?* |
+| `system/SETUP.md` | package | once per repo, after `init` | *How do I get this wiki running?* |
+| `system/ONBOARDING.md` | package | once per person, when `me.md` is missing | *Who am I working with?* |
 | `system/WIKI.md` | package | before any ingest / query / lint | *How do I operate the wiki?* (process) |
 | `kb_instructions.md` | user | during every ingest | *What should I capture, and where?* (content) |
 
@@ -82,13 +82,16 @@ The process lives in package files so improvements ship with `update`; the conte
 
 ### 5.1 SETUP.md — agent bootstrap
 
-1. Ask the user's name, how they'd like to be addressed, and their role; write `me.md` (§5.4).
-2. Confirm the purpose and pick a profile (`management`).
-3. Draft `kb_instructions.md` from the profile and `me.md`; ask about team, active projects, things never to capture.
+1. Onboard the user with `ONBOARDING.md`: name, how they'd like to be addressed, role, what they'll use the wiki for, answer style; write `me.md` (§5.4).
+2. Ask what the wiki covers, or read a doc the user names; write `project.md` (§5.5) and show it for approval.
+3. Draft `kb_instructions.md` — questions, entity types with their page names, source kinds, things never to capture — from `project.md`, `me.md` and the profile's suggestions (§5.3); the user approves.
 4. Agree the permission mode (§7.2) and write it to `config.yml`.
 5. Run `wikeeper doctor` to verify agent wiring.
-6. Offer a first ingest.
-7. Run `wikeeper setup --done` (stamps `setup_completed_at` in `config.yml`).
+6. Check that `me.md` and `project.md` will load in the next session.
+7. Offer a first ingest.
+8. Run `wikeeper setup --done` (stamps `setup_completed_at` in `config.yml`).
+
+`ONBOARDING.md` runs on its own for a teammate who clones an already set-up repo: setup is done, but their gitignored `me.md` doesn't exist yet, so the pointer block sends their agent to it (§6.5). **[Agreed 2026-10-16]**
 
 ### 5.2 kb_instructions.md — what to capture **[Agreed]**
 
@@ -96,7 +99,7 @@ Capture rules are keyed by **source kind** (what the content *is*: meeting notes
 
 The agent keeps offering additions to this file as it meets new kinds of information (§9).
 
-**Questions are the root [Proposed].** Every rule exists to answer a question the wiki must answer: a question with no rule is a gap, a rule serving no question is bloat. Entities are defined separately from source kinds, so a new kind of source maps onto existing entities. **[Agreed]** The agent drafts the questions itself from the profile and the user's first sources, and revises them from what the user actually asks (§9); the user approves changes rather than writing them.
+**Questions are the root [Proposed].** Every rule exists to answer a question the wiki must answer: a question with no rule is a gap, a rule serving no question is bloat. Entities are defined separately from source kinds, so a new kind of source maps onto existing entities. **[Agreed]** The agent drafts the questions itself from `project.md`, `me.md`, the profile's suggestions and the user's first sources, and revises them from what the user actually asks (§9); the user approves changes rather than writing them. The example below is what a drafted file might look like for a management wiki; the seed ships these sections empty.
 
 ```md
 # Knowledge Base Instructions
@@ -132,47 +135,68 @@ compensation · health · personal life · performance judgements of individuals
 2026-10-16  meeting-notes v2: + attendees (proposed after ingest src-…)
 ```
 
-### 5.3 Management profile — seed pages **[Agreed scope, Proposed detail]**
+### 5.3 Management profile — suggestions **[Agreed 2026-10-16]**
 
-| Page | Holds | Why management needs it |
+There are no fixed pages. The package names one page, `sources/<id>.md`, which every ingest writes. Everything else — the questions, the entity types and the pages they live on — comes from the setup conversation and the first sources, and grows through rule proposals (§9).
+
+The profile is a list of suggestions the agent offers during setup step 3, keeping only what fits `project.md` and the user's answers:
+
+| Suggestion | Example | Why it is offered |
 |---|---|---|
-| `team.md` | people, roles, ownership, reporting lines, availability | Most management questions are about people: who owns X, who decides, who is overloaded, who to ask |
-| `projects/<name>.md` | goals, scope, timeline, status, project-specific risks, stakeholders | Project-specific knowledge in one place per project |
-| `risks.md` | cross-project risk register: description, likelihood/impact, owner, mitigation, status | General risks that don't belong to one project |
-| `decisions/<slug>.md` | what was decided, by whom, when, alternatives, rationale | Decisions are the most-asked-about and most-forgotten facts |
-| `glossary.md` | terms, acronyms, codenames | Lets the agent read future sources correctly |
+| Questions | *Who owns X? What was decided about Y, and why? What changed this week?* | Questions are the root of every rule (§5.2) |
+| Entity types and page names | person → a people page; project → `projects/<name>.md`; decision → `decisions/<slug>.md`; risk → a risk register; term → a glossary | Common shapes, so the agent doesn't invent a layout from scratch |
+| Source kinds | `meeting-notes (v1) → …`, `status-report (v1) → …` | Starting rules the agent adapts to the chosen entities |
+| Never capture | compensation, health, personal life, performance judgements of individuals | Privacy defaults (EPIC-006 §3) |
 
-`team.md` is sensitive. The profile ships a default *Never capture* list, and a `private: [team.md]` setting keeps listed pages out of git (off by default). **[Agreed]**
+A page holding personal information can be kept out of git with `private: [<page>]` (D-27, off by default).
 
 ### 5.4 User profile — `me.md` **[Proposed]**
 
-A short page about the person the agent works with. It is personal, so it is gitignored: in a shared repo each person has their own, while their shared, factual entry (name, role) lives in `team.md`.
+A short file about the person the agent works with, written during onboarding (§5.1). It is personal, so it is gitignored: in a shared repo each person has their own. It links to no page.
 
 ```md
 ---
 type: me
-person: "[[Alex Morgan]]"          ← their entry in team.md
 ---
+name: Alex Morgan
 address as: Alex
 role: Head of Product, Platform
-reports to: [[Dana Lee]] · direct reports: [[Ana Kim]], [[Luka B.]]
-my projects: [[Atlas]], [[Billing v2]]
-timezone: Europe/Berlin · language: English · week starts: Monday
+uses the wiki for: product decisions, release status, customer feedback
+working on: Atlas, Billing v2
+timezone: Europe/Berlin
+language: English
 answer style: short, tables over prose, risks first
 ```
 
 | Field | What it enables |
 |---|---|
-| name, address as, `person` link | Addressing the user by name, and resolving "I"/"me" in chat to the same person meeting notes call "Alex" — so "Action: Alex to send budget" becomes *you owe the budget* |
-| role, my projects | The main input for the agent drafting the wiki's questions itself (§5.2), and for deciding what is worth capturing |
-| reports to, direct reports | Separates what to escalate from what to delegate, and whose updates matter most |
-| timezone, week start | Turns "next Friday" in a source into a date — every fact is dated |
+| name, address as | Addressing the user by name, and resolving "I"/"me" in chat to the same person meeting notes call "Alex" — so "Action: Alex to send budget" becomes *you owe the budget* |
+| role, uses the wiki for, working on | The main input for the agent drafting the wiki's questions itself (§5.2), and for deciding what is worth capturing |
+| timezone | Turns "next Friday" in a source into a date — every fact is dated |
 | language, answer style | How answers and reports are written |
 
-Questions this unlocks: *What do I owe, and to whom? What's waiting on me? What did my reports change this week?*
-
-- Only what the user says about themselves, offered for approval like any other change. Never inferred: no personality, mood or performance notes.
+- Only what the user says about themselves, offered for approval like any other change. Never inferred: no personality, mood or performance notes. A field the user hasn't given is left out.
 - Kept to ~15 lines, because it is read at the start of every session (§6.5).
+
+### 5.5 Project brief — `project.md` **[Agreed 2026-10-16]**
+
+A short, committed file about what the wiki covers, written during setup step 2 from the conversation or a doc the user names, and read at the start of every session next to `me.md`.
+
+```md
+---
+type: project
+name: Formapass
+aliases: [doc_processor]
+---
+## What it is
+## Scope
+## Where things live
+## Core terms
+```
+
+- Only stable facts: what the product or project is, for whom, what is in and out of scope, where its repos and docs live, and a handful of terms needed to read sources. Status, dates, decisions, people and the roadmap go into pages through ingests, with citations, so the brief doesn't go stale.
+- Outside `pages/`: not indexed or searched; the agent changes it only with the user's approval.
+- Kept to ~20 lines.
 
 ## 6. Agent integration
 
@@ -233,7 +257,7 @@ This repo has a knowledge wiki in `.wiki/`.
 - If `.wiki/config.yml` has no `setup_completed_at`, read `.wiki/system/SETUP.md` and finish setup first.
 - Otherwise, before ingesting, querying or editing anything under `.wiki/`, read `.wiki/system/WIKI.md`.
 - Never write to `.wiki/pages/` outside `wikeeper ingest start` / `wikeeper ingest finish`.
-- If `.wiki/me.md` exists, read it at the start of a session: it describes who you are working with.
+- At session start, read `.wiki/me.md` and `.wiki/project.md`; if `.wiki/me.md` is missing, first onboard the user with `.wiki/system/ONBOARDING.md`.
 <!-- WIKI:END -->
 ```
 
@@ -439,7 +463,7 @@ Each proposal is a small diff the user approves. Approved → rule version bumpe
 | `status` | open ingests, sources with outdated rule versions | Proposed |
 | `lint [--rules]` | broken links, uncited claims, unlogged changes, index drift, rule conflicts | Proposed |
 | `search <query>` | **wiki_search** — query the wiki; also used by ingest to find pages to update | Agreed (modes Proposed) |
-| `doctor` | agent wiring, duplicate blocks, config validity | Proposed |
+| `doctor` | agent wiring, duplicate blocks, config validity, setup files (`me.md` ignored and not committed, `project.md` present and not ignored) | Proposed |
 | `setup --done` | mark setup complete | Proposed |
 
 Every command supports `--json`: the agent is the main consumer. **[Proposed]**
@@ -452,7 +476,7 @@ profile: management
 setup_completed_at: null
 agents: [claude, codex, antigravity]
 content_dir: .wiki              # move pages/, raw/, index.md, log/ to a visible folder (§4)
-private: []                     # pages kept out of git, e.g. [team.md] (§5.3)
+private: []                     # pages kept out of git, e.g. [people.md] (§5.3)
 enforce: false                  # harness hooks + permission rules (§6.6)
 
 ingest:
@@ -490,7 +514,7 @@ None. All questions were resolved on 2026-10-16 (D-20, D-21, D-24 – D-31).
 | D-10 | Supported agents: Claude Code, Antigravity, Codex. |
 | D-11 | Wiki instructions injected at the top of agent files, separated by markers; if present, the file is not modified. |
 | D-12 | If no agent file exists, create `AGENTS.md` and ask which others to add. |
-| D-13 | First profile: Management — team, project-specific knowledge, general risks. |
+| D-13 | First profile: Management — offered as suggestions (questions, entity types, source kinds), not fixed pages (revised 2026-10-16, D-34). |
 | D-14 | The agent proposes additions to `kb_instructions.md`; the user approves. |
 | D-15 | The wiki has a search tool (`wiki_search`). |
 | D-16 | A source is read once; agents hand each other facts, not sources. |
@@ -504,10 +528,13 @@ None. All questions were resolved on 2026-10-16 (D-20, D-21, D-24 – D-31).
 | D-24 | Content lives in `.wiki/` by default; `content_dir` moves it to a visible folder (e.g. for Obsidian). |
 | D-25 | Whitelist entries match on source kind, origin (path or domain), or both. |
 | D-26 | Ambient ingest offers are on by default (`ambient_offers: false` turns them off). |
-| D-27 | A `private: [...]` setting keeps listed pages (e.g. `team.md`) out of git; off by default. |
+| D-27 | A `private: [...]` setting keeps listed pages out of git; off by default. |
 | D-28 | Merge-safe for teams: one log file per event under `log/`; `index.md` is deterministic and rebuildable after a merge. |
 | D-29 | `wiki_search` is a CLI command only; an MCP tool is out of scope for now. |
 | D-30 | `init` asks whether to enable `--enforce`, defaulting to no. |
-| D-31 | The agent drafts the wiki's questions itself (from the profile and `me.md`); the user approves changes. |
+| D-31 | The agent drafts the wiki's questions itself (from `project.md`, `me.md` and the profile's suggestions); the user approves changes. |
 | D-32 | `init` never creates `CLAUDE.md`: `AGENTS.md` works with Claude Code too. |
 | D-33 | The `--enforce` write guard fails open, with a warning, when it can't read a hook payload. |
+| D-34 | No fixed pages: the package names only `sources/<id>.md`; questions, entity types and pages come from the setup conversation and the first sources. |
+| D-35 | `project.md` is a committed per-repo brief of stable facts, written during setup and read at every session start. |
+| D-36 | `ONBOARDING.md` runs once per person and writes their gitignored `me.md`; the pointer block sends the agent there when `me.md` is missing. |

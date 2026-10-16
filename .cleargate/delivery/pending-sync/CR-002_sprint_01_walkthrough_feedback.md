@@ -5,18 +5,18 @@ parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
 status: Draft
-approved: false
+approved: true
 complexity_label: L2
 context_source: "SPRINT-01 walkthrough: formapass_management test session report (2026-10-16) + orchestrator observation of its transcript · verified against src/ and the raw epic files"
 created_at: 2026-10-16T17:15:00Z
-updated_at: 2026-10-16T17:15:00Z
+updated_at: 2026-10-16T18:30:00Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
 server_pushed_at_version: null
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-16T17:04:36Z
+  last_gate_check: 2026-10-16T19:24:07Z
   transition: ready-to-apply
 pushed_by: null
 pushed_at: null
@@ -45,15 +45,16 @@ All items below are `UR:review-feedback` from the SPRINT-01 walkthrough. None of
 
 - **Question:** Should the pointer block stay within EPIC-006's 12-line cap?
 - **Recommended:** Raise the cap to 14 lines. Items B1–B3 add a visible "managed by wikeeper" line, an ownership line and an ingest fallback line, which together do not fit in 12 lines next to the current five bullets. The block loads into every session, so 14 is the upper limit.
-- **Human decision:** {populated during Brief review}
+- **Human decision:** Approved as recommended (human, 2026-10-16, SPRINT-02 planning): the cap is 14 lines.
 
 - **Question:** How should the `.bak` files that wikeeper writes stay out of commits?
 - **Recommended:** `init` and `update` add each `.bak` path they write to the managed `.gitignore` block, and `remove` takes it out again. Today `git add -A` commits them.
-- **Human decision:** {populated during Brief review}
+- **Human decision:** Approved as recommended (human, 2026-10-16, SPRINT-02 planning): `init` and `update` add each `.bak` path they write to the managed `.gitignore` block; `remove` takes it out.
 
 - **Question:** How should `me.md` be loaded reliably?
 - **Recommended:** Decide during EPIC-006 decomposition. Option 1: the block keeps "read `.wiki/me.md` at session start", which relies on the agent following it. Option 2: wikeeper adds an `@.wiki/me.md` import line to `CLAUDE.md`. That works for Claude only and pulls a gitignored file into every session. The recommended default is option 1, plus a SETUP.md step that checks it works.
-- **Human decision:** {populated during Brief review}
+- **Human decision:** Approved as recommended (human, 2026-10-16, SPRINT-02 planning): option 1 — the block keeps "read `.wiki/me.md` at session start", and SETUP.md adds a step that checks it works.
+- **Later at SPRINT-02 planning (human, 2026-10-16):** onboarding moved to a per-person `.wiki/system/ONBOARDING.md`, which writes `me.md` and runs the load check; SETUP.md runs it as step 1 and re-checks at step 6, and the block line also reads `.wiki/project.md` and sends the agent to ONBOARDING.md when `me.md` is missing (SPRINT-02 decomposition contract 13).
 
 ## 1. The Context Override (Old vs. New)
 
@@ -79,7 +80,7 @@ All items below are `UR:review-feedback` from the SPRINT-01 walkthrough. None of
 2. The block names what the agent may edit (`.wiki/config.yml`, `.wiki/kb_instructions.md`, `.wiki/me.md`) and what is package-owned (`.wiki/system/`, skills, sub-agents, settings entries).
 3. The block gives a fallback: "if `wikeeper ingest` is unavailable, do not write pages; tell the user".
 4. One set of ingest verbs everywhere: block, guard deny message (`src/agents/hook-protocols.ts:5`), settings rules, SETUP.md and WIKI.md all use the EPIC-003 command names (`start` → `apply` → `finish`). The deny message points to a WIKI.md section that exists.
-5. The `me.md` template defines its schema: frontmatter `type: me` plus `person:`, then body fields, with an explicit rule for unknown values (leave the field out, or write `TBD`, one rule).
+5. The `me.md` template defines its schema: frontmatter `type: me` plus `person:`, then body fields, with an explicit rule for unknown values (leave the field out, or write `TBD`, one rule). *Amended at SPRINT-02 planning (human, 2026-10-16): no `person:` key, because there are no fixed pages to link to; frontmatter is exactly `type: me`, and unknown values are left out (STORY-006-07).*
 6. SETUP.md's permission step shows what each mode installs in each agent's settings before applying it, and states the defaults (`ingest.permission` unset = `ask`).
 7. WIKI.md explains `log/` (one file per event) vs `log.md` (generated, gitignored view).
 
@@ -121,7 +122,7 @@ All items below are `UR:review-feedback` from the SPRINT-01 walkthrough. None of
 - `templates/agent-block.md`, `templates/me.md`, `templates/system/SETUP.md`, `templates/system/WIKI.md`
 - The EPIC-003 and EPIC-005 files named in their own stories
 
-**Now (on approval):** add a one-line "CR-002 scope addition" bullet to EPIC-001, EPIC-002, EPIC-003, EPIC-005 and EPIC-006 §2, pointing at this CR.
+**Now (on approval, done 2026-10-16):** add a one-line "CR-002 scope addition" bullet to EPIC-001, EPIC-002, EPIC-003, EPIC-005 and EPIC-006 §2, pointing at this CR.
 
 ## 4. Verification Protocol
 
@@ -189,5 +190,5 @@ Requirements to pass to Green (Ready for Execution):
 - [ ] All impacted downstream Epics/Stories are identified and reverted to 🔴 High Ambiguity.
 - [x] Execution Sandbox contains exact file paths.
 - [x] Verification command is provided.
-- [ ] `approved: true` is set in the YAML frontmatter.
+- [x] `approved: true` is set in the YAML frontmatter.
 - [x] Existing Surfaces cites at least one source-tree path the CR extends.
