@@ -22,6 +22,10 @@ coverage/
 .cleargate/sprint-runs/*/.processed-*
 .cleargate/sprint-runs/*/.qa-context-*
 .cleargate/sprint-runs/*/.script-incidents/
+# Per-story agent reports: kept out of the tree during the sprint so the
+# readiness check sees a clean checkout; committed with -f at sprint close.
+.cleargate/sprint-runs/*/reports/
+.cleargate/sprint-runs/*/.dev-handoff-*
 
 # Local environment files (API keys, tokens, credentials).
 # Allowlist lines must stay AFTER the .env patterns so the negation wins.
