@@ -20,14 +20,14 @@ lane: standard
 db_write_set: []
 deferred_verification: []
 created_at: 2026-10-16T18:45:00Z
-updated_at: 2026-10-16T18:45:00Z
+updated_at: 2026-10-16T22:39:16Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
 server_pushed_at_version: 4
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-16T19:24:00Z
+  last_gate_check: 2026-10-16T22:39:37Z
   transition: ready-for-execution
 pushed_by: null
 pushed_at: null
@@ -161,7 +161,7 @@ Feature: wikeeper ingest start
   Scenario Outline: Error — denied and malformed starts store nothing
     Given <repo>
     When I run "wikeeper ingest start <args> --json" <stdin>
-    Then the exit code is <exit>, error.code is "<code>" and error.command is "ingest start"
+    Then the exit code is <exit>, error.code is "<code>" and the envelope's top-level command is "ingest start"
     And no file was created under raw/
 
     Examples:
@@ -244,14 +244,14 @@ export const ingestStartCommand: IngestSubcommand;
 
 ## Task Breakdown
 
-- [ ] Create `src/commands/ingest.ts` (group, `ingestSubcommands`, help on bare `ingest`) and register it in `src/program.ts` -> R1
-- [ ] Parse options and resolve the three source shapes with their usage errors, reading stdin only on request -> R2, R3
-- [ ] Validate `--kind`, derive the label, look up the kind rule and `available_kinds` -> R4
-- [ ] Hash, list sources and handle duplicates and `--reingest` -> R5
-- [ ] Evaluate permission and map `needs_approval` / `denied` to exit 3 / 4 with details -> R6
-- [ ] Register the source, run `pre_ingest` hooks, roll back on failure -> R7
-- [ ] Emit `IngestStartResult` and the three-line human output -> R8
-- [ ] Write `test/ingest/ingest-start.test.ts` covering the five scenarios through `runCli` with injected stdin and `now`
+- [x] Create `src/commands/ingest.ts` (group, `ingestSubcommands`, help on bare `ingest`) and register it in `src/program.ts` -> R1
+- [x] Parse options and resolve the three source shapes with their usage errors, reading stdin only on request -> R2, R3
+- [x] Validate `--kind`, derive the label, look up the kind rule and `available_kinds` -> R4
+- [x] Hash, list sources and handle duplicates and `--reingest` -> R5
+- [x] Evaluate permission and map `needs_approval` / `denied` to exit 3 / 4 with details -> R6
+- [x] Register the source, run `pre_ingest` hooks, roll back on failure -> R7
+- [x] Emit `IngestStartResult` and the three-line human output -> R8
+- [x] Write `test/ingest/ingest-start.test.ts` covering the five scenarios through `runCli` with injected stdin and `now`
 
 ## 4. Quality Gates
 

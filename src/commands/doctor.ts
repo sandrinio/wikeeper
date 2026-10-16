@@ -1,7 +1,7 @@
 import { stat } from "node:fs/promises";
 import type { Command } from "commander";
-import { DEFAULT_CONFIG, formatConfigIssue, loadConfig } from "../core/config.js";
-import type { WikeeperConfig } from "../core/config.js";
+import { DEFAULT_CONFIG, configKeyIsSet, formatConfigIssue, loadConfig } from "../core/config.js";
+import type { IngestPermission, WikeeperConfig } from "../core/config.js";
 import { ExitCode } from "../core/exit-codes.js";
 import { runIntegrations } from "../core/integrations.js";
 import type { DoctorCheck, IntegrationContext, IntegrationOptions } from "../core/integrations.js";
@@ -10,13 +10,30 @@ import type { Manifest } from "../core/manifest.js";
 import { emitResult, getOutputContext } from "../core/output.js";
 import { findRepoRoot, resolvePaths } from "../core/paths.js";
 import type { ResolvedPaths } from "../core/paths.js";
+import { checkSetupFiles } from "../core/setup-files.js";
 import { readPackageVersion, templatesDir } from "../core/templates.js";
+import { AGENT_NAMES } from "../agents/agent-names.js";
+import { compareCodeUnits } from "../core/compare.js";
 import type { CommandModule } from "../program.js";
 
 export interface DoctorResult {
   checks: DoctorCheck[];
   errors: number;
   warnings: number;
+  state: DoctorState;
+}
+
+export interface DoctorState {
+  setup_completed_at: string | null;
+  permission: { mode: IngestPermission; default: boolean };
+  enforce: {
+    enabled: boolean;
+    agents: Array<{ agent: string; files: Array<{ file: string; hooks: string[]; rules: string[] }> }>;
+  };
+}
+
+export function plural(n: number, word: string): string {
+  return `${n} ${word}${n === 1 ? "" : "s"}`;
 }
 
 export const MIN_NODE_VERSION = "22.12.0";
@@ -191,6 +208,8 @@ export async function runDoctor(root: string, run: Run, deps: { nodeVersion?: st
     };
   });
 
+  if (manifest !== null) await guard("setup-files", () => checkSetupFiles(root, paths, config));
+
   await guard("integrations", async () => {
     let tpl = "";
     try {
@@ -217,18 +236,72 @@ export async function runDoctor(root: string, run: Run, deps: { nodeVersion?: st
 
   const errors = checks.filter((c) => c.severity === "error").length;
   const warnings = checks.filter((c) => c.severity === "warning").length;
-  return { checks, errors, warnings };
+
+  const m = manifest as Manifest | null;
+  const agents: DoctorState["enforce"]["agents"] = [];
+  if (m !== null) {
+    for (const agent of AGENT_NAMES) {
+      if (!config.agents.includes(agent)) continue;
+      const mine = m.files.filter(
+        (e) => (e.kind === "hook" || e.kind === "rule") && e.identity !== undefined && e.identity !== "backup" && e.agent === agent,
+      );
+      if (mine.length === 0) continue;
+      const paths = [...new Set(mine.map((e) => e.path))].sort(compareCodeUnits);
+      agents.push({
+        agent,
+        files: paths.map((file) => ({
+          file,
+          hooks: mine.filter((e) => e.path === file && e.kind === "hook").map((e) => e.identity!),
+          rules: mine.filter((e) => e.path === file && e.kind === "rule").map((e) => e.identity!),
+        })),
+      });
+    }
+  }
+  let permissionSet = false;
+  try {
+    permissionSet = await configKeyIsSet(root, "ingest.permission");
+  } catch {
+    /* doctor reports, never throws */
+  }
+  const state: DoctorState = {
+    setup_completed_at: config.setup_completed_at ?? null,
+    permission: { mode: config.ingest.permission, default: !permissionSet },
+    enforce: { enabled: config.enforce === true, agents },
+  };
+  return { checks, errors, warnings, state };
 }
 
 const LABEL: Record<DoctorCheck["severity"], string> = { ok: "[ok]", info: "[info]", warning: "[warn]", error: "[error]" };
 
 function render(result: DoctorResult): string[] {
   const lines: string[] = [];
+  const st = result.state;
+  lines.push(
+    st.setup_completed_at
+      ? `setup: completed at ${st.setup_completed_at}`
+      : "setup: not completed — ask your agent to follow .wiki/system/SETUP.md",
+  );
+  lines.push(`ingest permission: ${st.permission.mode}${st.permission.default ? " (default)" : ""}`);
+  if (!st.enforce.enabled) lines.push("enforce: off");
+  else if (st.enforce.agents.length === 0) lines.push("enforce: on — no entries recorded");
+  else {
+    const groups = st.enforce.agents.map((a) => {
+      const files = a.files.map((f) => {
+        const counts = [
+          f.hooks.length > 0 ? plural(f.hooks.length, "hook") : "",
+          f.rules.length > 0 ? plural(f.rules.length, "rule") : "",
+        ].filter(Boolean);
+        return counts.length > 0 ? `${f.file} (${counts.join(", ")})` : f.file;
+      });
+      return `${a.agent}: ${files.join(", ")}`;
+    });
+    lines.push(`enforce: on — ${groups.join("; ")}`);
+  }
   for (const c of result.checks) {
     lines.push(`${LABEL[c.severity]} ${c.id}: ${c.message}`);
     if (c.fix) lines.push(`  fix: ${c.fix}`);
   }
-  lines.push(`${result.errors} errors, ${result.warnings} warnings`);
+  lines.push(`${plural(result.errors, "error")}, ${plural(result.warnings, "warning")}`);
   return lines;
 }
 
