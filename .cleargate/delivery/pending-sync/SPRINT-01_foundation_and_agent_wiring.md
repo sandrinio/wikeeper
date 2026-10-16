@@ -168,6 +168,15 @@ Skeleton rules:
 | wave7 | STORY-002-04 | No | Upstream 001-04…001-07, 002-01…002-03; built from C8. |
 | wave8 | STORY-002-06 | No | Ordered edit on `agents/index.ts`, `doctor-checks.ts` after 002-04. |
 
+
+## 4. Execution Log
+
+- 2026-10-16 · Preflight: 5/5 checks pass; devops subagent reachable. Sprint branch `sprint/S-01` cut; state initialised; Goal Acceptance Check confirmed by the human.
+- 2026-10-16 · SDR: BUG-046 unreachable-surface refusal not applied — every flagged path verified net-new (untracked, not ignored, absent); `collision_surface.sh` does not parse prose "New Files Needed" cells.
+- 2026-10-16 · Config: `gates.typecheck/test/precommit` added to `.cleargate/config.yml` (gate commands were unconfigured and reported a silent pass).
+- 2026-10-16 · M1 plan: additive exports accepted (`runCli`, `getOutputContext`, `CommandModule`, `CliIO`, `OutputContext`, `DEFAULT_CONFIG`, `ResolvedPaths.lockFile`, `injectIntoFile().created`); C1 skeleton ships working minimal output/CLI bodies instead of throwing, so command stories' tests run before 001-01 merges.
+- 2026-10-16 · CR:spec-clarification (hook research, `plans/hook-protocols-research.md`): STORY-002-03 (Antigravity `mainAgent: false`), STORY-002-05 (NotebookEdit; Codex `tool_input.command`; Antigravity payload/`TargetFile`/third write tool/allow JSON; shell-applied Codex patches = accepted gap), STORY-002-06 (matchers, Antigravity hooks.json shape, extra rule forms, R5 command form, `antigravity-trust` note). No new scope.
+
 ## Risks & Dependencies
 
 | Risk | Mitigation |
