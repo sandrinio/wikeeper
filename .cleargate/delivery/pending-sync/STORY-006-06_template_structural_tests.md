@@ -36,14 +36,14 @@ lane: standard
 db_write_set: []
 deferred_verification: []
 created_at: 2026-10-16T18:45:00Z
-updated_at: 2026-10-16T20:46:34Z
+updated_at: 2026-10-16T23:35:21Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
 server_pushed_at_version: 1
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-16T20:47:58Z
+  last_gate_check: 2026-10-16T23:35:42Z
   transition: ready-for-execution
 pushed_by: null
 pushed_at: null
@@ -176,7 +176,8 @@ Feature: Structural template tests
 | Item | Value |
 |---|---|
 | Primary File | `test/templates.test.ts` |
-| New Files Needed | Yes — `test/templates.test.ts` |
+| New Files Needed | Yes — `test/templates.test.ts`, `test/templates/structure.ts` (the checker the red file and `test/templates.test.ts` both import; a test file cannot be imported without registering its tests twice; clarified 2026-10-16) |
+| Modified Files | `templates/index.md` — replace the SPRINT-01 placeholder with `buildIndex([])`'s empty-index text, so R8 (no placeholder left) holds on the merged tree; no other story owns the file (clarified 2026-10-16) |
 
 ### 3.2 Technical Logic
 - Command tree: `createProgram()` (`src/program.ts:40`) with the default commands; walk `program.commands` and each command's `commands`, collecting names and `options` (long flags). No CLI process is spawned.

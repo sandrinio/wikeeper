@@ -17,14 +17,14 @@ lane: standard
 db_write_set: []
 deferred_verification: []
 created_at: 2026-10-16T18:45:00Z
-updated_at: 2026-10-16T18:45:00Z
+updated_at: 2026-10-16T21:36:30Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
 server_pushed_at_version: 6
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-16T19:24:00Z
+  last_gate_check: 2026-10-16T21:36:35Z
   transition: ready-for-execution
 pushed_by: null
 pushed_at: null
@@ -114,7 +114,7 @@ Feature: User ingest hooks
   @rules
   Scenario: A hook that runs too long is killed
     Given a pre_ingest hook that writes a marker every 50 ms for 10 s
-    When runUserHooks runs with timeoutMs 300
+    When runUserHooks runs with timeoutMs 1200
     Then it returns within 2 s with status "timed_out" and exitCode null
     And the marker file stops changing after the kill
 

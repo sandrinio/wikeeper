@@ -24,14 +24,14 @@ lane: standard
 db_write_set: []
 deferred_verification: []
 created_at: 2026-10-16T18:45:00Z
-updated_at: 2026-10-16T18:45:00Z
+updated_at: 2026-10-16T23:35:21Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
 server_pushed_at_version: 1
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-16T19:19:11Z
+  last_gate_check: 2026-10-16T23:35:41Z
   transition: ready-for-execution
 pushed_by: null
 pushed_at: null
@@ -280,7 +280,7 @@ Consumed (frozen in their stories' §3.3, except the parser, drafted in parallel
 |---|---|---|
 | Unit tests | 6 | diff created/updated/deleted; outside modified vs new; citation with and without alias, through `frontmatter.sources` only, and the source page `sources/<id>.md` with no citation at all; contradiction count; size formatting; lint hook default and registered |
 | Integration tests | 0 | Temp directories only. |
-| E2E / acceptance tests | 5 | One per Gherkin scenario (Outline rows counted once); the last runs in `test/e2e/ingest.test.ts` against the packed package, with all four rows. |
+| E2E / acceptance tests | 5 | One per Gherkin scenario (Outline rows counted once); the last is covered in-process by QA-Red's `test/ingest/ingest-flow.red.node.test.ts` and run against the packed package by the Developer's `test/e2e/ingest.test.ts`, with all four rows (CR:spec-clarification 2026-10-16: red-first stays intact and the Goal check's file name is kept; one pack per file). |
 
 ### 4.2 Definition of Done (The Gate)
 - [ ] Minimum test expectations (§4.1) met.

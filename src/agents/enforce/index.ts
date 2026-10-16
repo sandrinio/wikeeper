@@ -5,7 +5,8 @@ import { setConfigValue } from "../../core/config.js";
 import type { IngestPermission } from "../../core/config.js";
 import { ExitCode, WikeeperError } from "../../core/exit-codes.js";
 import type { IntegrationContext, PhaseReport } from "../../core/integrations.js";
-import type { ManifestEntry } from "../../core/manifest.js";
+import { compareCodeUnits } from "../../core/compare.js";
+import type { Manifest, ManifestEntry } from "../../core/manifest.js";
 import type { TextSink } from "../../core/output.js";
 import { fromPosixRelative, isInside, toPosixRelative } from "../../core/paths.js";
 import type { AgentName } from "../agent-names.js";
@@ -44,6 +45,16 @@ const SPECS: Record<AgentName, readonly AgentEnforceSpec[]> = {
   codex: CODEX_ENFORCE,
   antigravity: [ANTIGRAVITY_ENFORCE],
 };
+
+/** The JSON settings files enforce writes (posix, relative to the repo root). */
+export const ENFORCE_JSON_FILES: readonly string[] = [
+  ...new Set(
+    Object.values(SPECS)
+      .flat()
+      .filter((s) => s.format === "json")
+      .map((s) => s.file),
+  ),
+];
 
 async function exists(p: string): Promise<boolean> {
   try {
@@ -145,7 +156,7 @@ async function ensureDirs(ctx: IntegrationContext, file: string): Promise<void> 
 }
 
 export async function applyEnforce(ctx: IntegrationContext, state: AgentsState, enabled: boolean): Promise<PhaseReport> {
-  const report: Required<PhaseReport> = { created: [], replaced: [], skipped: [], removed: [], kept: [], warnings: [] };
+  const report: Required<PhaseReport> = { created: [], replaced: [], skipped: [], removed: [], backed_up: [], kept: [], warnings: [] };
   const files = ctx.options.manifest.files;
   const permission: IngestPermission = ctx.config.ingest.permission;
   const form = resolveGuardForm({ root: ctx.root });
@@ -241,8 +252,9 @@ export async function applyEnforce(ctx: IntegrationContext, state: AgentsState, 
       continue;
     }
     if (wrote) (existedBefore ? report.replaced : report.created).push(p.rel);
+    else if (existedBefore) report.skipped.push(p.rel);
     if (backup) {
-      report.created.push(backup);
+      report.backed_up.push(backup);
       setOwned(files, { path: backup, sha256: null, kind: "hook", agent: p.agent, identity: "backup" });
     }
     for (const item of p.desired) {
@@ -260,7 +272,7 @@ export async function applyEnforce(ctx: IntegrationContext, state: AgentsState, 
 }
 
 export async function removeEnforce(ctx: IntegrationContext): Promise<PhaseReport> {
-  const report: Required<PhaseReport> = { created: [], replaced: [], skipped: [], removed: [], kept: [], warnings: [] };
+  const report: Required<PhaseReport> = { created: [], replaced: [], skipped: [], removed: [], backed_up: [], kept: [], warnings: [] };
   const files = ctx.options.manifest.files;
   const owned = files.filter((e) => isOwned(e) && !isBackup(e));
   const byFile = new Map<string, ManifestEntry[]>();
@@ -346,6 +358,53 @@ export async function removeEnforce(ctx: IntegrationContext): Promise<PhaseRepor
     if (bakEntry && !(await exists(bakFile))) dropOwned(files, bakEntry);
   }
   return report;
+}
+
+function hasJsonIdentity(root: JsonObject, identity: string): boolean {
+  const m = IDENTITY_RE.exec(identity);
+  if (!m) return Object.prototype.hasOwnProperty.call(root, identity);
+  let cur: unknown = root;
+  for (const key of m[1]!.split(".")) {
+    if (typeof cur !== "object" || cur === null || Array.isArray(cur)) return false;
+    cur = (cur as JsonObject)[key];
+  }
+  return Array.isArray(cur) && cur.some(selectorMatch(m[2]!));
+}
+
+/** Read-only: for each file holding manifest-owned entries, which of them are gone, or whether the file cannot be read. */
+export async function inspectOwnedEntries(
+  root: string,
+  manifest: Manifest,
+): Promise<Array<{ file: string; agent: string; missing: string[]; invalid: boolean }>> {
+  const byPath = new Map<string, ManifestEntry[]>();
+  for (const e of manifest.files) {
+    if (!isOwned(e) || isBackup(e)) continue;
+    const list = byPath.get(e.path);
+    if (list) list.push(e);
+    else byPath.set(e.path, [e]);
+  }
+  const out: Array<{ file: string; agent: string; missing: string[]; invalid: boolean }> = [];
+  for (const [rel, entries] of byPath) {
+    const agent = entries.find((e) => e.agent !== undefined)?.agent ?? "";
+    const file = fromPosixRelative(root, rel);
+    let missing: string[] = [];
+    let invalid = false;
+    if (!isLines(rel)) {
+      try {
+        const doc = await loadJsonDoc(file, rel);
+        missing = entries.map((e) => e.identity!).filter((id) => !hasJsonIdentity(doc.value, id));
+      } catch (err) {
+        if ((err as { code?: string }).code !== "settings_invalid") throw err;
+        invalid = true;
+      }
+    } else {
+      const text = await readTextOrNull(file);
+      const present = new Set(text === null ? [] : splitLines(text).lines.map((l) => l.replace(/\r$/, "")));
+      missing = entries.map((e) => e.identity!).filter((id) => !present.has(id));
+    }
+    out.push({ file: rel, agent, missing, invalid });
+  }
+  return out.sort((a, b) => compareCodeUnits(a.file, b.file));
 }
 
 const decisions = new WeakMap<AgentsState, EnforceDecision>();
