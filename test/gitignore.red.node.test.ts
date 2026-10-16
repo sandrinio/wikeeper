@@ -10,10 +10,10 @@ describe("STORY-001-04 gitignore (red)", () => {
     expect(applyManagedBlock("", ["a", "b"])).toBe(`${S}\na\nb\n${E}\n`);
   });
 
-  it("appends after existing text, adding an EOL when missing", async () => {
+  it("appends after text ending in a newline; inserts at the top when the final newline is missing", async () => {
     const { applyManagedBlock } = await load();
     expect(applyManagedBlock("node_modules/\n", ["a"])).toBe(`node_modules/\n${S}\na\n${E}\n`);
-    expect(applyManagedBlock("node_modules/", ["a"])).toBe(`node_modules/\n${S}\na\n${E}\n`);
+    expect(applyManagedBlock("node_modules/", ["a"])).toBe(`${S}\na\n${E}\nnode_modules/`);
   });
 
   it("replaces an existing block in place and preserves surrounding text", async () => {
