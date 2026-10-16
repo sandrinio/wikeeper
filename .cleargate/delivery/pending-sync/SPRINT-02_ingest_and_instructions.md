@@ -17,7 +17,7 @@ updated_at_version: strategy-phase-pre-init
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-16T19:57:43Z
+  last_gate_check: 2026-10-16T20:47:51Z
   transition: ready-for-execution
 epics:
   - EPIC-001
@@ -88,7 +88,7 @@ Milestones, lanes and the wave plan come from the Sprint Design Review (§2). Bo
 Sources: EPIC-003 (without `read`), EPIC-004, EPIC-006, and CR-002 items A1–A7, B1–B7 and C1's whitelist half. CR-002 itself is not a deliverable: its items are carried by the stories above.
 
 **Not in this sprint:**
-- `read` (STORY-003-10, with CR-002 C2) and EPIC-005 (with CR-002 D1 and C1's `lint --rules` half): SPRINT-03.
+- `read` (the planned tenth EPIC-003 story, with CR-002 C2) and EPIC-005 (with CR-002 D1 and C1's `lint --rules` half): the next sprint.
 - `CR-001`: lands in SPRINT-01, before 0.1.0 (human, 2026-10-16).
 - `BUG-001`, `BUG-002`: `UR:bug`s from the SPRINT-01 walkthrough, fixed in SPRINT-01 before its merge to `main`.
 
