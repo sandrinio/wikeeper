@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-002
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: Draft
+status: Completed
 approved: true
 ambiguity: 🟢 Low
 context_source: EPIC-002 (approved 2026-10-16) · architecture.md v0.4 §6 (agent matrix verified 2026-10-16) · verified src/program.ts
@@ -20,7 +20,7 @@ created_at: 2026-10-16T13:30:00Z
 updated_at: 2026-10-16T13:30:00Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
-server_pushed_at_version: null
+server_pushed_at_version: 5
 cached_gate_result:
   pass: true
   failing_criteria: []
@@ -33,7 +33,7 @@ last_pulled_at: null
 last_remote_update: null
 source: local-authored
 last_synced_status: null
-last_synced_body_sha: null
+last_synced_body_sha: 404ee189fa3cc9ef10761156fd234cc684f918fc4866614cfcf3dea9c45e8862
 stamp_error: no ledger rows for work_item_id STORY-002-01
 draft_tokens:
   input: null

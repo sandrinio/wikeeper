@@ -7,10 +7,10 @@
 | Type | Total | Active | Shipped |
 |------|-------|--------|---------|
 | Epics | 6 | 0 | 0 |
-| Sprints | 2 | 1 | 0 |
+| Sprints | 2 | 0 | 1 |
 | Proposals | 0 | 0 | 0 |
-| CRs | 2 | 0 | 0 |
-| Bugs | 2 | 0 | 0 |
+| CRs | 2 | 0 | 1 |
+| Bugs | 2 | 0 | 2 |
 | Spikes | 0 | 0 | 0 |
 
 ## Active Epics
@@ -23,6 +23,14 @@ _No active epics._
 ## Shipped This Cycle
 
 
+- [[BUG-001]] (bugs) — Completed
+
+- [[BUG-002]] (bugs) — Completed
+
+- [[CR-001]] (crs) — Completed
+
 - [[INITIATIVE-001]] (initiatives) — Triaged
+
+- [[SPRINT-01]] (sprints) — Completed
 
 

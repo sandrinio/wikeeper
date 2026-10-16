@@ -6,7 +6,7 @@
 [![CI](https://github.com/sandrinio/wikeeper/actions/workflows/ci.yml/badge.svg)](https://github.com/sandrinio/wikeeper/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-> **Status: pre-alpha.** `0.0.1` reserves the name and prints `--help` / `--version`; the commands below are being built. The full design is in [`architecture.md`](architecture.md).
+> **Status: pre-alpha.** On `main`, the install lifecycle works: `init`, `update`, `remove`, `doctor`, `setup`, the agent wiring for Claude Code, Codex and Antigravity, and the opt-in `--enforce` hooks. It is not yet published to npm (`0.0.1` there only reserves the name). Ingest and search are being built next. The full design is in [`architecture.md`](architecture.md).
 
 ---
 

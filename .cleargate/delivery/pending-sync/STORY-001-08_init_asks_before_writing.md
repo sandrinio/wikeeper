@@ -19,7 +19,7 @@ created_at: 2026-10-16T18:40:00Z
 updated_at: 2026-10-16T18:40:00Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
-server_pushed_at_version: null
+server_pushed_at_version: 3
 cached_gate_result:
   pass: true
   failing_criteria: []
@@ -32,7 +32,7 @@ last_pulled_at: null
 last_remote_update: null
 source: local-authored
 last_synced_status: null
-last_synced_body_sha: null
+last_synced_body_sha: e4cffc5d7d6d637dfbd0446948ebbc5783cef57b0408923ca408b091fa0386ba
 draft_tokens:
   input: 0
   output: 0

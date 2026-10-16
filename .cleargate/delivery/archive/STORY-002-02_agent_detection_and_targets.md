@@ -4,14 +4,16 @@ parent_epic_ref: EPIC-002
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: Draft
+status: Completed
 approved: true
-ambiguity: "🟢 Low"
+ambiguity: 🟢 Low
 context_source: EPIC-002 (approved 2026-10-16) · architecture.md v0.4 §6 (agent matrix verified 2026-10-16) · verified src/program.ts
 actor: Developer installing wikeeper in a repository
 complexity_label: L2
 parallel_eligible: y
-dep_predecessors: ["STORY-001-01", "STORY-001-02"]
+dep_predecessors:
+  - STORY-001-01
+  - STORY-001-02
 expected_bounce_exposure: med
 lane: standard
 db_write_set: []
@@ -20,7 +22,7 @@ created_at: 2026-10-16T13:30:00Z
 updated_at: 2026-10-16T13:30:00Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
-server_pushed_at_version: null
+server_pushed_at_version: 5
 cached_gate_result:
   pass: true
   failing_criteria: []
@@ -33,7 +35,7 @@ last_pulled_at: null
 last_remote_update: null
 source: local-authored
 last_synced_status: null
-last_synced_body_sha: null
+last_synced_body_sha: 94c40a68326bfb70cdedc448e4f2679cdb2f891bed1a0b273a6e904076fb764f
 stamp_error: no ledger rows for work_item_id STORY-002-02
 draft_tokens:
   input: null
