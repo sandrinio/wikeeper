@@ -163,10 +163,10 @@ Feature: init asks every question before writing
 
 ## Task Breakdown
 
-- [ ] Add the `prepare` phase to `IntegrationPhase`, `Integration` and `runIntegrations` -> R1
-- [ ] Split the agents integration's `init` into `prepare` + `init` with the `WeakMap` hand-off and reader close -> R1, R2
-- [ ] Call `prepare` in `execInit` before the first write and reuse the options object for `init` -> R1, R2, R3
-- [ ] Write the open-stdin prompt tests (Outline rows), the completed-path test, the non-interactive regression and the malformed-settings test -> R1, R2, R3, R4
+- [x] Add the `prepare` phase to `IntegrationPhase`, `Integration` and `runIntegrations` -> R1
+- [x] Split the agents integration's `init` into `prepare` + `init` with the `WeakMap` hand-off and reader close -> R1, R2
+- [x] Call `prepare` in `execInit` before the first write and reuse the options object for `init` -> R1, R2, R3
+- [x] Write the open-stdin prompt tests (Outline rows), the completed-path test, the non-interactive regression and the malformed-settings test -> R1, R2, R3, R4
 
 ## 4. Quality Gates
 
