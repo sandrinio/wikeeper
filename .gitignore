@@ -26,6 +26,7 @@ coverage/
 # readiness check sees a clean checkout; committed with -f at sprint close.
 .cleargate/sprint-runs/*/reports/
 .cleargate/sprint-runs/*/.dev-handoff-*
+.cleargate/sprint-runs/*/.pending-task-*
 # Pre-gate scan output written inside each worktree
 .cleargate/reports/
 
