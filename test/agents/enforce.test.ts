@@ -30,10 +30,15 @@ async function tmp(prefix: string): Promise<string> {
 }
 async function pathWith(wikeeper: boolean): Promise<void> {
   const bin = await tmp("wikeeper-bin-");
-  if (wikeeper && process.platform !== "win32") {
-    const file = path.join(bin, "wikeeper");
-    await writeFile(file, "#!/bin/sh\nexit 0\n");
-    await chmod(file, 0o755);
+  if (wikeeper) {
+    if (process.platform === "win32") {
+      await writeFile(path.join(bin, "wikeeper.cmd"), "@echo off\r\n");
+      vi.stubEnv("PATHEXT", ".CMD");
+    } else {
+      const file = path.join(bin, "wikeeper");
+      await writeFile(file, "#!/bin/sh\nexit 0\n");
+      await chmod(file, 0o755);
+    }
   }
   vi.stubEnv("PATH", bin);
 }
