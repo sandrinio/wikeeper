@@ -25,3 +25,8 @@ vcs:
   # when this is true. Off by default — every install without a GitHub
   # remote keeps the local-merge behaviour unchanged. See config.example.yml.
   sprint_pr: false
+
+gates:
+  precommit: "npm run typecheck && npm test"
+  test: "npm test"
+  typecheck: "npm run typecheck"

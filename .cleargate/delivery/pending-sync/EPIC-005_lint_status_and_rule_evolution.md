@@ -86,6 +86,7 @@ A wiki that only grows decays: broken links, uncited claims, changes made outsid
 - [ ] `rules record --accepted|--rejected --kind <k> --summary <text>`: proposal decisions written to `log/` with a fingerprint; `rules list`.
 - [ ] `ingest facts <id> --dry-run`: diff new facts against the stored facts file without storing.
 - [ ] Fill the lint hook point called by `ingest finish`.
+- [ ] CR-002 scope addition (SPRINT-03): D1 lint's "page changed without a log entry" check is the stated backstop for shell writes the guard cannot see; C1 `lint --rules` checks that whitelist kinds name existing kinds ([[CR-002]]).
 
 **❌ OUT-OF-SCOPE (Do NOT Build This)**
 - Automatic fixes; LLM-based contradiction detection (the writer agent flags contradictions).

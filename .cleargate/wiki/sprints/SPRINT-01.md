@@ -6,8 +6,8 @@ children: []
 status: "Draft"
 remote_id: ""
 raw_path: ".cleargate/delivery/pending-sync/SPRINT-01_foundation_and_agent_wiring.md"
-last_ingest: "2026-10-16T13:32:26.898Z"
-last_ingest_commit: ""
+last_ingest: "2026-10-16T13:53:03.504Z"
+last_ingest_commit: "8ef2568f0e8057b195d142358166cda4d938147e"
 repo: "planning"
 ---
 
@@ -26,7 +26,7 @@ Make `npx wikeeper init` produce a safe, idempotent install that every supported
 
 ## 1. Consolidated Deliverables
 
-[+3,644 bytes not shown — read .cleargate/delivery/pending-sync/SPRINT-01_foundation_and_agent_wiring.md]
+[+12,005 bytes not shown — read .cleargate/delivery/pending-sync/SPRINT-01_foundation_and_agent_wiring.md]
 
 ## Blast radius
 Affects: no parent/child refs declared in frontmatter

@@ -10,8 +10,13 @@
 - [[EPIC-004]] (epic) — Draft — Search (`wiki_search`)
 - [[EPIC-005]] (epic) — Draft — Lint, status and rule evolution
 - [[EPIC-006]] (epic) — Draft — Instructions and Management profile
-- [[SPRINT-01]] (sprint) — Draft — Foundation and agent wiring
+- [[SPRINT-01]] (sprint) — Active — Foundation and agent wiring
+- [[SPRINT-02]] (sprint) — Draft — Ingest pipeline and instructions
 - [[INITIATIVE-001]] (initiative) — Triaged — Wiki CLI — Karpathy-style LLM wiki for AI agents
+- [[CR-001]] (cr) — Draft — `ai` mode allows only ingest commands, not every wikeeper command
+- [[CR-002]] (cr) — Draft — SPRINT-01 walkthrough feedback — CLI polish and scope notes for SPRINT-02/03
+- [[BUG-001]] (bug) — Draft — `.gitignore` without a final newline gains one after `init` → `remove`
+- [[BUG-002]] (bug) — Draft — `remove` leaves `.claude/settings.json.bak` behind after a permission-mode change
 
 ## Archive
 
