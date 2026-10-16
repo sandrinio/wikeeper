@@ -6,6 +6,7 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-17 · #test-harness #windows · Tests that inject platform: linux must not build PATH entries from os.tmpdir(); a win32 host path has a drive-letter colon.
 2026-10-17 · #qa #test-harness · To test stale-rule removal, hand-build the legacy settings and manifest state; a test relying on init no longer exercises it.
 2026-10-17 · #test-harness #worktrees · npm test in the main checkout also runs tests under .worktrees/; counts double while a worktree exists.
 2026-10-17 · #qa #remove · remove --json puts warnings at top-level json.warnings, not data.warnings; assert both.
