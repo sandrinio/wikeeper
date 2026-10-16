@@ -1,8 +1,8 @@
 import { lstat, readFile, stat } from "node:fs/promises";
-import path from "node:path";
 import type { DoctorCheck } from "../core/integrations.js";
 import type { WikeeperConfig } from "../core/config.js";
 import type { Manifest } from "../core/manifest.js";
+import { fromPosixRelative } from "../core/paths.js";
 import type { AgentName } from "./agent-names.js";
 import type { AgentFile } from "./detect.js";
 import { resolveTargets } from "./detect.js";
@@ -29,10 +29,6 @@ export type AgentCheck = (input: AgentCheckInput) => Promise<DoctorCheck[]>;   /
 const REFERENCE = ".wiki/system/WIKI.md";
 const START_LINE = /^<!-- WIKI:START\b.*-->\r?$/gm;
 
-function abs(root: string, rel: string): string {
-  return path.join(root, ...rel.split("/"));
-}
-
 export function readBlockSignature(blockText: string): BlockSignature {
   const lines = blockText.split(/\r?\n/);
   const start = lines.findIndex((l) => l.startsWith(WIKI_START_PREFIX));
@@ -56,12 +52,12 @@ export async function checkAgentBlocks(input: AgentCheckInput): Promise<DoctorCh
   for (const f of targets) {
     let text: string;
     try {
-      text = await readFile(abs(root, f), "utf8");
+      text = await readFile(fromPosixRelative(root, f), "utf8");
     } catch {
       out.push({ id: "agent-block-missing", severity: "error", message: `${f} is missing`, fix: "run wikeeper init", file: f });
       continue;
     }
-    if (text.startsWith("﻿")) text = text.slice(1);
+    if (text.startsWith("\uFEFF")) text = text.slice(1);
     const starts = [...text.matchAll(START_LINE)];
     if (starts.length >= 2) {
       out.push({
@@ -120,7 +116,7 @@ export async function checkSkillLinks(input: AgentCheckInput): Promise<DoctorChe
   for (const e of input.manifest.files) {
     if (e.kind !== "link") continue;
     const p = e.path;
-    const target = abs(input.root, p);
+    const target = fromPosixRelative(input.root, p);
     let problem: string | null = null;
     try {
       const st = await lstat(target);

@@ -1,8 +1,8 @@
 import { lstat, readdir, readFile, rm, rmdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { createInterface } from "node:readline/promises";
-import { isInside } from "../agents/hook-protocols.js";
 import type { CommandModule } from "../program.js";
+import { compareCodeUnits } from "../core/compare.js";
 import { loadConfig } from "../core/config.js";
 import { ExitCode, WikeeperError } from "../core/exit-codes.js";
 import { stripManagedBlock } from "../core/gitignore.js";
@@ -11,9 +11,8 @@ import type { IntegrationContext } from "../core/integrations.js";
 import { readManifest } from "../core/manifest.js";
 import { emitResult, getOutputContext } from "../core/output.js";
 import type { OutputContext } from "../core/output.js";
-import { findRepoRoot, resolvePaths, toPosixRelative } from "../core/paths.js";
-import { findPackageRoot, templatesDir } from "../core/templates.js";
-import { readFileSync } from "node:fs";
+import { findRepoRoot, fromPosixRelative, isInside, resolvePaths, toPosixRelative } from "../core/paths.js";
+import { readPackageVersion, templatesDir } from "../core/templates.js";
 
 export interface RemoveResult {
   removed: string[];
@@ -22,8 +21,6 @@ export interface RemoveResult {
 }
 
 export const CONFIRM_WORD = "wikeeper";
-
-const cmp = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
 
 function mismatch(): WikeeperError {
   return new WikeeperError(
@@ -108,11 +105,6 @@ async function filesUnder(dir: string): Promise<string[]> {
   return out;
 }
 
-function readPackageVersion(): string {
-  const pkg = JSON.parse(readFileSync(path.join(findPackageRoot(), "package.json"), "utf8")) as { version?: string };
-  return pkg.version ?? "";
-}
-
 async function stripGitignore(
   root: string,
   created: boolean,
@@ -168,7 +160,7 @@ export const removeCommand: CommandModule = {
         if (purge) await confirmPurge(ctx, opts.confirm);
 
         const coreEntries = manifest.files.filter((e) => e.kind === "system" || e.kind === "file");
-        const coreTargets = coreEntries.map((e) => ({ rel: e.path, abs: path.join(root, ...e.path.split("/")) }));
+        const coreTargets = coreEntries.map((e) => ({ rel: e.path, abs: fromPosixRelative(root, e.path) }));
         for (const t of coreTargets) {
           if (!isInside(paths.wikiDir, t.abs)) {
             throw new WikeeperError(ExitCode.ERROR, "unsafe_path", `refusing to delete ${t.rel}: outside .wiki/`);
@@ -194,7 +186,7 @@ export const removeCommand: CommandModule = {
         };
         const r = await runIntegrations("remove", ictx);
 
-        for (const t of [...coreTargets].sort((a, b) => cmp(b.rel, a.rel))) {
+        for (const t of [...coreTargets].sort((a, b) => compareCodeUnits(b.rel, a.rel))) {
           if (await exists(t.abs)) {
             await rm(t.abs, { force: true, maxRetries: 3 });
             removed.push(t.rel);
@@ -247,11 +239,11 @@ export const removeCommand: CommandModule = {
         }
 
         const data: RemoveResult = {
-          removed: [...new Set([...removed, ...r.removed])].sort(cmp),
-          kept: [...new Set([...kept, ...r.kept])].sort(cmp),
+          removed: [...new Set([...removed, ...r.removed])].sort(compareCodeUnits),
+          kept: [...new Set([...kept, ...r.kept])].sort(compareCodeUnits),
           purged: purge,
         };
-        const allWarnings = [...warnings, ...r.warnings].sort(cmp);
+        const allWarnings = [...warnings, ...r.warnings].sort(compareCodeUnits);
         emitResult(ctx, {
           command: "remove",
           data,

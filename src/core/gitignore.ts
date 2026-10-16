@@ -1,4 +1,5 @@
 import path from "node:path";
+import { compareCodeUnits } from "./compare.js";
 import type { WikeeperConfig } from "./config.js";
 import { ExitCode, WikeeperError } from "./exit-codes.js";
 import type { ResolvedPaths } from "./paths.js";
@@ -22,7 +23,7 @@ function scanLines(text: string): Line[] {
     const next = nl === -1 ? text.length : nl + 1;
     let start = pos;
     let content = text.slice(pos, end);
-    if (pos === 0 && content.startsWith("﻿")) {
+    if (pos === 0 && content.startsWith("\uFEFF")) {
       start = 1;
       content = content.slice(1);
     }
@@ -61,10 +62,6 @@ export function applyManagedBlock(text: string, entries: readonly string[]): str
   return text.slice(0, lines[si]!.start) + block + text.slice(lines[ei]!.next);
 }
 
-function cmp(a: string, b: string): number {
-  return a < b ? -1 : a > b ? 1 : 0;
-}
-
 function formatEntry(rel: string): string {
   let e = rel;
   if (!e.includes("/")) e = "/" + e;
@@ -95,7 +92,7 @@ export function managedIgnoreEntries(
     }
     priv.add(formatEntry(rel(abs)));
   }
-  entries.push(...[...priv].sort(cmp));
+  entries.push(...[...priv].sort(compareCodeUnits));
   return { entries, warnings };
 }
 

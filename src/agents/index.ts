@@ -1,5 +1,6 @@
 import { lstat, readFile, rm, rmdir, unlink } from "node:fs/promises";
 import path from "node:path";
+import { compareCodeUnits } from "../core/compare.js";
 import { registerIntegration } from "../core/integrations.js";
 import type { DoctorCheck, IntegrationContext, PhaseReport } from "../core/integrations.js";
 import type { AgentName } from "./agent-names.js";
@@ -7,6 +8,7 @@ import { isAgentName } from "./agent-names.js";
 import { setConfigValue } from "../core/config.js";
 import { sha256File } from "../core/manifest.js";
 import type { ManifestEntry } from "../core/manifest.js";
+import { fromPosixRelative } from "../core/paths.js";
 import { createLineReader } from "./ask-agents.js";
 import { createAskAgents } from "./ask-agents.js";
 import { detectAgentFiles, needsInputError, resolveAgents, resolveTargets } from "./detect.js";
@@ -82,10 +84,6 @@ function merge(into: Acc, r: PhaseReport | void): void {
   into.warnings.push(...(r.warnings ?? []));
 }
 
-function abs(root: string, rel: string): string {
-  return path.join(root, ...rel.split("/"));
-}
-
 async function lstatOrNull(file: string): Promise<Awaited<ReturnType<typeof lstat>> | null> {
   try {
     return await lstat(file);
@@ -116,7 +114,7 @@ function dropEntry(ctx: IntegrationContext, e: ManifestEntry): void {
 
 /** Strips the WIKI block of one manifest `block` entry. Deletes the file if wikeeper created it and it is now empty. */
 async function stripBlockEntry(ctx: IntegrationContext, e: ManifestEntry, a: Acc): Promise<void> {
-  const file = abs(ctx.root, e.path);
+  const file = fromPosixRelative(ctx.root, e.path);
   const { status } = await stripFromFile(file);
   if (status === "stripped") {
     const text = (await readFile(file, "utf8")).replace(/^\uFEFF/, "");
@@ -136,10 +134,10 @@ function depth(p: string): number {
 async function emptyDirPass(ctx: IntegrationContext, a: Acc, report: "removed" | "kept"): Promise<void> {
   const dirs = ctx.options.manifest.files
     .filter((e) => e.kind === "dir")
-    .sort((x, y) => depth(y.path) - depth(x.path) || (x.path < y.path ? 1 : x.path > y.path ? -1 : 0));
+    .sort((x, y) => depth(y.path) - depth(x.path) || compareCodeUnits(y.path, x.path));
   for (const e of dirs) {
     try {
-      await rmdir(abs(ctx.root, e.path));
+      await rmdir(fromPosixRelative(ctx.root, e.path));
       a.removed.push(e.path);
       dropEntry(ctx, e);
     } catch (err) {
@@ -162,7 +160,7 @@ async function pruneDeconfigured(
   for (const e of [...manifest.files]) {
     if (e.kind !== "skill" && e.kind !== "subagent" && e.kind !== "link") continue;
     if (!e.agent || e.agent === SHARED_AGENT || (agents as readonly string[]).includes(e.agent)) continue;
-    const file = abs(ctx.root, e.path);
+    const file = fromPosixRelative(ctx.root, e.path);
     if (e.kind === "link") {
       const st = await lstatOrNull(file);
       if (st?.isSymbolicLink()) {
@@ -247,7 +245,7 @@ async function init(ctx: IntegrationContext): Promise<PhaseReport> {
 
       const block = await loadBlock(ctx);
       for (const t of targets) {
-        const { status, created } = await injectIntoFile(abs(root, t.path), block);
+        const { status, created } = await injectIntoFile(fromPosixRelative(root, t.path), block);
         if (status === "injected") (created ? a.created : a.replaced).push(t.path);
         else a.skipped.push(t.path);
         const old = options.manifest.files.find((f) => f.path === t.path && f.kind === "block");
@@ -287,14 +285,14 @@ async function remove(ctx: IntegrationContext): Promise<PhaseReport> {
   for (const e of files.filter((f) => f.kind === "block")) await stripBlockEntry(ctx, e, a);
 
   for (const e of files.filter((f) => f.kind === "skill" || f.kind === "subagent")) {
-    const file = abs(ctx.root, e.path);
+    const file = fromPosixRelative(ctx.root, e.path);
     if (await lstatOrNull(file)) {
       await rm(file, { force: true, maxRetries: 3 });
       a.removed.push(e.path);
     }
   }
   for (const e of files.filter((f) => f.kind === "link")) {
-    const file = abs(ctx.root, e.path);
+    const file = fromPosixRelative(ctx.root, e.path);
     const st = await lstatOrNull(file);
     if (!st) continue;
     if (st.isSymbolicLink()) {

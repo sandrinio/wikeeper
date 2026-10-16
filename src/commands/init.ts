@@ -1,6 +1,7 @@
 import { lstat, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { Command } from "commander";
+import { compareCodeUnits } from "../core/compare.js";
 import { formatConfigIssue, loadConfig } from "../core/config.js";
 import { ExitCode, WikeeperError } from "../core/exit-codes.js";
 import { applyManagedBlock, managedIgnoreEntries } from "../core/gitignore.js";
@@ -10,7 +11,12 @@ import { readManifest, serializeManifest, writeManifest } from "../core/manifest
 import type { Manifest, ManifestEntry } from "../core/manifest.js";
 import { emitResult, getOutputContext } from "../core/output.js";
 import { findRepoRoot, resolvePaths, toPosixRelative } from "../core/paths.js";
-import { copyTemplate, findPackageRoot, listTemplateFiles, templatesDir as defaultTemplatesDir } from "../core/templates.js";
+import {
+  copyTemplate,
+  listTemplateFiles,
+  readPackageVersion,
+  templatesDir as defaultTemplatesDir,
+} from "../core/templates.js";
 import type { CommandModule } from "../program.js";
 
 export const PROFILES = ["management"] as const;
@@ -27,15 +33,6 @@ export interface InitDeps {
 }
 
 const MANIFEST_REL = ".wiki/system/manifest.json";
-
-function cmp(a: string, b: string): number {
-  return a < b ? -1 : a > b ? 1 : 0;
-}
-
-async function readPackageVersion(): Promise<string> {
-  const raw = await readFile(path.join(findPackageRoot(), "package.json"), "utf8");
-  return (JSON.parse(raw) as { version: string }).version;
-}
 
 async function exists(p: string): Promise<boolean> {
   try {
@@ -90,7 +87,7 @@ async function execInit(
   const paths = resolvePaths(root, config);
   const old = await readManifest(paths.manifestFile);
   const tplDir = deps.templatesDir ?? defaultTemplatesDir();
-  const packageVersion = deps.packageVersion ?? (await readPackageVersion());
+  const packageVersion = deps.packageVersion ?? readPackageVersion();
 
   const tpl = await listTemplateFiles("system", tplDir);
   const systemTargets = tpl.map((rel) => {
@@ -256,9 +253,9 @@ async function execInit(
   }
 
   const result: InitResult = {
-    created: [...new Set(created)].sort(cmp),
-    updated: [...new Set(updated)].sort(cmp),
-    skipped: [...new Set(skipped)].filter((p) => !created.includes(p) && !updated.includes(p)).sort(cmp),
+    created: [...new Set(created)].sort(compareCodeUnits),
+    updated: [...new Set(updated)].sort(compareCodeUnits),
+    skipped: [...new Set(skipped)].filter((p) => !created.includes(p) && !updated.includes(p)).sort(compareCodeUnits),
     manifest: MANIFEST_REL,
   };
   const message =

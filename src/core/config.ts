@@ -178,7 +178,7 @@ export async function loadConfig(root: string): Promise<LoadConfigResult> {
   const errors: ConfigIssue[] = [];
   const text = await readIfExists(configPath(root));
   if (text === null) return { config: structuredClone(DEFAULT_CONFIG) as WikeeperConfig, warnings, errors };
-  const doc = YAML.parseDocument(text.replace(/^﻿/, ""));
+  const doc = YAML.parseDocument(text.replace(/^\uFEFF/, ""));
   if (doc.errors.length > 0) {
     const e = doc.errors[0]!;
     const line = e.linePos?.[0]?.line;
@@ -202,7 +202,7 @@ export function formatConfigIssue(issue: ConfigIssue): string {
 export async function setConfigValue(root: string, keyPath: string, value: unknown): Promise<boolean> {
   const file = configPath(root);
   const existing = await readIfExists(file);
-  const bom = existing?.startsWith("﻿") ?? false;
+  const bom = existing?.startsWith("\uFEFF") ?? false;
   const body = bom ? existing!.slice(1) : (existing ?? "");
   const crlf = /\r\n/.test(body) && body.indexOf("\r\n") <= body.indexOf("\n");
   const doc = YAML.parseDocument(body);
@@ -220,7 +220,7 @@ export async function setConfigValue(root: string, keyPath: string, value: unkno
   doc.setIn(keys, value);
   let out = doc.toString({ lineWidth: 0 });
   if (crlf) out = out.replace(/\r?\n/g, "\r\n");
-  if (bom) out = "﻿" + out;
+  if (bom) out = "\uFEFF" + out;
   await mkdir(path.dirname(file), { recursive: true });
   await writeFile(file, out);
   return true;

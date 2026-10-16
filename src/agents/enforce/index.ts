@@ -7,8 +7,8 @@ import { ExitCode, WikeeperError } from "../../core/exit-codes.js";
 import type { IntegrationContext, PhaseReport } from "../../core/integrations.js";
 import type { ManifestEntry } from "../../core/manifest.js";
 import type { TextSink } from "../../core/output.js";
+import { fromPosixRelative, isInside, toPosixRelative } from "../../core/paths.js";
 import type { AgentName } from "../agent-names.js";
-import { isInside } from "../hook-protocols.js";
 import type { AgentsExtension, AgentsState, PromptLines } from "../index.js";
 import { ANTIGRAVITY_ENFORCE } from "./antigravity.js";
 import { CLAUDE_ENFORCE } from "./claude.js";
@@ -45,9 +45,6 @@ const SPECS: Record<AgentName, readonly AgentEnforceSpec[]> = {
   antigravity: [ANTIGRAVITY_ENFORCE],
 };
 
-function absPath(root: string, rel: string): string {
-  return path.join(root, ...rel.split("/"));
-}
 async function exists(p: string): Promise<boolean> {
   try {
     await lstat(p);
@@ -142,7 +139,7 @@ async function ensureDirs(ctx: IntegrationContext, file: string): Promise<void> 
   if (missing.length === 0) return;
   await mkdir(path.dirname(file), { recursive: true });
   for (const d of missing) {
-    const rel = path.relative(ctx.root, d).split(path.sep).join("/");
+    const rel = toPosixRelative(ctx.root, d);
     setOwned(ctx.options.manifest.files, { path: rel, sha256: null, kind: "dir", created: true });
   }
 }
@@ -161,7 +158,7 @@ export async function applyEnforce(ctx: IntegrationContext, state: AgentsState, 
       const old = files.filter((e) => isOwned(e) && e.path === rel);
       p = {
         rel,
-        abs: absPath(ctx.root, rel),
+        abs: fromPosixRelative(ctx.root, rel),
         format,
         agent,
         desired: [],
@@ -184,7 +181,7 @@ export async function applyEnforce(ctx: IntegrationContext, state: AgentsState, 
   }
   const hasOld = new Set(files.filter((e) => isOwned(e) && !isBackup(e)).map((e) => e.path));
   for (const e of files.filter((f) => isOwned(f) && !isBackup(f))) {
-    if (!isInside(ctx.root, absPath(ctx.root, e.path))) continue;
+    if (!isInside(ctx.root, fromPosixRelative(ctx.root, e.path))) continue;
     const agentConfigured = e.agent !== undefined && (state.agents as readonly string[]).includes(e.agent);
     const stillDesired = enabled && agentConfigured && plans.get(e.path)?.desired.some((d) => d.identity === e.identity);
     if (stillDesired) continue;
@@ -236,8 +233,8 @@ export async function applyEnforce(ctx: IntegrationContext, state: AgentsState, 
     if (removedFile) {
       report.removed.push(p.rel);
       const bakRel = p.rel + ".bak";
-      if (files.some((f) => isBackup(f) && f.path === bakRel) && (await exists(absPath(ctx.root, bakRel)))) {
-        await rm(absPath(ctx.root, bakRel), { force: true, maxRetries: 3 });
+      if (files.some((f) => isBackup(f) && f.path === bakRel) && (await exists(fromPosixRelative(ctx.root, bakRel)))) {
+        await rm(fromPosixRelative(ctx.root, bakRel), { force: true, maxRetries: 3 });
         report.removed.push(bakRel);
       }
       for (const e of files.filter((f) => f.path === p.rel || f.path === p.rel + ".bak")) dropOwned(files, e);
@@ -268,18 +265,18 @@ export async function removeEnforce(ctx: IntegrationContext): Promise<PhaseRepor
   const owned = files.filter((e) => isOwned(e) && !isBackup(e));
   const byFile = new Map<string, ManifestEntry[]>();
   for (const e of owned) {
-    if (!isInside(ctx.root, absPath(ctx.root, e.path))) {
+    if (!isInside(ctx.root, fromPosixRelative(ctx.root, e.path))) {
       throw new WikeeperError(ExitCode.ERROR, "unsafe_path", `refusing to edit ${e.path}: outside the repository`);
     }
     byFile.set(e.path, [...(byFile.get(e.path) ?? []), e]);
   }
   const docs = new Map<string, JsonDoc>();
   for (const rel of byFile.keys()) {
-    if (!isLines(rel)) docs.set(rel, await loadJsonDoc(absPath(ctx.root, rel), rel)); // a parse error leaves the manifest intact
+    if (!isLines(rel)) docs.set(rel, await loadJsonDoc(fromPosixRelative(ctx.root, rel), rel)); // a parse error leaves the manifest intact
   }
 
   for (const [rel, entries] of byFile) {
-    const file = absPath(ctx.root, rel);
+    const file = fromPosixRelative(ctx.root, rel);
     const created = entries.some((e) => e.created === true);
     const bakEntry = files.find((f) => isBackup(f) && f.path === rel + ".bak");
     const bakFile = file + ".bak";
@@ -377,7 +374,7 @@ export const enforceExtension: AgentsExtension = {
       for (const spec of SPECS[agent]) {
         if (spec.format !== "json" || seen.has(spec.file)) continue;
         seen.add(spec.file);
-        await loadJsonDoc(absPath(ctx.root, spec.file), spec.file);
+        await loadJsonDoc(fromPosixRelative(ctx.root, spec.file), spec.file);
       }
     }
   },

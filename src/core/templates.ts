@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { compareCodeUnits } from "./compare.js";
 
 export const PACKAGE_NAME = "wikeeper";
 
@@ -45,6 +46,13 @@ export function templatesDir(fromUrl?: string): string {
   return path.join(findPackageRoot(fromUrl), "templates");
 }
 
+/** The installed wikeeper version ("" when package.json has none); throws when the package root cannot be read. */
+export function readPackageVersion(): string {
+  const file = path.join(findPackageRoot(), "package.json");
+  const pkg = JSON.parse(readFileSync(file, "utf8")) as { version?: string };
+  return pkg.version ?? "";
+}
+
 async function walk(baseDir: string, rel: string, out: string[]): Promise<void> {
   const entries = await readdir(path.join(baseDir, ...rel.split("/")), { withFileTypes: true });
   for (const e of entries) {
@@ -66,7 +74,7 @@ export async function listTemplateFiles(subdir: string, baseDir: string = templa
     }
     throw err;
   }
-  return out.sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+  return out.sort(compareCodeUnits);
 }
 
 export async function copyTemplate(
