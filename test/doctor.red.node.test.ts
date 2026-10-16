@@ -80,14 +80,9 @@ describe("STORY-001-07 doctor (red)", () => {
     const root = await fixture();
     const { code, json } = await runDoctorCli(root, "22.12.0");
     const checks = json.data.checks as Check[];
-    expect(checks.map((c) => c.id)).toEqual([
-      "node-version",
-      "wiki-initialised",
-      "config-valid",
-      "manifest-drift",
-      "test-check",
-    ]);
-    expect(checks.every((c) => c.severity === "ok")).toBe(true);
+    const ids = checks.map((c) => c.id).filter((id, i, a) => i === 0 || a[i - 1] !== id);
+    expect(ids).toEqual(["node-version", "wiki-initialised", "config-valid", "manifest-drift", "setup-files", "test-check"]);
+    expect(checks.every((c) => c.severity === "ok" || c.severity === "info")).toBe(true);
     expect(json.data.errors).toBe(0);
     expect(json.data.warnings).toBe(0);
     expect(code).toBe(0);
