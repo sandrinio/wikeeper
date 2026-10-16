@@ -61,6 +61,11 @@ As a user who enabled enforcement, I want my agent's attempts to edit wiki pages
 - **R5 — Reason text:** "Wiki pages can only change during an ingest. Run `wikeeper ingest apply <id>` first — see .wiki/system/WIKI.md."
 - **R6 — Unreadable payload:** malformed JSON, missing fields or an unknown `--agent` value → allow (exit 0) with a one-line warning on stderr (per the recommended answer in §1.4).
 - **R7 — Fixtures:** one recorded payload per agent in `test/fixtures/hooks/`, each with a comment file noting the documentation URL it was checked against.
+- **Spec clarifications (2026-10-16, CR:spec-clarification from `.cleargate/sprint-runs/SPRINT-01/plans/hook-protocols-research.md`; supersede R2/R4/R7 where they differ):**
+  - Claude: also guard `NotebookEdit` (path in `tool_input.notebook_path`); `MultiEdit` is legacy but stays in the list. `tool_input.file_path` is absolute; normalise `\` separators before the containment check.
+  - Codex: the patch text is in `tool_input.command` (`tool_name` is always `apply_patch`). The patch also has `*** Begin Patch`, `*** End Patch`, `*** Environment ID:` and `*** End of File` lines; match markers with optional leading whitespace and trim captured paths. A patch sent through the shell (`tool_name: "Bash"`) is not guarded — accepted gap, caught later by `wikeeper lint` (EPIC-005).
+  - Antigravity: the payload is `{ toolCall: { name, args: { TargetFile, … } }, workspacePaths: [...] , … }` with no `cwd`, `tool_name` or `tool_input`. Guard `write_to_file`, `replace_file_content` and `multi_replace_file_content`; resolve a relative `TargetFile` against `workspacePaths[0]`. Allow prints `{"decision":"allow"}` on stdout, exit 0 (the field is required); deny is unchanged.
+  - Fixtures (R7) follow the field names in the research file; `SOURCES.md` cites its URLs.
 
 ### 1.3 Out of Scope
 Writing the hook configuration into agent settings (STORY-002-06), creating the lock (EPIC-003), guarding raw sources or `kb_instructions.md`.

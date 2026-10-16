@@ -62,6 +62,13 @@ As a developer who wants the wiki's rules enforced, I want `init` to add a write
 - **R6 — Safe merge:** parse the existing file strictly; on a parse error stop with exit code 1, leave the file byte-identical and name the file and the error. Before the first change to an existing file, write `<file>.bak`. Keep every user key and the order of existing keys. Re-running adds no duplicate entries.
 - **R7 — Ownership and undo:** each added entry is recorded in the manifest (`kind: hook | rule`, file, entry identity). `remove` deletes exactly those entries; a settings file that wikeeper created and that is empty afterwards is deleted.
 - **R8 — Doctor notes:** with enforce on, `doctor` reports `codex-trust` (codex configured: project hooks and rules only apply in trusted projects, approve them with `/hooks`) and `antigravity-ask-fallback` (antigravity configured with `ask`: no project rule file, approval happens in chat).
+- **Spec clarifications (2026-10-16, CR:spec-clarification from `.cleargate/sprint-runs/SPRINT-01/plans/hook-protocols-research.md`; supersede R2–R5/R8 where they differ):**
+  - Claude matcher is `Edit|Write|MultiEdit|NotebookEdit`. Codex matcher stays `apply_patch`. Antigravity matcher is `write_to_file|replace_file_content|multi_replace_file_content`.
+  - `.agents/hooks.json` is keyed by hook name: `{ "wikeeper-guard": { "PreToolUse": [ … ] } }` — the name key is the entry identity for merge and remove (R6/R7). Exact entry shapes for all three files follow the research file.
+  - Permission rules additionally cover other invocation forms, without removing the ones in R2/R3: Codex adds `prefix_rule(pattern=["wikeeper"], …)` for `ai` and `["wikeeper","ingest","start"]` for `ask`.
+  - R5 command form: bare `wikeeper` only when it resolves on `PATH`; when it is only in `node_modules/.bin`, write a form that works from the hook's working directory without `PATH` (Architect picks it from the research file); otherwise `npx -y wikeeper@<installed version>`.
+  - R4: Antigravity project-scope permission rules exist but live outside the repo (`~/.gemini/config/projects/`), so wikeeper still writes none.
+  - R8: `codex-trust` also says hooks must be re-approved in `/hooks` after `wikeeper update` changes the command. Add note `antigravity-trust` (antigravity configured with enforce on: workspace hooks load only after the folder is trusted).
 
 ### 1.3 Out of Scope
 The guard command itself (STORY-002-05), the lock file (EPIC-003), Antigravity user-level permission settings, Gemini CLI policies.
