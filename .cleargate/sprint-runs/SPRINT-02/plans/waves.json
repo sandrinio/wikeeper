@@ -1,0 +1,752 @@
+{
+  "schema_version": 2,
+  "sprint": "SPRINT-02",
+  "generated_at": "2026-10-16T18:16:32Z",
+  "contracts": [
+    {
+      "id": "C1",
+      "branch": "contract/S-02-page-parser",
+      "base": "sprint/S-02",
+      "owner_story": "STORY-004-01",
+      "frozen_exports": [
+        "src/wiki/parse-page.ts: CITATION_RE(RegExp)",
+        "src/wiki/parse-page.ts: PageFrontmatter(interface)",
+        "src/wiki/parse-page.ts: PageSection(interface)",
+        "src/wiki/parse-page.ts: TypedLink(interface)",
+        "src/wiki/parse-page.ts: FactStatus(type 'decided' | 'tentative')",
+        "src/wiki/parse-page.ts: Fact(interface)",
+        "src/wiki/parse-page.ts: WikiLink(interface)",
+        "src/wiki/parse-page.ts: PageError(interface)",
+        "src/wiki/parse-page.ts: Page(interface)",
+        "src/wiki/parse-page.ts: Entity(interface)",
+        "src/wiki/parse-page.ts: Backlink(interface)",
+        "src/wiki/parse-page.ts: parsePage(text: string, relPath: string): Page",
+        "src/wiki/parse-page.ts: pageEntities(page: Page): Entity[]",
+        "src/wiki/parse-page.ts: owningEntityKey(page: Page, section: number): string",
+        "src/wiki/parse-page.ts: linkTarget(raw: string): string",
+        "src/wiki/parse-page.ts: normalizeName(name: string): string",
+        "src/wiki/parse-page.ts: listPageFiles(pagesDir: string): Promise<string[]>",
+        "src/wiki/parse-page.ts: loadPages(pagesDir: string): Promise<Page[]>",
+        "src/wiki/parse-page.ts: buildBacklinks(pages: readonly Page[]): Map<string, Backlink[]>"
+      ],
+      "consumers": [
+        "STORY-003-07",
+        "STORY-003-09",
+        "STORY-004-02",
+        "STORY-004-03",
+        "STORY-004-04",
+        "STORY-004-06",
+        "STORY-006-03",
+        "STORY-006-04"
+      ],
+      "created_by": "developer skeleton dispatch (one dispatch writes C1-C12 in stack order, one commit and one branch per contract; bodies throw 'contract stub Cn'; constants carry their frozen values; no tests, templates, package.json or package-lock.json)",
+      "create_when": "contract step, first (root of both chains)"
+    },
+    {
+      "id": "C2",
+      "branch": "contract/S-02-permissions",
+      "base": "contract/S-02-page-parser",
+      "owner_story": "STORY-003-02",
+      "frozen_exports": [
+        "src/ingest/permissions.ts: PermissionDecision(type = \"allowed\" | \"needs_approval\" | \"denied\")",
+        "src/ingest/permissions.ts: PermissionRequest(interface { origin: string; originType: \"file\" | \"url\" | \"stdin\"; kind: string | null; approved: boolean })",
+        "src/ingest/permissions.ts: WhitelistMatch(interface { by: \"kind\" | \"origin\"; entry: string })",
+        "src/ingest/permissions.ts: PermissionResult(interface { decision; mode; reason: string; matched: WhitelistMatch | null; kind_pending: boolean })",
+        "src/ingest/permissions.ts: evaluatePermission(ingest: Pick<WikeeperConfig[\"ingest\"], \"permission\" | \"whitelist\">, request: PermissionRequest, options?: { homeDir?: string }): PermissionResult",
+        "src/ingest/permissions.ts: matchesOrigin(entry: string, origin: string, originType: \"file\" | \"url\" | \"stdin\", options?: { homeDir?: string }): boolean",
+        "src/ingest/permissions.ts: matchesKind(entry: string, kind: string): boolean",
+        "src/ingest/kind-rules.ts: SourceKindRule(interface { id: string; version: number; targets: string; line: number })",
+        "src/ingest/kind-rules.ts: normalizeKindId(kind: string): string",
+        "src/ingest/kind-rules.ts: isValidKindId(kind: string): boolean",
+        "src/ingest/kind-rules.ts: parseSourceKinds(text: string): SourceKindRule[]",
+        "src/ingest/kind-rules.ts: findKindRule(text: string, kind: string): SourceKindRule | null"
+      ],
+      "consumers": [
+        "STORY-003-04",
+        "STORY-003-05",
+        "STORY-003-06",
+        "STORY-006-03"
+      ],
+      "created_by": "developer skeleton dispatch (one dispatch writes C1-C12 in stack order, one commit and one branch per contract; bodies throw 'contract stub Cn'; constants carry their frozen values; no tests, templates, package.json or package-lock.json)",
+      "create_when": "contract step, after C1"
+    },
+    {
+      "id": "C3",
+      "branch": "contract/S-02-registry",
+      "base": "contract/S-02-permissions",
+      "owner_story": "STORY-003-01",
+      "frozen_exports": [
+        "src/ingest/source-id.ts: SOURCE_ID_PATTERN(RegExp)",
+        "src/ingest/source-id.ts: isSourceId(value: string): boolean",
+        "src/ingest/source-id.ts: slugify(label: string): string",
+        "src/ingest/source-id.ts: formatIdDate(date: Date): string",
+        "src/ingest/source-id.ts: makeSourceId(date: Date, label: string, taken: (id: string) => boolean): string",
+        "src/ingest/registry.ts: type OriginType(\"file\" | \"url\" | \"stdin\")",
+        "src/ingest/registry.ts: type SourcePermission(interface)",
+        "src/ingest/registry.ts: type SourceMeta(interface)",
+        "src/ingest/registry.ts: type RegisterInput(interface)",
+        "src/ingest/registry.ts: type DuplicateMatch(interface)",
+        "src/ingest/registry.ts: fileOrigin(root: string, absPath: string): string",
+        "src/ingest/registry.ts: normalizeUrl(url: string): string",
+        "src/ingest/registry.ts: hashText(text: string): { sha256: string; size: number }",
+        "src/ingest/registry.ts: hashSource(input: Pick<RegisterInput, \"originalPath\" | \"text\">): Promise<{ sha256: string; size: number }>",
+        "src/ingest/registry.ts: findDuplicate(sources: readonly SourceMeta[], probe: { sha256: string; originType: OriginType; origin: string }): DuplicateMatch | null",
+        "src/ingest/registry.ts: registerSource(paths: ResolvedPaths, input: RegisterInput): Promise<SourceMeta>",
+        "src/ingest/registry.ts: readMeta(paths: ResolvedPaths, id: string): Promise<SourceMeta | null>",
+        "src/ingest/registry.ts: listSources(paths: ResolvedPaths): Promise<SourceMeta[]>",
+        "src/ingest/registry.ts: removeSource(paths: ResolvedPaths, id: string): Promise<string[]>"
+      ],
+      "consumers": [
+        "STORY-003-04",
+        "STORY-003-05",
+        "STORY-003-06",
+        "STORY-003-08",
+        "STORY-003-09"
+      ],
+      "created_by": "developer skeleton dispatch (one dispatch writes C1-C12 in stack order, one commit and one branch per contract; bodies throw 'contract stub Cn'; constants carry their frozen values; no tests, templates, package.json or package-lock.json)",
+      "create_when": "contract step, after C2"
+    },
+    {
+      "id": "C4",
+      "branch": "contract/S-02-user-hooks",
+      "base": "contract/S-02-registry",
+      "owner_story": "STORY-003-03",
+      "frozen_exports": [
+        "src/ingest/user-hooks.ts: UserHookPhase(type \"pre_ingest\" | \"post_ingest\")",
+        "src/ingest/user-hooks.ts: UserHookStatus(type \"ok\" | \"failed\" | \"timed_out\" | \"skipped\")",
+        "src/ingest/user-hooks.ts: UserHookOptions(interface { cwd: string; sourceId: string; timeoutMs?: number; env?: NodeJS.ProcessEnv })",
+        "src/ingest/user-hooks.ts: UserHookResult(interface { phase; command; status; exitCode: number | null; stdout: string; stderr: string; durationMs: number })",
+        "src/ingest/user-hooks.ts: USER_HOOK_TIMEOUT_MS(const 60_000)",
+        "src/ingest/user-hooks.ts: USER_HOOK_OUTPUT_LIMIT(const 65_536)",
+        "src/ingest/user-hooks.ts: substituteSourceId(command: string, sourceId: string): string",
+        "src/ingest/user-hooks.ts: hookFailed(result: UserHookResult): boolean",
+        "src/ingest/user-hooks.ts: runUserHooks(phase: UserHookPhase, commands: readonly string[], options: UserHookOptions): Promise<UserHookResult[]>"
+      ],
+      "consumers": [
+        "STORY-003-04",
+        "STORY-003-09"
+      ],
+      "created_by": "developer skeleton dispatch (one dispatch writes C1-C12 in stack order, one commit and one branch per contract; bodies throw 'contract stub Cn'; constants carry their frozen values; no tests, templates, package.json or package-lock.json)",
+      "create_when": "contract step, after C3"
+    },
+    {
+      "id": "C5",
+      "branch": "contract/S-02-ingest-group",
+      "base": "contract/S-02-user-hooks",
+      "owner_story": "STORY-003-04",
+      "frozen_exports": [
+        "src/commands/ingest.ts: IngestSubcommand(interface { register(group: Command): void })",
+        "src/commands/ingest.ts: ingestSubcommands(readonly IngestSubcommand[] = [ingestStartCommand])",
+        "src/commands/ingest.ts: createIngestCommand(subcommands?: readonly IngestSubcommand[]): CommandModule",
+        "src/commands/ingest.ts: ingestCommand(CommandModule)",
+        "src/commands/ingest-start.ts: IngestStartResult(interface)",
+        "src/commands/ingest-start.ts: createIngestStartCommand(deps?: { now?: () => Date }): IngestSubcommand",
+        "src/commands/ingest-start.ts: ingestStartCommand(IngestSubcommand)"
+      ],
+      "consumers": [
+        "STORY-003-05",
+        "STORY-003-06",
+        "STORY-003-08",
+        "STORY-003-09"
+      ],
+      "created_by": "developer skeleton dispatch (one dispatch writes C1-C12 in stack order, one commit and one branch per contract; bodies throw 'contract stub Cn'; constants carry their frozen values; no tests, templates, package.json or package-lock.json); exceptions: createIngestCommand keeps a working body (creates the ingest group and calls register(group) for each entry of ingestSubcommands); ingestStartCommand registers 'start' with an action that throws; ingestSubcommands holds ingestStartCommand plus one INSERTION POINT comment each for STORY-003-05 (plan), STORY-003-06 (facts), STORY-003-08 (apply, abort), STORY-003-09 (finish); the commit also adds the owner's import + defaultCommands entry for ingestCommand in src/program.ts",
+      "create_when": "contract step, after C4"
+    },
+    {
+      "id": "C6",
+      "branch": "contract/S-02-log-index",
+      "base": "contract/S-02-ingest-group",
+      "owner_story": "STORY-003-07",
+      "frozen_exports": [
+        "src/ingest/log.ts: LOG_EVENT_TYPES(readonly LogEventType[])",
+        "src/ingest/log.ts: writeLogEvent(paths: ResolvedPaths, event: LogEvent): Promise<string>",
+        "src/ingest/log.ts: readLogEvents(paths: ResolvedPaths, filter?: LogFilter): Promise<LogReadResult>",
+        "src/ingest/log.ts: renderLogView(events: readonly StoredLogEvent[]): string",
+        "src/ingest/log.ts: regenerateLogView(paths: ResolvedPaths): Promise<{ file: string; events: number }>",
+        "src/ingest/index-builder.ts: INDEX_TYPE_ORDER(readonly string[])",
+        "src/ingest/index-builder.ts: buildIndex(pages: readonly Page[]): string",
+        "src/ingest/index-builder.ts: writeIndex(paths: ResolvedPaths): Promise<{ file: string; pages: number; changed: boolean; errors: Array<{ path: string; message: string }> }>",
+        "src/ingest/log.ts: LogEventType(type \"ingest\" | \"abort\" | \"miss\" | \"rule-proposal\")",
+        "src/ingest/log.ts: LogEvent(type: union discriminated on `type`, one member per LogEventType)",
+        "src/ingest/log.ts: IngestLogEvent(interface)",
+        "src/ingest/log.ts: AbortLogEvent(interface)",
+        "src/ingest/log.ts: MissLogEvent(interface)",
+        "src/ingest/log.ts: StoredLogEvent(interface)",
+        "src/ingest/log.ts: LogFilter(interface)",
+        "src/ingest/log.ts: LogReadResult(interface)"
+      ],
+      "consumers": [
+        "STORY-003-06",
+        "STORY-003-08",
+        "STORY-003-09"
+      ],
+      "created_by": "developer skeleton dispatch (one dispatch writes C1-C12 in stack order, one commit and one branch per contract; bodies throw 'contract stub Cn'; constants carry their frozen values; no tests, templates, package.json or package-lock.json); src/ingest/log.ts and src/ingest/index-builder.ts only (src/commands/index.ts is not in the contract: no consumer)",
+      "create_when": "contract step, after C5"
+    },
+    {
+      "id": "C7",
+      "branch": "contract/S-02-facts",
+      "base": "contract/S-02-log-index",
+      "owner_story": "STORY-003-06",
+      "frozen_exports": [
+        "src/ingest/facts.ts: FACT_STATUSES(readonly [\"decided\", \"tentative\"])",
+        "src/ingest/facts.ts: FactStatus(type)",
+        "src/ingest/facts.ts: Fact(interface {entity, field, value, status, as_of, anchor, page, exists})",
+        "src/ingest/facts.ts: FactsFile(interface {source_id, kind, rule_version, facts, new_entities, uncovered})",
+        "src/ingest/facts.ts: FactsError(interface {path, message})",
+        "src/ingest/facts.ts: FactsValidation(type)",
+        "src/ingest/facts.ts: FACTS_SCHEMA_REL(\".wiki/system/schemas/facts.schema.json\")",
+        "src/ingest/facts.ts: FACTS_KEYS, FACTS_REQUIRED, FACT_KEYS, FACT_REQUIRED and field regexes (constants)",
+        "src/ingest/facts.ts: validateFacts(input: unknown): FactsValidation",
+        "src/ingest/facts.ts: factsFilePath(paths: ResolvedPaths, sourceId: string): string",
+        "src/ingest/facts.ts: readFacts(paths: ResolvedPaths, sourceId: string): Promise<FactsFile | null>",
+        "src/ingest/facts.ts: writeFacts(paths: ResolvedPaths, facts: FactsFile): Promise<{file: string, replaced: boolean, sha256: string}>"
+      ],
+      "consumers": [
+        "STORY-003-08",
+        "STORY-003-09",
+        "STORY-006-04"
+      ],
+      "created_by": "developer skeleton dispatch (one dispatch writes C1-C12 in stack order, one commit and one branch per contract; bodies throw 'contract stub Cn'; constants carry their frozen values; no tests, templates, package.json or package-lock.json); src/ingest/facts.ts only (templates/system/schemas/facts.schema.json stays with STORY-003-06)",
+      "create_when": "contract step, after C6"
+    },
+    {
+      "id": "C8",
+      "branch": "contract/S-02-lock-snapshot",
+      "base": "contract/S-02-facts",
+      "owner_story": "STORY-003-08",
+      "frozen_exports": [
+        "src/ingest/lock.ts: STALE_LOCK_MS(const: number = 7_200_000)",
+        "src/ingest/lock.ts: LockInfo(interface { source_id, pid, hostname, acquired_at })",
+        "src/ingest/lock.ts: LockState(interface { held, lock, stale, age_ms })",
+        "src/ingest/lock.ts: readLock(paths: ResolvedPaths, now?: Date): Promise<LockState>",
+        "src/ingest/lock.ts: acquireLock(paths: ResolvedPaths, sourceId: string, opts?: { now?: Date; forceStale?: boolean }): Promise<{ lock: LockInfo; already_held: boolean; replaced: LockInfo | null }>",
+        "src/ingest/lock.ts: releaseLock(paths: ResolvedPaths, sourceId: string): Promise<boolean>",
+        "src/ingest/snapshot.ts: SnapshotInfo(interface { source_id, taken_at, facts_sha256, pages, outside })",
+        "src/ingest/snapshot.ts: snapshotDir(paths: ResolvedPaths, sourceId: string): string",
+        "src/ingest/snapshot.ts: hashTree(dir: string, exclude?: (rel: string) => boolean): Promise<Record<string, string>>",
+        "src/ingest/snapshot.ts: hashOutside(paths: ResolvedPaths): Promise<Record<string, string>>",
+        "src/ingest/snapshot.ts: takeSnapshot(paths: ResolvedPaths, sourceId: string, factsSha256: string, now?: Date): Promise<SnapshotInfo>",
+        "src/ingest/snapshot.ts: readSnapshot(paths: ResolvedPaths, sourceId: string): Promise<SnapshotInfo | null>",
+        "src/ingest/snapshot.ts: restoreSnapshot(paths: ResolvedPaths, sourceId: string): Promise<{ restored: string[]; removed: string[] }>",
+        "src/ingest/snapshot.ts: removeSnapshot(paths: ResolvedPaths, sourceId: string): Promise<void>"
+      ],
+      "consumers": [
+        "STORY-003-09"
+      ],
+      "created_by": "developer skeleton dispatch (one dispatch writes C1-C12 in stack order, one commit and one branch per contract; bodies throw 'contract stub Cn'; constants carry their frozen values; no tests, templates, package.json or package-lock.json)",
+      "create_when": "contract step, after C7"
+    },
+    {
+      "id": "C9",
+      "branch": "contract/S-02-plan",
+      "base": "contract/S-02-lock-snapshot",
+      "owner_story": "STORY-003-05",
+      "frozen_exports": [
+        "src/ingest/plan.ts: planDirectory(paths: ResolvedPaths, config: WikeeperConfig, dirAbs: string, options: { kind: string | null }): Promise<IngestPlan>",
+        "src/ingest/plan.ts: PlanStatus(type \"new\" | \"duplicate\" | \"denied\")",
+        "src/ingest/plan.ts: PlanPrior(type)",
+        "src/ingest/plan.ts: PlanEntry(interface { path, size, sha256, status, needs_approval, kind_pending, reason, prior })",
+        "src/ingest/plan.ts: PlanSkip(interface { path, reason: \"hidden\" | \"wiki\" | \"symlink\" })",
+        "src/ingest/plan.ts: IngestPlan(interface { dir, mode, kind, entries, skipped, totals })"
+      ],
+      "consumers": [
+        "STORY-003-09"
+      ],
+      "created_by": "developer skeleton dispatch (one dispatch writes C1-C12 in stack order, one commit and one branch per contract; bodies throw 'contract stub Cn'; constants carry their frozen values; no tests, templates, package.json or package-lock.json)",
+      "create_when": "contract step, after C8"
+    },
+    {
+      "id": "C10",
+      "branch": "contract/S-02-search",
+      "base": "contract/S-02-page-parser",
+      "owner_story": "STORY-004-02",
+      "frozen_exports": [
+        "src/search/engine.ts: WhereFilter(interface {key: string; value: string})",
+        "src/search/engine.ts: SearchFilters(interface {type: string|null; where: WhereFilter[]; status: string|null; since: string|null})",
+        "src/search/engine.ts: SearchHit(interface {path, file, title, entity, type, section, line, snippet, score, sources})",
+        "src/search/engine.ts: FactView(interface)",
+        "src/search/engine.ts: EntityMatch(interface)",
+        "src/search/engine.ts: SinceChanges(interface)",
+        "src/search/engine.ts: MissSummary(interface)",
+        "src/search/engine.ts: SearchData(interface {mode, query, filters, entity_query, total, results, entity, changes, misses})",
+        "src/search/engine.ts: SearchRequest(interface {query, limit, filters, entity, misses})",
+        "src/search/engine.ts: SearchDeps(interface {now?, useCache?})",
+        "src/search/engine.ts: EMPTY_FILTERS(const)",
+        "src/search/engine.ts: SearchDoc(interface)",
+        "src/search/engine.ts: RankedHit(interface)",
+        "src/search/engine.ts: SearchIndex(interface)",
+        "src/search/engine.ts: SearchCorpus(interface {pages, entities, index, warnings})",
+        "src/search/engine.ts: buildDocs(pages: readonly Page[]): SearchDoc[]",
+        "src/search/engine.ts: createSearchIndex(docs: readonly SearchDoc[]): Promise<SearchIndex>",
+        "src/search/engine.ts: loadSearchCorpus(paths: ResolvedPaths, opts?: {useCache?, onRebuild?}): Promise<SearchCorpus>",
+        "src/search/engine.ts: makeSnippet(text: string, terms: readonly string[]): string",
+        "src/search/engine.ts: hitSources(page: Page, section: number): string[]",
+        "src/commands/search.ts: executeSearch(root: string, req: SearchRequest, deps?: SearchDeps): Promise<SearchData>",
+        "src/commands/search.ts: createSearchCommand(deps?: SearchDeps): CommandModule",
+        "src/commands/search.ts: searchCommand(const CommandModule)"
+      ],
+      "consumers": [
+        "STORY-004-03",
+        "STORY-004-04",
+        "STORY-004-05"
+      ],
+      "created_by": "developer skeleton dispatch (one dispatch writes C1-C12 in stack order, one commit and one branch per contract; bodies throw 'contract stub Cn'; constants carry their frozen values; no tests, templates, package.json or package-lock.json); exceptions: createSearchCommand registers 'search' with the STORY-004-02 options (query, --limit, --json) and an action that calls executeSearch (stub); src/commands/search.ts holds one INSERTION POINT comment each for STORY-004-03 (--type/--where/--status + filter step), STORY-004-04 (--entity/--since) and STORY-004-05 (--misses + miss recording), in both the option chain and executeSearch; the commit also adds the owner's import + defaultCommands entry for searchCommand in src/program.ts; no search dependency and no package.json / package-lock.json edit (STORY-004-02 stays the sole lockfile writer)",
+      "create_when": "contract step, after C1 (second chain)"
+    },
+    {
+      "id": "C11",
+      "branch": "contract/S-02-search-log-index",
+      "base": "contract/S-02-search",
+      "owner_story": "STORY-003-07",
+      "frozen_exports": [
+        "src/ingest/log.ts: LOG_EVENT_TYPES(readonly LogEventType[])",
+        "src/ingest/log.ts: writeLogEvent(paths: ResolvedPaths, event: LogEvent): Promise<string>",
+        "src/ingest/log.ts: readLogEvents(paths: ResolvedPaths, filter?: LogFilter): Promise<LogReadResult>",
+        "src/ingest/log.ts: renderLogView(events: readonly StoredLogEvent[]): string",
+        "src/ingest/log.ts: regenerateLogView(paths: ResolvedPaths): Promise<{ file: string; events: number }>",
+        "src/ingest/index-builder.ts: INDEX_TYPE_ORDER(readonly string[])",
+        "src/ingest/index-builder.ts: buildIndex(pages: readonly Page[]): string",
+        "src/ingest/index-builder.ts: writeIndex(paths: ResolvedPaths): Promise<{ file: string; pages: number; changed: boolean; errors: Array<{ path: string; message: string }> }>",
+        "src/ingest/log.ts: LogEventType(type \"ingest\" | \"abort\" | \"miss\" | \"rule-proposal\")",
+        "src/ingest/log.ts: LogEvent(type: union discriminated on `type`, one member per LogEventType)",
+        "src/ingest/log.ts: IngestLogEvent(interface)",
+        "src/ingest/log.ts: AbortLogEvent(interface)",
+        "src/ingest/log.ts: MissLogEvent(interface)",
+        "src/ingest/log.ts: StoredLogEvent(interface)",
+        "src/ingest/log.ts: LogFilter(interface)",
+        "src/ingest/log.ts: LogReadResult(interface)"
+      ],
+      "consumers": [
+        "STORY-004-04",
+        "STORY-004-05"
+      ],
+      "created_by": "developer skeleton dispatch: cherry-pick of the C6 skeleton commit onto C10 (byte-identical log.ts / index-builder.ts), so the search chain carries the log contract without the ingest-chain owners",
+      "create_when": "contract step, after C6 and C10"
+    },
+    {
+      "id": "C12",
+      "branch": "contract/S-02-since",
+      "base": "contract/S-02-search-log-index",
+      "owner_story": "STORY-004-04",
+      "frozen_exports": [
+        "src/search/since.ts: parseSince(raw: string): SinceBound",
+        "src/search/since.ts: SinceBound(interface { date: string; instant: string })"
+      ],
+      "consumers": [
+        "STORY-004-05"
+      ],
+      "created_by": "developer skeleton dispatch (one dispatch writes C1-C12 in stack order, one commit and one branch per contract; bodies throw 'contract stub Cn'; constants carry their frozen values; no tests, templates, package.json or package-lock.json); src/search/since.ts with parseSince and SinceBound only",
+      "create_when": "contract step, after C11"
+    },
+    {
+      "id": "C13",
+      "branch": "contract/S-02-search-impl",
+      "base": "contract/S-02-search",
+      "owner_story": "STORY-004-02",
+      "frozen_exports": [
+        "src/search/engine.ts: SearchDoc(interface)",
+        "src/search/engine.ts: SearchIndex(interface)",
+        "src/search/engine.ts: SearchCorpus(interface {pages, entities, index, warnings})",
+        "src/search/engine.ts: buildDocs(pages: readonly Page[]): SearchDoc[]",
+        "src/search/engine.ts: createSearchIndex(docs: readonly SearchDoc[]): Promise<SearchIndex>",
+        "src/search/engine.ts: loadSearchCorpus(paths: ResolvedPaths, opts?: {useCache?, onRebuild?}): Promise<SearchCorpus>"
+      ],
+      "consumers": [
+        "STORY-004-06"
+      ],
+      "created_by": "STORY-004-02's own Developer commit (not a skeleton): cut from story/STORY-004-02 at the Developer commit; carries the real engine.ts, search.ts, test/bench/search.bench.ts, package.json and package-lock.json",
+      "create_when": "when STORY-004-02's Developer reports done, before its QA-Verify"
+    },
+    {
+      "id": "C14",
+      "branch": "contract/S-02-init-prepare",
+      "base": "sprint/S-02",
+      "owner_story": "STORY-001-08",
+      "frozen_exports": [
+        "src/core/integrations.ts: IntegrationPhase(adds \"prepare\")",
+        "src/core/integrations.ts: Integration.prepare(ctx: IntegrationContext) => Promise<void>",
+        "src/core/integrations.ts: runIntegrations(phase: \"prepare\", ctx: IntegrationContext) => Promise<IntegrationRunResult>",
+        "src/agents/index.ts: agentsIntegration.prepare(ctx: IntegrationContext) => Promise<void>"
+      ],
+      "consumers": [
+        "STORY-002-08"
+      ],
+      "created_by": "STORY-001-08's own Developer commit (not a skeleton): cut from story/STORY-001-08 at the Developer commit",
+      "create_when": "when STORY-001-08's Developer reports done, before its QA-Verify"
+    }
+  ],
+  "stories": {
+    "STORY-001-08": {
+      "base": "sprint/S-02",
+      "upstream": []
+    },
+    "STORY-001-09": {
+      "base": "sprint/S-02",
+      "upstream": []
+    },
+    "STORY-002-07": {
+      "base": "sprint/S-02",
+      "upstream": []
+    },
+    "STORY-002-08": {
+      "base": "contract/S-02-init-prepare",
+      "upstream": [
+        "STORY-001-08"
+      ]
+    },
+    "STORY-003-01": {
+      "base": "sprint/S-02",
+      "upstream": []
+    },
+    "STORY-003-02": {
+      "base": "sprint/S-02",
+      "upstream": []
+    },
+    "STORY-003-03": {
+      "base": "sprint/S-02",
+      "upstream": []
+    },
+    "STORY-003-04": {
+      "base": "contract/S-02-ingest-group",
+      "upstream": [
+        "STORY-003-01",
+        "STORY-003-02",
+        "STORY-003-03",
+        "STORY-004-01"
+      ]
+    },
+    "STORY-003-05": {
+      "base": "contract/S-02-ingest-group",
+      "upstream": [
+        "STORY-003-01",
+        "STORY-003-02",
+        "STORY-003-03",
+        "STORY-003-04",
+        "STORY-004-01"
+      ]
+    },
+    "STORY-003-06": {
+      "base": "contract/S-02-facts",
+      "upstream": [
+        "STORY-003-01",
+        "STORY-003-02",
+        "STORY-003-03",
+        "STORY-003-04",
+        "STORY-003-07",
+        "STORY-004-01",
+        "STORY-006-02"
+      ]
+    },
+    "STORY-003-07": {
+      "base": "contract/S-02-page-parser",
+      "upstream": [
+        "STORY-004-01"
+      ]
+    },
+    "STORY-003-08": {
+      "base": "contract/S-02-lock-snapshot",
+      "upstream": [
+        "STORY-003-01",
+        "STORY-003-02",
+        "STORY-003-03",
+        "STORY-003-04",
+        "STORY-003-06",
+        "STORY-003-07",
+        "STORY-004-01"
+      ]
+    },
+    "STORY-003-09": {
+      "base": "contract/S-02-plan",
+      "upstream": [
+        "STORY-003-01",
+        "STORY-003-02",
+        "STORY-003-03",
+        "STORY-003-04",
+        "STORY-003-05",
+        "STORY-003-06",
+        "STORY-003-07",
+        "STORY-003-08",
+        "STORY-004-01"
+      ]
+    },
+    "STORY-004-01": {
+      "base": "contract/S-02-page-parser",
+      "upstream": []
+    },
+    "STORY-004-02": {
+      "base": "contract/S-02-search",
+      "upstream": [
+        "STORY-004-01",
+        "STORY-006-02"
+      ]
+    },
+    "STORY-004-03": {
+      "base": "contract/S-02-search",
+      "upstream": [
+        "STORY-004-01",
+        "STORY-004-02"
+      ]
+    },
+    "STORY-004-04": {
+      "base": "contract/S-02-since",
+      "upstream": [
+        "STORY-003-07",
+        "STORY-004-01",
+        "STORY-004-02",
+        "STORY-004-03"
+      ]
+    },
+    "STORY-004-05": {
+      "base": "contract/S-02-since",
+      "upstream": [
+        "STORY-003-07",
+        "STORY-004-01",
+        "STORY-004-02",
+        "STORY-004-04"
+      ]
+    },
+    "STORY-004-06": {
+      "base": "contract/S-02-search-impl",
+      "upstream": [
+        "STORY-004-01",
+        "STORY-004-02"
+      ]
+    },
+    "STORY-006-01": {
+      "base": "sprint/S-02",
+      "upstream": []
+    },
+    "STORY-006-02": {
+      "base": "sprint/S-02",
+      "upstream": []
+    },
+    "STORY-006-03": {
+      "base": "contract/S-02-permissions",
+      "upstream": [
+        "STORY-003-02",
+        "STORY-004-01",
+        "STORY-006-02"
+      ]
+    },
+    "STORY-006-04": {
+      "base": "contract/S-02-facts",
+      "upstream": [
+        "STORY-003-01",
+        "STORY-003-02",
+        "STORY-003-03",
+        "STORY-003-04",
+        "STORY-003-06",
+        "STORY-003-07",
+        "STORY-004-01",
+        "STORY-006-02"
+      ]
+    },
+    "STORY-006-05": {
+      "base": "sprint/S-02",
+      "upstream": []
+    },
+    "STORY-006-06": {
+      "base": "sprint/S-02",
+      "upstream": [
+        "STORY-001-08",
+        "STORY-001-09",
+        "STORY-002-07",
+        "STORY-002-08",
+        "STORY-003-01",
+        "STORY-003-02",
+        "STORY-003-03",
+        "STORY-003-04",
+        "STORY-003-05",
+        "STORY-003-06",
+        "STORY-003-07",
+        "STORY-003-08",
+        "STORY-003-09",
+        "STORY-004-01",
+        "STORY-004-02",
+        "STORY-004-03",
+        "STORY-004-04",
+        "STORY-004-05",
+        "STORY-004-06",
+        "STORY-006-01",
+        "STORY-006-02",
+        "STORY-006-03",
+        "STORY-006-04",
+        "STORY-006-05",
+        "STORY-006-07",
+        "STORY-006-08"
+      ]
+    },
+    "STORY-006-07": {
+      "base": "sprint/S-02",
+      "upstream": [
+        "STORY-006-02"
+      ]
+    },
+    "STORY-006-08": {
+      "base": "sprint/S-02",
+      "upstream": [
+        "STORY-002-07",
+        "STORY-006-02"
+      ]
+    }
+  },
+  "waves": [
+    {
+      "wave": "wave1",
+      "stories": [
+        "STORY-001-08",
+        "STORY-001-09",
+        "STORY-002-07",
+        "STORY-003-01",
+        "STORY-003-02",
+        "STORY-003-03",
+        "STORY-004-01",
+        "STORY-006-01",
+        "STORY-006-02",
+        "STORY-006-05"
+      ],
+      "parallel": true,
+      "rationale": "integration layer 0: no upstream; no real collision among them (src/program.ts and src/commands/remove.ts edited only by 001-09 in this layer; 006-02 is the sole editor of test/template-loader.red.node.test.ts); 004-01 builds from its own contract C1, the rest from sprint/S-02"
+    },
+    {
+      "wave": "wave2",
+      "stories": [
+        "STORY-003-07",
+        "STORY-004-02",
+        "STORY-006-03",
+        "STORY-006-07",
+        "STORY-006-08"
+      ],
+      "parallel": true,
+      "rationale": "integration layer 1: upstream 004-01 (003-07 builds from C1; 004-02 from its own C10), 003-02 + 006-02 (006-03 builds from C2); src/program.ts registration lines of 003-07 and 004-02 are insert-only (keep both lines); no real collision among the three. STORY-006-07 (added after the SDR, human decision 2026-10-16) builds from sprint/S-02 and waits for 006-02, which re-scopes the template-loader test and whose SETUP.md step 1 hands off to ONBOARDING.md; it shares no file with the other wave-2 stories. STORY-006-08 (added after the SDR, human decision 2026-10-16) builds from sprint/S-02 and waits for 002-07 (the other src/commands/doctor.ts edit; real collision, ordered) and 006-02 (ResolvedPaths.projectFile); its QA-Red re-scopes test/doctor.red.node.test.ts; it shares no file with the other wave-2 stories."
+    },
+    {
+      "wave": "wave3",
+      "stories": [
+        "STORY-003-04"
+      ],
+      "parallel": false,
+      "rationale": "parallel_eligible: n — serialized into its own wave (integration layer 1); upstream 003-01, 003-02, 003-03 (+ C1 owner 004-01); builds from its own contract C5, which creates src/commands/ingest.ts with the consumers' insertion points"
+    },
+    {
+      "wave": "wave4",
+      "stories": [
+        "STORY-002-08"
+      ],
+      "parallel": false,
+      "rationale": "parallel_eligible: n — serialized into its own wave (integration layer 1); real collision (ordered edit) on src/commands/init.ts, src/core/integrations.ts, src/agents/index.ts after 001-08; builds from C14 (001-08's Developer commit); integrates after 004-02 so test/agents/enforce.test.ts runs on the new search allow rule"
+    },
+    {
+      "wave": "wave5",
+      "stories": [
+        "STORY-003-05",
+        "STORY-003-06",
+        "STORY-004-06"
+      ],
+      "parallel": true,
+      "rationale": "integration layer 2: 003-05 (C5) and 003-06 (own C7) each insert one line into src/commands/ingest.ts created by 003-04 — insert-only between them; 004-06 builds from C13 (004-02's Developer commit) for its ordered edit of src/search/engine.ts and test/bench/search.bench.ts; no real collision among the three"
+    },
+    {
+      "wave": "wave6",
+      "stories": [
+        "STORY-004-03"
+      ],
+      "parallel": false,
+      "rationale": "parallel_eligible: n — serialized into its own wave (integration layer 2); upstream 004-01, 004-02; builds from C10; inserts at its own src/commands/search.ts insertion points"
+    },
+    {
+      "wave": "wave7",
+      "stories": [
+        "STORY-003-08",
+        "STORY-006-04"
+      ],
+      "parallel": true,
+      "rationale": "integration layer 3: 003-08 builds from its own C8 (upstream 003-06, 003-07, 003-04 …); 006-04 builds from C7 (upstream 003-06, 006-02 …); no shared file"
+    },
+    {
+      "wave": "wave8",
+      "stories": [
+        "STORY-004-04"
+      ],
+      "parallel": false,
+      "rationale": "parallel_eligible: n — serialized into its own wave (integration layer 3); upstream 004-03, 004-02, 003-07, 004-01; builds from its own C12 (stack C1, C10, C11); search.ts insertion after 004-03"
+    },
+    {
+      "wave": "wave9",
+      "stories": [
+        "STORY-004-05"
+      ],
+      "parallel": false,
+      "rationale": "parallel_eligible: n — serialized into its own wave (integration layer 4); upstream 004-04, 004-02, 003-07, 004-01; builds from C12; search.ts insertion after 004-04; placed before 003-09 so the end-to-end ingest test runs on the complete search track"
+    },
+    {
+      "wave": "wave10",
+      "stories": [
+        "STORY-003-09"
+      ],
+      "parallel": false,
+      "rationale": "parallel_eligible: n — serialized into its own wave (integration layer 4); upstream 003-01..003-08, 004-01; builds from C9 (top of the ingest chain); inserts the finish line into src/commands/ingest.ts"
+    },
+    {
+      "wave": "wave11",
+      "stories": [
+        "STORY-006-06"
+      ],
+      "parallel": false,
+      "rationale": "parallel_eligible: n — serialized into the last wave (integration layer 5); upstream = its 17 declared predecessors plus the other 7 stories (plan directive: runs last, after every command and content story); builds from sprint/S-02, verified only on the merged tree"
+    }
+  ],
+  "lane_assignments": {
+    "STORY-001-08": "standard",
+    "STORY-001-09": "standard",
+    "STORY-002-07": "standard",
+    "STORY-002-08": "standard",
+    "STORY-003-01": "standard",
+    "STORY-003-02": "standard",
+    "STORY-003-03": "standard",
+    "STORY-003-04": "standard",
+    "STORY-003-05": "standard",
+    "STORY-003-06": "standard",
+    "STORY-003-07": "standard",
+    "STORY-003-08": "standard",
+    "STORY-003-09": "standard",
+    "STORY-004-01": "standard",
+    "STORY-004-02": "standard",
+    "STORY-004-03": "standard",
+    "STORY-004-04": "standard",
+    "STORY-004-05": "standard",
+    "STORY-004-06": "standard",
+    "STORY-006-01": "standard",
+    "STORY-006-02": "standard",
+    "STORY-006-03": "standard",
+    "STORY-006-04": "standard",
+    "STORY-006-05": "standard",
+    "STORY-006-06": "standard",
+    "STORY-006-07": "standard",
+    "STORY-006-08": "standard"
+  },
+  "milestones": {
+    "M1": [
+      "wave1"
+    ],
+    "M2": [
+      "wave2",
+      "wave3",
+      "wave4"
+    ],
+    "M3": [
+      "wave5",
+      "wave6"
+    ],
+    "M4": [
+      "wave7",
+      "wave8"
+    ],
+    "M5": [
+      "wave9",
+      "wave10",
+      "wave11"
+    ]
+  }
+}
