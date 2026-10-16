@@ -173,7 +173,8 @@
         "src/ingest/log.ts: MissLogEvent(interface)",
         "src/ingest/log.ts: StoredLogEvent(interface)",
         "src/ingest/log.ts: LogFilter(interface)",
-        "src/ingest/log.ts: LogReadResult(interface)"
+        "src/ingest/log.ts: LogReadResult(interface)",
+        "src/ingest/log.ts: RuleProposalLogEvent(interface)"
       ],
       "consumers": [
         "STORY-003-06",
@@ -196,7 +197,7 @@
         "src/ingest/facts.ts: FactsError(interface {path, message})",
         "src/ingest/facts.ts: FactsValidation(type)",
         "src/ingest/facts.ts: FACTS_SCHEMA_REL(\".wiki/system/schemas/facts.schema.json\")",
-        "src/ingest/facts.ts: FACTS_KEYS, FACTS_REQUIRED, FACT_KEYS, FACT_REQUIRED and field regexes (constants)",
+        "src/ingest/facts.ts: FACTS_KEYS, FACTS_REQUIRED, FACT_KEYS, FACT_REQUIRED, FACT_ENTITY_RE, FACT_AS_OF_RE, FACT_PAGE_RE (constants)",
         "src/ingest/facts.ts: validateFacts(input: unknown): FactsValidation",
         "src/ingest/facts.ts: factsFilePath(paths: ResolvedPaths, sourceId: string): string",
         "src/ingest/facts.ts: readFacts(paths: ResolvedPaths, sourceId: string): Promise<FactsFile | null>",
@@ -315,7 +316,8 @@
         "src/ingest/log.ts: MissLogEvent(interface)",
         "src/ingest/log.ts: StoredLogEvent(interface)",
         "src/ingest/log.ts: LogFilter(interface)",
-        "src/ingest/log.ts: LogReadResult(interface)"
+        "src/ingest/log.ts: LogReadResult(interface)",
+        "src/ingest/log.ts: RuleProposalLogEvent(interface)"
       ],
       "consumers": [
         "STORY-004-04",
@@ -350,7 +352,9 @@
         "src/search/engine.ts: SearchCorpus(interface {pages, entities, index, warnings})",
         "src/search/engine.ts: buildDocs(pages: readonly Page[]): SearchDoc[]",
         "src/search/engine.ts: createSearchIndex(docs: readonly SearchDoc[]): Promise<SearchIndex>",
-        "src/search/engine.ts: loadSearchCorpus(paths: ResolvedPaths, opts?: {useCache?, onRebuild?}): Promise<SearchCorpus>"
+        "src/search/engine.ts: loadSearchCorpus(paths: ResolvedPaths, opts?: {useCache?, onRebuild?}): Promise<SearchCorpus>",
+        "src/search/engine.ts: MINISEARCH_OPTIONS(constant)",
+        "src/commands/search.ts: searchWarnings(data: SearchData): readonly string[]"
       ],
       "consumers": [
         "STORY-004-06"

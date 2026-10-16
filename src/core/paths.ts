@@ -10,6 +10,7 @@ export interface ResolvedPaths {
   manifestFile: string;
   kbInstructions: string;
   meFile: string;
+  projectFile: string;
   lockFile: string;
   contentDir: string;
   pagesDir: string;
@@ -43,6 +44,7 @@ export function resolvePaths(root: string, config: Pick<WikeeperConfig, "content
     manifestFile: path.join(systemDir, "manifest.json"),
     kbInstructions: path.join(wikiDir, "kb_instructions.md"),
     meFile: path.join(wikiDir, "me.md"),
+    projectFile: path.join(wikiDir, "project.md"),
     lockFile: path.join(wikiDir, ".lock"),
     contentDir,
     pagesDir: path.join(contentDir, "pages"),
