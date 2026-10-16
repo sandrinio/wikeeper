@@ -451,7 +451,8 @@ describe("STORY-002-06 json-merge units (red)", () => {
 });
 
 describe("STORY-002-06 guard-command units (red)", () => {
-  it("PATH entry holding wikeeper gives the path form", async () => {
+  // Simulates Linux with host temp paths; a win32 host path has a drive-letter colon, so the win32 case below covers that host.
+  it.skipIf(IS_WIN)("PATH entry holding wikeeper gives the path form", async () => {
     const { resolveGuardForm } = await loadGuard();
     const root = await tmp("wikeeper-gc-");
     const bin = await tmp("wikeeper-gc-bin-");
@@ -467,7 +468,8 @@ describe("STORY-002-06 guard-command units (red)", () => {
     expect(form).toBe("npx");
   });
 
-  it("local node_modules/.bin beats npx; PATH beats local", async () => {
+  // Simulates Linux with host temp paths; a win32 host path has a drive-letter colon, so the win32 case below covers that host.
+  it.skipIf(IS_WIN)("local node_modules/.bin beats npx; PATH beats local", async () => {
     const { resolveGuardForm } = await loadGuard();
     const root = await tmp("wikeeper-gc-");
     const bin = path.join(root, "node_modules", ".bin");

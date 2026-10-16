@@ -184,7 +184,7 @@ Feature: --enforce hooks and permission rules
 | Primary File | `src/agents/enforce/index.ts` |
 | Related Files | `src/agents/enforce/claude.ts`, `src/agents/enforce/codex.ts`, `src/agents/enforce/antigravity.ts`, `src/agents/enforce/json-merge.ts`, `src/agents/enforce/guard-command.ts` |
 | Modified Files | `src/agents/index.ts`, `src/agents/doctor-checks.ts` |
-| Test Files | `test/agents/enforce.test.ts`, `test/agents/json-merge.test.ts` |
+| Test Files | `test/agents/enforce.test.ts`, `test/agents/json-merge.test.ts`, `test/e2e/goal.test.ts` (Windows CI timeout only; owned by STORY-002-04) |
 | Fixtures | `test/fixtures/settings/claude-settings-user.json`, `test/fixtures/settings/claude-settings-malformed.json` |
 | New Files Needed | Yes — all files above except the two modified files |
 
