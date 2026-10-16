@@ -193,16 +193,16 @@ Not applicable — no new command; behaviour is exposed through `init --enforce`
 
 ## Task Breakdown
 
-- [ ] Implement `json-merge.ts` (strict parse, typed error, one-time `.bak`, indentation-preserving write, idempotent identity compare) with unit tests -> R6
-- [ ] Implement `guard-command.ts` resolution order with tests -> R5
-- [ ] Implement `resolveEnforce` (flag / config / prompt default no / non-interactive no) and save `enforce: true` -> R1
-- [ ] Implement the Claude writer: PreToolUse hook entry and permission rules per mode -> R2
-- [ ] Implement the Codex writer: `.codex/hooks.json` entry and `.codex/rules/wikeeper.rules` lines -> R3
-- [ ] Implement the Antigravity writer: `.agents/hooks.json` entry -> R4
-- [ ] Record manifest entries and implement `removeEnforce` (exact entry removal, delete created-and-empty files) -> R7
-- [ ] Add `codex-trust` and `antigravity-ask-fallback` doctor checks -> R8
-- [ ] Wire `applyEnforce` / `removeEnforce` into `src/agents/index.ts`
-- [ ] Write one test per Gherkin scenario in §2.1 using the settings fixtures
+- [x] Implement `json-merge.ts` (strict parse, typed error, one-time `.bak`, indentation-preserving write, idempotent identity compare) with unit tests -> R6
+- [x] Implement `guard-command.ts` resolution order with tests -> R5
+- [x] Implement `resolveEnforce` (flag / config / prompt default no / non-interactive no) and save `enforce: true` -> R1
+- [x] Implement the Claude writer: PreToolUse hook entry and permission rules per mode -> R2
+- [x] Implement the Codex writer: `.codex/hooks.json` entry and `.codex/rules/wikeeper.rules` lines -> R3
+- [x] Implement the Antigravity writer: `.agents/hooks.json` entry -> R4
+- [x] Record manifest entries and implement `removeEnforce` (exact entry removal, delete created-and-empty files) -> R7
+- [x] Add `codex-trust` and `antigravity-ask-fallback` doctor checks -> R8
+- [x] Wire `applyEnforce` / `removeEnforce` into `src/agents/index.ts` (insertion points 1-5 only)
+- [x] Write one test per Gherkin scenario in §2.1 using the settings fixtures (covered by QA-Red test/agents/enforce.red.node.test.ts; no separate enforce.test.ts or json-merge.test.ts)
 
 ## 4. Quality Gates
 

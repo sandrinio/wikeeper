@@ -32,9 +32,11 @@ export interface AgentsExtension {
   update?(ctx: IntegrationContext, state: AgentsState): Promise<PhaseReport>;
   remove?(ctx: IntegrationContext, state: AgentsState): Promise<PhaseReport>;
 }
+import { enforceExtension } from "./enforce/index.js";
 // INSERTION POINT 1 (002-06): `import { enforceExtension } from "./enforce/index.js";` goes ABOVE this line.
 export const AGENTS_EXTENSIONS: readonly AgentsExtension[] = [
   // INSERTION POINT 2 (002-06): `  enforceExtension,`
+  enforceExtension,
 ];
 export interface AgentsIntegration {
   init(ctx: IntegrationContext): Promise<PhaseReport>;
