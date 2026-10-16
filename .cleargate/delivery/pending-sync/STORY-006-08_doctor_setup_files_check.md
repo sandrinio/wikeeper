@@ -19,7 +19,7 @@ lane: standard
 db_write_set: []
 deferred_verification: []
 created_at: 2026-10-16T23:30:00Z
-updated_at: 2026-10-16T20:46:34Z
+updated_at: 2026-10-16T22:01:00Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
 server_pushed_at_version: 1
@@ -33,7 +33,7 @@ draft_tokens:
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-16T20:47:58Z
+  last_gate_check: 2026-10-16T22:02:02Z
   transition: ready-for-execution
 pushed_by: null
 pushed_at: null
@@ -54,7 +54,7 @@ last_synced_body_sha: a7ec45674846319c96d21f35832f7fae7003a21b0b3c6df85753f4fac3
 As an AI coding agent finishing setup or onboarding, and as a person running `wikeeper doctor`, I want doctor to say whether `.wiki/me.md` and `.wiki/project.md` are where they should be — `me.md` present, ignored and not committed; `project.md` present and not ignored — and, when one is not, the cause and the one fix for it, so that a personal profile never reaches the repository and a teammate always gets the project brief.
 
 ### 1.2 Detailed Requirements
-- **R1 — The check (decomposition contract 13).** `runDoctor` runs a new check with id `setup-files` after `manifest-drift` and before the integration checks, only when the wiki is initialised (`wiki-initialised` is `ok`). It returns one or more entries, all with id `setup-files`; every finding names its file in `file` (`.wiki/me.md` or `.wiki/project.md`). When there is no `error`, `warning` or `info` finding, it returns exactly one `ok` entry. Text output uses the existing `[ok]`/`[info]`/`[warn]`/`[error]` lines with a `fix:` line where given; `--json` returns the entries in `checks`, counted in `errors` and `warnings` as today.
+- **R1 — The check (decomposition contract 13).** `runDoctor` runs a new check with id `setup-files` after `manifest-drift` and before the integration checks, only when the wiki is initialised (`wiki-initialised` is `ok`). It returns one or more entries, all with id `setup-files`; every finding about a file names it in `file` (`.wiki/me.md` or `.wiki/project.md`); the git-availability `info` (R4) and the single `ok` entry carry no `file`. When there is no `error`, `warning` or `info` finding, it returns exactly one `ok` entry. Text output uses the existing `[ok]`/`[info]`/`[warn]`/`[error]` lines with a `fix:` line where given; `--json` returns the entries in `checks`, counted in `errors` and `warnings` as today.
 - **R2 — `me.md` findings.**
   - Missing → `info`: the user is not onboarded yet, and the agent onboards them at the next session (`.wiki/system/ONBOARDING.md`). This is normal for a teammate who has just cloned the repository.
   - Tracked by git → `error`, fix "run git rm --cached .wiki/me.md and commit the removal". No ignore rule stops git tracking a file it already tracks.
@@ -66,7 +66,7 @@ As an AI coding agent finishing setup or onboarding, and as a person running `wi
   - Present and ignored → `warning` naming the rule as `<source>:<line>` and its pattern: teammates will not get the project brief; fix "remove that rule, or add !/.wiki/project.md after it".
   - Not yet committed is not a finding.
 - **R4 — Without git.** When `git` cannot be started, or the root is not inside a git work tree, the git parts of R2 and R3 are skipped with one `info` entry ("git not found; ignore checks skipped" or "not a git repository; ignore checks skipped"), and the presence findings are still reported. A failing git call never turns into an `error`; anything unexpected is caught by doctor's existing guard as today.
-- **R5 — Git helper (`src/core/git.ts`).** The only place wikeeper runs git. It starts `git` with `execFile` (no shell), `cwd` = the repository root, a 10-second timeout and `windowsHide`. It answers three questions for a root-relative posix path: is the root in a work tree (`git rev-parse --is-inside-work-tree`), is the path tracked (`git ls-files --error-unmatch -- <path>`, exit 0 = tracked, 1 = not), and which rule decides whether it is ignored (`git check-ignore -v -n -z --no-index -- <path>`, exit 0 or 1 both read; the NUL-separated fields are source, line, pattern, path; an empty pattern means no rule matches, a pattern starting with `!` means the path is re-included, any other pattern means it is ignored). `ENOENT` means git is missing. The runner is injectable so unit tests need no git.
+- **R5 — Git helper (`src/core/git.ts`).** The only place wikeeper runs git. It starts `git` with `execFile` (no shell), `cwd` = the repository root, a 10-second timeout and `windowsHide`. It answers three questions for a root-relative posix path: is the root in a work tree (`git rev-parse --is-inside-work-tree`), is the path tracked (`git ls-files --error-unmatch -- <path>`, exit 0 = tracked, 1 = not), and which rule decides whether it is ignored (`git check-ignore -v -n -z --no-index --stdin`, with the path written NUL-terminated on stdin — git rejects `-z` without `--stdin`; exit 0 or 1 both read; the NUL-separated fields are source, line, pattern, path; an empty pattern means no rule matches, a pattern starting with `!` means the path is re-included, any other pattern means it is ignored). `ENOENT` means git is missing. The runner is injectable so unit tests need no git.
 - **R6 — Healthy-install test kept green.** STORY-001-07's healthy-install test (`test/doctor.red.node.test.ts:83`) pins doctor's check ids and expects every check `ok`. A fresh install has no `me.md`, so `setup-files` is `info` there. Its fixture has an empty `.git` directory, not a real repository, so `setup-files` reports three `info` entries there (no `me.md`, no `project.md`, not a git repository). QA-Red re-scopes the test once: it compares the check ids with repeated ids collapsed, the list gains `"setup-files"` after `"manifest-drift"`, and the severity assertion accepts `ok` or `info`; `errors` and `warnings` stay 0 and the exit code stays 0.
 
 ### 1.3 Out of Scope
@@ -189,7 +189,7 @@ Feature: wikeeper doctor checks the setup files
 ```ts
 // src/core/git.ts
 export interface IgnoreRule { source: string; line: number; pattern: string; negated: boolean }
-export type GitRunner = (args: string[], cwd: string) => Promise<{ code: number; stdout: string } | "missing">;
+export type GitRunner = (args: string[], cwd: string, input?: string) => Promise<{ code: number; stdout: string } | "missing">;
 export interface Git {
   inWorkTree(): Promise<boolean | "missing">;
   isTracked(relPosix: string): Promise<boolean>;

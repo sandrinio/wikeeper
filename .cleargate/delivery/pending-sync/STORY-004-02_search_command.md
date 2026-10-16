@@ -18,14 +18,14 @@ lane: standard
 db_write_set: []
 deferred_verification: []
 created_at: 2026-10-16T18:45:00Z
-updated_at: 2026-10-16T18:45:00Z
+updated_at: 2026-10-16T22:01:00Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
 server_pushed_at_version: 2
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-16T19:24:02Z
+  last_gate_check: 2026-10-16T22:02:01Z
   transition: ready-for-execution
 pushed_by: null
 pushed_at: null
@@ -176,6 +176,7 @@ Feature: wikeeper search — ranked full-text
 | Related Files | `src/search/engine.ts`, `src/wiki/parse-page.ts` (consumed, STORY-004-01) |
 | Modified Files | `src/program.ts`, `src/agents/enforce/claude.ts`, `src/agents/enforce/codex.ts`, `templates/system/SETUP.md` (preview table rows only, after STORY-006-02 merges), `./package.json`, `./package-lock.json` |
 | Test Files | `test/search/engine.test.ts`, `test/search/search-command.test.ts`, `test/search/search.perf.test.ts`, `test/bench/search.bench.ts`, `test/agents/enforce.test.ts` |
+| Re-scoped red tests (QA-Red) | `test/agents/enforce-ai-rules.red.node.test.ts`, `test/agents/enforce.red.node.test.ts`, `test/templates/setup.red.node.test.ts` (line 353) — the search allow rule in all three modes falsifies their exact rule lists; QA-Red updates only those assertions (M2 plan, Open decision 2). CR:spec-clarification 2026-10-17. |
 | Fixtures | `test/fixtures/search/generate-wiki.ts` (seeded 500-page generator) |
 | New Files Needed | Yes — `src/commands/search.ts`, `src/search/engine.ts`, the test files except `test/agents/enforce.test.ts`, and the fixture generator |
 
