@@ -6,6 +6,9 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-17 · #qa #red-test · runGuard's HookResponse.stdout is optional (claude allow() has none): red helpers read `res.stdout ?? ""`.
+2026-10-17 · #qa #red-test · writeLogEvent takes `permission` as a string ("ai"); the {mode, approved, …} object is source meta only.
+2026-10-17 · #qa #templates · parsePage takes (text, relPath), not (path, text); a swapped scratch check parses silently with no errors.
 2026-10-17 · #search #since · Date.parse rolls 2026-02-30 over to Mar 2 and accepts T24:00; check the calendar and the hours before trusting it.
 2026-10-17 · #snapshot #fs · fs.cp copies symlinks as links; pass a filter that skips them so the snapshot copy matches hashTree.
 2026-10-17 · #search #filters · entityHit hits carry no entity key; map a filter-only hit back by (path, line, entity name).
