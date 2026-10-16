@@ -9,6 +9,8 @@ import {
   getRequestedExitCode,
 } from "./core/output.js";
 import type { CliIO } from "./core/output.js";
+import { doctorCommand } from "./commands/doctor.js";
+import { setupCommand } from "./commands/setup.js";
 
 const packageJson = JSON.parse(
   readFileSync(new URL("../package.json", import.meta.url), "utf8"),
@@ -21,6 +23,8 @@ export interface CommandModule {
 }
 
 export const defaultCommands: CommandModule[] = [
+  doctorCommand,
+  setupCommand,
 ];
 
 export function createProgram(
