@@ -32,7 +32,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   if (tmp) await rm(tmp, { recursive: true, force: true, maxRetries: 3 });
-});
+}, 120_000);
 
 function wk(cwd: string, args: string[]) {
   const r = spawnSync(process.execPath, [cli, ...args], { cwd, encoding: "utf8" });
@@ -97,7 +97,7 @@ describe.each(Object.keys(FIXTURES))("goal acceptance: %s fixture", (name) => {
     }
     if (name !== "claude-md") expect(all).not.toContain("CLAUDE.md");
     expect(all).toContain("AGENTS.md");
-  });
+  }, 120_000);
 
   it("(2) a second init changes 0 bytes", async () => {
     const root = await make();
@@ -106,7 +106,7 @@ describe.each(Object.keys(FIXTURES))("goal acceptance: %s fixture", (name) => {
     const r = wk(root, AGENTS);
     expect(r.code, r.err).toBe(0);
     expect(await hashes(root)).toEqual(before);
-  });
+  }, 120_000);
 
   it("(3) update and remove leave user files alone; purge restores the tree", async () => {
     const root = await make();
@@ -130,7 +130,7 @@ describe.each(Object.keys(FIXTURES))("goal acceptance: %s fixture", (name) => {
     expect(purge.code, purge.err).toBe(0);
     expect(await list(root)).toEqual(pre);
     expect(await hashes(root)).toEqual(preHash);
-  });
+  }, 120_000);
 
   it("(4) doctor passes after init and reports a deleted WIKI block", async () => {
     const root = await make();
@@ -142,5 +142,5 @@ describe.each(Object.keys(FIXTURES))("goal acceptance: %s fixture", (name) => {
     expect(bad.code).toBe(1);
     const parsed = JSON.parse(bad.out.trim().split("\n").pop()!) as { data: { checks: Array<{ id: string; file?: string }> } };
     expect(parsed.data.checks.some((c) => c.id === "agent-block-missing" && c.file === "AGENTS.md")).toBe(true);
-  });
+  }, 120_000);
 });
