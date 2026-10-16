@@ -6,6 +6,9 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-17 · #qa #red-test · Vite resolves a variable dynamic-import specifier from the root (/src/…); use a literal path in a red test's load().
+2026-10-17 · #ingest #hooks · runUserHooks stops at the first failed command; call it once per command when every post step must run.
+2026-10-17 · #test-harness #templates · yaml warns on unquoted {{model}} in frontmatter; replace the token before parseYaml in a checker.
 2026-10-17 · #templates #paths · listTemplateFiles("") returns "/agent-block.md" with a leading slash; strip it or list per top-level dir.
 2026-10-17 · #cli #plural · plural(n, "miss") prints "misss"; spell irregular plurals by hand (`n === 1 ? "miss" : "misses"`).
 2026-10-17 · #e2e #test-harness · Two e2e files building into the shared dist/ race in parallel vitest workers; tsc --outDir a temp stage.
