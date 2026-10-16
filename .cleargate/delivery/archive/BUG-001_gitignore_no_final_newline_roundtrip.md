@@ -4,7 +4,7 @@ parent_ref: EPIC-001 | STORY-001-04 | STORY-001-06
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: Draft
+status: Completed
 severity: P3-Low
 reporter: "Orchestrator (SPRINT-01): found by the STORY-001-06 integration probe, confirmed during the SPRINT-01 walkthrough"
 approved: true
@@ -14,7 +14,7 @@ created_at: 2026-10-16T16:30:00Z
 updated_at: 2026-10-16T16:30:00Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
-server_pushed_at_version: null
+server_pushed_at_version: 4
 cached_gate_result:
   pass: true
   failing_criteria: []
@@ -27,7 +27,7 @@ last_pulled_at: null
 last_remote_update: null
 source: local-authored
 last_synced_status: null
-last_synced_body_sha: null
+last_synced_body_sha: d88310c3da41b55d150c46a285eb7811f644c732c82c4faceb64792fa8c57aba
 stamp_error: no ledger rows for work_item_id BUG-001
 draft_tokens:
   input: null

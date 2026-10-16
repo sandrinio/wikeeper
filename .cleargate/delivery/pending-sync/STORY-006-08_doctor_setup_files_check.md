@@ -22,7 +22,7 @@ created_at: 2026-10-16T23:30:00Z
 updated_at: 2026-10-16T23:30:00Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
-server_pushed_at_version: null
+server_pushed_at_version: 1
 draft_tokens:
   input: null
   output: null
@@ -42,7 +42,7 @@ last_pulled_at: null
 last_remote_update: null
 source: local-authored
 last_synced_status: null
-last_synced_body_sha: null
+last_synced_body_sha: a7ec45674846319c96d21f35832f7fae7003a21b0b3c6df85753f4fac338971f
 ---
 
 # STORY-006-08: `wikeeper doctor` checks the setup files

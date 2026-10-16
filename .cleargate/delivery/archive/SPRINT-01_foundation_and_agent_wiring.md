@@ -6,7 +6,7 @@ carry_over: false
 lifecycle_init_mode: warn
 remote_id: null
 source_tool: null
-status: Active
+status: Completed
 start_date: 2026-10-16
 end_date: null
 synced_at: null
