@@ -49,7 +49,7 @@ export async function executeSearch(root: string, req: SearchRequest, deps: Sear
   // 3. const corpus = await loadSearchCorpus(paths, { useCache: deps.useCache });
   const corpus = await loadSearchCorpus(paths, { useCache: deps.useCache });
   const warnings: string[] = [...corpus.warnings];
-  const ranked: RankedHit[] = req.query === null ? [] : corpus.index.query(req.query);
+  let ranked: RankedHit[] = req.query === null ? [] : corpus.index.query(req.query);
   // INSERTION POINT STORY-004-03: filter step (req.filters.type / .where / .status) on the ranked hits.
   // 4. build the data
   const pageByPath = new Map<string, Page>(corpus.pages.map((p) => [p.path, p]));
@@ -70,7 +70,7 @@ export async function executeSearch(root: string, req: SearchRequest, deps: Sear
       sources: hitSources(pageByPath.get(doc.path)!, doc.section),
     };
   };
-  const data: SearchData = {
+  let data: SearchData = {
     mode: "query",
     query: req.query,
     filters: req.filters,
