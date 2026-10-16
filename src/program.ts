@@ -45,6 +45,7 @@ export function createProgram(
     .description("A Karpathy-style LLM wiki that your AI coding agent keeps.")
     .version(VERSION, "-v, --version")
     .option("--json", "machine-readable output")
+    .configureHelp({ showGlobalOptions: true })
     .addHelpText(
       "after",
       "\nStatus: pre-alpha. Commands land in upcoming releases: https://github.com/sandrinio/wikeeper",
