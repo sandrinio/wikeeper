@@ -1,0 +1,15 @@
+{
+  "session_id": "3f1c2a9e-7b4d-4e2a-9c1f-5d8e6a7b0c21",
+  "prompt_id": "550e8400-e29b-41d4-a716-446655440000",
+  "transcript_path": "/Users/dev/.claude/projects/-Users-dev-acme/3f1c2a9e-7b4d-4e2a-9c1f-5d8e6a7b0c21.jsonl",
+  "cwd": "/Users/dev/acme",
+  "permission_mode": "default",
+  "effort": { "level": "high" },
+  "hook_event_name": "PreToolUse",
+  "tool_name": "Write",
+  "tool_input": {
+    "file_path": "/Users/dev/acme/.wiki/pages/team.md",
+    "content": "# Team\n\nUpdated by hand.\n"
+  },
+  "tool_use_id": "toolu_01ABC123DEF456GHI789JKL0"
+}
