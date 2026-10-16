@@ -1,6 +1,6 @@
 # wikeeper — Architecture
 
-> **Status:** Draft v0.3 · 2026-10-16
+> **Status:** Draft v0.4 · 2026-10-16 · all open questions resolved
 > **Legend:** **[Agreed]** decided in discussion · **[Proposed]** recommended, not yet confirmed · **[Open]** needs a decision (see §12)
 
 ---
@@ -39,8 +39,8 @@ An npm package that installs a Karpathy-style LLM wiki into any repository. The 
 ├── config.yml                 # USER-OWNED — permissions, hooks, agents
 ├── kb_instructions.md         # USER-OWNED — what to capture; evolves over time
 ├── me.md                      # USER-OWNED, gitignored — who the agent works with (§5.4)
-├── index.md                   # CLI-generated catalog of pages
-├── log.md                     # CLI-maintained, append-only event log
+├── index.md                   # CLI-generated catalog of pages (deterministic; rebuildable)
+├── log/                       # one file per event — merge-safe; `log.md` is a generated, gitignored view
 ├── raw/                       # immutable: <id>.<ext> (original), <id>.meta.json, <id>.facts.json, <id>.md (optional)
 └── pages/                     # agent-written knowledge (management profile shown)
     ├── team.md
@@ -51,7 +51,7 @@ An npm package that installs a Karpathy-style LLM wiki into any repository. The 
     └── sources/<source-id>.md
 ```
 
-**[Open]** Obsidian (Karpathy's suggested viewer) ignores dot-folders, so `.wiki/pages/` is invisible to it. Option: a `content_dir` config key that moves `pages/`, `raw/`, `index.md`, `log.md` to a visible folder.
+**[Agreed]** Obsidian (Karpathy's suggested viewer) ignores dot-folders, so `.wiki/pages/` is invisible to it. A `content_dir` config key moves `pages/`, `raw/`, `index.md` and `log/` to a visible folder; the default stays `.wiki/`.
 
 ### 4.1 Ownership matrix **[Proposed]**
 
@@ -63,7 +63,7 @@ An npm package that installs a Karpathy-style LLM wiki into any repository. The 
 | `config.yml` | user | create if missing | never | keep | delete |
 | `kb_instructions.md` | user | seed from profile if missing | never | keep | delete |
 | `me.md` (gitignored) | user | written during setup | never | keep | delete |
-| `index.md`, `log.md` | user (CLI-maintained) | create if missing | never | keep | delete |
+| `index.md`, `log/` | user (CLI-maintained) | create if missing | never | keep | delete |
 | `raw/**`, `pages/**` | user | create dirs | never | keep | delete |
 
 `--purge` requires typed confirmation. New config options introduced by `update` get defaults in code, so `config.yml` never needs rewriting.
@@ -96,7 +96,7 @@ Capture rules are keyed by **source kind** (what the content *is*: meeting notes
 
 The agent keeps offering additions to this file as it meets new kinds of information (§9).
 
-**Questions are the root [Proposed].** Every rule exists to answer a question the wiki must answer: a question with no rule is a gap, a rule serving no question is bloat. Entities are defined separately from source kinds, so a new kind of source maps onto existing entities. **[Leaning, not agreed]** The agent drafts the questions itself from the profile and the user's first sources, and revises them from what the user actually asks (§9); the user approves changes rather than writing them.
+**Questions are the root [Proposed].** Every rule exists to answer a question the wiki must answer: a question with no rule is a gap, a rule serving no question is bloat. Entities are defined separately from source kinds, so a new kind of source maps onto existing entities. **[Agreed]** The agent drafts the questions itself from the profile and the user's first sources, and revises them from what the user actually asks (§9); the user approves changes rather than writing them.
 
 ```md
 # Knowledge Base Instructions
@@ -142,7 +142,7 @@ compensation · health · personal life · performance judgements of individuals
 | `decisions/<slug>.md` | what was decided, by whom, when, alternatives, rationale | Decisions are the most-asked-about and most-forgotten facts |
 | `glossary.md` | terms, acronyms, codenames | Lets the agent read future sources correctly |
 
-`team.md` is sensitive. The profile ships a default *Never capture* list, and **[Open]** whether `team.md` can be marked private (gitignored).
+`team.md` is sensitive. The profile ships a default *Never capture* list, and a `private: [team.md]` setting keeps listed pages out of git (off by default). **[Agreed]**
 
 ### 5.4 User profile — `me.md` **[Proposed]**
 
@@ -246,7 +246,7 @@ All three agents can run a hook before a tool call and block it. `init --enforce
 - **Write guard.** A pre-tool hook blocks edits to `.wiki/pages/**` unless an ingest is open (lock file present). Written to `.claude/settings.json`, `.agents/hooks.json`, `.codex/hooks.json`.
 - **Permission mode → harness rules.** `ai` → allow `npx wikeeper *` without prompting. `ask` → the harness itself prompts the user when the agent runs `wikeeper ingest start` (Claude `permissions.ask`, Codex `prefix_rule(decision="prompt")`). The harness prompt *is* the approval, so the chat-approval + `--approved` fallback (§7.2) is only needed where no rule file exists (Antigravity).
 
-Opt-in because it merges into the user's own settings files, Codex only honours it in trusted projects with each hook approved, and Antigravity IDE hook reliability is unconfirmed.
+`init` asks whether to enable it, defaulting to no. **[Agreed]** Opt-in because it merges into the user's own settings files, Codex only honours it in trusted projects with each hook approved, and Antigravity IDE hook reliability is unconfirmed.
 
 ## 7. Ingestion
 
@@ -267,7 +267,7 @@ Configurable per project:
 | `ask` | Every ingest needs the user's approval in chat. |
 | `whitelist` | Sources matching the whitelist are allowed; everything else is denied. |
 
-Whitelist match keys — source kind, origin (path/domain), or both — are **[Open]**.
+Whitelist entries match on source kind, origin (path or domain), or both. **[Agreed]**
 
 Mechanism **[Proposed]**: the agent runs the CLI non-interactively, so the CLI can't prompt the user itself. In `ask` mode `ingest start` returns `needs_approval` with the source metadata; the agent asks in chat and reruns with `--approved`. This relies on the agent being honest; lint flags any page change without a matching log entry. Denied sources exit non-zero with a reason and nothing is stored. Where the agent's harness supports command rules, §6.6 has the harness ask the user instead.
 
@@ -300,7 +300,7 @@ wikeeper ingest finish <id>
   POST-HOOK
   1. diff pages against snapshot → created / updated / deleted
   2. validate: every changed page cites the source id; no writes outside pages/
-  3. regenerate index.md; append log.md entry
+  3. regenerate index.md; write a log entry (log/<timestamp>-<id>.md)
   4. run user post_ingest hooks (e.g. git commit)
   5. lint
   6. print metadata report, release lock
@@ -310,7 +310,7 @@ wikeeper ingest abort <id>      restore pages from snapshot, release lock;
 ```
 
 - **The lock covers the write phase only.** Extraction doesn't touch pages, so it can run in parallel; concurrent writes would make the snapshot diff unable to attribute changes.
-- **Whitelist rules on source kind** (if used, §12) are checked as soon as the kind is known: at `start` when `--kind` is given, otherwise at `facts`.
+- **Whitelist rules on source kind** (§7.2) are checked as soon as the kind is known: at `start` when `--kind` is given, otherwise at `facts`.
 
 ### 7.4 Roles and steps (specified in WIKI.md) **[Agreed: split · Proposed: detail]**
 
@@ -451,6 +451,9 @@ Every command supports `--json`: the agent is the main consumer. **[Proposed]**
 profile: management
 setup_completed_at: null
 agents: [claude, codex, antigravity]
+content_dir: .wiki              # move pages/, raw/, index.md, log/ to a visible folder (§4)
+private: []                     # pages kept out of git, e.g. [team.md] (§5.3)
+enforce: false                  # harness hooks + permission rules (§6.6)
 
 ingest:
   permission: ask              # ai | ask | whitelist
@@ -469,16 +472,7 @@ hooks:
 
 ## 12. Open questions
 
-1. **Content location** — everything in `.wiki/` (invisible to Obsidian) or a visible `content_dir`?
-2. ~~**Conversion**~~ — resolved: the agent reads; the CLI offers `wikeeper read` as a helper (D-20).
-3. **Whitelist keys** — source kind, origin, or both?
-4. **Ambient offers** — on by default?
-5. ~~**Package and binary name**~~ — resolved: `wikeeper` (D-21).
-6. **Private pages** — can `team.md` be gitignored?
-7. **Team use** — two people ingesting on separate branches will conflict on `log.md` and `index.md`. Per-entry log files? Regenerate index on merge?
-8. **wiki_search as an MCP tool** in addition to the CLI? Needs a config file per agent (§6.2), and Codex only loads it in trusted projects.
-9. **Enforcement default** — should `init` offer `--enforce` (§6.6) interactively, or leave it as a flag?
-10. ~~**Delegation in Codex and Antigravity**~~ — resolved: both support sub-agents (§6.2, §7.6). Codex model ids are user-set.
+None. All questions were resolved on 2026-10-16 (D-20, D-21, D-24 – D-31).
 
 ## 13. Decision log
 
@@ -507,3 +501,13 @@ hooks:
 | D-21 | Product, npm package and binary name: `wikeeper`. |
 | D-22 | MIT licence. |
 | D-23 | Public repo `github.com/sandrinio/wikeeper`, including the ClearGate planning files. |
+| D-24 | Content lives in `.wiki/` by default; `content_dir` moves it to a visible folder (e.g. for Obsidian). |
+| D-25 | Whitelist entries match on source kind, origin (path or domain), or both. |
+| D-26 | Ambient ingest offers are on by default (`ambient_offers: false` turns them off). |
+| D-27 | A `private: [...]` setting keeps listed pages (e.g. `team.md`) out of git; off by default. |
+| D-28 | Merge-safe for teams: one log file per event under `log/`; `index.md` is deterministic and rebuildable after a merge. |
+| D-29 | `wiki_search` is a CLI command only; an MCP tool is out of scope for now. |
+| D-30 | `init` asks whether to enable `--enforce`, defaulting to no. |
+| D-31 | The agent drafts the wiki's questions itself (from the profile and `me.md`); the user approves changes. |
+| D-32 | `init` never creates `CLAUDE.md`: `AGENTS.md` works with Claude Code too. |
+| D-33 | The `--enforce` write guard fails open, with a warning, when it can't read a hook payload. |

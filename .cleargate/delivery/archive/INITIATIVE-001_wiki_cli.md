@@ -2,10 +2,10 @@
 initiative_id: INITIATIVE-001
 remote_id: null
 source_tool: manual-paste
-status: In Triage
+status: Triaged
 synced_at: null
-triaged_at: null
-spawned_items: []
+triaged_at: 2026-10-16T13:08:06Z
+spawned_items: ["EPIC-001", "EPIC-002", "EPIC-003", "EPIC-004", "EPIC-005", "EPIC-006"]
 created_at: 2026-10-16T12:00:00Z
 updated_at: 2026-10-16T12:00:00Z
 created_at_version: strategy-phase-pre-init
