@@ -36,6 +36,12 @@ const FIXTURES = path.join(PKG_ROOT, "test", "fixtures", "settings");
 const IS_WIN = process.platform === "win32";
 const CLAUDE_MATCHER = "Edit|Write|MultiEdit|NotebookEdit";
 const cleanup: string[] = [];
+const SEARCH_CLAUDE = ["Bash(npx wikeeper search *)", "Bash(wikeeper search *)"];
+const SEARCH_CODEX = [
+  'prefix_rule(pattern=["npx","wikeeper","search"], decision="allow")',
+  'prefix_rule(pattern=["wikeeper","search"], decision="allow")',
+];
+const sorted = (xs: readonly string[]): string[] => [...xs].sort();
 
 beforeEach(async () => {
   resetIntegrations();
@@ -251,7 +257,7 @@ describe("STORY-002-06 R2/R3 outline: permission mode decides the rules (red)", 
     const s = await readJson(root, ".claude/settings.json");
     expect(s.permissions.allow).toEqual(expect.arrayContaining(["Bash(npx wikeeper ingest *)", "Bash(wikeeper ingest *)"]));
     expect(s.permissions.ask).toBeUndefined();
-    expect(await lines(root)).toEqual(AI_RULES);
+    expect(sorted(await lines(root))).toEqual(sorted([...AI_RULES, ...SEARCH_CODEX]));
   });
 
   it("ask: ask rules", async () => {
@@ -260,16 +266,17 @@ describe("STORY-002-06 R2/R3 outline: permission mode decides the rules (red)", 
     expect(s.permissions.ask).toEqual(
       expect.arrayContaining(["Bash(npx wikeeper ingest start *)", "Bash(wikeeper ingest start *)"]),
     );
-    expect(s.permissions.allow).toBeUndefined();
-    expect(await lines(root)).toEqual(ASK_RULES);
+    expect(sorted(s.permissions.allow)).toEqual(sorted(SEARCH_CLAUDE));
+    expect(sorted(await lines(root))).toEqual(sorted([...ASK_RULES, ...SEARCH_CODEX]));
   });
 
   it("whitelist: no permission rule and no .rules file", async () => {
     const root = await run("whitelist");
     const s = await readJson(root, ".claude/settings.json");
-    expect(s.permissions).toBeUndefined();
+    expect(s.permissions).toEqual({ allow: expect.any(Array) });
+    expect(sorted(s.permissions.allow)).toEqual(sorted(SEARCH_CLAUDE));
     expect(guardGroups(s)).toHaveLength(1);
-    expect(await exists(root, ".codex/rules/wikeeper.rules")).toBe(false);
+    expect(sorted(await lines(root))).toEqual(sorted(SEARCH_CODEX));
     expect(await exists(root, ".codex/hooks.json")).toBe(true);
   });
 
@@ -278,11 +285,11 @@ describe("STORY-002-06 R2/R3 outline: permission mode decides the rules (red)", 
     await writeFile(abs(root, ".wiki/config.yml"), "agents: [claude, codex]\nenforce: true\ningest:\n  permission: ask\n");
     expect((await drive(root, ["init", "--yes"])).code).toBe(0);
     const s = await readJson(root, ".claude/settings.json");
-    expect(s.permissions.allow ?? []).toEqual([]);
+    expect(sorted(s.permissions.allow)).toEqual(sorted(SEARCH_CLAUDE));
     expect(s.permissions.ask).toEqual(
       expect.arrayContaining(["Bash(npx wikeeper ingest start *)", "Bash(wikeeper ingest start *)"]),
     );
-    expect(await lines(root)).toEqual(ASK_RULES);
+    expect(sorted(await lines(root))).toEqual(sorted([...ASK_RULES, ...SEARCH_CODEX]));
   });
 
   it("manifest records hook and rule entries with identities, sha256 null", async () => {
@@ -514,14 +521,18 @@ describe("STORY-002-06 writer specs and resolveEnforce units (red)", () => {
       "hooks.PreToolUse[guard:claude]",
       "permissions.allow[Bash(npx wikeeper ingest *)]",
       "permissions.allow[Bash(wikeeper ingest *)]",
+      "permissions.allow[Bash(npx wikeeper search *)]",
+      "permissions.allow[Bash(wikeeper search *)]",
     ]);
     expect(ai[0]).toMatchObject({ kind: "hook", agent: "claude", value: { matcher: CLAUDE_MATCHER, hooks: [{ type: "command", command: "CMD" }] } });
     expect(CLAUDE_ENFORCE.items("CMD", "ask").map((i: any) => i.identity)).toEqual([
       "hooks.PreToolUse[guard:claude]",
       "permissions.ask[Bash(npx wikeeper ingest start *)]",
       "permissions.ask[Bash(wikeeper ingest start *)]",
+      "permissions.allow[Bash(npx wikeeper search *)]",
+      "permissions.allow[Bash(wikeeper search *)]",
     ]);
-    expect(CLAUDE_ENFORCE.items("CMD", "whitelist")).toHaveLength(1);
+    expect(CLAUDE_ENFORCE.items("CMD", "whitelist")).toHaveLength(3);
   });
 
   it("CODEX_ENFORCE and ANTIGRAVITY_ENFORCE items", async () => {
@@ -529,10 +540,11 @@ describe("STORY-002-06 writer specs and resolveEnforce units (red)", () => {
     const { ANTIGRAVITY_ENFORCE } = await loadAntigravity();
     expect(CODEX_ENFORCE.map((s: any) => s.file)).toEqual([".codex/hooks.json", ".codex/rules/wikeeper.rules"]);
     expect(CODEX_ENFORCE[1].format).toBe("lines");
-    expect(CODEX_ENFORCE[1].items("CMD", "whitelist")).toEqual([]);
+    expect(CODEX_ENFORCE[1].items("CMD", "whitelist").map((i: any) => i.value)).toEqual(SEARCH_CODEX);
     expect(CODEX_ENFORCE[1].items("CMD", "ai").map((i: any) => i.value)).toEqual([
       'prefix_rule(pattern=["npx","wikeeper","ingest"], decision="allow")',
       'prefix_rule(pattern=["wikeeper","ingest"], decision="allow")',
+      ...SEARCH_CODEX,
     ]);
     expect(ANTIGRAVITY_ENFORCE.file).toBe(".agents/hooks.json");
     const items = ANTIGRAVITY_ENFORCE.items("CMD", "ask");

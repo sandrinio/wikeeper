@@ -173,7 +173,8 @@
         "src/ingest/log.ts: MissLogEvent(interface)",
         "src/ingest/log.ts: StoredLogEvent(interface)",
         "src/ingest/log.ts: LogFilter(interface)",
-        "src/ingest/log.ts: LogReadResult(interface)"
+        "src/ingest/log.ts: LogReadResult(interface)",
+        "src/ingest/log.ts: RuleProposalLogEvent(interface)"
       ],
       "consumers": [
         "STORY-003-06",
@@ -196,7 +197,7 @@
         "src/ingest/facts.ts: FactsError(interface {path, message})",
         "src/ingest/facts.ts: FactsValidation(type)",
         "src/ingest/facts.ts: FACTS_SCHEMA_REL(\".wiki/system/schemas/facts.schema.json\")",
-        "src/ingest/facts.ts: FACTS_KEYS, FACTS_REQUIRED, FACT_KEYS, FACT_REQUIRED and field regexes (constants)",
+        "src/ingest/facts.ts: FACTS_KEYS, FACTS_REQUIRED, FACT_KEYS, FACT_REQUIRED, FACT_ENTITY_RE, FACT_AS_OF_RE, FACT_PAGE_RE (constants)",
         "src/ingest/facts.ts: validateFacts(input: unknown): FactsValidation",
         "src/ingest/facts.ts: factsFilePath(paths: ResolvedPaths, sourceId: string): string",
         "src/ingest/facts.ts: readFacts(paths: ResolvedPaths, sourceId: string): Promise<FactsFile | null>",
@@ -271,7 +272,7 @@
         "src/search/engine.ts: MissSummary(interface)",
         "src/search/engine.ts: SearchData(interface {mode, query, filters, entity_query, total, results, entity, changes, misses})",
         "src/search/engine.ts: SearchRequest(interface {query, limit, filters, entity, misses})",
-        "src/search/engine.ts: SearchDeps(interface {now?, useCache?})",
+        "src/search/engine.ts: SearchDeps(interface {now?, useCache?, onRebuild?})",
         "src/search/engine.ts: EMPTY_FILTERS(const)",
         "src/search/engine.ts: SearchDoc(interface)",
         "src/search/engine.ts: RankedHit(interface)",
@@ -315,7 +316,8 @@
         "src/ingest/log.ts: MissLogEvent(interface)",
         "src/ingest/log.ts: StoredLogEvent(interface)",
         "src/ingest/log.ts: LogFilter(interface)",
-        "src/ingest/log.ts: LogReadResult(interface)"
+        "src/ingest/log.ts: LogReadResult(interface)",
+        "src/ingest/log.ts: RuleProposalLogEvent(interface)"
       ],
       "consumers": [
         "STORY-004-04",
@@ -350,13 +352,16 @@
         "src/search/engine.ts: SearchCorpus(interface {pages, entities, index, warnings})",
         "src/search/engine.ts: buildDocs(pages: readonly Page[]): SearchDoc[]",
         "src/search/engine.ts: createSearchIndex(docs: readonly SearchDoc[]): Promise<SearchIndex>",
-        "src/search/engine.ts: loadSearchCorpus(paths: ResolvedPaths, opts?: {useCache?, onRebuild?}): Promise<SearchCorpus>"
+        "src/search/engine.ts: loadSearchCorpus(paths: ResolvedPaths, opts?: {useCache?, onRebuild?}): Promise<SearchCorpus>",
+        "src/search/engine.ts: MINISEARCH_OPTIONS(constant)",
+        "src/commands/search.ts: searchWarnings(data: SearchData): readonly string[]"
       ],
       "consumers": [
         "STORY-004-06"
       ],
       "created_by": "STORY-004-02's own Developer commit (not a skeleton): cut from story/STORY-004-02 at the Developer commit; carries the real engine.ts, search.ts, test/bench/search.bench.ts, package.json and package-lock.json",
-      "create_when": "when STORY-004-02's Developer reports done, before its QA-Verify"
+      "create_when": "when STORY-004-02's Developer reports done, before its QA-Verify",
+      "notes": "STORY-004-06 adds optional SearchDeps.onRebuild?: () => void (additive; executeSearch forwards it to loadSearchCorpus) — CR:spec-clarification 2026-10-16, M3 Open decision 2."
     },
     {
       "id": "C14",
@@ -675,26 +680,19 @@
     {
       "wave": "wave9",
       "stories": [
-        "STORY-004-05"
+        "STORY-004-05",
+        "STORY-003-09"
       ],
-      "parallel": false,
-      "rationale": "parallel_eligible: n — serialized into its own wave (integration layer 4); upstream 004-04, 004-02, 003-07, 004-01; builds from C12; search.ts insertion after 004-04; placed before 003-09 so the end-to-end ingest test runs on the complete search track"
+      "parallel": true,
+      "rationale": "M5 re-plan 2026-10-16: every upstream merged; 004-05 and 003-09 share no file and merge in either order to the same tree; the e2e ingest test never runs search, so 004-05 need not precede 003-09"
     },
     {
       "wave": "wave10",
       "stories": [
-        "STORY-003-09"
-      ],
-      "parallel": false,
-      "rationale": "parallel_eligible: n — serialized into its own wave (integration layer 4); upstream 003-01..003-08, 004-01; builds from C9 (top of the ingest chain); inserts the finish line into src/commands/ingest.ts"
-    },
-    {
-      "wave": "wave11",
-      "stories": [
         "STORY-006-06"
       ],
       "parallel": false,
-      "rationale": "parallel_eligible: n — serialized into the last wave (integration layer 5); upstream = its 17 declared predecessors plus the other 7 stories (plan directive: runs last, after every command and content story); builds from sprint/S-02, verified only on the merged tree"
+      "rationale": "M5 re-plan 2026-10-16: builds alongside wave9 (build-only), then re-syncs on the tree with 004-05 and 003-09 and is verified and merged last (its checks need `ingest finish` and `search --misses`)"
     }
   ],
   "lane_assignments": {
@@ -745,8 +743,7 @@
     ],
     "M5": [
       "wave9",
-      "wave10",
-      "wave11"
+      "wave10"
     ]
   }
 }

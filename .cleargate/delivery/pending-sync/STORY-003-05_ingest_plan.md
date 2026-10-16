@@ -20,14 +20,14 @@ lane: standard
 db_write_set: []
 deferred_verification: []
 created_at: 2026-10-16T18:45:00Z
-updated_at: 2026-10-16T18:45:00Z
+updated_at: 2026-10-16T22:41:37Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
 server_pushed_at_version: 4
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-16T19:24:00Z
+  last_gate_check: 2026-10-16T22:41:58Z
   transition: ready-for-execution
 pushed_by: null
 pushed_at: null
@@ -60,7 +60,7 @@ As an AI coding agent that has been pointed at a folder, I want a plan of which 
 - **R1 — Usage.** `wikeeper ingest plan <dir> [--kind <kind>] [--json]` adds `src/commands/ingest-plan.ts` and one line to `ingestSubcommands` in `src/commands/ingest.ts`. The repository must be initialised (exit 1, `not_initialised`). `<dir>` must be an existing directory; a file → exit 2 pointing to `wikeeper ingest start`, a missing path → exit 2. `--kind` follows `isValidKindId` (else exit 2) and applies to every file.
 - **R2 — Walk.** Files are listed recursively and sorted by POSIX path. Skipped, and listed under `skipped` with a reason: entries whose name starts with `.` (`hidden`), anything inside `.wiki/` or the content directory (`wiki`), and symbolic links (`symlink`, never followed).
 - **R3 — Per-file entry.** Each file gets `path` (the origin `ingest start` would record: `fileOrigin(root, abs)`), `size`, `sha256` and:
-  - `status: "duplicate"` when `findDuplicate` matches a registered source (`prior: { id, captured_at, match: "sha256" }`), or when an earlier file in the same plan has the same hash (`prior: { path, match: "in_plan" }`);
+  - `status: "duplicate"` when `findDuplicate` matches a registered source (`prior: { id, captured_at, match: "sha256" }`), or when an earlier `new` file in the same plan has the same hash (`prior: { path, match: "in_plan" }`); a copy of an earlier denied file is evaluated on its own (clarified 2026-10-16: §1.4's rationale assumes the earlier file registers);
   - otherwise `evaluatePermission(config.ingest, { origin, originType: "file", kind, approved: false })` decides: `denied` → `status: "denied"`; `allowed` or `needs_approval` → `status: "new"`, with `needs_approval: true` for the latter and `kind_pending` as returned. Every entry carries the decision's `reason`.
 - **R4 — Totals and output.** The result holds `dir`, `mode`, `kind`, `entries`, `skipped` and `totals { new, duplicate, denied, needs_approval }`. The human output is one line per file (`new`, `new (needs approval)`, `duplicate of <id>`, `denied: <reason>`) plus a totals line and the next step: "get approval if needed, then run `wikeeper ingest start <path>` per new file (add `--approved` after the user agrees)".
 - **R5 — Read-only.** The plan stores nothing: `raw/`, `log/`, `pages/` and `index.md` are unchanged, and no hook runs. It always exits 0 when it could build a plan, whatever the entries' statuses.
