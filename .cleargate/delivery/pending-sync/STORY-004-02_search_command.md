@@ -231,16 +231,16 @@ export const searchCommand: CommandModule;
 
 ## Task Breakdown
 
-- [ ] Add `minisearch` `^7.2.0` to `dependencies` and update the lockfile -> R10
-- [ ] Implement `buildDocs` (one document per section with heading or text, owning entity key and aliases) -> R2
-- [ ] Implement `createSearchIndex` with the pinned options, dynamic import and deterministic sort -> R3
-- [ ] Implement `makeSnippet` and `hitSources` with unit tests -> R4
-- [ ] Implement `loadSearchCorpus` and `executeSearch` (not-initialised check, limit, `SearchData` with frozen defaults) -> R2, R5, R7
-- [ ] Implement the command (option parsing, usage errors, human output) and register it in `src/program.ts` -> R1, R6, R7
-- [ ] Write the seeded fixture generator, the perf test (p95 assertion) and the bench file -> R8
-- [ ] Add the search allow rules to the Claude and Codex enforce writers in all three modes; extend `test/agents/enforce.test.ts` -> R9
-- [ ] After merging `sprint/S-02` (with STORY-006-02), add the search rules to the SETUP.md preview table; `test/templates/setup.test.ts` passes on the merged tree -> R9
-- [ ] Write one test per Gherkin scenario in §2.1
+- [x] Add `minisearch` `^7.2.0` to `dependencies` and update the lockfile -> R10
+- [x] Implement `buildDocs` (one document per section with heading or text, owning entity key and aliases) -> R2
+- [x] Implement `createSearchIndex` with the pinned options, dynamic import and deterministic sort -> R3
+- [x] Implement `makeSnippet` and `hitSources` with unit tests -> R4
+- [x] Implement `loadSearchCorpus` and `executeSearch` (not-initialised check, limit, `SearchData` with frozen defaults) -> R2, R5, R7
+- [x] Implement the command (option parsing, usage errors, human output) and register it in `src/program.ts` -> R1, R6, R7
+- [x] Write the seeded fixture generator, the perf test (p95 assertion) and the bench file -> R8
+- [x] Add the search allow rules to the Claude and Codex enforce writers in all three modes; extend `test/agents/enforce.test.ts` -> R9
+- [x] After merging `sprint/S-02` (with STORY-006-02), add the search rules to the SETUP.md preview table; `test/templates/setup.test.ts` passes on the merged tree -> R9
+- [x] Write one test per Gherkin scenario in §2.1
 
 ## 4. Quality Gates
 

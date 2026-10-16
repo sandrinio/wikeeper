@@ -48,9 +48,9 @@ With `enforce` on, the agents' own settings carry the mode. With `enforce` off, 
 
 | Mode | Claude Code (.claude/settings.json) | Codex (.codex/rules/wikeeper.rules) | Antigravity |
 |---|---|---|---|
-| `ai` | `permissions.allow`: `Bash(npx wikeeper ingest *)`, `Bash(wikeeper ingest *)` | `prefix_rule(pattern=["npx","wikeeper","ingest"], decision="allow")`, `prefix_rule(pattern=["wikeeper","ingest"], decision="allow")` | no project rule file; approval happens in chat |
-| `ask` | `permissions.ask`: `Bash(npx wikeeper ingest start *)`, `Bash(wikeeper ingest start *)` | `prefix_rule(pattern=["npx","wikeeper","ingest","start"], decision="prompt")`, `prefix_rule(pattern=["wikeeper","ingest","start"], decision="prompt")` | no project rule file; approval happens in chat |
-| `whitelist` | — | — | no project rule file; approval happens in chat |
+| `ai` | `permissions.allow`: `Bash(npx wikeeper ingest *)`, `Bash(wikeeper ingest *)`, `Bash(npx wikeeper search *)`, `Bash(wikeeper search *)` | `prefix_rule(pattern=["npx","wikeeper","ingest"], decision="allow")`, `prefix_rule(pattern=["wikeeper","ingest"], decision="allow")`, `prefix_rule(pattern=["npx","wikeeper","search"], decision="allow")`, `prefix_rule(pattern=["wikeeper","search"], decision="allow")` | no project rule file; approval happens in chat |
+| `ask` | `permissions.ask`: `Bash(npx wikeeper ingest start *)`, `Bash(wikeeper ingest start *)`; `permissions.allow`: `Bash(npx wikeeper search *)`, `Bash(wikeeper search *)` | `prefix_rule(pattern=["npx","wikeeper","ingest","start"], decision="prompt")`, `prefix_rule(pattern=["wikeeper","ingest","start"], decision="prompt")`, `prefix_rule(pattern=["npx","wikeeper","search"], decision="allow")`, `prefix_rule(pattern=["wikeeper","search"], decision="allow")` | no project rule file; approval happens in chat |
+| `whitelist` | `permissions.allow`: `Bash(npx wikeeper search *)`, `Bash(wikeeper search *)` | `prefix_rule(pattern=["npx","wikeeper","search"], decision="allow")`, `prefix_rule(pattern=["wikeeper","search"], decision="allow")` | no project rule file; approval happens in chat |
 
 For `whitelist`, agree `ingest.whitelist.kinds` and `ingest.whitelist.origins` with the user.
 
