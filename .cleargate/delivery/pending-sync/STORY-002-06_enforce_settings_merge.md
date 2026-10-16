@@ -11,7 +11,11 @@ context_source: EPIC-002 (approved 2026-10-16) · architecture.md v0.4 §6 (agen
 actor: Developer who wants wiki writes enforced, not just instructed
 complexity_label: L3
 parallel_eligible: n
-dep_predecessors: ["STORY-001-02", "STORY-001-03", "STORY-002-04", "STORY-002-05"]
+dep_predecessors:
+  - STORY-001-02
+  - STORY-001-03
+  - STORY-002-04
+  - STORY-002-05
 expected_bounce_exposure: med
 lane: standard
 db_write_set: []
@@ -41,7 +45,7 @@ draft_tokens:
   cache_creation: null
   cache_read: null
   model: null
-  last_stamp: 2026-10-16T13:31:22Z
+  last_stamp: 2026-10-16T15:31:48Z
   sessions: []
 ---
 
@@ -69,6 +73,10 @@ As a developer who wants the wiki's rules enforced, I want `init` to add a write
   - R5 command form: bare `wikeeper` only when it resolves on `PATH`; when it is only in `node_modules/.bin`, write a form that works from the hook's working directory without `PATH` (Architect picks it from the research file); otherwise `npx -y wikeeper@<installed version>`.
   - R4: Antigravity project-scope permission rules exist but live outside the repo (`~/.gemini/config/projects/`), so wikeeper still writes none.
   - R8: `codex-trust` also says hooks must be re-approved in `/hooks` after `wikeeper update` changes the command. Add note `antigravity-trust` (antigravity configured with enforce on: workspace hooks load only after the folder is trusted).
+- **Review clarifications (2026-10-16, CR:spec-clarification from an external review the human directed into this sprint):**
+  - R6/R7: `remove` restores the original bytes even when the original already held an empty container on wikeeper's path (`"hooks": {}`, `"permissions": { "allow": [] }`).
+  - Malformed settings: `init` with enforce enabled (flag, config or prompt) and any unparseable target settings file exits 1 and leaves the whole repository byte-identical. All settings files are parsed in a preflight before `init` writes anything, and agent-side writes are rolled back if a later step fails.
+  - Hook, rule and backup manifest entries carry `sha256: null`, so `doctor` never reports `manifest-drift` for user edits to settings files; `update` re-renders a pinned `npx -y wikeeper@<version>` guard command with the running version.
 
 ### 1.3 Out of Scope
 The guard command itself (STORY-002-05), the lock file (EPIC-003), Antigravity user-level permission settings, Gemini CLI policies.
