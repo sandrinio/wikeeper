@@ -18,14 +18,14 @@ lane: standard
 db_write_set: []
 deferred_verification: []
 created_at: 2026-10-16T18:45:00Z
-updated_at: 2026-10-16T18:45:00Z
+updated_at: 2026-10-16T22:41:37Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
 server_pushed_at_version: 1
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-16T19:24:03Z
+  last_gate_check: 2026-10-16T22:41:57Z
   transition: ready-for-execution
 pushed_by: null
 pushed_at: null
@@ -47,7 +47,7 @@ draft_tokens:
 ---
 
 # STORY-004-06: On-disk search cache
-**Complexity:** L2 — caching inside `loadSearchCorpus` (`src/search/engine.ts`) plus one cleanup line in `remove`. Depends on STORY-004-02; it does not touch `src/commands/search.ts`, so it can build alongside STORY-004-03…05.
+**Complexity:** L2 — caching inside `loadSearchCorpus` (`src/search/engine.ts`) plus one cleanup line in `remove`. Depends on STORY-004-02; its only edit to `src/commands/search.ts` is the one-line `onRebuild` forward in `executeSearch` (CR:spec-clarification 2026-10-16), so it can build alongside STORY-004-03…05.
 
 ## 1. The Spec (The Contract)
 
@@ -161,7 +161,7 @@ Feature: Search cache
 |---|---|
 | Primary File | `src/search/engine.ts` |
 | Related Files | `src/core/manifest.ts` (`sha256File`), `src/wiki/parse-page.ts` (`listPageFiles`, `parsePage` — consumed), `src/core/paths.ts` (`wikiDir`) |
-| Modified Files | `src/commands/remove.ts`, `test/bench/search.bench.ts` (adds the warm case) |
+| Modified Files | `src/commands/remove.ts`, `test/bench/search.bench.ts` (adds the warm case), `src/commands/search.ts` (`SearchDeps` gains optional `onRebuild?: () => void`, which `executeSearch` forwards to `loadSearchCorpus`; clarified 2026-10-16) |
 | Test Files | `test/search/cache.test.ts`, `test/search/cache.perf.test.ts`, `test/remove.test.ts` |
 | New Files Needed | Yes — `test/search/cache.test.ts`, `test/search/cache.perf.test.ts` |
 

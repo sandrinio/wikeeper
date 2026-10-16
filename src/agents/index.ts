@@ -2,7 +2,7 @@ import { lstat, readFile, rm, rmdir, unlink } from "node:fs/promises";
 import path from "node:path";
 import { compareCodeUnits } from "../core/compare.js";
 import { registerIntegration } from "../core/integrations.js";
-import type { DoctorCheck, IntegrationContext, PhaseReport } from "../core/integrations.js";
+import type { DoctorCheck, IntegrationContext, IntegrationOptions, PhaseReport } from "../core/integrations.js";
 import type { AgentName } from "./agent-names.js";
 import { isAgentName } from "./agent-names.js";
 import { setConfigValue } from "../core/config.js";
@@ -12,7 +12,7 @@ import { fromPosixRelative } from "../core/paths.js";
 import { createLineReader } from "./ask-agents.js";
 import { createAskAgents } from "./ask-agents.js";
 import { detectAgentFiles, needsInputError, resolveAgents, resolveTargets } from "./detect.js";
-import type { AgentFile } from "./detect.js";
+import type { AgentFile, AgentSource } from "./detect.js";
 import { AGENT_CHECKS, readBlockSignature } from "./doctor-checks.js";
 import type { AgentCheckInput, BlockSignature } from "./doctor-checks.js";
 import { injectIntoFile, stripFromFile } from "./inject.js";
@@ -25,7 +25,7 @@ export const AGENTS_INTEGRATION_NAME = "agents";
 export interface PromptLines { nextLine(): Promise<string | null> }
 export interface AgentsState {
   agents: AgentName[];            // init: resolved agents; update/remove: config.agents ∩ AGENT_NAMES; canonical order
-  lines: PromptLines | null;      // the run's ONE stdin reader; non-null only in init when options.interactive
+  lines: PromptLines | null;      // the run's ONE stdin reader; non-null only inside prepare when options.interactive
 }
 /** Sub-feature plugged into the agents integration (002-06's enforce). Runs AFTER the core agent wiring in
  *  init/update and BEFORE it in remove. Mutates ctx.options.manifest in init/update only. */
@@ -44,12 +44,13 @@ export const AGENTS_EXTENSIONS: readonly AgentsExtension[] = [
   enforceExtension,
 ];
 export interface AgentsIntegration {
+  prepare(ctx: IntegrationContext): Promise<void>;
   init(ctx: IntegrationContext): Promise<PhaseReport>;
   update(ctx: IntegrationContext): Promise<PhaseReport>;
   remove(ctx: IntegrationContext): Promise<PhaseReport>;
   doctor(ctx: IntegrationContext): Promise<DoctorCheck[]>;
 }
-export const agentsIntegration: AgentsIntegration = { init, update, remove, doctor };   // function declarations below (hoisted)
+export const agentsIntegration: AgentsIntegration = { prepare, init, update, remove, doctor };   // function declarations below (hoisted)
 /** Registers the agents integration once. runCli calls it for the default program; an explicit registration (tests) wins. */
 export function ensureAgentsIntegration(): void {
   try {
@@ -66,12 +67,13 @@ interface Acc {
   replaced: string[];
   skipped: string[];
   removed: string[];
+  backed_up: string[];
   kept: string[];
   warnings: string[];
 }
 
 function acc(): Acc {
-  return { created: [], replaced: [], skipped: [], removed: [], kept: [], warnings: [] };
+  return { created: [], replaced: [], skipped: [], removed: [], backed_up: [], kept: [], warnings: [] };
 }
 
 function merge(into: Acc, r: PhaseReport | void): void {
@@ -80,6 +82,7 @@ function merge(into: Acc, r: PhaseReport | void): void {
   into.replaced.push(...(r.replaced ?? []));
   into.skipped.push(...(r.skipped ?? []));
   into.removed.push(...(r.removed ?? []));
+  into.backed_up.push(...(r.backed_up ?? []));
   into.kept.push(...(r.kept ?? []));
   into.warnings.push(...(r.warnings ?? []));
 }
@@ -213,10 +216,19 @@ async function installAssets(ctx: IntegrationContext, agents: AgentName[], a: Ac
   }
 }
 
-async function init(ctx: IntegrationContext): Promise<PhaseReport> {
-  const a = acc();
+interface Prepared {
+  agents: AgentName[];
+  source: AgentSource;
+  existing: AgentFile[];
+  state: AgentsState;
+}
+/** Hand-off from prepare to init, keyed by the IntegrationOptions object both phases receive. */
+const prepared = new WeakMap<IntegrationOptions, Prepared>();
+
+async function prepare(ctx: IntegrationContext): Promise<void> {
   const { options, root } = ctx;
   const lines = options.interactive ? createLineReader(options.io.stdin) : null;
+  let state: AgentsState | null = null;
   try {
     const existing = await detectAgentFiles(root);
     const flag = options.flags["agents"];
@@ -230,13 +242,27 @@ async function init(ctx: IntegrationContext): Promise<PhaseReport> {
     });
     if (r.status === "needs_input") throw needsInputError(r);
     const agents = r.agents;
-    const state: AgentsState = { agents, lines };
+    state = { agents, lines };
     for (const ext of AGENTS_EXTENSIONS) await ext.preflight?.(ctx, state);
+    prepared.set(options, { agents, source: r.source, existing, state });
+  } finally {
+    lines?.close();
+    if (state) state.lines = null;
+  }
+}
 
+async function init(ctx: IntegrationContext): Promise<PhaseReport> {
+  const a = acc();
+  const { options, root } = ctx;
+  if (!prepared.has(options)) await prepare(ctx);
+  const p = prepared.get(options)!;
+  prepared.delete(options);
+  const { agents, existing, state } = p;
+  {
     const targets = resolveTargets(agents, existing);
     const rollback = await snapshotForRollback(root, [...targets.map((t) => t.path as string), ".wiki/config.yml"]);
     try {
-      if (r.source !== "config") {
+      if (p.source !== "config") {
         await setConfigValue(root, "agents", agents);
         ctx.config.agents = agents;
       }
@@ -258,8 +284,6 @@ async function init(ctx: IntegrationContext): Promise<PhaseReport> {
       throw err;
     }
     return a;
-  } finally {
-    lines?.close();
   }
 }
 
