@@ -124,7 +124,7 @@ describe("STORY-003-04 ingest start (red)", () => {
     const a = await run(root, ["ingest", "start", "notes.md", "--json"]);
     expect(a.code).toBe(3);
     expect(a.json.error.code).toBe("needs_approval");
-    expect(a.json.error.command).toBe("ingest start");
+    expect(a.json.command).toBe("ingest start");
     expect(a.json.error.details.source.origin).toBe("notes.md");
     expect(a.json.error.details.source.size).toBe(6);
     expect(a.json.error.details.source.sha256).toMatch(/^[0-9a-f]{64}$/);
@@ -203,7 +203,7 @@ describe("STORY-003-04 ingest start (red)", () => {
       expect(r.code).toBe(exit);
       expect(r.json.ok).toBe(false);
       expect(r.json.error.code).toBe(code);
-      expect(r.json.error.command).toBe("ingest start");
+      expect(r.json.command).toBe("ingest start");
       expect(await raw(root)).toEqual([]);
     });
   }
@@ -214,7 +214,7 @@ describe("STORY-003-04 ingest start (red)", () => {
     const r = await run(root, ["ingest", "start", "notes.md", "--json"]);
     expect(r.code).toBe(1);
     expect(r.json.error.code).toBe("not_initialised");
-    expect(r.json.error.command).toBe("ingest start");
+    expect(r.json.command).toBe("ingest start");
     expect(await raw(root)).toEqual([]);
   });
 
