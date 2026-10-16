@@ -1,8 +1,8 @@
 import type { AgentEnforceSpec, EnforceItem } from "./claude.js";
 
 const AI_LINES = [
-  'prefix_rule(pattern=["npx","wikeeper"], decision="allow")',
-  'prefix_rule(pattern=["wikeeper"], decision="allow")',
+  'prefix_rule(pattern=["npx","wikeeper","ingest"], decision="allow")',
+  'prefix_rule(pattern=["wikeeper","ingest"], decision="allow")',
 ];
 const ASK_LINES = [
   'prefix_rule(pattern=["npx","wikeeper","ingest","start"], decision="prompt")',
