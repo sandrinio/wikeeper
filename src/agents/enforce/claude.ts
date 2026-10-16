@@ -36,6 +36,9 @@ export const CLAUDE_ENFORCE: AgentEnforceSpec = {
         items.push({ kind: "rule", agent: "claude", identity: `permissions.ask[${rule}]`, value: rule });
       }
     }
+    for (const rule of ["Bash(npx wikeeper search *)", "Bash(wikeeper search *)"]) {
+      items.push({ kind: "rule", agent: "claude", identity: `permissions.allow[${rule}]`, value: rule });
+    }
     return items;
   },
 };
