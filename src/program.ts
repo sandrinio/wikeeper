@@ -15,6 +15,7 @@ import { removeCommand } from "./commands/remove.js";
 import { doctorCommand } from "./commands/doctor.js";
 import { setupCommand } from "./commands/setup.js";
 import { hookCommand } from "./commands/hook.js";
+import { ingestCommand } from "./commands/ingest.js";
 import { ensureAgentsIntegration } from "./agents/index.js";
 
 const packageJson = JSON.parse(
@@ -34,6 +35,7 @@ export const defaultCommands: CommandModule[] = [
   doctorCommand,
   setupCommand,
   hookCommand,
+  ingestCommand,
 ];
 
 export function createProgram(
