@@ -12,6 +12,8 @@ import type { CliIO } from "./core/output.js";
 import { initCommand } from "./commands/init.js";
 import { updateCommand } from "./commands/update.js";
 import { removeCommand } from "./commands/remove.js";
+import { doctorCommand } from "./commands/doctor.js";
+import { setupCommand } from "./commands/setup.js";
 import { hookCommand } from "./commands/hook.js";
 
 const packageJson = JSON.parse(
@@ -28,6 +30,8 @@ export const defaultCommands: CommandModule[] = [
   initCommand,
   updateCommand,
   removeCommand,
+  doctorCommand,
+  setupCommand,
   hookCommand,
 ];
 
