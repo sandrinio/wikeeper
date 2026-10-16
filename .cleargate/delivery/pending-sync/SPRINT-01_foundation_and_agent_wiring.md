@@ -194,6 +194,7 @@ Skeleton rules:
 - 2026-10-16 · EPIC-001 merged: STORY-001-05 (bd9c5f1), STORY-001-06 (afa2416), STORY-001-07 (728d1ac); src/program.ts "keep both lines" conflicts resolved by DevOps under orchestrator authorisation. 294 tests green; `--help` lists init, update, remove, doctor, setup, hook. Next: STORY-002-04 (wave 7) cut from sprint/S-01.
 - 2026-10-16 · STORY-002-04 GREEN (65f333b, 0 bounces; 338 tests incl. test/e2e/goal.test.ts — Goal Acceptance Check items 1–4 from the packed tarball on the 3 fixtures). Accepted plan deviation: the agents integration registers via `ensureAgentsIntegration()` called by `runCli` for the default program (duplicate-safe), not as an import-time side effect of src/agents/index.ts — two immutable red tests conflict with import-time registration; start-up behaviour per R1 is unchanged. C8 exports and the five INSERTION POINT anchors are present verbatim.
 - 2026-10-16 · FLASHCARD-REJECT 2026-10-16 — 002-04 card on re-registering in beforeEach — reason: superseded by the runCli-registration card.
+- 2026-10-16 · STORY-002-04 merged (6750c4a). 338 tests green; smoke: `init --json --agents claude,codex,antigravity` and `doctor --json` exit 0 in a fresh repo. Next: STORY-002-06 (wave 8) cut from sprint/S-01.
 
 ## Risks & Dependencies
 

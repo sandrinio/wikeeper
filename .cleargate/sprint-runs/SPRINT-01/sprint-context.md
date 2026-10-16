@@ -100,6 +100,8 @@ Exported helpers and modules from already-merged stories in this sprint. The Arc
 | STORY-001-05 | `updateCommand`, `createUpdateCommand({ templatesDir })` (test seam for "newer package"), `runUpdate`, `formatBackupStamp` | `src/commands/update.ts` |
 | STORY-001-06 | `removeCommand`, `CONFIRM_WORD`; `stripManagedBlock`, `GitignoreStripStatus` | `src/commands/remove.ts`, `src/core/gitignore.ts` |
 | STORY-001-07 | `doctorCommand`, `createDoctorCommand`, `runDoctor`, `compareVersions`, `checkNodeVersion`; `setupCommand` | `src/commands/doctor.ts`, `src/commands/setup.ts` |
+| STORY-002-04 | `agentsIntegration`, `ensureAgentsIntegration` (runCli registers it), `AGENTS_EXTENSIONS`, `AgentsExtension`, `AgentsState`, `PromptLines` | `src/agents/index.ts` |
+| STORY-002-04 | `AGENT_CHECK_IDS`, `AGENT_CHECKS`, `AgentCheckInput`, `readBlockSignature`, `checkAgentBlocks`, `checkClaudeAgentsMdOnly`, `checkSkillLinks`, `checkCodexTrust` | `src/agents/doctor-checks.ts` |
 
 ## Mid-Sprint Amendments
 
