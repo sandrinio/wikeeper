@@ -173,7 +173,8 @@
         "src/ingest/log.ts: MissLogEvent(interface)",
         "src/ingest/log.ts: StoredLogEvent(interface)",
         "src/ingest/log.ts: LogFilter(interface)",
-        "src/ingest/log.ts: LogReadResult(interface)"
+        "src/ingest/log.ts: LogReadResult(interface)",
+        "src/ingest/log.ts: RuleProposalLogEvent(interface)"
       ],
       "consumers": [
         "STORY-003-06",
@@ -196,7 +197,7 @@
         "src/ingest/facts.ts: FactsError(interface {path, message})",
         "src/ingest/facts.ts: FactsValidation(type)",
         "src/ingest/facts.ts: FACTS_SCHEMA_REL(\".wiki/system/schemas/facts.schema.json\")",
-        "src/ingest/facts.ts: FACTS_KEYS, FACTS_REQUIRED, FACT_KEYS, FACT_REQUIRED and field regexes (constants)",
+        "src/ingest/facts.ts: FACTS_KEYS, FACTS_REQUIRED, FACT_KEYS, FACT_REQUIRED, FACT_ENTITY_RE, FACT_AS_OF_RE, FACT_PAGE_RE (constants)",
         "src/ingest/facts.ts: validateFacts(input: unknown): FactsValidation",
         "src/ingest/facts.ts: factsFilePath(paths: ResolvedPaths, sourceId: string): string",
         "src/ingest/facts.ts: readFacts(paths: ResolvedPaths, sourceId: string): Promise<FactsFile | null>",
@@ -271,7 +272,7 @@
         "src/search/engine.ts: MissSummary(interface)",
         "src/search/engine.ts: SearchData(interface {mode, query, filters, entity_query, total, results, entity, changes, misses})",
         "src/search/engine.ts: SearchRequest(interface {query, limit, filters, entity, misses})",
-        "src/search/engine.ts: SearchDeps(interface {now?, useCache?})",
+        "src/search/engine.ts: SearchDeps(interface {now?, useCache?, onRebuild?})",
         "src/search/engine.ts: EMPTY_FILTERS(const)",
         "src/search/engine.ts: SearchDoc(interface)",
         "src/search/engine.ts: RankedHit(interface)",
@@ -315,7 +316,8 @@
         "src/ingest/log.ts: MissLogEvent(interface)",
         "src/ingest/log.ts: StoredLogEvent(interface)",
         "src/ingest/log.ts: LogFilter(interface)",
-        "src/ingest/log.ts: LogReadResult(interface)"
+        "src/ingest/log.ts: LogReadResult(interface)",
+        "src/ingest/log.ts: RuleProposalLogEvent(interface)"
       ],
       "consumers": [
         "STORY-004-04",
@@ -350,13 +352,16 @@
         "src/search/engine.ts: SearchCorpus(interface {pages, entities, index, warnings})",
         "src/search/engine.ts: buildDocs(pages: readonly Page[]): SearchDoc[]",
         "src/search/engine.ts: createSearchIndex(docs: readonly SearchDoc[]): Promise<SearchIndex>",
-        "src/search/engine.ts: loadSearchCorpus(paths: ResolvedPaths, opts?: {useCache?, onRebuild?}): Promise<SearchCorpus>"
+        "src/search/engine.ts: loadSearchCorpus(paths: ResolvedPaths, opts?: {useCache?, onRebuild?}): Promise<SearchCorpus>",
+        "src/search/engine.ts: MINISEARCH_OPTIONS(constant)",
+        "src/commands/search.ts: searchWarnings(data: SearchData): readonly string[]"
       ],
       "consumers": [
         "STORY-004-06"
       ],
       "created_by": "STORY-004-02's own Developer commit (not a skeleton): cut from story/STORY-004-02 at the Developer commit; carries the real engine.ts, search.ts, test/bench/search.bench.ts, package.json and package-lock.json",
-      "create_when": "when STORY-004-02's Developer reports done, before its QA-Verify"
+      "create_when": "when STORY-004-02's Developer reports done, before its QA-Verify",
+      "notes": "STORY-004-06 adds optional SearchDeps.onRebuild?: () => void (additive; executeSearch forwards it to loadSearchCorpus) — CR:spec-clarification 2026-10-16, M3 Open decision 2."
     },
     {
       "id": "C14",
