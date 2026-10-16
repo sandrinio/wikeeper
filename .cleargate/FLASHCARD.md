@@ -6,6 +6,8 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-17 · #qa #red-test · Before approving a fix that changes documented output, grep *.red.node.test.ts for the old output; immutable asserts need a gate reset.
+2026-10-17 · #enforce #test-harness · Codex/Antigravity hooks.json ignore ingest.permission; only a guard-command change (npx re-pin via runUpdate packageVersion) rewrites them.
 2026-10-16 · #windows #test-harness · Split/join PATH with the injected platform's path module (path.win32), not the host delimiter.
 2026-10-16 · #qa #hooks · Default-off scenarios (Enter, non-TTY) pass at baseline; pair each with an on-path test or it guards nothing.
 2026-10-16 · #test-harness #integrations · Import-time registerIntegration breaks tests that reset, then lazily import program.js; register in runCli.

@@ -7,7 +7,7 @@ carry_over: false
 status: Draft
 severity: P3-Low
 reporter: "Orchestrator (SPRINT-01): found by the STORY-001-06 integration probe, confirmed during the SPRINT-01 walkthrough"
-approved: false
+approved: true
 context_source: STORY-001-06 R2 (verified) · src/core/gitignore.ts applyManagedBlock/stripManagedBlock (verified) · reproduced with dist/cli.js on sprint/S-01 @ 7e55d56
 complexity_label: L1
 created_at: 2026-10-16T16:30:00Z
@@ -45,11 +45,11 @@ draft_tokens:
 
 - **Question:** How should the fix avoid leaving the separator line behind?
 - **Recommended:** Option A. When `applyManagedBlock` creates the block in a non-empty file that does not end with a line break, insert the block at the top of the file, after any BOM, instead of appending it. `stripManagedBlock` already removes the block lines with their terminators, so the user's bytes come back exactly, and no state is needed. Option B was rejected: recording "separator added" in the manifest and removing that line break on `remove` needs a new manifest field and goes wrong when the user has edited the file after `init`.
-- **Human decision:** {populated during Brief review}
+- **Human decision:** Option A, as recommended (human, 2026-10-17).
 
 - **Question:** Fix it in SPRINT-01 or defer it?
 - **Recommended:** Fix it in SPRINT-01. The playbook classes this as a `UR:bug`, because it breaks STORY-001-06 R2 ("all other bytes unchanged"), and the sprint branch must not merge to `main` while a `UR:bug` is open. The fix is one function plus tests.
-- **Human decision:** {populated during Brief review}
+- **Human decision:** Fix it in SPRINT-01 (human, 2026-10-17).
 
 ## 1. The Anomaly (Expected vs. Actual)
 **Expected Behavior:** `wikeeper remove` strips the managed `.gitignore` block and leaves every other byte of the file unchanged (STORY-001-06 R2). After `init` → `remove`, a pre-existing `.gitignore` is byte-identical to what it was before `init`.
@@ -102,6 +102,8 @@ Source: `src/core/gitignore.ts` `applyManagedBlock` — `const sep = text.length
 - `test/gitignore.test.ts`, `test/remove.test.ts`: add the new tests here.
 
 **Do not touch:** any `*.red.node.test.ts`; `stripManagedBlock` (unless a test proves it is needed); `src/commands/*`.
+
+**Gate reset for one red test (2026-10-17):** `test/gitignore.red.node.test.ts` lines 13 and 16 assert the append-with-separator behaviour that Option A replaces. QA-Red (never the Developer) may rewrite exactly those two lines to the Option A result, and nothing else in that file. Recorded by the orchestrator from the human's Option A decision, found by the M5 plan.
 
 ## 5. Verification Protocol (The Failing Test)
 
@@ -174,7 +176,7 @@ Feature: .gitignore round-trip keeps the user's bytes
 ---
 
 ## ClearGate Ambiguity Gate (🟢 / 🟡 / 🔴)
-**Current Status: 🟡 Medium Ambiguity**
+**Current Status: 🟢 Low Ambiguity**
 
 *Evaluate each criterion against its literal text. If you substituted an interpretation, leave the box unchecked and surface the substitution in the Brief.*
 
@@ -183,4 +185,4 @@ Requirements to pass to Green (Ready for Fix):
 - [x] Actual vs. Expected behavior is explicitly defined.
 - [x] Raw error logs/evidence are attached.
 - [x] Verification command (failing test) is provided.
-- [ ] `approved: true` is set in the YAML frontmatter.
+- [x] `approved: true` is set in the YAML frontmatter.
