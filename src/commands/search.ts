@@ -46,8 +46,8 @@ export async function executeSearch(root: string, req: SearchRequest, deps: Sear
   } catch {
     throw new WikeeperError(ExitCode.ERROR, "not_initialised", "not initialised — run wikeeper init");
   }
-  // 3. const corpus = await loadSearchCorpus(paths, { useCache: deps.useCache });
-  const corpus = await loadSearchCorpus(paths, { useCache: deps.useCache });
+  // 3. const corpus = await loadSearchCorpus(paths, { useCache: deps.useCache, onRebuild: deps.onRebuild });
+  const corpus = await loadSearchCorpus(paths, { useCache: deps.useCache, onRebuild: deps.onRebuild });
   const warnings: string[] = [...corpus.warnings];
   let ranked: RankedHit[] = req.query === null ? [] : corpus.index.query(req.query);
   // INSERTION POINT STORY-004-03: filter step (req.filters.type / .where / .status) on the ranked hits.
