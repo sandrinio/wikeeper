@@ -268,7 +268,7 @@ Edge cases handled by `wikeeper doctor`: markers deleted but text kept (warn abo
 All three agents can run a hook before a tool call and block it. `init --enforce` uses that to turn instructions into rules:
 
 - **Write guard.** A pre-tool hook blocks edits to `.wiki/pages/**` unless an ingest is open (lock file present). Written to `.claude/settings.json`, `.agents/hooks.json`, `.codex/hooks.json`.
-- **Permission mode → harness rules.** `ai` → allow `npx wikeeper *` without prompting. `ask` → the harness itself prompts the user when the agent runs `wikeeper ingest start` (Claude `permissions.ask`, Codex `prefix_rule(decision="prompt")`). The harness prompt *is* the approval, so the chat-approval + `--approved` fallback (§7.2) is only needed where no rule file exists (Antigravity).
+- **Permission mode → harness rules.** `ai` → allow only the ingest commands (`wikeeper ingest …`, `npx wikeeper ingest …`) without prompting; every other wikeeper command goes through the harness's normal permission handling. `ask` → the harness itself prompts the user when the agent runs `wikeeper ingest start` (Claude `permissions.ask`, Codex `prefix_rule(decision="prompt")`). The harness prompt *is* the approval, so the chat-approval + `--approved` fallback (§7.2) is only needed where no rule file exists (Antigravity).
 
 `init` asks whether to enable it, defaulting to no. **[Agreed]** Opt-in because it merges into the user's own settings files, Codex only honours it in trusted projects with each hook approved, and Antigravity IDE hook reliability is unconfirmed.
 
