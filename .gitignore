@@ -12,6 +12,17 @@ coverage/
 # ClearGate off-sprint token ledger (machine-local usage data, contains home paths)
 .cleargate/sprint-runs/_off-sprint/
 
+# ClearGate sprint runtime state (machine-local, rewritten on every dispatch)
+.cleargate/sprint-runs/.active
+.cleargate/sprint-runs/*/state.json
+.cleargate/sprint-runs/*/events.jsonl
+.cleargate/sprint-runs/*/token-ledger.jsonl
+.cleargate/sprint-runs/*/.session-totals.json
+.cleargate/sprint-runs/*/.dispatch-*
+.cleargate/sprint-runs/*/.processed-*
+.cleargate/sprint-runs/*/.qa-context-*
+.cleargate/sprint-runs/*/.script-incidents/
+
 # Local environment files (API keys, tokens, credentials).
 # Allowlist lines must stay AFTER the .env patterns so the negation wins.
 .env
