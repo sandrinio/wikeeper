@@ -16,6 +16,7 @@ import type { AgentCheckInput, BlockSignature } from "./doctor-checks.js";
 import { injectIntoFile, stripFromFile } from "./inject.js";
 import { SHARED_AGENT, upsertManifestEntry } from "./skills.js";
 import { installAgentAssets } from "./subagents.js";
+import { snapshotForRollback } from "./rollback.js";
 
 export const AGENTS_INTEGRATION_NAME = "agents";
 /** Structural subset of 002-02's LineReader (no import: ask-agents.ts is not a contract file). */
@@ -28,6 +29,8 @@ export interface AgentsState {
  *  init/update and BEFORE it in remove. Mutates ctx.options.manifest in init/update only. */
 export interface AgentsExtension {
   name: string;
+  /** init only: runs for every extension after the agents are resolved and BEFORE any write. May prompt (on state.lines) and throw. */
+  preflight?(ctx: IntegrationContext, state: AgentsState): Promise<void>;
   init?(ctx: IntegrationContext, state: AgentsState): Promise<PhaseReport>;
   update?(ctx: IntegrationContext, state: AgentsState): Promise<PhaseReport>;
   remove?(ctx: IntegrationContext, state: AgentsState): Promise<PhaseReport>;
@@ -116,7 +119,7 @@ async function stripBlockEntry(ctx: IntegrationContext, e: ManifestEntry, a: Acc
   const file = abs(ctx.root, e.path);
   const { status } = await stripFromFile(file);
   if (status === "stripped") {
-    const text = (await readFile(file, "utf8")).replace(/^﻿/, "");
+    const text = (await readFile(file, "utf8")).replace(/^\uFEFF/, "");
     if (e.created === true && text.trim() === "") {
       await rm(file, { force: true, maxRetries: 3 });
       a.removed.push(e.path);
@@ -229,21 +232,33 @@ async function init(ctx: IntegrationContext): Promise<PhaseReport> {
     });
     if (r.status === "needs_input") throw needsInputError(r);
     const agents = r.agents;
-    if (r.source !== "config") await setConfigValue(root, "agents", agents);
-    await pruneDeconfigured(ctx, agents, existing, a);
-    await installAssets(ctx, agents, a);
-
-    const block = await loadBlock(ctx);
-    for (const t of resolveTargets(agents, existing)) {
-      const { status, created } = await injectIntoFile(abs(root, t.path), block);
-      if (status === "injected") (created ? a.created : a.replaced).push(t.path);
-      else a.skipped.push(t.path);
-      const old = options.manifest.files.find((f) => f.path === t.path && f.kind === "block");
-      upsertManifestEntry(options.manifest, { path: t.path, sha256: null, kind: "block", created: old?.created ?? created });
-    }
-
     const state: AgentsState = { agents, lines };
-    for (const ext of AGENTS_EXTENSIONS) merge(a, await ext.init?.(ctx, state));
+    for (const ext of AGENTS_EXTENSIONS) await ext.preflight?.(ctx, state);
+
+    const targets = resolveTargets(agents, existing);
+    const rollback = await snapshotForRollback(root, [...targets.map((t) => t.path as string), ".wiki/config.yml"]);
+    try {
+      if (r.source !== "config") {
+        await setConfigValue(root, "agents", agents);
+        ctx.config.agents = agents;
+      }
+      await pruneDeconfigured(ctx, agents, existing, a);
+      await installAssets(ctx, agents, a);
+
+      const block = await loadBlock(ctx);
+      for (const t of targets) {
+        const { status, created } = await injectIntoFile(abs(root, t.path), block);
+        if (status === "injected") (created ? a.created : a.replaced).push(t.path);
+        else a.skipped.push(t.path);
+        const old = options.manifest.files.find((f) => f.path === t.path && f.kind === "block");
+        upsertManifestEntry(options.manifest, { path: t.path, sha256: null, kind: "block", created: old?.created ?? created });
+      }
+
+      for (const ext of AGENTS_EXTENSIONS) merge(a, await ext.init?.(ctx, state));
+    } catch (err) {
+      await rollback();
+      throw err;
+    }
     return a;
   } finally {
     lines?.close();

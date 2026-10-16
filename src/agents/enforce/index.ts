@@ -15,7 +15,7 @@ import { CLAUDE_ENFORCE } from "./claude.js";
 import type { AgentEnforceSpec, EnforceItem } from "./claude.js";
 import { CODEX_ENFORCE } from "./codex.js";
 import { guardCommand, resolveGuardForm } from "./guard-command.js";
-import { loadJsonDoc, removeArrayItems, saveJsonDoc, upsertArrayItem, wouldWrite } from "./json-merge.js";
+import { loadJsonDoc, pruneEmptyPath, removeArrayItems, saveJsonDoc, upsertArrayItem, wouldWrite } from "./json-merge.js";
 import type { JsonDoc, JsonObject } from "./json-merge.js";
 
 export interface EnforceDecision { enabled: boolean; source: "flag" | "config" | "prompt" | "default" }
@@ -286,12 +286,25 @@ export async function removeEnforce(ctx: IntegrationContext): Promise<PhaseRepor
         let bakValue: unknown;
         if (bakEntry) {
           try {
-            bakValue = JSON.parse((await readFile(bakFile, "utf8")).replace(/^﻿/, ""));
+            bakValue = JSON.parse((await readFile(bakFile, "utf8")).replace(/^\uFEFF/, ""));
           } catch {
             bakValue = undefined;
           }
         }
-        if (bakValue !== undefined && isDeepStrictEqual(bakValue, next)) {
+        let sameAsBak = false;
+        if (bakValue !== undefined && typeof bakValue === "object" && bakValue !== null && !Array.isArray(bakValue)) {
+          // Compare modulo empty containers on the paths wikeeper owns, so an original that already held one still restores byte-for-byte.
+          const a = structuredClone(next);
+          const b = structuredClone(bakValue as JsonObject);
+          for (const e of entries) {
+            const m = IDENTITY_RE.exec(e.identity!);
+            if (!m) continue;
+            pruneEmptyPath(a, m[1]!.split("."));
+            pruneEmptyPath(b, m[1]!.split("."));
+          }
+          sameAsBak = isDeepStrictEqual(a, b);
+        }
+        if (sameAsBak) {
           await writeFile(file, await readFile(bakFile));
           await rm(bakFile, { force: true, maxRetries: 3 });
           report.removed.push(`${rel}#wikeeper`);
@@ -329,17 +342,43 @@ export async function removeEnforce(ctx: IntegrationContext): Promise<PhaseRepor
   return report;
 }
 
+const decisions = new WeakMap<AgentsState, EnforceDecision>();
+
+async function decide(ctx: IntegrationContext, state: AgentsState): Promise<EnforceDecision> {
+  const known = decisions.get(state);
+  if (known) return known;
+  const decision = await resolveEnforce({
+    flag: ctx.options.flags["enforce"],
+    config: ctx.config.enforce === true,
+    interactive: ctx.options.interactive,
+    ask: () => (state.lines ? askYesNo(state.lines, ctx.options.io.stderr, ENFORCE_QUESTION) : Promise.resolve(false)),
+  });
+  decisions.set(state, decision);
+  return decision;
+}
+
 export const enforceExtension: AgentsExtension = {
   name: "enforce",
+  /** Resolves the enforce decision (prompt included) and strictly parses every JSON settings file init would touch. Writes nothing. */
+  async preflight(ctx, state) {
+    const decision = await decide(ctx, state);
+    if (!decision.enabled) return;
+    const seen = new Set<string>();
+    for (const agent of state.agents) {
+      for (const spec of SPECS[agent]) {
+        if (spec.format !== "json" || seen.has(spec.file)) continue;
+        seen.add(spec.file);
+        await loadJsonDoc(absPath(ctx.root, spec.file), spec.file);
+      }
+    }
+  },
   async init(ctx, state) {
-    const decision = await resolveEnforce({
-      flag: ctx.options.flags["enforce"],
-      config: ctx.config.enforce === true,
-      interactive: ctx.options.interactive,
-      ask: () => (state.lines ? askYesNo(state.lines, ctx.options.io.stderr, ENFORCE_QUESTION) : Promise.resolve(false)),
-    });
+    const decision = await decide(ctx, state);
     const report = await applyEnforce(ctx, state, decision.enabled);
-    if (decision.enabled && decision.source !== "config") await setConfigValue(ctx.root, "enforce", true);
+    if (decision.enabled && decision.source !== "config") {
+      await setConfigValue(ctx.root, "enforce", true);
+      ctx.config.enforce = true;
+    }
     return report;
   },
   update(ctx, state) {

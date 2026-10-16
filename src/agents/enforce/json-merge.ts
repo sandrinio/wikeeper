@@ -38,7 +38,7 @@ function parseStrict(buf: Buffer, rel: string): { value: JsonObject; text: strin
   } catch (err) {
     throw settingsError(rel, err instanceof Error ? err.message : String(err));
   }
-  const bom = text.startsWith("﻿");
+  const bom = text.startsWith("\uFEFF");
   if (bom) text = text.slice(1);
   let value: unknown;
   try {
@@ -79,7 +79,7 @@ export function serializeJsonDoc(doc: JsonDoc, value: JsonObject): string {
   let text = JSON.stringify(value, null, doc.indent);
   if (doc.eol === "\r\n") text = text.replace(/\n/g, "\r\n");
   if (doc.finalEol) text += doc.eol;
-  return (doc.bom ? "﻿" : "") + text;
+  return (doc.bom ? "\uFEFF" : "") + text;
 }
 
 export function wouldWrite(doc: JsonDoc, next: JsonObject): boolean {
@@ -176,4 +176,23 @@ export function removeArrayItems(root: JsonObject, container: readonly string[],
     delete chain[i - 1]![container[i - 1]!];
   }
   return true;
+}
+
+/** Deletes an empty array at `container` and every ancestor object that is left empty. Used to compare documents modulo empty containers on wikeeper's owned paths. */
+export function pruneEmptyPath(root: JsonObject, container: readonly string[]): void {
+  const chain: JsonObject[] = [root];
+  let cur: JsonObject = root;
+  for (const key of container.slice(0, -1)) {
+    const child = cur[key];
+    if (!isPlainObject(child)) return;
+    cur = child;
+    chain.push(cur);
+  }
+  const last = container[container.length - 1]!;
+  const leaf = cur[last];
+  if (Array.isArray(leaf) && leaf.length === 0) delete cur[last];
+  for (let i = chain.length - 1; i >= 1; i--) {
+    if (Object.keys(chain[i]!).length > 0) break;
+    delete chain[i - 1]![container[i - 1]!];
+  }
 }
