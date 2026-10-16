@@ -47,6 +47,7 @@ describe("paths (red)", () => {
       manifestFile: path.join(w, "system", "manifest.json"),
       kbInstructions: path.join(w, "kb_instructions.md"),
       meFile: path.join(w, "me.md"),
+      projectFile: path.join(w, "project.md"),
       lockFile: path.join(w, ".lock"),
       contentDir: w,
       pagesDir: path.join(w, "pages"),
