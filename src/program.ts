@@ -15,6 +15,7 @@ import { removeCommand } from "./commands/remove.js";
 import { doctorCommand } from "./commands/doctor.js";
 import { setupCommand } from "./commands/setup.js";
 import { hookCommand } from "./commands/hook.js";
+import { ensureAgentsIntegration } from "./agents/index.js";
 
 const packageJson = JSON.parse(
   readFileSync(new URL("../package.json", import.meta.url), "utf8"),
@@ -76,6 +77,8 @@ export interface RunCliOptions {
 
 export async function runCli(argv: readonly string[], options: RunCliOptions = {}): Promise<number> {
   const io: CliIO = { ...defaultIO(), ...options.io };
+  // The default program wires agents at start-up; callers passing their own commands compose their own integrations.
+  if (options.commands === undefined) ensureAgentsIntegration();
   const program = createProgram(options.commands ?? defaultCommands, io);
   const dashIndex = argv.indexOf("--");
   const scanned = dashIndex === -1 ? argv : argv.slice(0, dashIndex);
