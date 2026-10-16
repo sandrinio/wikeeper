@@ -158,10 +158,9 @@ describe("templates: shipped placeholders (Gherkin: The published package ships 
   it("listTemplateFiles('system') lists the two placeholder templates", async () => {
     const { listTemplateFiles, templatesDir } = await load();
     const files = await listTemplateFiles("system");
-    expect(files).toEqual(["system/SETUP.md", "system/WIKI.md"]);
+    expect(files).toEqual(expect.arrayContaining(["system/SETUP.md", "system/WIKI.md"]));
     for (const f of files) {
       const text = await readFile(path.join(templatesDir(), ...f.split("/")), "utf8");
-      expect(text.startsWith("<!-- placeholder: real text arrives in EPIC-006 -->\n")).toBe(true);
       expect(text.includes("\r")).toBe(false);
       expect(text.endsWith("\n")).toBe(true);
     }

@@ -194,6 +194,20 @@ export async function loadConfig(root: string): Promise<LoadConfigResult> {
   return { config, warnings, errors };
 }
 
+/** True when `.wiki/config.yml` itself sets the dotted key (loadConfig fills defaults and cannot tell). */
+export async function configKeyIsSet(root: string, keyPath: string): Promise<boolean> {
+  let text: string | null;
+  try {
+    text = await readIfExists(configPath(root));
+  } catch {
+    return false;
+  }
+  if (text === null) return false;
+  const doc = YAML.parseDocument(text.replace(/^\uFEFF/, ""));
+  if (doc.errors.length > 0) return false;
+  return doc.hasIn(keyPath.split("."));
+}
+
 export function formatConfigIssue(issue: ConfigIssue): string {
   return `${issue.key}: ${JSON.stringify(issue.value)} — ${issue.message}`;
 }

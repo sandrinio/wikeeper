@@ -18,14 +18,14 @@ lane: standard
 db_write_set: []
 deferred_verification: []
 created_at: 2026-10-16T18:45:00Z
-updated_at: 2026-10-16T18:45:00Z
+updated_at: 2026-10-16T22:01:00Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
 server_pushed_at_version: 2
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-16T19:24:02Z
+  last_gate_check: 2026-10-16T22:02:01Z
   transition: ready-for-execution
 pushed_by: null
 pushed_at: null
@@ -176,6 +176,7 @@ Feature: wikeeper search — ranked full-text
 | Related Files | `src/search/engine.ts`, `src/wiki/parse-page.ts` (consumed, STORY-004-01) |
 | Modified Files | `src/program.ts`, `src/agents/enforce/claude.ts`, `src/agents/enforce/codex.ts`, `templates/system/SETUP.md` (preview table rows only, after STORY-006-02 merges), `./package.json`, `./package-lock.json` |
 | Test Files | `test/search/engine.test.ts`, `test/search/search-command.test.ts`, `test/search/search.perf.test.ts`, `test/bench/search.bench.ts`, `test/agents/enforce.test.ts` |
+| Re-scoped red tests (QA-Red) | `test/agents/enforce-ai-rules.red.node.test.ts`, `test/agents/enforce.red.node.test.ts`, `test/templates/setup.red.node.test.ts` (line 353) — the search allow rule in all three modes falsifies their exact rule lists; QA-Red updates only those assertions (M2 plan, Open decision 2). CR:spec-clarification 2026-10-17. |
 | Fixtures | `test/fixtures/search/generate-wiki.ts` (seeded 500-page generator) |
 | New Files Needed | Yes — `src/commands/search.ts`, `src/search/engine.ts`, the test files except `test/agents/enforce.test.ts`, and the fixture generator |
 
@@ -230,16 +231,16 @@ export const searchCommand: CommandModule;
 
 ## Task Breakdown
 
-- [ ] Add `minisearch` `^7.2.0` to `dependencies` and update the lockfile -> R10
-- [ ] Implement `buildDocs` (one document per section with heading or text, owning entity key and aliases) -> R2
-- [ ] Implement `createSearchIndex` with the pinned options, dynamic import and deterministic sort -> R3
-- [ ] Implement `makeSnippet` and `hitSources` with unit tests -> R4
-- [ ] Implement `loadSearchCorpus` and `executeSearch` (not-initialised check, limit, `SearchData` with frozen defaults) -> R2, R5, R7
-- [ ] Implement the command (option parsing, usage errors, human output) and register it in `src/program.ts` -> R1, R6, R7
-- [ ] Write the seeded fixture generator, the perf test (p95 assertion) and the bench file -> R8
-- [ ] Add the search allow rules to the Claude and Codex enforce writers in all three modes; extend `test/agents/enforce.test.ts` -> R9
-- [ ] After merging `sprint/S-02` (with STORY-006-02), add the search rules to the SETUP.md preview table; `test/templates/setup.test.ts` passes on the merged tree -> R9
-- [ ] Write one test per Gherkin scenario in §2.1
+- [x] Add `minisearch` `^7.2.0` to `dependencies` and update the lockfile -> R10
+- [x] Implement `buildDocs` (one document per section with heading or text, owning entity key and aliases) -> R2
+- [x] Implement `createSearchIndex` with the pinned options, dynamic import and deterministic sort -> R3
+- [x] Implement `makeSnippet` and `hitSources` with unit tests -> R4
+- [x] Implement `loadSearchCorpus` and `executeSearch` (not-initialised check, limit, `SearchData` with frozen defaults) -> R2, R5, R7
+- [x] Implement the command (option parsing, usage errors, human output) and register it in `src/program.ts` -> R1, R6, R7
+- [x] Write the seeded fixture generator, the perf test (p95 assertion) and the bench file -> R8
+- [x] Add the search allow rules to the Claude and Codex enforce writers in all three modes; extend `test/agents/enforce.test.ts` -> R9
+- [x] After merging `sprint/S-02` (with STORY-006-02), add the search rules to the SETUP.md preview table; `test/templates/setup.test.ts` passes on the merged tree -> R9
+- [x] Write one test per Gherkin scenario in §2.1
 
 ## 4. Quality Gates
 
