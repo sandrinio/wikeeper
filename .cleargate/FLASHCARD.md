@@ -6,6 +6,8 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-16 · #reuse #plan · Reuse-table rows added after a plan override its "private helper" advice; recheck plans after each merge.
+2026-10-16 · #pre-gate #qa-red · Red-modified scan diffs vs the sprint base, so a new red file always flags; confirm via git diff <red-sha> HEAD.
 2026-10-16 · #hooks #npm · npx prepends node_modules/.bin dirs to PATH while it runs; skip them when deciding a bin is "on PATH".
 2026-10-16 · #windows #test-harness · Spawn npm as process.execPath + npm_execpath; a .cmd without shell throws EINVAL on Node >= 20.
 2026-10-16 · #manifest · A same-path manifest upsert erases sibling entries with other identities; key hook/rule entries by identity.
