@@ -85,13 +85,13 @@ describe("templates: listing and copying", () => {
     await mkdir(path.join(sys, "sub"), { recursive: true });
     await writeFile(path.join(sys, "b.md"), "b");
     await writeFile(path.join(sys, "a.md"), "a");
-    await writeFile(path.join(sys, "B.md"), "B");
+    await writeFile(path.join(sys, "Z.md"), "Z");
     await writeFile(path.join(sys, "sub", "c.md"), "c");
     await writeFile(path.join(sys, ".DS_Store"), "x");
     await writeFile(path.join(sys, "sub", "Thumbs.db"), "x");
     await writeFile(path.join(base, "agent-block.md"), "root file");
     expect(await listTemplateFiles("system", base)).toEqual([
-      "system/B.md",
+      "system/Z.md",
       "system/a.md",
       "system/b.md",
       "system/sub/c.md",
