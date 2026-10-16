@@ -264,13 +264,13 @@ Consumed (frozen in their stories' §3.3, except the parser, drafted in parallel
 
 ## Task Breakdown
 
-- [ ] Implement `lint-hook.ts` with the no-op default -> R8
-- [ ] Implement `diff.ts` (pages and outside) on top of the snapshot hashes -> R2, R3
-- [ ] Implement `validate.ts`: citation check via the parser, outside-write check, source-page warning -> R3
-- [ ] Implement `report.ts`: report assembly, contradiction count, size formatting, human lines -> R7
-- [ ] Implement `ingest finish`: preconditions, validation, ordered post steps, warnings policy, re-run path; register in `src/commands/ingest.ts` -> R1, R4, R5, R6
-- [ ] Add `test/e2e/pack.ts` and `test/e2e/ingest.test.ts` covering the four source paths and three modes -> R9
-- [ ] CLI tests per Gherkin scenario in `test/ingest/finish.test.ts`; report formatting tests in `test/ingest/report.test.ts` -> §2.1
+- [x] Implement `lint-hook.ts` with the no-op default -> R8
+- [x] Implement `diff.ts` (pages and outside) on top of the snapshot hashes -> R2, R3
+- [x] Implement `validate.ts`: citation check via the parser, outside-write check, source-page warning -> R3
+- [x] Implement `report.ts`: report assembly, contradiction count, size formatting, human lines -> R7
+- [x] Implement `ingest finish`: preconditions, validation, ordered post steps, warnings policy, re-run path; register in `src/commands/ingest.ts` -> R1, R4, R5, R6
+- [x] Add `test/e2e/pack.ts` and `test/e2e/ingest.test.ts` covering the four source paths and three modes -> R9
+- [x] CLI tests per Gherkin scenario in `test/ingest/finish.test.ts`; report formatting tests in `test/ingest/report.test.ts` -> §2.1
 
 ## 4. Quality Gates
 
