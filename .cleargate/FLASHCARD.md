@@ -6,6 +6,12 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-17 · #qa #red-test #windows · Fixture names differing only by case (b.md/B.md) collide on macOS/Windows; use distinct letters.
+2026-10-17 · #test-harness #red-test · Timeout tests around node -e children flake below ~2 s; cold start under full-suite load exceeds 300 ms.
+2026-10-17 · #qa #test-harness · Drive init/remove red tests via runCli's default program so the agents integration registers; needs .git.
+2026-10-17 · #qa #red-test · A cap check passes at baseline on a short input; pad the input to the cap in-test so the over-cap case is real.
+2026-10-17 · #qa #red-test · QA-Red can't fixture implementation-private specs (enforce SPECS lines files); cover them in Developer unit tests.
+2026-10-17 · #shell #macos · BSD sed needs `sed -i ''`; after a failed scripted edit in an && chain, re-check git diff.
 2026-10-17 · #yaml #parser · yaml 2.x parseDocument with prettyErrors: false sets no linePos; keep the default, read linePos[0].line.
 2026-10-17 · #remove #qa · remove --json sorts data.kept/data.removed by code unit; never assert "X right after Y" in them.
 2026-10-17 · #cli #test-harness · init --yes with no agents exits 5 before writing; fixtures needing agent files pass --agents <name>.
