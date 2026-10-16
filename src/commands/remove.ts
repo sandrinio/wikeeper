@@ -226,6 +226,7 @@ export const removeCommand: CommandModule = {
           paths.configFile,
           paths.kbInstructions,
           paths.meFile,
+          paths.projectFile,
           paths.indexFile,
           paths.pagesDir,
           paths.rawDir,
