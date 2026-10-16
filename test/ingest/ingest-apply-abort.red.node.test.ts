@@ -158,12 +158,12 @@ async function guardWrite(r: Repo, file: string) {
   payload.tool_input = { file_path: file, content: "x" };
   return runGuard({ agent: "claude", stdin: Readable.from([JSON.stringify(payload)]), isTTY: false, cwd: r.root } as never);
 }
-function allowed(res: { exitCode: number; stdout: string }): boolean {
-  return res.exitCode === 0 && res.stdout.trim() === "";
+function allowed(res: { exitCode: number; stdout?: string }): boolean {
+  return res.exitCode === 0 && (res.stdout ?? "").trim() === "";
 }
-function denied(res: { stdout: string }): boolean {
+function denied(res: { stdout?: string }): boolean {
   try {
-    return JSON.parse(res.stdout).hookSpecificOutput.permissionDecision === "deny";
+    return JSON.parse(res.stdout ?? "").hookSpecificOutput.permissionDecision === "deny";
   } catch {
     return false;
   }
@@ -244,7 +244,7 @@ describe("STORY-003-08 ingest apply / abort (red)", () => {
         source_id: A,
         kind: "status-report",
         rule_version: 2,
-        permission: { mode: "ai", approved: false, matched: null, kind_pending: false },
+        permission: "ai",
         origin: "docs/a.md",
         created: [],
         updated: [],
