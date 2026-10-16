@@ -10,6 +10,7 @@ import type { Manifest } from "../core/manifest.js";
 import { emitResult, getOutputContext } from "../core/output.js";
 import { findRepoRoot, resolvePaths } from "../core/paths.js";
 import type { ResolvedPaths } from "../core/paths.js";
+import { checkSetupFiles } from "../core/setup-files.js";
 import { readPackageVersion, templatesDir } from "../core/templates.js";
 import { AGENT_NAMES } from "../agents/agent-names.js";
 import { compareCodeUnits } from "../core/compare.js";
@@ -206,6 +207,8 @@ export async function runDoctor(root: string, run: Run, deps: { nodeVersion?: st
       fix: missing.length > 0 ? "run wikeeper init" : "run wikeeper update (it backs up edits)",
     };
   });
+
+  if (manifest !== null) await guard("setup-files", () => checkSetupFiles(root, paths, config));
 
   await guard("integrations", async () => {
     let tpl = "";
