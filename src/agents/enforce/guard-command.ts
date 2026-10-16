@@ -36,7 +36,7 @@ export function resolveGuardForm(o: ResolveGuardOptions): GuardForm {
   const win = platform === "win32";
   const env = o.env ?? process.env;
   const isExec = o.isExecutable ?? defaultIsExecutable(platform);
-  const p = win ? path.win32 : path;
+  const p = win ? path.win32 : path.posix;
 
   const rawPath = envValue(env, "PATH", win) ?? "";
   const exts = win
