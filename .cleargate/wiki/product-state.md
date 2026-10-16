@@ -6,8 +6,8 @@
 
 | Type | Total | Active | Shipped |
 |------|-------|--------|---------|
-| Epics | 0 | 0 | 0 |
-| Sprints | 0 | 0 | 0 |
+| Epics | 6 | 0 | 0 |
+| Sprints | 1 | 0 | 0 |
 | Proposals | 0 | 0 | 0 |
 | CRs | 0 | 0 | 0 |
 | Bugs | 0 | 0 | 0 |
@@ -23,6 +23,6 @@ _No active epics._
 ## Shipped This Cycle
 
 
+- [[INITIATIVE-001]] (initiatives) — Triaged
 
-_Nothing shipped yet this cycle._
 

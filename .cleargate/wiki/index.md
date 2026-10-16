@@ -4,7 +4,14 @@
 
 ## Active
 
-- [[INITIATIVE-001]] (initiative) — In Triage — Wiki CLI — Karpathy-style LLM wiki for AI agents
+- [[EPIC-001]] (epic) — Draft — Foundation and lifecycle
+- [[EPIC-002]] (epic) — Draft — Agent integration
+- [[EPIC-003]] (epic) — Draft — Ingest pipeline
+- [[EPIC-004]] (epic) — Draft — Search (`wiki_search`)
+- [[EPIC-005]] (epic) — Draft — Lint, status and rule evolution
+- [[EPIC-006]] (epic) — Draft — Instructions and Management profile
+- [[SPRINT-01]] (sprint) — Draft — Foundation and agent wiring
+- [[INITIATIVE-001]] (initiative) — Triaged — Wiki CLI — Karpathy-style LLM wiki for AI agents
 
 ## Archive
 
