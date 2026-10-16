@@ -21,6 +21,7 @@ import type { RankedHit, SearchData, SearchDeps, SearchHit, SearchRequest } from
 import type { Entity, Page } from "../wiki/parse-page.js";
 import { describeFilters, entityHit, hasFilters, matchesFilters, parseFilterValue, parseWhere } from "../search/filters.js";
 import { plural } from "./doctor.js";
+import { listMisses, recordMiss, renderMisses, shouldRecordMiss } from "../search/misses.js";
 
 const warningsOf = new WeakMap<SearchData, string[]>();
 
@@ -73,6 +74,7 @@ function renderEntity(data: SearchData): string {
 }
 
 function renderSearch(data: SearchData): string {
+  if (data.mode === "misses") return renderMisses(data);
   if (data.mode === "entity") {
     const head = renderEntity(data);
     return data.changes === null ? head : `${head}\n\n${renderChanges(data.changes)}`;
@@ -212,6 +214,25 @@ export async function executeSearch(root: string, req: SearchRequest, deps: Sear
     }
   }
   // INSERTION POINT STORY-004-05: misses mode (req.misses) and miss recording.
+  if (req.misses) {
+    missesUsage(req);
+    const misses = await listMisses(paths, sinceBound);
+    data = {
+      ...data,
+      mode: "misses",
+      query: null,
+      entity_query: null,
+      total: misses.length,
+      results: [],
+      entity: null,
+      changes: null,
+      misses: misses.slice(0, req.limit),
+    };
+  }
+  if (shouldRecordMiss(data)) {
+    const miss = await recordMiss(paths, data, (deps.now ?? (() => new Date()))());
+    if (miss.warning !== null) warnings.push(miss.warning);
+  }
   // 5.
   warningsOf.set(data, warnings);
   return data;
@@ -239,6 +260,7 @@ interface SearchOptions {
   entity?: string;
   since?: string;
   // INSERTION POINT STORY-004-05: misses?: boolean;
+  misses?: boolean;
 }
 
 export function createSearchCommand(deps: SearchDeps = {}): CommandModule {
@@ -262,6 +284,7 @@ export function createSearchCommand(deps: SearchDeps = {}): CommandModule {
         .option("--entity <name>", "look up one entity by name or alias, with its facts and backlinks")
         .option("--since <date>", "facts dated, and pages changed by an ingest, on or after this date (YYYY-MM-DD or ISO 8601)")
         // INSERTION POINT STORY-004-05: --misses
+        .option("--misses", "list the searches that found nothing, grouped and counted (only with --since and --limit)")
         .action(async (words: string[], opts: SearchOptions, command: Command) => {
           const ctx = getOutputContext(command);
           const req: SearchRequest = {
@@ -280,6 +303,8 @@ export function createSearchCommand(deps: SearchDeps = {}): CommandModule {
           if (opts.since !== undefined) req.filters.since = opts.since;
           entitySinceBound(req);
           // INSERTION POINT STORY-004-05: req.misses from opts
+          req.misses = opts.misses === true;
+          missesUsage(req);
           const data = await executeSearch(findRepoRoot(ctx.cwd), req, deps);
           emitResult(ctx, { command: "search", data, warnings: [...searchWarnings(data)], message: renderSearch(data) });
         });
@@ -288,3 +313,10 @@ export function createSearchCommand(deps: SearchDeps = {}): CommandModule {
 }
 
 export const searchCommand: CommandModule = createSearchCommand();
+
+/** STORY-004-05 R5: --misses lists recorded misses; it combines only with --since and --limit. */
+function missesUsage(req: SearchRequest): void {
+  if (req.misses && (req.query !== null || hasFilters(req.filters) || req.entity !== null)) {
+    throw new WikeeperError(ExitCode.USAGE, "usage", "--misses cannot be combined with a query, --type, --where, --status or --entity");
+  }
+}
