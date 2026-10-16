@@ -10,4 +10,8 @@ describe("remove helpers", () => {
     const t = `a\n${GITIGNORE_BLOCK_START}\nx\n${GITIGNORE_BLOCK_END}`;
     expect(stripManagedBlock(t)).toEqual({ text: "a\n", status: "stripped" });
   });
+  it("strips a top-inserted CRLF block and restores the user bytes", () => {
+    const t = `${GITIGNORE_BLOCK_START}\r\na\r\n${GITIGNORE_BLOCK_END}\r\nnode_modules\r\n*.log`;
+    expect(stripManagedBlock(t)).toEqual({ text: "node_modules\r\n*.log", status: "stripped" });
+  });
 });

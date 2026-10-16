@@ -1,7 +1,7 @@
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { DEFAULT_CONFIG } from "../src/core/config.js";
-import { applyManagedBlock, managedIgnoreEntries } from "../src/core/gitignore.js";
+import { applyManagedBlock, managedIgnoreEntries, stripManagedBlock } from "../src/core/gitignore.js";
 import { resolvePaths } from "../src/core/paths.js";
 
 const root = process.platform === "win32" ? "C:\\repo" : "/repo";
@@ -23,7 +23,16 @@ describe("managedIgnoreEntries", () => {
 });
 
 describe("applyManagedBlock", () => {
-  it("uses LF when the text has no newline", () => {
-    expect(applyManagedBlock("x", ["a"])).toBe("x\n# >>> wikeeper >>>\na\n# <<< wikeeper <<<\n");
+  const entries = ["a", "b"];
+  it("inserts at the top when the text has no final newline", () => {
+    expect(applyManagedBlock("x", ["a"])).toBe("# >>> wikeeper >>>\na\n# <<< wikeeper <<<\nx");
+  });
+  it.each([
+    ["LF", "node_modules\n*.log"],
+    ["CRLF", "node_modules\r\n*.log"],
+    ["BOM", "\uFEFFnode_modules"],
+    ["final newline", "node_modules\n*.log\n"],
+  ])("round-trips %s through strip", (_n, t) => {
+    expect(stripManagedBlock(applyManagedBlock(t, entries)).text).toBe(t);
   });
 });
