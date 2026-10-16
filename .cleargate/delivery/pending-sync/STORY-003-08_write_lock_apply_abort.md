@@ -241,13 +241,13 @@ Consumed (frozen in their stories' §3.3): `readMeta`, `removeSource` (STORY-003
 
 ## Task Breakdown
 
-- [ ] Implement `lock.ts`: exclusive create, read (including unreadable), age-based stale rule, release-by-owner -> R1, R2
-- [ ] Implement `snapshot.ts`: `hashTree`, `hashOutside`, take/read/remove, restore with empty-directory cleanup -> R3, R7
-- [ ] Implement `ingest apply`: preconditions, lock-then-snapshot with rollback, brief and fact lines, idempotent re-apply -> R4, R5
-- [ ] Implement held-lock handling and `--force-unlock` on stale locks -> R6
-- [ ] Implement `ingest abort`: restore, release, `--drop` via `removeSource`, abort log event, refusals and missing-snapshot warning -> R7, R8
-- [ ] Register both subcommands in `src/commands/ingest.ts` -> R4, R7
-- [ ] Tests: unit tests for lock and snapshot; CLI tests per Gherkin scenario, including the guard checks through `runGuard` -> §2.1
+- [x] Implement `lock.ts`: exclusive create, read (including unreadable), age-based stale rule, release-by-owner -> R1, R2
+- [x] Implement `snapshot.ts`: `hashTree`, `hashOutside`, take/read/remove, restore with empty-directory cleanup -> R3, R7
+- [x] Implement `ingest apply`: preconditions, lock-then-snapshot with rollback, brief and fact lines, idempotent re-apply -> R4, R5
+- [x] Implement held-lock handling and `--force-unlock` on stale locks -> R6
+- [x] Implement `ingest abort`: restore, release, `--drop` via `removeSource`, abort log event, refusals and missing-snapshot warning -> R7, R8
+- [x] Register both subcommands in `src/commands/ingest.ts` -> R4, R7
+- [x] Tests: unit tests for lock and snapshot; CLI tests per Gherkin scenario, including the guard checks through `runGuard` -> §2.1
 
 ## 4. Quality Gates
 
