@@ -102,6 +102,9 @@ Exported helpers and modules from already-merged stories in this sprint. The Arc
 | STORY-001-07 | `doctorCommand`, `createDoctorCommand`, `runDoctor`, `compareVersions`, `checkNodeVersion`; `setupCommand` | `src/commands/doctor.ts`, `src/commands/setup.ts` |
 | STORY-002-04 | `agentsIntegration`, `ensureAgentsIntegration` (runCli registers it), `AGENTS_EXTENSIONS`, `AgentsExtension`, `AgentsState`, `PromptLines` | `src/agents/index.ts` |
 | STORY-002-04 | `AGENT_CHECK_IDS`, `AGENT_CHECKS`, `AgentCheckInput`, `readBlockSignature`, `checkAgentBlocks`, `checkClaudeAgentsMdOnly`, `checkSkillLinks`, `checkCodexTrust` | `src/agents/doctor-checks.ts` |
+| STORY-002-06 | `enforceExtension`, `resolveEnforce`, `askYesNo`, `applyEnforce`, `removeEnforce`, `ENFORCE_QUESTION` | `src/agents/enforce/index.ts` |
+| STORY-002-06 | `loadJsonDoc`, `saveJsonDoc`, `mergeJsonFile`, `upsertArrayItem`, `removeArrayItems`, `pruneEmptyPath`, `settingsError` (strict JSON merge, `.bak`, format-preserving) | `src/agents/enforce/json-merge.ts` |
+| STORY-002-06 | `resolveGuardForm`, `guardCommand`; `snapshotForRollback` (agent-side init rollback) | `src/agents/enforce/guard-command.ts`, `src/agents/rollback.ts` |
 
 ## Mid-Sprint Amendments
 
