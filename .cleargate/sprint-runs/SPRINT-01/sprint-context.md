@@ -86,6 +86,17 @@ Exported helpers and modules from already-merged stories in this sprint. The Arc
 | STORY-001-03 | `findPackageRoot`, `templatesDir`, `listTemplateFiles`, `copyTemplate` (optional `baseDir`) | `src/core/templates.ts` |
 | STORY-001-03 | `readManifest`, `writeManifest`, `diffManifest`, `sha256File`, `serializeManifest`, `Manifest`, `ManifestEntry`, `ManifestKind` | `src/core/manifest.ts` |
 | STORY-002-01 | `injectBlock`, `stripBlock`, `injectIntoFile`, `stripFromFile` | `src/agents/inject.ts` |
+| STORY-002-02 | `AGENT_NAMES`, `AgentName`, `isAgentName` | `src/agents/agent-names.ts` |
+| STORY-002-02 | `detectAgentFiles`, `readersOf`, `resolveTargets`, `parseAgentList`, `resolveAgents`, `needsInputError`, `AGENT_FILES`, `AgentFile`, `AgentTarget` | `src/agents/detect.ts` |
+| STORY-002-02 | `createLineReader` (one per stdin — never two), `LineReader`, `parseAgentSelection`, `createAskAgents` | `src/agents/ask-agents.ts` |
+| STORY-002-03 | `mapModel`, `MODEL_TIERS`, `TIER_MODELS` | `src/agents/model-tiers.ts` |
+| STORY-002-03 | `installSkills`, `skillConflicts`, `upsertManifestEntry` (drops every entry with the same path), `SHARED_AGENT`, `SHARED_SKILLS_DIR`, `CLAUDE_SKILLS_DIR`, `InstallResult` | `src/agents/skills.ts` |
+| STORY-002-03 | `installAgentAssets`, `installSubagents`, `subagentConflicts`, `renderModelLine`, `SUBAGENT_NAMES`, `SUBAGENT_TARGETS` | `src/agents/subagents.ts` |
+| STORY-002-05 | `HOOK_ADAPTERS`, `parsePatchPaths`, `resolveTarget`, `isInside` (path containment — reuse, never re-implement), `failOpen`, `GUARD_REASON` | `src/agents/hook-protocols.ts` |
+| STORY-002-05 | `hookCommand`, `runGuard`, `readPayload` | `src/commands/hook.ts` |
+| STORY-001-04 | `initCommand`, `createInitCommand`, `runInit`, `PROFILES` | `src/commands/init.ts` |
+| STORY-001-04 | `applyManagedBlock`, `managedIgnoreEntries`, `GITIGNORE_BLOCK_START`, `GITIGNORE_BLOCK_END` | `src/core/gitignore.ts` |
+| STORY-001-04 | `registerIntegration`, `runIntegrations`, `resetIntegrations`, `IntegrationContext`, `PhaseReport`, `DoctorCheck` | `src/core/integrations.ts` |
 
 ## Mid-Sprint Amendments
 
