@@ -97,6 +97,9 @@ Exported helpers and modules from already-merged stories in this sprint. The Arc
 | STORY-001-04 | `initCommand`, `createInitCommand`, `runInit`, `PROFILES` | `src/commands/init.ts` |
 | STORY-001-04 | `applyManagedBlock`, `managedIgnoreEntries`, `GITIGNORE_BLOCK_START`, `GITIGNORE_BLOCK_END` | `src/core/gitignore.ts` |
 | STORY-001-04 | `registerIntegration`, `runIntegrations`, `resetIntegrations`, `IntegrationContext`, `PhaseReport`, `DoctorCheck` | `src/core/integrations.ts` |
+| STORY-001-05 | `updateCommand`, `createUpdateCommand({ templatesDir })` (test seam for "newer package"), `runUpdate`, `formatBackupStamp` | `src/commands/update.ts` |
+| STORY-001-06 | `removeCommand`, `CONFIRM_WORD`; `stripManagedBlock`, `GitignoreStripStatus` | `src/commands/remove.ts`, `src/core/gitignore.ts` |
+| STORY-001-07 | `doctorCommand`, `createDoctorCommand`, `runDoctor`, `compareVersions`, `checkNodeVersion`; `setupCommand` | `src/commands/doctor.ts`, `src/commands/setup.ts` |
 
 ## Mid-Sprint Amendments
 
