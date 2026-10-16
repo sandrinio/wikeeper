@@ -188,12 +188,12 @@ Feature: doctor reporting
 
 ## Task Breakdown
 
-- [ ] Add `configKeyIsSet` to `src/core/config.ts` with a unit test -> R3
-- [ ] Build `state`, render the state lines and pluralise the summary in `src/commands/doctor.ts` -> R2, R3, R6
-- [ ] Change `checkClaudeAgentsMdOnly` severity and wording -> R1
-- [ ] Export `inspectOwnedEntries` and `ENFORCE_JSON_FILES` from `src/agents/enforce/index.ts` -> R4, R5
-- [ ] Add `checkEnforceEntries` and `checkBackups` to `AGENT_CHECKS` -> R4, R5
-- [ ] Write the scenario tests in `test/doctor-reporting.test.ts`; QA-Red re-scopes the two `warning` assertions to `info` -> R1–R6
+- [x] Add `configKeyIsSet` to `src/core/config.ts` with a unit test -> R3
+- [x] Build `state`, render the state lines and pluralise the summary in `src/commands/doctor.ts` -> R2, R3, R6
+- [x] Change `checkClaudeAgentsMdOnly` severity and wording -> R1
+- [x] Export `inspectOwnedEntries` and `ENFORCE_JSON_FILES` from `src/agents/enforce/index.ts` -> R4, R5
+- [x] Add `checkEnforceEntries` and `checkBackups` to `AGENT_CHECKS` -> R4, R5
+- [x] Write the scenario tests in `test/doctor-reporting.test.ts`; QA-Red re-scopes the two `warning` assertions to `info` -> R1–R6
 
 ## 4. Quality Gates
 
@@ -243,3 +243,5 @@ Requirements to pass to Green (Ready for Execution):
 - [x] No "TBDs" exist anywhere in the specification or technical logic.
 - [x] Existing Surfaces cites at least one source-tree path or explicitly states "none — net-new."
 - [x] Why not simpler? has both sub-bullets answered (no "TBD" / no "{}").
+
+Task Breakdown note: scenario and unit tests live in QA-Red's `test/doctor-reporting.red.node.test.ts` (covers every row); no separate `test/doctor-reporting.test.ts` was added.
