@@ -16,7 +16,7 @@ Per-sprint audit artefact. Populated at sprint init (M1 planning) and re-touched
 
 Confirmed by the human on 2026-10-16 together with the sprint plan. The goal is met when all five hold on `sprint/S-01`:
 
-1. From the packed package (`npm pack` → install the tarball), in three fixture repos — empty, existing `AGENTS.md` with user content, existing `CLAUDE.md` — `wikeeper init --json` exits 0 and produces the architecture.md §6.3 file set: `.wiki/`, the WIKI block, skills and sub-agents for Claude Code, Codex and Antigravity. No byte outside the WIKI markers changes; no `CLAUDE.md` is created.
+1. From the packed package (`npm pack` → install the tarball), in three fixture repos — empty, existing `AGENTS.md` with user content, existing `CLAUDE.md` — `wikeeper init --json --agents claude,codex,antigravity` exits 0 (non-interactive runs need an explicit agent list — STORY-002-02 R6; clarified 2026-10-16 from the M2 plan) and produces the architecture.md §6.3 file set: `.wiki/`, the WIKI block, skills and sub-agents for Claude Code, Codex and Antigravity. No byte outside the WIKI markers changes; no `CLAUDE.md` is created.
 2. A second `init` changes 0 bytes.
 3. `update` and `remove` change 0 user-owned files; after `remove`, no wikeeper-owned file or block remains.
 4. `doctor --json` exits 0 after `init` and reports the problem after a WIKI block is deleted.
@@ -78,7 +78,14 @@ Exported helpers and modules from already-merged stories in this sprint. The Arc
 
 | Story | Module / Export | Path |
 |-------|----------------|------|
-| (populated as stories merge) | | |
+| STORY-001-01 | `ExitCode`, `WikeeperError` | `src/core/exit-codes.ts` |
+| STORY-001-01 | `emitResult`, `emitError`, `getOutputContext`, `bindProgramIO`, `defaultIO`, `getRequestedExitCode`, `OutputContext`, `CliIO` | `src/core/output.ts` |
+| STORY-001-01 | `createProgram`, `defaultCommands`, `CommandModule`, `runCli`, `VERSION` | `src/program.ts` |
+| STORY-001-02 | `loadConfig`, `setConfigValue`, `DEFAULT_CONFIG`, `WikeeperConfig`, `formatConfigIssue` | `src/core/config.ts` |
+| STORY-001-02 | `findRepoRoot`, `resolvePaths`, `toPosixRelative`, `ResolvedPaths` | `src/core/paths.ts` |
+| STORY-001-03 | `findPackageRoot`, `templatesDir`, `listTemplateFiles`, `copyTemplate` (optional `baseDir`) | `src/core/templates.ts` |
+| STORY-001-03 | `readManifest`, `writeManifest`, `diffManifest`, `sha256File`, `serializeManifest`, `Manifest`, `ManifestEntry`, `ManifestKind` | `src/core/manifest.ts` |
+| STORY-002-01 | `injectBlock`, `stripBlock`, `injectIntoFile`, `stripFromFile` | `src/agents/inject.ts` |
 
 ## Mid-Sprint Amendments
 
