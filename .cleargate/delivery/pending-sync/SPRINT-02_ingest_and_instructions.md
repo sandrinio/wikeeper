@@ -11,13 +11,13 @@ start_date: 2026-10-17
 end_date: null
 synced_at: null
 created_at: 2026-10-16T17:25:00Z
-updated_at: 2026-10-16T21:19:00Z
+updated_at: 2026-10-16T21:36:30Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: fca928d-dirty
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-16T21:19:21Z
+  last_gate_check: 2026-10-16T21:36:23Z
   transition: ready-for-execution
 epics:
   - EPIC-001
@@ -315,6 +315,8 @@ Skeleton rules:
 - 2026-10-16 · Gate 2 (Sprint Ready): the human approved the sprint plan, the SDR and all 27 stories (`approved: true`). Kickoff waits for SPRINT-01 to close.
 - 2026-10-17 · Kickoff: SPRINT-01 closed (Gate 4); preflight 5/5 pass (devops reachable — used for 4 merges this session); `sprint/S-02` cut from main at fca928d; `cleargate sprint init` → state.json with 27 stories, all standard, `.active` = SPRINT-02; Goal Acceptance Check copied into sprint-context.md; status Active.
 - 2026-10-17 · M1 Architect plan (`plans/M1.md`, wave 1, 10 stories). Orchestrator decisions on its open items: (1) skeleton dispatch split — C1–C4 and C10 now, C5–C9/C11/C12 with the M2 plan before wave 3 (departs from SDR §2.1 "one dispatch writes C1–C12"; stacking unchanged); C14 is cut from 001-08's Developer commit, not a skeleton. (2) CR:spec-clarification STORY-006-02 R12 + "remove keeps project.md" scenario: `data.kept` contains `me.md` and `project.md` and stays sorted (was "right after"; `remove` sorts `kept`, `.wiki/pages` sorts between them). (3) sprint-context.md Locked Versions, Test Stack and Cross-Cutting Rules filled in (were template stubs; Locked Versions said Node ≥24 / TS ^5.8). (4) Test-fixture detail, not a spec gap: 006-01/006-02 "`init --yes` in an empty repository" setups pass `--agents claude`. (5) Approach notes accepted: 004-01 keeps yaml's default `prettyErrors` (`false` drops `linePos`); C10 carries a third insertion-point anchor set in request building. (6) Four flashcards recorded.
+- 2026-10-17 · Contract step: one Developer skeleton dispatch wrote C1 `contract/S-02-page-parser` e8cfec9, C2 `contract/S-02-permissions` 063146e, C3 `contract/S-02-registry` 9437d82, C4 `contract/S-02-user-hooks` 32fc69e, C10 `contract/S-02-search` 0c5c1fa (typecheck at every tip; 414/414 at C4 and C10; no deviation). C14 `contract/S-02-init-prepare` cut at 37f497d (STORY-001-08's Developer commit).
+- 2026-10-17 · Wave 1 (10 stories, one parallel workflow run): 8 GREEN first pass and merged serially (006-02 23e05f9, 003-02 c6e1ba7, 002-07 8ae85e7, 001-09 9d900b8, 001-08 857a739, 003-01 926ede8, 006-01 54e5da4, 006-05 98d185a; 532/532 tests after the last merge, typecheck clean after each). 2 stopped on red-test defects, not implementation (qa_bounces 1 each): STORY-004-01's fixture wrote `b.md` and `B.md` (one file on macOS/Windows) — QA-Red re-dispatch, fixed at 6f26b34; STORY-003-03's timeout test (timeoutMs 300) flaked under full-suite load — QA-Red re-dispatch, fixed at c80a785, with a CR:spec-clarification of the scenario's timeoutMs to 1200 (the 2 s bound unchanged). Both re-verifying without a new Developer pass. 10 flashcards processed (6 recorded, duplicates folded).
 
 ## Goal Acceptance Check (accepted by the human, 2026-10-16)
 

@@ -107,3 +107,5 @@ _(populated by Architect on CR:scope-change or CR:approach-change; never rewrite
 - 2026-10-16T21:18Z · STORY-004-01 · approach — keep yaml's default `prettyErrors` (`prettyErrors: false` sets no `linePos`); line numbers come from `linePos[0].line`.
 - 2026-10-16T21:18Z · C10 · approach — the search command skeleton carries a third set of insertion-point anchors where the search request is built.
 - 2026-10-16T21:18Z · contracts · the skeleton dispatch is split: C1–C4 and C10 now (M1 plan); C5–C9, C11, C12 with the M2 plan, before wave 3.
+- 2026-10-16T21:36Z · STORY-003-03 · CR:spec-clarification — the "hook that runs too long" scenario uses `timeoutMs 1200` (was 300: a node child's cold start under full-suite load misses 300 ms); the "returns within 2 s" bound is unchanged.
+- 2026-10-16T21:36Z · C14 · `contract/S-02-init-prepare` cut at 37f497d (STORY-001-08's Developer commit, QA PASS, unchanged at merge).
