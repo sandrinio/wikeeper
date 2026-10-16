@@ -191,6 +191,7 @@ Skeleton rules:
 - 2026-10-16 · Known limitation (STORY-001-06 probe): `init` → `remove` on a `.gitignore` with user lines and no final newline leaves one added trailing newline (applyManagedBlock adds a separator; strip cannot tell). Goal fixtures are unaffected; surfaced to the human at walkthrough as a follow-up bug candidate.
 - 2026-10-16 · Queued for D.5 consolidation: STORY-001-05 update.ts keeps a private `isInside` (same rule as 001-06 R1); one shared package-version reader instead of private copies in init/update/doctor; raw U+FEFF characters → \uFEFF escapes.
 - 2026-10-16 · FLASHCARD-REJECT 2026-10-16 — duplicate scanner false-positive card (001-07) and the readPackageVersion card (a refactor task, moved to the D.5 list).
+- 2026-10-16 · EPIC-001 merged: STORY-001-05 (bd9c5f1), STORY-001-06 (afa2416), STORY-001-07 (728d1ac); src/program.ts "keep both lines" conflicts resolved by DevOps under orchestrator authorisation. 294 tests green; `--help` lists init, update, remove, doctor, setup, hook. Next: STORY-002-04 (wave 7) cut from sprint/S-01.
 
 ## Risks & Dependencies
 
