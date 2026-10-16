@@ -6,6 +6,8 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-17 · #qa #test-harness · To test stale-rule removal, hand-build the legacy settings and manifest state; a test relying on init no longer exercises it.
+2026-10-17 · #test-harness #worktrees · npm test in the main checkout also runs tests under .worktrees/; counts double while a worktree exists.
 2026-10-17 · #qa #remove · remove --json puts warnings at top-level json.warnings, not data.warnings; assert both.
 2026-10-17 · #qa #red-test · Before approving a fix that changes documented output, grep *.red.node.test.ts for the old output; immutable asserts need a gate reset.
 2026-10-17 · #enforce #test-harness · Codex/Antigravity hooks.json ignore ingest.permission; only a guard-command change (npx re-pin via runUpdate packageVersion) rewrites them.
