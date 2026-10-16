@@ -219,13 +219,13 @@ export function pagesChangedSince(events: readonly StoredLogEvent[]): SinceChang
 
 ## Task Breakdown
 
-- [ ] Implement `entityKeys` and `resolveEntity` with the ordering tuple -> R1
-- [ ] Implement `entityBacklinks` (key lookup, self-exclusion by owning entity, dedupe, sort) -> R3
-- [ ] Implement `toEntityMatch` and `toFactView` (fact ordering) -> R2
-- [ ] Implement `parseSince` with calendar and ISO checks -> R6
-- [ ] Implement `factsSince` and `pagesChangedSince` over `readLogEvents` -> R7
-- [ ] Wire `--entity` and `--since` into `src/commands/search.ts`: exclusivity errors, not-found message, combinations, `total` rules -> R4, R5, R8
-- [ ] Write one test per Gherkin scenario in §2.1
+- [x] Implement `entityKeys` and `resolveEntity` with the ordering tuple -> R1
+- [x] Implement `entityBacklinks` (key lookup, self-exclusion by owning entity, dedupe, sort) -> R3
+- [x] Implement `toEntityMatch` and `toFactView` (fact ordering) -> R2
+- [x] Implement `parseSince` with calendar and ISO checks -> R6
+- [x] Implement `factsSince` and `pagesChangedSince` over `readLogEvents` -> R7
+- [x] Wire `--entity` and `--since` into `src/commands/search.ts`: exclusivity errors, not-found message, combinations, `total` rules -> R4, R5, R8
+- [x] Write one test per Gherkin scenario in §2.1
 
 ## 4. Quality Gates
 
