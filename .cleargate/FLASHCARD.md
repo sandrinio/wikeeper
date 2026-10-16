@@ -6,6 +6,9 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-17 · #test-harness #perf · search-perf p95 also fails (532–630 ms) in a plain full vitest run, not only with stories in parallel.
+2026-10-17 · #pre-gate #red-test · 'red tests modified after QA-Red' fires on a red file the branch created; check its blob at the qa-red commit.
+2026-10-17 · #templates #sections · A section target named in a non-system file is a structure.ts finding; R4 covers only .wiki/system/ files.
 2026-10-17 · #qa #red-test · Vite resolves a variable dynamic-import specifier from the root (/src/…); use a literal path in a red test's load().
 2026-10-17 · #ingest #hooks · runUserHooks stops at the first failed command; call it once per command when every post step must run.
 2026-10-17 · #test-harness #templates · yaml warns on unquoted {{model}} in frontmatter; replace the token before parseYaml in a checker.
