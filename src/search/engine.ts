@@ -1,11 +1,15 @@
 // src/search/engine.ts
 // Contract C10 (owner STORY-004-02). Frozen exports. Consumers: STORY-004-03, 004-04, 004-05;
 // STORY-004-06 builds from C13 (004-02's own Developer commit).
-import { readFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
-import type { Options } from "minisearch";
+import type MiniSearch from "minisearch";
+import type { AsPlainObject, Options } from "minisearch";
 import { compareCodeUnits } from "../core/compare.js";
+import { toPosixRelative } from "../core/paths.js";
 import type { ResolvedPaths } from "../core/paths.js";
+import { readPackageVersion } from "../core/templates.js";
 import { CITATION_RE, listPageFiles, owningEntityKey, pageEntities, parsePage } from "../wiki/parse-page.js";
 import type { Entity, Page } from "../wiki/parse-page.js";
 
@@ -93,6 +97,7 @@ export interface SearchRequest {
 export interface SearchDeps {
   now?: () => Date;
   useCache?: boolean;
+  onRebuild?: () => void;
 }
 const EMPTY: SearchFilters = { type: null, where: [], status: null, since: null };
 /** Shared and frozen: copy before use (`{ ...EMPTY_FILTERS, where: [] }`), never mutate `where`. */
@@ -129,6 +134,12 @@ export const MINISEARCH_OPTIONS: Options<SearchDoc> = {
   idField: "id",
 };
 
+export const SEARCH_CACHE_VERSION = 1 as const;
+
+export function searchCacheFile(paths: ResolvedPaths): string {
+  return path.join(paths.wikiDir, ".cache", "search.json");
+}
+
 const SEARCH_OPTIONS = {
   combineWith: "AND" as const,
   prefix: (term: string): boolean => term.length >= 3,
@@ -160,10 +171,14 @@ export function buildDocs(pages: readonly Page[]): SearchDoc[] {
   return docs;
 }
 
-export async function createSearchIndex(docs: readonly SearchDoc[]): Promise<SearchIndex> {
-  const { default: MiniSearch } = await import("minisearch");
-  const mini = new MiniSearch<SearchDoc>(MINISEARCH_OPTIONS);
+async function newMiniSearch(docs: readonly SearchDoc[]): Promise<MiniSearch<SearchDoc>> {
+  const { default: MiniSearchCtor } = await import("minisearch");
+  const mini = new MiniSearchCtor<SearchDoc>(MINISEARCH_OPTIONS);
   mini.addAll(docs as SearchDoc[]);
+  return mini;
+}
+
+function wrapIndex(mini: MiniSearch<SearchDoc>, docs: readonly SearchDoc[]): SearchIndex {
   return {
     docs,
     query(text: string): RankedHit[] {
@@ -179,18 +194,102 @@ export async function createSearchIndex(docs: readonly SearchDoc[]): Promise<Sea
   };
 }
 
+export async function createSearchIndex(docs: readonly SearchDoc[]): Promise<SearchIndex> {
+  return wrapIndex(await newMiniSearch(docs), docs);
+}
+
+interface CacheFileKey {
+  path: string;
+  sha256: string;
+}
+interface SearchCacheFile {
+  version: typeof SEARCH_CACHE_VERSION;
+  package_version: string;
+  files: CacheFileKey[];
+  pages: Page[];
+  docs: SearchDoc[];
+  index: AsPlainObject;
+}
+
+let cachedPackageVersion: string | null = null;
+function packageVersion(): string {
+  cachedPackageVersion ??= readPackageVersion();
+  return cachedPackageVersion;
+}
+let tmpSeq = 0;
+
+function isUsableCache(c: unknown, keys: readonly CacheFileKey[]): c is SearchCacheFile {
+  if (typeof c !== "object" || c === null) return false;
+  const o = c as Record<string, unknown>;
+  if (o.version !== SEARCH_CACHE_VERSION || o.package_version !== packageVersion()) return false;
+  if (!Array.isArray(o.pages) || !Array.isArray(o.docs)) return false;
+  if (typeof o.index !== "object" || o.index === null) return false;
+  const files = o.files;
+  if (!Array.isArray(files) || files.length !== keys.length) return false;
+  return keys.every((k, i) => {
+    const f = files[i] as Partial<CacheFileKey> | null;
+    return typeof f === "object" && f !== null && f.path === k.path && f.sha256 === k.sha256;
+  });
+}
+
 export async function loadSearchCorpus(
   paths: ResolvedPaths,
-  _opts?: { useCache?: boolean; onRebuild?: () => void },
+  opts: { useCache?: boolean; onRebuild?: () => void } = {},
 ): Promise<SearchCorpus> {
-  // Same result as loadPages(paths.pagesDir), with the file reads in parallel (performance budget, R8).
+  const useCache = opts.useCache ?? true;
   const files = await listPageFiles(paths.pagesDir);
-  const pages = await Promise.all(
-    files.map(async (rel) => parsePage(await readFile(path.join(paths.pagesDir, ...rel.split("/")), "utf8"), rel)),
-  );
-  const entities = pages.flatMap(pageEntities);
-  const index = await createSearchIndex(buildDocs(pages));
-  return { pages, entities, index, warnings: [] };
+  const bufs = await Promise.all(files.map((rel) => readFile(path.join(paths.pagesDir, ...rel.split("/")))));
+  const keys: CacheFileKey[] = files.map((p, i) => ({
+    path: p,
+    sha256: createHash("sha256").update(bufs[i] as Buffer).digest("hex"),
+  }));
+  const file = searchCacheFile(paths);
+
+  if (useCache) {
+    try {
+      const cache: unknown = JSON.parse(await readFile(file, "utf8"));
+      if (isUsableCache(cache, keys)) {
+        const { default: MiniSearchCtor } = await import("minisearch");
+        const mini = MiniSearchCtor.loadJS(cache.index, MINISEARCH_OPTIONS);
+        return {
+          pages: cache.pages,
+          entities: cache.pages.flatMap(pageEntities),
+          index: wrapIndex(mini, cache.docs),
+          warnings: [],
+        };
+      }
+    } catch {
+      // unreadable or invalid cache: rebuild silently
+    }
+  }
+
+  const pages = files.map((rel, i) => parsePage((bufs[i] as Buffer).toString("utf8"), rel));
+  const docs = buildDocs(pages);
+  const mini = await newMiniSearch(docs);
+  const warnings: string[] = [];
+  if (useCache) {
+    opts.onRebuild?.();
+    const dir = path.dirname(file);
+    const tmp = path.join(dir, `search.json.${process.pid}.${++tmpSeq}.tmp`);
+    try {
+      const body: SearchCacheFile = {
+        version: SEARCH_CACHE_VERSION,
+        package_version: packageVersion(),
+        files: keys,
+        pages,
+        docs,
+        index: mini.toJSON(),
+      };
+      await mkdir(dir, { recursive: true });
+      await writeFile(tmp, JSON.stringify(body));
+      await rename(tmp, file);
+    } catch (err) {
+      await rm(tmp, { force: true }).catch(() => undefined);
+      const e = err as NodeJS.ErrnoException;
+      warnings.push(`search cache not written: ${toPosixRelative(paths.root, file)}: ${e.code ?? e.message}`);
+    }
+  }
+  return { pages, entities: pages.flatMap(pageEntities), index: wrapIndex(mini, docs), warnings };
 }
 
 const SNIPPET_MAX = 160;

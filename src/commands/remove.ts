@@ -193,6 +193,13 @@ export const removeCommand: CommandModule = {
           }
         }
 
+        const cacheDir = path.join(paths.wikiDir, ".cache");
+        if (await exists(cacheDir)) {
+          const cached = await filesUnder(cacheDir);
+          for (const f of cached.length > 0 ? cached : [cacheDir]) removed.push(toPosixRelative(root, f));
+          await rm(cacheDir, { recursive: true, force: true, maxRetries: 3 });
+        }
+
         const gi = manifest.files.find((e) => e.kind === "gitignore");
         await stripGitignore(root, gi?.created === true, removed, warnings);
 
