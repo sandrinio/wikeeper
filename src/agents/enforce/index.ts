@@ -213,7 +213,7 @@ export async function applyEnforce(ctx: IntegrationContext, state: AgentsState, 
         removedFile = true;
       } else if (wouldWrite(doc, next)) {
         if (!doc.existed) await ensureDirs(ctx, p.abs);
-        const res = await saveJsonDoc(doc, next);
+        const res = await saveJsonDoc(doc, next, { backup: !fileCreated });
         wrote = res.written;
         backup = res.backup;
       }
@@ -235,6 +235,11 @@ export async function applyEnforce(ctx: IntegrationContext, state: AgentsState, 
     for (const e of p.stale) dropOwned(files, e);
     if (removedFile) {
       report.removed.push(p.rel);
+      const bakRel = p.rel + ".bak";
+      if (files.some((f) => isBackup(f) && f.path === bakRel) && (await exists(absPath(ctx.root, bakRel)))) {
+        await rm(absPath(ctx.root, bakRel), { force: true, maxRetries: 3 });
+        report.removed.push(bakRel);
+      }
       for (const e of files.filter((f) => f.path === p.rel || f.path === p.rel + ".bak")) dropOwned(files, e);
       continue;
     }
@@ -307,10 +312,14 @@ export async function removeEnforce(ctx: IntegrationContext): Promise<PhaseRepor
         if (sameAsBak) {
           await writeFile(file, await readFile(bakFile));
           await rm(bakFile, { force: true, maxRetries: 3 });
-          report.removed.push(`${rel}#wikeeper`);
+          report.removed.push(`${rel}#wikeeper`, rel + ".bak");
         } else if (created && Object.keys(next).length === 0) {
           await rm(file, { force: true, maxRetries: 3 });
           report.removed.push(rel);
+          if (bakEntry && (await exists(bakFile))) {
+            await rm(bakFile, { force: true, maxRetries: 3 });
+            report.removed.push(rel + ".bak");
+          }
         } else {
           const res = await saveJsonDoc(doc, next, { backup: false });
           if (res.written) report.removed.push(`${rel}#wikeeper`);

@@ -179,3 +179,58 @@ describe("STORY-002-06 rework: in-memory config, drift and update", () => {
     expect(await Promise.all(rels.map((r) => read(root, r)))).toEqual(before);
   });
 });
+
+describe("BUG-002: no backup for files wikeeper created; recorded backups die with their file", () => {
+  const FILES = [".claude/settings.json", ".codex/hooks.json", ".agents/hooks.json"];
+  const manifestPath = (root: string) => path.join(root, ".wiki", "system", "manifest.json");
+  async function addBackupEntry(root: string, rel: string, agent: string): Promise<void> {
+    const m = JSON.parse(await readFile(manifestPath(root), "utf8"));
+    m.files.push({ path: rel, sha256: null, kind: "hook", agent, identity: "backup" });
+    await writeFile(manifestPath(root), JSON.stringify(m, null, 2) + "\n");
+  }
+
+  it("update after a re-pin writes no .bak for wikeeper-created files and records no backup entry", async () => {
+    await pathWith(false);
+    const root = await repo({});
+    await runInit(root, run(root, { agents: "claude,codex,antigravity", enforce: true }), { packageVersion: "1.0.0" });
+    await runUpdate(root, run(root, {}), { packageVersion: "2.0.0" });
+    for (const f of FILES) expect(await exists(root, f + ".bak")).toBe(false);
+    const m = JSON.parse(await readFile(manifestPath(root), "utf8"));
+    expect(m.files.filter((e: any) => e.identity === "backup")).toEqual([]);
+  });
+
+  it("remove deletes a recorded backup together with the deleted settings file", async () => {
+    await pathWith(false);
+    const root = await repo({ ".wiki/config.yml": "agents: [claude]\n" });
+    await runInit(root, run(root, { agents: "claude", enforce: true }), { packageVersion: "1.0.0" });
+    await writeFile(path.join(root, ".claude", "settings.json.bak"), '{"stale":1}\n');
+    await addBackupEntry(root, ".claude/settings.json.bak", "claude");
+    const r = await drive(root, ["remove", "--json"]);
+    expect(r.code).toBe(0);
+    expect(await exists(root, ".claude/settings.json")).toBe(false);
+    expect(await exists(root, ".claude/settings.json.bak")).toBe(false);
+    expect(r.json.data.removed).toContain(".claude/settings.json.bak");
+  });
+
+  it("update deletes a recorded backup when it deletes the created file of a dropped agent", async () => {
+    await pathWith(false);
+    const root = await repo({});
+    await runInit(root, run(root, { agents: "claude,codex", enforce: true }), { packageVersion: "1.0.0" });
+    await writeFile(path.join(root, ".codex", "hooks.json.bak"), "{}\n");
+    await addBackupEntry(root, ".codex/hooks.json.bak", "codex");
+    const { setConfigValue } = await import("../../src/core/config.js");
+    await setConfigValue(root, "agents", ["claude"]);
+    await runUpdate(root, run(root, {}), { packageVersion: "1.0.0" });
+    expect(await exists(root, ".codex/hooks.json")).toBe(false);
+    expect(await exists(root, ".codex/hooks.json.bak")).toBe(false);
+  });
+
+  it("remove leaves a .bak that has no manifest entry untouched", async () => {
+    await pathWith(false);
+    const root = await repo({ ".wiki/config.yml": "agents: [claude]\n" });
+    await runInit(root, run(root, { agents: "claude", enforce: true }), { packageVersion: "1.0.0" });
+    await writeFile(path.join(root, ".claude", "settings.json.bak"), "mine\n");
+    expect((await drive(root, ["remove", "--json"])).code).toBe(0);
+    expect(await read(root, ".claude/settings.json.bak")).toBe("mine\n");
+  });
+});
