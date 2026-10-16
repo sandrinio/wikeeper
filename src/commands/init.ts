@@ -4,7 +4,7 @@ import type { Command } from "commander";
 import { compareCodeUnits } from "../core/compare.js";
 import { formatConfigIssue, loadConfig } from "../core/config.js";
 import { ExitCode, WikeeperError } from "../core/exit-codes.js";
-import { applyManagedBlock, managedIgnoreEntries } from "../core/gitignore.js";
+import { applyManagedBlock, backupPaths, managedIgnoreEntries } from "../core/gitignore.js";
 import { runIntegrations } from "../core/integrations.js";
 import type { IntegrationOptions } from "../core/integrations.js";
 import { readManifest, serializeManifest, writeManifest } from "../core/manifest.js";
@@ -25,6 +25,8 @@ export interface InitResult {
   created: string[];
   updated: string[];
   skipped: string[];
+  removed: string[];
+  backed_up: string[];
   manifest: string;
 }
 export interface InitDeps {
@@ -120,9 +122,6 @@ async function execInit(
       throw new WikeeperError(ExitCode.ERROR, "gitignore_not_utf8", ".gitignore is not valid UTF-8; fix it and re-run");
     }
   }
-  const ignore = managedIgnoreEntries(paths, config);
-  warnings.push(...ignore.warnings);
-  const nextGi = applyManagedBlock(giText, ignore.entries);
 
   const manifestBefore = await readBytes(paths.manifestFile);
 
@@ -157,6 +156,8 @@ async function execInit(
   const created: string[] = [];
   const updated: string[] = [];
   const skipped: string[] = [];
+  const removed: string[] = [];
+  const backedUp: string[] = [];
   const rel = (p: string): string => toPosixRelative(root, p);
 
   try {
@@ -206,10 +207,7 @@ async function execInit(
     }
 
     // 8. .gitignore
-    if (nextGi !== giText) {
-      await writeFile(giPath, nextGi);
-      (existedBefore ? updated : created).push(".gitignore");
-    } else skipped.push(".gitignore");
+    // The block is written after the integrations, so it lists the final backups.
     const oldGi = old?.files.find((f) => f.kind === "gitignore" && f.path === ".gitignore");
     const giEntry: ManifestEntry = {
       path: ".gitignore",
@@ -233,7 +231,17 @@ async function execInit(
     created.push(...r.created);
     updated.push(...r.replaced);
     skipped.push(...r.skipped);
+    removed.push(...r.removed);
+    backedUp.push(...r.backed_up);
     warnings.push(...r.warnings);
+
+    const ignore = managedIgnoreEntries(paths, config, backupPaths(working));
+    warnings.push(...ignore.warnings);
+    const nextGi = applyManagedBlock(giText, ignore.entries);
+    if (nextGi !== giText) {
+      await writeFile(giPath, nextGi);
+      (existedBefore ? updated : created).push(".gitignore");
+    } else skipped.push(".gitignore");
     // Handlers mutate `working`; persist the final state.
     await writeManifest(working, paths.manifestFile);
 
@@ -255,11 +263,18 @@ async function execInit(
   const result: InitResult = {
     created: [...new Set(created)].sort(compareCodeUnits),
     updated: [...new Set(updated)].sort(compareCodeUnits),
-    skipped: [...new Set(skipped)].filter((p) => !created.includes(p) && !updated.includes(p)).sort(compareCodeUnits),
+    skipped: [...new Set(skipped)]
+      .filter((p) => !created.includes(p) && !updated.includes(p) && !removed.includes(p) && !backedUp.includes(p))
+      .sort(compareCodeUnits),
+    removed: [...new Set(removed)].sort(compareCodeUnits),
+    backed_up: [...new Set(backedUp)].sort(compareCodeUnits),
     manifest: MANIFEST_REL,
   };
   const message =
-    result.created.length === 0 && result.updated.length === 0
+    result.created.length === 0 &&
+    result.updated.length === 0 &&
+    result.removed.length === 0 &&
+    result.backed_up.length === 0
       ? "already initialised: nothing changed"
       : [
           `initialised .wiki/: ${result.created.length} created, ${result.updated.length} updated, ${result.skipped.length} unchanged`,

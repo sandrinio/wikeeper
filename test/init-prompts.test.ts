@@ -45,7 +45,7 @@ describe("runIntegrations prepare", () => {
     registerIntegration({ name: "b", prepare: async () => void order.push("b"), init: () => ({ created: ["x"] }) });
     const r = await runIntegrations("prepare", ctx({}));
     expect(order).toEqual(["a", "b"]);
-    expect(r).toEqual({ created: [], replaced: [], skipped: [], removed: [], kept: [], warnings: [], checks: [] });
+    expect(r).toEqual({ created: [], replaced: [], skipped: [], removed: [], backed_up: [], kept: [], warnings: [], checks: [] });
   });
 });
 

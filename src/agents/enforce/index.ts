@@ -156,7 +156,7 @@ async function ensureDirs(ctx: IntegrationContext, file: string): Promise<void> 
 }
 
 export async function applyEnforce(ctx: IntegrationContext, state: AgentsState, enabled: boolean): Promise<PhaseReport> {
-  const report: Required<PhaseReport> = { created: [], replaced: [], skipped: [], removed: [], kept: [], warnings: [] };
+  const report: Required<PhaseReport> = { created: [], replaced: [], skipped: [], removed: [], backed_up: [], kept: [], warnings: [] };
   const files = ctx.options.manifest.files;
   const permission: IngestPermission = ctx.config.ingest.permission;
   const form = resolveGuardForm({ root: ctx.root });
@@ -252,8 +252,9 @@ export async function applyEnforce(ctx: IntegrationContext, state: AgentsState, 
       continue;
     }
     if (wrote) (existedBefore ? report.replaced : report.created).push(p.rel);
+    else if (existedBefore) report.skipped.push(p.rel);
     if (backup) {
-      report.created.push(backup);
+      report.backed_up.push(backup);
       setOwned(files, { path: backup, sha256: null, kind: "hook", agent: p.agent, identity: "backup" });
     }
     for (const item of p.desired) {
@@ -271,7 +272,7 @@ export async function applyEnforce(ctx: IntegrationContext, state: AgentsState, 
 }
 
 export async function removeEnforce(ctx: IntegrationContext): Promise<PhaseReport> {
-  const report: Required<PhaseReport> = { created: [], replaced: [], skipped: [], removed: [], kept: [], warnings: [] };
+  const report: Required<PhaseReport> = { created: [], replaced: [], skipped: [], removed: [], backed_up: [], kept: [], warnings: [] };
   const files = ctx.options.manifest.files;
   const owned = files.filter((e) => isOwned(e) && !isBackup(e));
   const byFile = new Map<string, ManifestEntry[]>();
