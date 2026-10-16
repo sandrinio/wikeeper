@@ -11,13 +11,13 @@ start_date: 2026-10-17
 end_date: null
 synced_at: null
 created_at: 2026-10-16T17:25:00Z
-updated_at: 2026-10-16T22:01:30Z
+updated_at: 2026-10-16T22:36:08Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: fca928d-dirty
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-16T22:02:02Z
+  last_gate_check: 2026-10-16T22:36:29Z
   transition: ready-for-execution
 epics:
   - EPIC-001
@@ -319,6 +319,9 @@ Skeleton rules:
 - 2026-10-17 · Wave 1 (10 stories, one parallel workflow run): 8 GREEN first pass and merged serially (006-02 23e05f9, 003-02 c6e1ba7, 002-07 8ae85e7, 001-09 9d900b8, 001-08 857a739, 003-01 926ede8, 006-01 54e5da4, 006-05 98d185a; 532/532 tests after the last merge, typecheck clean after each). 2 stopped on red-test defects, not implementation (qa_bounces 1 each): STORY-004-01's fixture wrote `b.md` and `B.md` (one file on macOS/Windows) — QA-Red re-dispatch, fixed at 6f26b34; STORY-003-03's timeout test (timeoutMs 300) flaked under full-suite load — QA-Red re-dispatch, fixed at c80a785, with a CR:spec-clarification of the scenario's timeoutMs to 1200 (the 2 s bound unchanged). Both re-verifying without a new Developer pass. 10 flashcards processed (6 recorded, duplicates folded).
 - 2026-10-17 · Wave 1 closed: STORY-004-01 bdea22c and STORY-003-03 9b67b9d merged after re-verify; 10/10 Done, 600/600 tests on `sprint/S-02`.
 - 2026-10-17 · M2 Architect plan (`plans/M2.md`, waves 2–4, 7 stories; skeletons for C5–C9, C11, C12 verified in scratch). Orchestrator decisions: (1) every M2 story merges `sprint/S-02` right after its cut (all upstream merged), and 003-04 / 002-08 build together after wave 2; (2) CR:spec-clarification STORY-004-02 §3.1 — QA-Red re-scopes `test/agents/enforce-ai-rules.red.node.test.ts`, `test/agents/enforce.red.node.test.ts` and `test/templates/setup.red.node.test.ts:353`, which the search allow rule in all three modes (human decision) falsifies; (3) approach: additive exports `searchWarnings(data)` and `MINISEARCH_OPTIONS`, both added to C13 in waves.json; (4) waves.json: C6/C11 gain `RuleProposalLogEvent`, C7 names `FACT_ENTITY_RE`, `FACT_AS_OF_RE`, `FACT_PAGE_RE`; (5) CR:spec-clarification STORY-006-08 — R5 `git check-ignore … --stdin` (git rejects `-z` without it) with an optional `input` on `GitRunner`, R1 git-availability `info` and `ok` carry no `file`; (6) six flashcards recorded. New dependency `minisearch@^7.2.0` (MIT, no dependencies) named by the plan for 004-02.
+- 2026-10-17 · Contract step 2: C5 `contract/S-02-ingest-group` 241204f, C6 `contract/S-02-log-index` 3c1fd19, C7 `contract/S-02-facts` 3a9caf0, C8 `contract/S-02-lock-snapshot` a0d7bdd, C9 `contract/S-02-plan` 7983b64, C11 `contract/S-02-search-log-index` fca25e2 (cherry-pick of C6, byte-identical), C12 `contract/S-02-since` 0e8f954; typecheck at every tip, 402/402 (non-e2e) at C9 and C12. C13 `contract/S-02-search-impl` cut at bd9e44e (STORY-004-02's final commit, GREEN).
+- 2026-10-17 · Wave 2 (5 stories, cut from their waves.json bases with `sprint/S-02` merged at cut): all GREEN. STORY-004-02 took one Architect post-flight fix round (arch_bounces 1: `ranked`/`data` declared with `let` for the 004-03/04/05 insertion points); measured search p95 236.8 ms on 500 pages (goal check item 2: < 500 ms). Merged 004-02 f0863a3, 006-08 7c68a71, 006-03 017bc79, 006-07 ebbe3f9; STORY-003-07 conflicted with 004-02 on `src/program.ts`, was re-synced (integrate round, keep-both search → index) and merged 84236ed.
+- 2026-10-17 · Wave 4 started ahead of wave 3 (no shared file with 003-04/003-07; upstream 001-08 and 004-02 merged): STORY-002-08 GREEN first pass, merged a73bffc. STORY-003-04 (wave 3) building since before 003-07 merged; it re-syncs for the `index` line before its merge. 699/699 tests on `sprint/S-02` at 84236ed; 17/27 Done. Disjoint stories merge without a re-sync when `git merge-tree` is clean; the post-merge typecheck and full suite on `sprint/S-02` are the check.
 
 ## Goal Acceptance Check (accepted by the human, 2026-10-16)
 
