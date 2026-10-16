@@ -9,6 +9,7 @@ import {
   getRequestedExitCode,
 } from "./core/output.js";
 import type { CliIO } from "./core/output.js";
+import { initCommand } from "./commands/init.js";
 import { hookCommand } from "./commands/hook.js";
 
 const packageJson = JSON.parse(
@@ -22,6 +23,7 @@ export interface CommandModule {
 }
 
 export const defaultCommands: CommandModule[] = [
+  initCommand,
   hookCommand,
 ];
 
