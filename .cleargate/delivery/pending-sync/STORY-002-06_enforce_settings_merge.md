@@ -11,6 +11,7 @@ context_source: EPIC-002 (approved 2026-10-16) · architecture.md v0.4 §6 (agen
 actor: Developer who wants wiki writes enforced, not just instructed
 complexity_label: L3
 parallel_eligible: n
+dep_predecessors: ["STORY-001-02", "STORY-001-03", "STORY-002-04", "STORY-002-05"]
 expected_bounce_exposure: med
 lane: standard
 db_write_set: []
