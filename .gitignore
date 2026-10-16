@@ -1,0 +1,34 @@
+# Created by `cleargate init` because this repository had no .gitignore.
+# This region is yours — edit freely; ClearGate will not rewrite it.
+
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+coverage/
+*.tgz
+
+# ClearGate off-sprint token ledger (machine-local usage data, contains home paths)
+.cleargate/sprint-runs/_off-sprint/
+
+# Local environment files (API keys, tokens, credentials).
+# Allowlist lines must stay AFTER the .env patterns so the negation wins.
+.env
+.env.*
+!.env.example
+!.env.template
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# >>> cleargate >>>
+# Managed by `cleargate init`. Edits inside this block are overwritten;
+# everything outside it is yours and is never touched.
+
+# Per-story git worktrees created by the sprint execution loop. Ephemeral:
+# `git add -A` would otherwise stage one as an embedded git repository.
+.worktrees/
+# <<< cleargate <<<

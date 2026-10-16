@@ -1,0 +1,95 @@
+# ClearGate per-repo configuration.
+# Copy to .cleargate/config.yml and edit. All keys optional.
+
+# wiki:
+#   index_token_ceiling: 8000   # chars budget for wiki/index.md (STORY-015-03)
+#   # Allowlist of bucket directories the wiki ingests/builds pages for.
+#   # Only these buckets get per-item pages, index rows, and synthesis listings;
+#   # every other bucket is skipped (build + ingest + synthesis). Omit the key
+#   # entirely to ingest ALL buckets (the default). Valid buckets:
+#   # epics | stories | sprints | proposals | initiatives | crs | bugs
+#   ingest_buckets:
+#     - epics
+#     - sprints      # sprint reports
+#     - crs
+#     - bugs
+#     - initiatives
+
+# gates:
+#   precommit: "<command run before every commit — typecheck + tests>"
+#   test: "<command to run the test suite>"
+#   typecheck: "<command to run the type checker>"
+#   lint: "<command to run the linter>"
+
+# Node example:
+# gates:
+#   precommit: "npm run typecheck && npm test"
+#   test: "npm test"
+#   typecheck: "npm run typecheck"
+#   lint: "npm run lint"
+
+# Node + vitest, AI-orchestrator-friendly (caps worker pool RAM):
+# Vitest defaults to one tinypool worker per CPU. With 3+ parallel agents during
+# sprint waves (developer/QA), workers stack: 9 cores × 3 agents × ~400MB heap
+# = ~10GB peak RAM. Cap the pool by editing vitest.config.ts directly (CLI
+# overrides like `--pool-options.forks.maxForks=N` collide with tinypool's
+# minThreads/maxThreads validation when pool=forks):
+#
+#   // vitest.config.ts
+#   import { defineConfig } from 'vitest/config';
+#   const maxForks = Number(process.env.VITEST_MAX_FORKS ?? 2);
+#   export default defineConfig({
+#     test: {
+#       pool: 'forks',
+#       poolOptions: { forks: { minForks: 1, maxForks } },
+#     },
+#   });
+#
+# CI pipelines with plentiful RAM should set VITEST_MAX_FORKS=<cpu-count>.
+
+# Go example:
+# gates:
+#   precommit: "go vet ./... && go test ./..."
+#   test: "go test ./..."
+#   typecheck: "go build ./..."
+
+# Python example:
+# gates:
+#   precommit: "mypy . && pytest"
+#   test: "pytest"
+#   typecheck: "mypy ."
+
+# Rust example:
+# gates:
+#   precommit: "cargo check && cargo test"
+#   test: "cargo test"
+#   typecheck: "cargo check"
+#   lint: "cargo clippy"
+
+# worktree:
+#   # Gitignored config roots provisioned into each new story worktree (CR-079).
+#   # Each root in this list is symlinked (or copied, per provision_mode) from the
+#   # repo root into the worktree when `provision_worktree_config.sh` is called.
+#   # The same list is exempt from the stray_env_files pre-gate scan so officially-
+#   # provisioned roots do not false-flag. Default: [".env"].
+#   provision_config:
+#     - .env
+#     - .env.local   # example — add any additional gitignored config roots
+#   provision_mode: symlink   # symlink (default) | copy
+#   # symlink: creates absolute symlink worktree-root/<root> -> repo-root/<root>.
+#   #          Symlink stays live with the source .env; trivially torn down with
+#   #          the worktree. Requires target to resolve via absolute path (done
+#   #          automatically by provision_worktree_config.sh).
+#   # copy:    copies the file so the worktree can hold a divergent config.
+
+# vcs:
+#   # CR-107: sprint->main merge goes through a GitHub pull request instead
+#   # of a local `git merge`. The PR is opened at the start of the sprint
+#   # walkthrough (Phase D) and merged at Gate 4 close (Phase E), instead of
+#   # close_sprint.mjs verifying a purely local merge commit. Requires the
+#   # `gh` CLI on PATH and a GitHub `origin` remote — close_sprint.mjs's
+#   # Step 2.8 fails closed (non-zero exit, named error, never a silent
+#   # fallthrough to the local merge) if either is missing while this is
+#   # true. Default false: every install without a GitHub remote keeps
+#   # today's local-merge behaviour unchanged.
+#   sprint_pr: false
