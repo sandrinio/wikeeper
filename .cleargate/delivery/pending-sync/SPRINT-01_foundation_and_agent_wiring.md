@@ -176,6 +176,12 @@ Skeleton rules:
 - 2026-10-16 · Config: `gates.typecheck/test/precommit` added to `.cleargate/config.yml` (gate commands were unconfigured and reported a silent pass).
 - 2026-10-16 · M1 plan: additive exports accepted (`runCli`, `getOutputContext`, `CommandModule`, `CliIO`, `OutputContext`, `DEFAULT_CONFIG`, `ResolvedPaths.lockFile`, `injectIntoFile().created`); C1 skeleton ships working minimal output/CLI bodies instead of throwing, so command stories' tests run before 001-01 merges.
 - 2026-10-16 · CR:spec-clarification (hook research, `plans/hook-protocols-research.md`): STORY-002-03 (Antigravity `mainAgent: false`), STORY-002-05 (NotebookEdit; Codex `tool_input.command`; Antigravity payload/`TargetFile`/third write tool/allow JSON; shell-applied Codex patches = accepted gap), STORY-002-06 (matchers, Antigravity hooks.json shape, extra rule forms, R5 command form, `antigravity-trust` note). No new scope.
+- 2026-10-16 · Wave 1 merged: STORY-001-01 (0178008), STORY-001-02 (382f0cc, Architect post-flight PASS on planned `yaml` dep), STORY-002-01 (328e3ec), STORY-001-03 (4f87a42). 132 tests green.
+- 2026-10-16 · STORY-001-03 Developer BLOCKED (spec-contradiction): a red test wrote `b.md` and `B.md` in one dir (impossible on case-insensitive FS). Routed back to QA-Red (red-test fix 0b8106f); no counter incremented.
+- 2026-10-16 · FLASHCARD-REJECT 2026-10-16 — two STORY-001-03 cards on case-differing filenames — reason: duplicate of the active #test-harness #windows #macos card.
+- 2026-10-16 · Orchestration deviations: sprint runtime files, agent reports and pre-gate scan output gitignored (readiness check needs a clean tree; reports committed with -f at close); orchestrator housekeeping (flashcards, sprint-context, this log, plans) committed as `chore(sprint)` commits on sprint/S-01; vitest in the main checkout runs with `--dir test` (`.worktrees/` holds other stories' tests).
+- 2026-10-16 · Contract restack: C1–C3 and C5 obsolete after wave 1; C2b `contract/S-01-agent-names` (complete `src/agents/agent-names.ts`, owner 002-02) → C4 → C6 → C7 → C8 stacked on sprint/S-01 (recorded in waves.json `restack_2026_10_16`).
+- 2026-10-16 · M2 plan decisions accepted: agent-names module; `init` rolls back what it created when a handler exits 5/1 (002-02 R6 / 002-03 R6 "nothing is created"); Goal Acceptance Check item 1 runs `init --json --agents claude,codex,antigravity`; init exits 1 on invalid config; `.agents/skills` installed whenever any agent is configured (R1/R2).
 
 ## Risks & Dependencies
 
