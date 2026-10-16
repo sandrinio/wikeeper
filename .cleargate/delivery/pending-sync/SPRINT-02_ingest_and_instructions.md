@@ -11,13 +11,13 @@ start_date: 2026-10-17
 end_date: null
 synced_at: null
 created_at: 2026-10-16T17:25:00Z
-updated_at: 2026-10-16T22:36:08Z
+updated_at: 2026-10-16T22:45:21Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: fca928d-dirty
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-16T22:36:29Z
+  last_gate_check: 2026-10-16T22:45:41Z
   transition: ready-for-execution
 epics:
   - EPIC-001
@@ -322,6 +322,8 @@ Skeleton rules:
 - 2026-10-17 · Contract step 2: C5 `contract/S-02-ingest-group` 241204f, C6 `contract/S-02-log-index` 3c1fd19, C7 `contract/S-02-facts` 3a9caf0, C8 `contract/S-02-lock-snapshot` a0d7bdd, C9 `contract/S-02-plan` 7983b64, C11 `contract/S-02-search-log-index` fca25e2 (cherry-pick of C6, byte-identical), C12 `contract/S-02-since` 0e8f954; typecheck at every tip, 402/402 (non-e2e) at C9 and C12. C13 `contract/S-02-search-impl` cut at bd9e44e (STORY-004-02's final commit, GREEN).
 - 2026-10-17 · Wave 2 (5 stories, cut from their waves.json bases with `sprint/S-02` merged at cut): all GREEN. STORY-004-02 took one Architect post-flight fix round (arch_bounces 1: `ranked`/`data` declared with `let` for the 004-03/04/05 insertion points); measured search p95 236.8 ms on 500 pages (goal check item 2: < 500 ms). Merged 004-02 f0863a3, 006-08 7c68a71, 006-03 017bc79, 006-07 ebbe3f9; STORY-003-07 conflicted with 004-02 on `src/program.ts`, was re-synced (integrate round, keep-both search → index) and merged 84236ed.
 - 2026-10-17 · Wave 4 started ahead of wave 3 (no shared file with 003-04/003-07; upstream 001-08 and 004-02 merged): STORY-002-08 GREEN first pass, merged a73bffc. STORY-003-04 (wave 3) building since before 003-07 merged; it re-syncs for the `index` line before its merge. 699/699 tests on `sprint/S-02` at 84236ed; 17/27 Done. Disjoint stories merge without a re-sync when `git merge-tree` is clean; the post-merge typecheck and full suite on `sprint/S-02` are the check.
+- 2026-10-17 · STORY-003-04 (wave 3): Developer blocked on a spec contradiction — Gherkin read `error.command`, the SPRINT-01 envelope carries `command` at top level (as the story's §1 risk note and test table already said). CR:spec-clarification (Gherkin line 164); QA-Red re-scoped 3 assertions (f888a88); the Developer's uncommitted work was resumed (new `resume` workflow mode, v8), then re-synced for 003-07's `index` line. GREEN, 0 bounces; merged b5b661c, 722/722 tests. 18/27 Done.
+- 2026-10-17 · M3 Architect plan (`plans/M3.md`, waves 5–6: 003-05, 003-06, 004-06, 004-03; all cut merges simulated in scratch). Orchestrator decisions: (1) 004-06 and 004-03 cut at 8cfccc3 (fast-forward) and built alongside 003-04's finish; 003-05 and 003-06 cut at b5b661c right after 003-04 merged — all four build in parallel, merges serial 003-05 → 003-06 → 004-06 → 004-03; (2) 004-06 CR:spec-clarification — optional `SearchDeps.onRebuild`, forwarded by `executeSearch`, `src/commands/search.ts` added to §3.1; (3) 004-03 approach — edits outside its C10 anchors (step-4 totals, human header) accepted; (4) 003-05 CR:spec-clarification — R3's in-plan duplicate is an earlier `new` file (a copy of a denied file is evaluated on its own), per §1.4's rationale; no Gherkin row changes. Committed 8cfccc3 with 6 flashcards.
 
 ## Goal Acceptance Check (accepted by the human, 2026-10-16)
 
