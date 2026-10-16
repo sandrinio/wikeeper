@@ -12,6 +12,7 @@ export const AGENT_CHECK_IDS = [
   "agent-wiring", "agent-block-missing", "agent-block-duplicated", "agent-block-markers-deleted",
   "claude-agents-md-only", "skill-link-broken", "codex-trust",
   // INSERTION POINT 3 (002-06): "antigravity-trust", "antigravity-ask-fallback",
+  "antigravity-trust", "antigravity-ask-fallback",
 ] as const;
 export type AgentCheckId = (typeof AGENT_CHECK_IDS)[number];
 export interface BlockSignature { heading: string; reference: string }   // e.g. "## Project Wiki", ".wiki/system/WIKI.md"
@@ -155,7 +156,32 @@ export async function checkCodexTrust(input: AgentCheckInput): Promise<DoctorChe
   ];
 }
 // INSERTION POINT 4 (002-06): checkAntigravityTrust and checkAntigravityAskFallback function bodies go HERE, above AGENT_CHECKS.
+export async function checkAntigravityTrust(input: AgentCheckInput): Promise<DoctorCheck[]> {
+  if (!input.agents.includes("antigravity") || input.config.enforce !== true) return [];
+  return [
+    {
+      id: "antigravity-trust",
+      severity: "info",
+      message: "Antigravity loads .agents/hooks.json only after you trust this folder",
+      file: ".agents/hooks.json",
+    },
+  ];
+}
+
+export async function checkAntigravityAskFallback(input: AgentCheckInput): Promise<DoctorCheck[]> {
+  if (!input.agents.includes("antigravity") || input.config.enforce !== true || input.config.ingest.permission !== "ask") return [];
+  return [
+    {
+      id: "antigravity-ask-fallback",
+      severity: "info",
+      message:
+        "Antigravity has no project rule file in the repo, so ingest approval happens in chat; project rules live in your Antigravity profile (/permissions → Project)",
+      file: ".agents/hooks.json",
+    },
+  ];
+}
 export const AGENT_CHECKS: readonly AgentCheck[] = [
   checkAgentBlocks, checkClaudeAgentsMdOnly, checkSkillLinks, checkCodexTrust,
   // INSERTION POINT 5 (002-06): checkAntigravityTrust, checkAntigravityAskFallback,
+  checkAntigravityTrust, checkAntigravityAskFallback,
 ];
