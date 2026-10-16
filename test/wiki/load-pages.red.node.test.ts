@@ -73,9 +73,9 @@ describe("Scenario: pages load in stable order with sorted backlinks", () => {
   });
 
   it("sorting is code-unit, not locale (uppercase before lowercase)", async () => {
-    await put("b.md", "b");
+    await put("c.md", "c");
     await put("B.md", "B");
     await put("a.md", "a");
-    expect(await listPageFiles(dir)).toEqual(["B.md", "a.md", "b.md"]);
+    expect(await listPageFiles(dir)).toEqual(["B.md", "a.md", "c.md"]);
   });
 });
