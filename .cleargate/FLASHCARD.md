@@ -6,6 +6,7 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-17 · #release #npm #ci · npm 12 prints `npm pack --json` as an object keyed by package name, not an array; release.yml pins npm@11 (>= 11.5.1 for trusted publishing). `npm publish --dry-run` passes dry-run down to the tests' own `npm pack` (no tarball): simulate a release with `npm publish --registry=http://127.0.0.1:9/` instead.
 2026-10-17 · #qa #red-test #enforce · The `read` allow pair exists only in ai mode, while the lint/status/rules-list allow rules are in every mode; a per-mode assertion must not demand `read` in ask or whitelist.
 2026-10-17 · #qa #red-test · Red rows that read a CLI form out of template text and run it live need a scratch copy with the planned text applied, to prove them green before the red commit.
 2026-10-17 · #qa #test-harness · structure.ts finding lines are 1-based (i+1): a text line inserted two below a heading reports heading index + 3.
