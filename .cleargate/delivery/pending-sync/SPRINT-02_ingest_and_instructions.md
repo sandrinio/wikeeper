@@ -11,13 +11,13 @@ start_date: 2026-10-17
 end_date: null
 synced_at: null
 created_at: 2026-10-16T17:25:00Z
-updated_at: 2026-10-16T23:58:19Z
+updated_at: 2026-10-17T07:37:22Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: fca928d-dirty
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-16T23:58:40Z
+  last_gate_check: 2026-10-17T07:37:43Z
   transition: ready-for-execution
 epics:
   - EPIC-001
@@ -331,6 +331,9 @@ Skeleton rules:
 - 2026-10-17 · Wave 9: STORY-004-05 and STORY-003-09 GREEN first pass, 0 bounces; merged 2b04518 and 08b317b. `test/e2e/ingest.test.ts` 4/4 locally (5.9 s).
 - 2026-10-17 · Wave 10: STORY-006-06 built with exactly the 6 expected findings (5 `ingest finish`, 1 `search --misses`), re-synced after wave 9 (integrate mode): 0 findings, GREEN, 0 bounces; merged bcf3663. 27/27 Done; 988/988 tests, typecheck clean. Goal checks 2 and 3 pass isolated; check 1 passes locally (CI waits on push approval). The 004-02 p95 test sometimes fails in a plain full-suite run (532–630 ms vs 500): a CI risk.
 - 2026-10-17 · Walkthrough (Goal check 4) prep: `walkthrough-wiki` backed up (tar and git bundle in the session scratchpad); sprint build packed and installed globally; `wikeeper remove --purge --confirm wikeeper` (now also removes `.claude/settings.json.bak` and `.claude/`, SPRINT-01 note 2.x) and `wikeeper init --agents claude --enforce --yes` both exit 0.
+- 2026-10-17 · Walkthrough part 1 (Goal check 4), on the human's "test it now": a fresh headless Claude Code session in `walkthrough-wiki` (`claude -p`, resumed turn by turn; the orchestrator answered for the human from the SPRINT-01 answers in the backed-up `me.md` and `kb_instructions.md`; a local MCP permission-prompt tool stood in for the human at Claude Code prompts, logged every request, and refused `rm`, git writes, `wikeeper remove` and writes outside the folder). Even `bypassPermissions` honours the `ask` rule on `wikeeper ingest start`. Onboarding, `project.md` (from `product-overview.md`), `kb_instructions.md` and `ask` mode ✅; `roadmap.md` dropped before `apply` (the extractor routed every epic to an initiative page; `abort --drop` works before `apply`); `initiatives/` through `ingest plan` → 16 cited pages; 5 product questions answered with citations. Notes: 5 ❌. Classified: 8.11 UR:bug (WIKI.md documented `search --status` as fact status, against STORY-006-04 R12); 8.3, 8.4, 8.2 UR:review-feedback (spec gaps: `finish` accepted broken frontmatter; no "file-edit tools only" writer rule; brief hand-off); 7.6 by design (the kb rule the orchestrator approved invited the mapping; review caught it). The human chose to fix all four now.
+- 2026-10-17 · M6 (walkthrough fixes, one unit `story/walkthrough-fixes`, direct dispatches: the workflow script needs a registered story id): Architect plan `plans/M6.md` (every edit prototyped: 988/988, 0 structural findings); spec amendments fdc6986 (STORY-003-09 R10, STORY-003-08 R4, STORY-006-04 R6/R8/R9/R10/R12, STORY-006-05 R2/R5); QA-Red 1229ddd (3 new red files, 20 red + 2 scope guards; it set `SKIP_SURFACE_GATE=1`, which has no effect here because the surface gate is not wired as a git or Claude hook); Developer d525add (9 files, exactly the plan's surface); QA-Verify PASS; post-flight scan exit 0; merged 2d8d145. 1011/1011 tests, typecheck clean, 0 structural findings. Reinstalled; `wikeeper update` in `walkthrough-wiki` replaced WIKI.md, the wiki-writer and the wiki-ingest skill.
+- 2026-10-17 · Walkthrough ⚠️ items deferred as UR:review-feedback (need the human's sign-off at close): `--help` footer still says commands land in upcoming releases; `ai` mode auto-allows `ingest abort --drop` and `--force-unlock`; `whitelist.origins` format undefined; `kb_instructions.md` never validated; no command lists rule suggestions; every sparse-wiki triage search logs a miss; `--since` without `--limit` stops at 10 with no hint; WIKI.md silent on answering from `project.md`; `architecture.md` §7.3 still says `apply` prints the brief (Gate-4 doc refresh).
 
 ## Goal Acceptance Check (accepted by the human, 2026-10-16)
 
