@@ -6,6 +6,7 @@ export interface LintFinding {
   severity: "info" | "warning" | "error";
   message: string;
   path?: string;
+  line?: number; // additive (STORY-005-02): 1-based line in `path`; path is repository-relative POSIX
 }
 export interface LintHookContext {
   paths: ResolvedPaths;
