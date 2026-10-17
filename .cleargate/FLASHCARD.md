@@ -6,6 +6,7 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-17 · #qa #test-harness · While several worktree suites run, full `npm test` at default workers times out 3-5 git-spawning tests at 5 s; re-run with --maxWorkers=4 before judging.
 2026-10-17 · #qa #red-test · A red row that asserts an empty findings list passes vacuously when the stub errors; assert json.ok first.
 2026-10-17 · #test-harness #init · init seeds .gitkeep in .wiki/raw and .wiki/log; an "empty dir" assertion on an initialised wiki must ignore dotfiles or compare with a before-listing.
 2026-10-17 · #red-test #manifest · update always rewrites manifest.package_version; assert the one manifest entry under test, never the whole manifest, after update.
