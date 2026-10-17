@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 380" width="100%" height="auto" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b0f19"/>
+      <stop offset="50%" stop-color="#111827"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="50%" stop-color="#818cf8"/>
+      <stop offset="100%" stop-color="#34d399"/>
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#0f172a" stop-opacity="0.95"/>
+    </linearGradient>
+    <filter id="glow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#38bdf8" flood-opacity="0.15"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="960" height="380" rx="16" fill="url(#bgGrad)" stroke="#1e293b" stroke-width="2"/>
+
+  <!-- Subtle Grid Lines -->
+  <g stroke="#1e293b" stroke-width="1" opacity="0.45">
+    <line x1="0" y1="76" x2="960" y2="76"/>
+    <line x1="0" y1="152" x2="960" y2="152"/>
+    <line x1="0" y1="228" x2="960" y2="228"/>
+    <line x1="0" y1="304" x2="960" y2="304"/>
+    <line x1="192" y1="0" x2="192" y2="380"/>
+    <line x1="384" y1="0" x2="384" y2="380"/>
+    <line x1="576" y1="0" x2="576" y2="380"/>
+    <line x1="768" y1="0" x2="768" y2="380"/>
+  </g>
+
+  <!-- Header Title & Tagline -->
+  <text x="480" y="48" text-anchor="middle" fill="#f8fafc" font-size="30" font-weight="800" letter-spacing="-0.5">
+    wikeeper
+  </text>
+  <rect x="556" y="27" width="54" height="22" rx="6" fill="#065f46" stroke="#10b981" stroke-width="1"/>
+  <text x="583" y="42" text-anchor="middle" fill="#a7f3d0" font-size="11" font-weight="700" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">v0.3</text>
+
+  <text x="480" y="74" text-anchor="middle" fill="#94a3b8" font-size="14" font-weight="500">
+    The Karpathy-Style LLM Wiki CLI — Persistent, Cited Markdown Memory for AI Coding Agents
+  </text>
+
+  <!-- COLUMN 1: Raw Sources -->
+  <g transform="translate(36, 102)">
+    <rect width="220" height="236" rx="12" fill="url(#cardGrad)" stroke="#334155" stroke-width="1.5"/>
+    <text x="20" y="30" fill="#38bdf8" font-size="12" font-weight="700" letter-spacing="0.8">1. RAW INPUTS</text>
+    <text x="20" y="48" fill="#64748b" font-size="11">Kept immutable in .wiki/raw/</text>
+
+    <!-- Source Pills -->
+    <g transform="translate(16, 64)" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11.5">
+      <rect width="188" height="34" rx="7" fill="#0f172a" stroke="#1e293b"/>
+      <text x="12" y="21" fill="#e2e8f0">📄 q4-roadmap.pdf</text>
+
+      <rect y="42" width="188" height="34" rx="7" fill="#0f172a" stroke="#1e293b"/>
+      <text x="12" y="63" fill="#e2e8f0">📝 architecture.docx</text>
+
+      <rect y="84" width="188" height="34" rx="7" fill="#0f172a" stroke="#1e293b"/>
+      <text x="12" y="105" fill="#e2e8f0">🔗 https://spec.internal/...</text>
+
+      <rect y="126" width="188" height="34" rx="7" fill="#0f172a" stroke="#1e293b"/>
+      <text x="12" y="147" fill="#e2e8f0">💬 "Launch moves to Nov 17"</text>
+    </g>
+  </g>
+
+  <!-- Arrow 1 -> 2 -->
+  <g stroke="#38bdf8" stroke-width="2" fill="none">
+    <line x1="256" y1="220" x2="312" y2="220" stroke-dasharray="4 4"/>
+    <polygon points="316,220 308,215 308,225" fill="#38bdf8" stroke="none"/>
+  </g>
+  <text x="286" y="208" text-anchor="middle" fill="#38bdf8" font-size="10" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">read / start</text>
+
+  <!-- COLUMN 2: wikeeper Gate + AI Agent -->
+  <g transform="translate(320, 102)" filter="url(#glow)">
+    <rect width="316" height="236" rx="12" fill="url(#cardGrad)" stroke="#6366f1" stroke-width="1.8"/>
+    <text x="20" y="30" fill="#818cf8" font-size="12" font-weight="700" letter-spacing="0.8">2. AGENT THINKS · CLI ENFORCES</text>
+    <text x="20" y="48" fill="#94a3b8" font-size="11">Zero API keys · Deterministic 3-phase gate</text>
+
+    <!-- Agent Box -->
+    <rect x="18" y="62" width="280" height="68" rx="8" fill="#1e1b4b" stroke="#4f46e5" stroke-width="1"/>
+    <text x="32" y="83" fill="#c7d2fe" font-size="11.5" font-weight="700">🤖 Your Coding Agent</text>
+    <text x="32" y="100" fill="#a5b4fc" font-size="11">Claude Code · OpenAI Codex · Antigravity</text>
+    <text x="32" y="118" fill="#818cf8" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">Extracts facts · Reconciles contradictions</text>
+
+    <!-- CLI Gate Box -->
+    <rect x="18" y="140" width="280" height="82" rx="8" fill="#091926" stroke="#0284c7" stroke-width="1"/>
+    <text x="32" y="160" fill="#7dd3fc" font-size="11.5" font-weight="700">🛡️ wikeeper CLI Plumbing</text>
+    <g font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10.5" fill="#bae6fd">
+      <text x="32" y="178">✓ Permission gate (ai | ask | whitelist)</text>
+      <text x="32" y="194">✓ Write lock + snapshot rollback</text>
+      <text x="32" y="210">✓ Citation &amp; dropped-fact verification</text>
+    </g>
+  </g>
+
+  <!-- Arrow 2 -> 3 -->
+  <g stroke="#34d399" stroke-width="2" fill="none">
+    <line x1="636" y1="220" x2="692" y2="220" stroke-dasharray="4 4"/>
+    <polygon points="696,220 688,215 688,225" fill="#34d399" stroke="none"/>
+  </g>
+  <text x="666" y="208" text-anchor="middle" fill="#34d399" font-size="10" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">finish / lint</text>
+
+  <!-- COLUMN 3: Living Markdown Wiki -->
+  <g transform="translate(700, 102)">
+    <rect width="224" height="236" rx="12" fill="url(#cardGrad)" stroke="#10b981" stroke-width="1.5"/>
+    <text x="20" y="30" fill="#34d399" font-size="12" font-weight="700" letter-spacing="0.8">3. CITED GIT WIKI</text>
+    <text x="20" y="48" fill="#64748b" font-size="11">Plain Markdown · Obsidian-ready</text>
+
+    <!-- Markdown Preview Card -->
+    <rect x="16" y="62" width="192" height="114" rx="8" fill="#0b1320" stroke="#1e293b"/>
+    <g font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10">
+      <text x="26" y="80" fill="#64748b"># projects/atlas.md</text>
+      <text x="26" y="96" fill="#93c5fd">owner:: [[Ana Kim]]</text>
+      <text x="26" y="112" fill="#93c5fd">status:: in-progress</text>
+      <text x="26" y="132" fill="#e2e8f0">- 2026-10-15 · decided ·</text>
+      <text x="26" y="146" fill="#cbd5e1">  Launch Nov 17.</text>
+      <text x="26" y="160" fill="#34d399">  [[src-2026-10-16-q4]]</text>
+    </g>
+
+    <!-- Search & Lint Footer Badge -->
+    <rect x="16" y="186" width="192" height="36" rx="7" fill="#064e3b" fill-opacity="0.45" stroke="#059669"/>
+    <text x="112" y="208" text-anchor="middle" fill="#a7f3d0" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">wikeeper search · lint · status</text>
+  </g>
+</svg>

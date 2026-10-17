@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 290" width="100%" height="auto" font-family="ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <rect width="960" height="290" rx="14" fill="#0f172a" stroke="#1e293b" stroke-width="2"/>
+
+  <text x="32" y="38" fill="#f8fafc" font-size="16" font-weight="700">The 3-Phase Transactional Ingest Pipeline</text>
+  <text x="32" y="58" fill="#94a3b8" font-size="12.5">Why agents don't hallucinate, overwrite history, or corrupt your Markdown pages</text>
+
+  <!-- Step 1: Register -->
+  <g transform="translate(28, 82)">
+    <rect width="205" height="176" rx="10" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5"/>
+    <rect x="14" y="14" width="68" height="20" rx="4" fill="#0284c7"/>
+    <text x="48" y="28" text-anchor="middle" fill="#f0f9ff" font-size="10.5" font-weight="700">PHASE 1</text>
+    <text x="14" y="54" fill="#f8fafc" font-size="14" font-weight="700">Register &amp; Gate</text>
+    <text x="14" y="74" fill="#38bdf8" font-size="11" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">wikeeper read</text>
+    <text x="14" y="90" fill="#38bdf8" font-size="11" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">wikeeper ingest start</text>
+    <g fill="#cbd5e1" font-size="11.5">
+      <text x="14" y="114">• SHA-256 duplicate check</text>
+      <text x="14" y="132">• Enforce ai / ask / whitelist</text>
+      <text x="14" y="150">• Archive original in raw/</text>
+      <text x="14" y="168">• Match kind rule version</text>
+    </g>
+  </g>
+
+  <!-- Connector 1 -->
+  <polygon points="247,170 237,164 237,176" fill="#64748b"/>
+
+  <!-- Step 2: Triage & Extract -->
+  <g transform="translate(255, 82)">
+    <rect width="205" height="176" rx="10" fill="#1e293b" stroke="#818cf8" stroke-width="1.5"/>
+    <rect x="14" y="14" width="68" height="20" rx="4" fill="#4f46e5"/>
+    <text x="48" y="28" text-anchor="middle" fill="#eef2ff" font-size="10.5" font-weight="700">PHASE 2</text>
+    <text x="14" y="54" fill="#f8fafc" font-size="14" font-weight="700">Triage &amp; Extract</text>
+    <text x="14" y="74" fill="#a5b4fc" font-size="11" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">wikeeper search --no-miss</text>
+    <text x="14" y="90" fill="#a5b4fc" font-size="11" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">wikeeper ingest facts</text>
+    <g fill="#cbd5e1" font-size="11.5">
+      <text x="14" y="114">• Apply kb_instructions.md</text>
+      <text x="14" y="132">• Schema-validate JSON facts</text>
+      <text x="14" y="150">• Tag decided vs tentative</text>
+      <text x="14" y="168">• Log uncovered rule gaps</text>
+    </g>
+  </g>
+
+  <!-- Connector 2 -->
+  <polygon points="474,170 464,164 464,176" fill="#64748b"/>
+
+  <!-- Step 3: Write Phase (Locked) -->
+  <g transform="translate(482, 82)">
+    <rect width="215" height="176" rx="10" fill="#1e293b" stroke="#f59e0b" stroke-width="1.5"/>
+    <rect x="14" y="14" width="110" height="20" rx="4" fill="#d97706"/>
+    <text x="69" y="28" text-anchor="middle" fill="#fffbeb" font-size="10.5" font-weight="700">PHASE 3A · LOCKED</text>
+    <text x="14" y="54" fill="#f8fafc" font-size="14" font-weight="700">Snapshot &amp; Write</text>
+    <text x="14" y="74" fill="#fcd34d" font-size="11" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">wikeeper ingest apply</text>
+    <text x="14" y="90" fill="#94a3b8" font-size="11" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">(agent edits .wiki/pages/)</text>
+    <g fill="#cbd5e1" font-size="11.5">
+      <text x="14" y="114">• Acquire exclusive .lock</text>
+      <text x="14" y="132">• Snapshot existing pages/</text>
+      <text x="14" y="150">• Hook guard unblocks edits</text>
+      <text x="14" y="168">• Flag contradictions::</text>
+    </g>
+  </g>
+
+  <!-- Connector 3 -->
+  <polygon points="711,170 701,164 701,176" fill="#64748b"/>
+
+  <!-- Step 4: Verify & Commit -->
+  <g transform="translate(719, 82)">
+    <rect width="213" height="176" rx="10" fill="#1e293b" stroke="#10b981" stroke-width="1.5"/>
+    <rect x="14" y="14" width="116" height="20" rx="4" fill="#059669"/>
+    <text x="72" y="28" text-anchor="middle" fill="#ecfdf5" font-size="10.5" font-weight="700">PHASE 3B · VERIFY</text>
+    <text x="14" y="54" fill="#f8fafc" font-size="14" font-weight="700">Validate &amp; Index</text>
+    <text x="14" y="74" fill="#6ee7b7" font-size="11" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">wikeeper ingest finish</text>
+    <text x="14" y="90" fill="#fda4af" font-size="10.5" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">(or abort to rollback)</text>
+    <g fill="#cbd5e1" font-size="11.5">
+      <text x="14" y="114">• Refuse dropped fact lines</text>
+      <text x="14" y="132">• Require [[src-...]] citations</text>
+      <text x="14" y="150">• Rebuild index.md &amp; log/</text>
+      <text x="14" y="168">• Stamp SHA-256 page hashes</text>
+    </g>
+  </g>
+</svg>
