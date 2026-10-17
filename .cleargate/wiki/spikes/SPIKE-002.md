@@ -5,8 +5,8 @@ parent: ""
 children: []
 status: "Completed"
 remote_id: ""
-raw_path: ".cleargate/delivery/pending-sync/SPIKE-002_claude_ask_rules_for_flags.md"
-last_ingest: "2026-10-17T09:20:31.543Z"
+raw_path: ".cleargate/delivery/archive/SPIKE-002_claude_ask_rules_for_flags.md"
+last_ingest: "2026-10-17T10:45:49.294Z"
 last_ingest_commit: ""
 repo: "planning"
 ---
@@ -32,7 +32,7 @@ Whether [[STORY-002-09]] can use Claude Code ask rules for the two destructive f
 
 ## 4. Decision Log
 
-[+2,394 bytes not shown — read .cleargate/delivery/pending-sync/SPIKE-002_claude_ask_rules_for_flags.md]
+[+2,394 bytes not shown — read .cleargate/delivery/archive/SPIKE-002_claude_ask_rules_for_flags.md]
 
 ## Blast radius
 Affects: no parent/child refs declared in frontmatter

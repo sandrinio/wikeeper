@@ -5,9 +5,9 @@ parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
 status: Draft
-approved: false
-ambiguity: 🟡 Medium
-context_source: EPIC-005 (approved 2026-10-16) §2 (volatile facts older than a configurable age), §4 (lint.stale_after_days) · SPRINT-03 gate1-decisions.md item 2 (split of STORY-005-03; recommended 2026-10-17, pending Gate 1) and technical call (finding paths) · first drafted as STORY-005-03 R6 (commit 40018c5) · STORY-001-02 R1, R2 (lint.stale_after_days, positive integer, default 30) · verified src/wiki/parse-page.ts, src/search/filters.ts, src/core/config.ts, src/core/dates.ts, src/core/paths.ts · probed read-only against ~/walkthrough-wiki/.wiki (20 pages and their non-final statuses) on 2026-10-17
+approved: true
+ambiguity: 🟢 Low
+context_source: EPIC-005 (approved 2026-10-16) §2 (volatile facts older than a configurable age), §4 (lint.stale_after_days) · SPRINT-03 gate1-decisions.md item 2 (split of STORY-005-03; approved at Gate 1, 2026-10-17) and technical call (finding paths) · first drafted as STORY-005-03 R6 (commit 40018c5) · STORY-001-02 R1, R2 (lint.stale_after_days, positive integer, default 30) · verified src/wiki/parse-page.ts, src/search/filters.ts, src/core/config.ts, src/core/dates.ts, src/core/paths.ts · probed read-only against ~/walkthrough-wiki/.wiki (20 pages and their non-final statuses) on 2026-10-17
 actor: AI coding agent
 complexity_label: L2
 parallel_eligible: n
@@ -82,11 +82,11 @@ As a user whose agent keeps the wiki, I want `wikeeper lint` to warn me when an 
 
 - **Question:** Is `stale-fact` its own story, or does it stay in STORY-005-03 with page hashes, `unlogged-change` and the `finish` hook?
 - **Recommended:** Its own story. It reads only the entity model, shares no file with the hash work except the one registry line, and splitting keeps both stories within the granularity rubric.
-- **Decision:** Split: STORY-005-03 keeps page hashes, `unlogged-change` and the lint hook in `finish`; STORY-005-08 is `stale-fact` (gate1-decisions item 2). — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** Split: STORY-005-03 keeps page hashes, `unlogged-change` and the lint hook in `finish`; STORY-005-08 is `stale-fact` (gate1-decisions item 2). — _approved (human, 2026-10-17, Gate 1)_
 
 - **Question:** What base does the finding's `path` use?
 - **Recommended:** The base STORY-005-02 R3 sets for every finding.
-- **Decision:** Every lint finding's `path` is relative to the repository root, POSIX, and follows `content_dir` (`.wiki/pages/projects/atlas.md`); human output prints `<path>[:<line>]` (R6). — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** Every lint finding's `path` is relative to the repository root, POSIX, and follows `content_dir` (`.wiki/pages/projects/atlas.md`); human output prints `<path>[:<line>]` (R6). — _approved (human, 2026-10-17, Gate 1)_
 
 Decided while drafting (not open): `stale-fact` stays out of `finish`'s hook (§1.3). The final statuses are the list in R3; `approved` is not final, because an approved item still has work ahead. Wikilinks are removed before the date search (R4).
 
@@ -264,7 +264,7 @@ Consumed (frozen): `LintCheck`, `LintContext`, `PAGE_CHECKS`, `pagePath`, `creat
 ---
 
 ## ClearGate Ambiguity Gate (🟢 / 🟡 / 🔴)
-**Current Status: 🟡 Medium Ambiguity**
+**Current Status: 🟢 Low Ambiguity**
 
 *Evaluate each criterion against its literal text. If you substituted an interpretation, leave the box unchecked and surface the substitution in the Brief.*
 
@@ -275,4 +275,4 @@ Requirements to pass to Green (Ready for Execution):
 - [x] Existing Surfaces cites at least one source-tree path or explicitly states "none — net-new."
 - [x] Why not simpler? has both sub-bullets answered (no "TBD" / no "{}").
 
-The §1.4 decisions are recommended, not yet approved: this story stays at 🟡 until the human's Gate 1 approval.
+Gate 1 approved by the human on 2026-10-17: every §1.4 Decision line is approved as recommended.

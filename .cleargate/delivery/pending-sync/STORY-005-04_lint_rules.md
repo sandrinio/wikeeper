@@ -5,9 +5,9 @@ parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
 status: Draft
-approved: false
-ambiguity: 🟡 Medium
-context_source: EPIC-005 (approved 2026-10-16) §2 `lint --rules` · CR-002 C1, lint half (approved 2026-10-16) · CR-003 D3, D4 (approved 2026-10-17) · architecture.md §5.2 (questions are the root), §9 · SPRINT-03 decomposition brief contracts K1, K2 · SPRINT-03 gate1-decisions.md item 15 (recommended 2026-10-17, pending Gate 1) and the repository-relative finding-path call · consistency audit findings 5, 13, 14 · verified src/ingest/permissions.ts, src/core/config.ts, src/commands/doctor.ts, src/ingest/lint-hook.ts, test/doctor.red.node.test.ts, test/setup-files.red.node.test.ts and ~/walkthrough-wiki/.wiki/kb_instructions.md (2026-10-17)
+approved: true
+ambiguity: 🟢 Low
+context_source: EPIC-005 (approved 2026-10-16) §2 `lint --rules` · CR-002 C1, lint half (approved 2026-10-16) · CR-003 D3, D4 (approved 2026-10-17) · architecture.md §5.2 (questions are the root), §9 · SPRINT-03 decomposition brief contracts K1, K2 · SPRINT-03 gate1-decisions.md item 15 (approved at Gate 1, 2026-10-17) and the repository-relative finding-path call · consistency audit findings 5, 13, 14 · verified src/ingest/permissions.ts, src/core/config.ts, src/commands/doctor.ts, src/ingest/lint-hook.ts, test/doctor.red.node.test.ts, test/setup-files.red.node.test.ts and ~/walkthrough-wiki/.wiki/kb_instructions.md (2026-10-17)
 actor: AI coding agent
 complexity_label: L2
 parallel_eligible: n
@@ -100,9 +100,9 @@ As an AI coding agent that proposes rule changes to my user, I want `wikeeper li
 ### 1.4 Open Questions
 
 - **Question:** A source-kind line inside a multi-line HTML comment is still a rule for ingest, because C2 skips only fenced code (`src/ingest/kind-rules.ts:29`–`36`). How do the rules checks treat it?
-- **Decision:** The kinds list stays exactly what C2 returns (STORY-005-01's `kb.kinds`), so `duplicate-rule`, `unknown-entity`, `unknown-field`, `changelog-version-mismatch`, `unknown-whitelist-kind` and the served-question checks count the commented-out line as a rule, as ingest does, and STORY-005-01's `ambiguous-line` issue for it becomes one `ambiguous-line` warning at that line (R2; the commented-kind row of the first scenario) (gate1-decisions item 15) — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** The kinds list stays exactly what C2 returns (STORY-005-01's `kb.kinds`), so `duplicate-rule`, `unknown-entity`, `unknown-field`, `changelog-version-mismatch`, `unknown-whitelist-kind` and the served-question checks count the commented-out line as a rule, as ingest does, and STORY-005-01's `ambiguous-line` issue for it becomes one `ambiguous-line` warning at that line (R2; the commented-kind row of the first scenario) (gate1-decisions item 15) — _approved (human, 2026-10-17, Gate 1)_
 
-- **Decision:** Every lint finding's `path`, page and rules findings alike, is relative to the repository root in POSIX form (`.wiki/pages/people.md`, `.wiki/kb_instructions.md`, `.wiki/config.yml`; content_dir-aware), human output prints `<path>[:<line>]`, and `LintContext.only` stays relative to `pages/` and is input only (R1; orchestrator technical call, gate1-decisions.md) — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** Every lint finding's `path`, page and rules findings alike, is relative to the repository root in POSIX form (`.wiki/pages/people.md`, `.wiki/kb_instructions.md`, `.wiki/config.yml`; content_dir-aware), human output prints `<path>[:<line>]`, and `LintContext.only` stays relative to `pages/` and is input only (R1; orchestrator technical call, gate1-decisions.md) — _approved (human, 2026-10-17, Gate 1)_
 
 Decisions recorded with their rationale (not open):
   - **Severities (R1):** error means ingest or lint would act on something other than what the user approved (an unread line, an unknown target, a second definition); warning means the file still works but has a gap or bloat. On the real acmeworks file this gives exit 0 with one warning (Q4), so `lint --rules` is usable on existing wikis.
@@ -306,7 +306,7 @@ Consumed (frozen elsewhere): K1 `loadInstructions`, `KbInstructions`, `KbIssue` 
 ---
 
 ## ClearGate Ambiguity Gate (🟢 / 🟡 / 🔴)
-**Current Status: 🟡 Medium Ambiguity**
+**Current Status: 🟢 Low Ambiguity**
 
 *Evaluate each criterion against its literal text. If you substituted an interpretation, leave the box unchecked and surface the substitution in the Brief.*
 
@@ -317,4 +317,4 @@ Requirements to pass to Green (Ready for Execution):
 - [x] Existing Surfaces cites at least one source-tree path or explicitly states "none — net-new."
 - [x] Why not simpler? has both sub-bullets answered (no "TBD" / no "{}").
 
-Status stays 🟡 although every box is checked: the §1.4 Decision lines (commented-out kind lines, gate1-decisions item 15; repository-relative finding paths, orchestrator technical call) are recommended answers pending the human's Gate 1 approval.
+Gate 1 approved by the human on 2026-10-17: every §1.4 Decision line is approved as recommended.

@@ -5,9 +5,9 @@ parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
 status: Draft
-approved: false
-ambiguity: 🟡 Medium
-context_source: EPIC-005 (approved 2026-10-16) · CR-003 D1–D3 (approved 2026-10-17) · architecture.md §5.2, §9, D-14, D-31 · SPRINT-03 decomposition brief contract K1 and the orchestrator design call on `note:` and `(dated facts)` · verified src/ingest/kind-rules.ts, src/core/paths.ts, src/commands/ingest-start.ts, templates/kb_instructions.management.md, templates/system/profiles/management.md and ~/walkthrough-wiki/.wiki/kb_instructions.md (2026-10-17) · SPRINT-03 gate1-decisions.md items 12 and 15 (recommended 2026-10-17, pending Gate 1)
+approved: true
+ambiguity: 🟢 Low
+context_source: EPIC-005 (approved 2026-10-16) · CR-003 D1–D3 (approved 2026-10-17) · architecture.md §5.2, §9, D-14, D-31 · SPRINT-03 decomposition brief contract K1 and the orchestrator design call on `note:` and `(dated facts)` · verified src/ingest/kind-rules.ts, src/core/paths.ts, src/commands/ingest-start.ts, templates/kb_instructions.management.md, templates/system/profiles/management.md and ~/walkthrough-wiki/.wiki/kb_instructions.md (2026-10-17) · SPRINT-03 gate1-decisions.md items 12 and 15 (approved at Gate 1, 2026-10-17)
 actor: AI coding agent
 complexity_label: L2
 parallel_eligible: y
@@ -86,9 +86,9 @@ As an AI coding agent that keeps `kb_instructions.md` for its user, I want one p
 ### 1.4 Open Questions
 
 - **Question:** K1 says lines inside HTML comments are ignored "as C2 already does", but C2 skips only fenced code blocks (`src/ingest/kind-rules.ts:29`–`36`; FLASHCARD 2026-10-17 `#kind-rules`). A kind line inside a multi-line `<!-- … -->` is therefore still a rule for `ingest start` and `ingest facts`. What should the parser do with it?
-- **Decision:** `kinds` stays exactly `parseSourceKinds(text)` (K1; C2 is frozen), so lint and status see the rules ingest uses, and the parser adds an `ambiguous-line` issue at each such line ("inside an HTML comment, but ingest still reads it as a source-kind rule; delete it or put it in a code fence"), which `lint --rules` reports (STORY-005-04); questions, entities and notes inside comments stay ignored (R2, R12), and the K1 wording is corrected here rather than C2 changed (gate1-decisions item 15) — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** `kinds` stays exactly `parseSourceKinds(text)` (K1; C2 is frozen), so lint and status see the rules ingest uses, and the parser adds an `ambiguous-line` issue at each such line ("inside an HTML comment, but ingest still reads it as a source-kind rule; delete it or put it in a code fence"), which `lint --rules` reports (STORY-005-04); questions, entities and notes inside comments stay ignored (R2, R12), and the K1 wording is corrected here rather than C2 changed (gate1-decisions item 15) — _approved (human, 2026-10-17, Gate 1)_
 - **Question:** `wikeeper rules record --kind` (STORY-005-06) names a source kind for a source-kind rule; what does it name for a proposal about another section (a new question, entity, capture signal, write-policy line or *Never capture* item)? The kind is part of the fingerprint, so the words must be fixed in one place.
-- **Decision:** One of the section keys this story freezes and exports as `KB_PROPOSAL_SECTION_KEYS` (R3, §3.3): `questions`, `entities`, `capture-signals`, `write-policy`, `never-capture`; `source-kinds` and `rule-changelog` are not proposal targets, since a source-kind proposal names the kind itself (gate1-decisions item 12) — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** One of the section keys this story freezes and exports as `KB_PROPOSAL_SECTION_KEYS` (R3, §3.3): `questions`, `entities`, `capture-signals`, `write-policy`, `never-capture`; `source-kinds` and `rule-changelog` are not proposal targets, since a source-kind proposal names the kind itself (gate1-decisions item 12) — _approved (human, 2026-10-17, Gate 1)_
 
 Decisions recorded with their rationale (not open):
 - **`(dated facts)` and `note:`** are the orchestrator's design call (decomposition brief, 2026-10-17); the rest of the format is what real files already use (`Q1 What…`, `initiative purpose, status, plan → initiatives/<name>.md Q1 Q2 Q5`).
@@ -311,7 +311,7 @@ export function loadInstructions(paths: ResolvedPaths): Promise<{ text: string; 
 ---
 
 ## ClearGate Ambiguity Gate (🟢 / 🟡 / 🔴)
-**Current Status: 🟡 Medium Ambiguity**
+**Current Status: 🟢 Low Ambiguity**
 
 *Evaluate each criterion against its literal text. If you substituted an interpretation, leave the box unchecked and surface the substitution in the Brief.*
 
@@ -322,4 +322,4 @@ Requirements to pass to Green (Ready for Execution):
 - [x] Existing Surfaces cites at least one source-tree path or explicitly states "none — net-new."
 - [x] Why not simpler? has both sub-bullets answered (no "TBD" / no "{}").
 
-Status stays 🟡 although every box is checked: the two §1.4 Decision lines (gate1-decisions items 15 and 12) are recommended answers pending the human's Gate 1 approval.
+Gate 1 approved by the human on 2026-10-17: every §1.4 Decision line is approved as recommended.

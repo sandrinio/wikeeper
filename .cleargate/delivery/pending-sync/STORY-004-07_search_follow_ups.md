@@ -5,9 +5,9 @@ parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
 status: Draft
-approved: false
-ambiguity: 🟡 Medium
-context_source: CR-003 (approved 2026-10-17) §A1–A5 and Open Questions 1 and 4 · SPRINT-03 decomposition brief contract K8, K4 (log.ts order) and shared files · walkthrough rows 7.8, 8.6, 8.10, 8.13, 10.4, 11.6 (walkthrough-wiki, 2026-10-17) · STORY-004-02…05 · SPRINT-03 gate1-decisions.md items 4, 14, 21 (recommended, pending Gate 1) and consistency-audit findings 13, 17 · verified src/commands/search.ts, src/search/misses.ts, src/search/filters.ts, src/search/since.ts, src/search/engine.ts, src/ingest/log.ts, commander 15.0.0 `--no-` option behaviour, and the SPRINT-02 red tests under test/search
+approved: true
+ambiguity: 🟢 Low
+context_source: CR-003 (approved 2026-10-17) §A1–A5 and Open Questions 1 and 4 · SPRINT-03 decomposition brief contract K8, K4 (log.ts order) and shared files · walkthrough rows 7.8, 8.6, 8.10, 8.13, 10.4, 11.6 (walkthrough-wiki, 2026-10-17) · STORY-004-02…05 · SPRINT-03 gate1-decisions.md items 4, 14, 21 (approved at Gate 1, 2026-10-17) and consistency-audit findings 13, 17 · verified src/commands/search.ts, src/search/misses.ts, src/search/filters.ts, src/search/since.ts, src/search/engine.ts, src/ingest/log.ts, commander 15.0.0 `--no-` option behaviour, and the SPRINT-02 red tests under test/search
 actor: AI coding agent
 complexity_label: L2
 parallel_eligible: y
@@ -91,15 +91,15 @@ As an AI coding agent that searches the wiki at triage and to answer questions, 
 
 - **Question:** The SPRINT-02 red test `test/search/search-misses.red.node.test.ts:86` (QA-Red, immutable) asserts that the first line of `search --misses` is exactly `1 recorded miss`. K8's header makes it `1 miss, 1 distinct query`. May this story re-scope that one assertion?
 - **Recommended:** Yes. Re-scope only that `expect(lines[0])` assertion to the K8 header, anchored by its content rather than its line number (flashcard `#qa #red-test`), with your authorisation recorded here, as STORY-006-11 does for `wiki-protocol.red.node.test.ts`. CR-003 A2 already approved the new header. The alternative keeps `N recorded misses` as line 1 and prints `M distinct queries` as a second line, which avoids touching the red test but is not K8's wording. The Developer tests in `test/search/misses.test.ts` (lines 105 and 107) are not immutable and are updated in this story.
-- **Decision:** Yes. Re-scoping the SPRINT-01/02 red tests that SPRINT-03 makes obsolete is authorised as recommended (gate1-decisions item 21): this story's QA-Red step re-scopes only the `expect(lines[0])` assertion at `test/search/search-misses.red.node.test.ts:86` to the K8 header `1 miss, 1 distinct query`, anchored by content; STORY-006-11 R6 lists it in the full table. — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** Yes. Re-scoping the SPRINT-01/02 red tests that SPRINT-03 makes obsolete is authorised as recommended (gate1-decisions item 21): this story's QA-Red step re-scopes only the `expect(lines[0])` assertion at `test/search/search-misses.red.node.test.ts:86` to the K8 header `1 miss, 1 distinct query`, anchored by content; STORY-006-11 R6 lists it in the full table. — _approved (human, 2026-10-17, Gate 1)_
 
 - **Question:** Should `--mark` combine with a text query (`wikeeper search vendor --mark tentative`)?
 - **Recommended:** No, for now (R7 refuses it). CR-003 names `--type`, `--entity` and `--since` only, and a query ranks sections, not fact lines, so there is no clear rule for which fact lines a ranked hit should yield. `--mark tentative --type risk` or `--entity <name> --mark tentative` answer the walkthrough's question. A later story can allow it once a rule is chosen.
-- **Decision:** No. `--mark` refuses a text query (exit 2, `usage`; R7) and combines with `--type`, `--entity` and `--since` (R5). — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** No. `--mark` refuses a text query (exit 2, `usage`; R7) and combines with `--type`, `--entity` and `--since` (R5). — _approved (human, 2026-10-17, Gate 1)_
 
 - **Question:** CR-003 A5 says "`--status` with no results hints at `--mark`". Should the hint fire for every `--status` value, or only for `decided` and `tentative`?
 - **Recommended:** Only for `decided` and `tentative` (R6). Those are the values a user confuses with fact marks (row 11.6a); a hint on `--status open` with no results would be noise. This narrows the CR's literal wording, so it needs your confirmation.
-- **Decision:** Only for `decided` and `tentative` (R6). This narrows CR-003 A5 ("`--status` with no results hints at `--mark`"), and the human was told (flagged for Gate 1). — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** Only for `decided` and `tentative` (R6). This narrows CR-003 A5 ("`--status` with no results hints at `--mark`"), and the human was told (flagged for Gate 1). — _approved (human, 2026-10-17, Gate 1)_
 
 ### 1.5 Risks
 
@@ -324,7 +324,7 @@ Frozen for consumers: the flag names `--no-miss` and `--mark`, the values `decid
 ---
 
 ## ClearGate Ambiguity Gate (🟢 / 🟡 / 🔴)
-**Current Status: 🟡 Medium Ambiguity**
+**Current Status: 🟢 Low Ambiguity**
 
 *Evaluate each criterion against its literal text. If you substituted an interpretation, leave the box unchecked and surface the substitution in the Brief.*
 

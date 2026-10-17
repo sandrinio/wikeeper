@@ -5,9 +5,9 @@ parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
 status: Draft
-approved: false
-ambiguity: 🟡 Medium
-context_source: EPIC-005 (approved 2026-10-16) §2, §5 · CR-002 D1 · CR-003 E2 · architecture.md §7.3 (finish step 5), §8, D-27, D-28 · SPRINT-03 decomposition brief (design call — hash-based unlogged-change with a baseline for pre-SPRINT-03 events; K2, K3) · SPRINT-03 gate1-decisions.md items 2 (split, `stale-fact` → STORY-005-08) and 10, technical calls (finding paths, page hashes) — recommended 2026-10-17, pending Gate 1 · SPRINT-03 consistency-audit.md findings 2, 9, 11, 13 · STORY-003-09 R4, R5, R8 · verified src/ingest/log.ts, src/commands/ingest-finish.ts, src/ingest/snapshot.ts, src/ingest/lock.ts, src/ingest/diff.ts, src/ingest/lint-hook.ts, src/core/gitignore.ts, src/core/paths.ts, src/search/since.ts, test/ingest/finish.test.ts, test/ingest/finish.red.node.test.ts · probed read-only against ~/walkthrough-wiki/.wiki (9 ingest events, 20 pages, every page in an event) on 2026-10-17
+approved: true
+ambiguity: 🟢 Low
+context_source: EPIC-005 (approved 2026-10-16) §2, §5 · CR-002 D1 · CR-003 E2 · architecture.md §7.3 (finish step 5), §8, D-27, D-28 · SPRINT-03 decomposition brief (design call — hash-based unlogged-change with a baseline for pre-SPRINT-03 events; K2, K3) · SPRINT-03 gate1-decisions.md items 2 (split, `stale-fact` → STORY-005-08) and 10, technical calls (finding paths, page hashes) — approved at Gate 1, 2026-10-17 · SPRINT-03 consistency-audit.md findings 2, 9, 11, 13 · STORY-003-09 R4, R5, R8 · verified src/ingest/log.ts, src/commands/ingest-finish.ts, src/ingest/snapshot.ts, src/ingest/lock.ts, src/ingest/diff.ts, src/ingest/lint-hook.ts, src/core/gitignore.ts, src/core/paths.ts, src/search/since.ts, test/ingest/finish.test.ts, test/ingest/finish.red.node.test.ts · probed read-only against ~/walkthrough-wiki/.wiki (9 ingest events, 20 pages, every page in an event) on 2026-10-17
 actor: AI coding agent
 complexity_label: L3
 parallel_eligible: n
@@ -123,11 +123,11 @@ As a user whose agent writes the wiki, I want lint to tell me when a page change
 
 - **Question:** After a git merge that combines two ingests' edits to one page (team use, D-28), the merged page matches neither recorded hash. `unlogged-change` then reports it as an error until an ingest updates that page, and that ingest's `finish` reports it once more (R5). Accept this for SPRINT-03?
 - **Recommended:** Yes. Keep `error`. The human works in one clone today, and the finding names the last ingest and its log file, so a merged page is easy to recognise. Accepting a merge is a follow-up, for example a `merge` log event written by `index rebuild` after a pull; doing it now would also accept real shell writes. Making the check a `warning` would keep merges from failing `lint`, but shell writes would then no longer set exit 1.
-- **Decision:** Yes. After a git merge combines two ingests' edits to one page, `lint` reports `unlogged-change` (error) until the next ingest updates that page; WIKI.md explains it (STORY-006-09, §1.3). — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** Yes. After a git merge combines two ingests' edits to one page, `lint` reports `unlogged-change` (error) until the next ingest updates that page; WIKI.md explains it (STORY-006-09, §1.3). — _approved (human, 2026-10-17, Gate 1)_
 
 - **Question:** Is a page hash taken over the raw bytes, or over the text with line endings and a BOM normalised?
 - **Recommended:** Normalised (R1). A Windows checkout with `core.autocrlf` rewrites line endings, so raw-byte hashes would report every page.
-- **Decision:** Page hashes ignore line endings and a leading BOM: `pageHash` is the sha256 of the UTF-8 text after removing a leading BOM and changing CRLF to LF (R1). — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** Page hashes ignore line endings and a leading BOM: `pageHash` is the sha256 of the UTF-8 text after removing a leading BOM and changing CRLF to LF (R1). — _approved (human, 2026-10-17, Gate 1)_
 
 Decided while drafting (not open): private pages are never judged (R2). The check judges an open write phase as of apply, which is also what makes the `finish` hook useful (R4, R5). `FINISH_CHECKS` is a subset of the page checks, without `stale-fact` (R5). STORY-005-02's tests stay green through an ingest event recorded by its fixture helper, not by rewriting its assertions (R8).
 
@@ -331,7 +331,7 @@ Consumed (frozen): `runLint`, `PAGE_CHECKS`, `LintCheck`, `LintContext`, `pagePa
 ---
 
 ## ClearGate Ambiguity Gate (🟢 / 🟡 / 🔴)
-**Current Status: 🟡 Medium Ambiguity**
+**Current Status: 🟢 Low Ambiguity**
 
 *Evaluate each criterion against its literal text. If you substituted an interpretation, leave the box unchecked and surface the substitution in the Brief.*
 
@@ -342,4 +342,4 @@ Requirements to pass to Green (Ready for Execution):
 - [x] Existing Surfaces cites at least one source-tree path or explicitly states "none — net-new."
 - [x] Why not simpler? has both sub-bullets answered (no "TBD" / no "{}").
 
-The §1.4 decisions are recommended, not yet approved: this story stays at 🟡 until the human's Gate 1 approval.
+Gate 1 approved by the human on 2026-10-17: every §1.4 Decision line is approved as recommended.

@@ -5,8 +5,8 @@ parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
 status: Draft
-approved: false
-ambiguity: 🟡 Medium
+approved: true
+ambiguity: 🟢 Low
 context_source: EPIC-003 (approved 2026-10-16; §2 `read` bullet — DOCX via mammoth → turndown + GFM, PDF via unpdf, "likely scanned"; §2 out of scope — OCR, `.doc`, `.pptx`, `.xlsx`; §1 `read` metric) · architecture.md §7.7, D-20 · SPRINT-03 decomposition brief (human decisions 2026-10-17, contract K7) · STORY-003-10 (dispatcher, `Converted`, `withHeader`, `UNSUPPORTED_HINTS`, test server, module trace) · verified src/search/engine.ts, src/core/exit-codes.ts, ./package.json, ./.gitattributes, test/e2e/pack.ts, test/fixtures/hooks/SOURCES.md · mammoth 1.13.0, @joplin/turndown-plugin-gfm 1.0.68, turndown-plugin-gfm 1.0.2, unpdf 1.9.0 checked on npm and in their published sources 2026-10-17 · SPIKE-001 (the human's Georgian and English PDF and DOCX files, letters-based scanned rule, 32 MB on disk, Node 22.12, 24 and 25, import cost) · SPRINT-03 gate1-decisions.md 2026-10-17 (decisions 7, 8; package.json order) · SPRINT-03 consistency-audit.md 2026-10-17 (findings 7, 10, 13)
 actor: AI coding agent
 complexity_label: L3
@@ -106,11 +106,11 @@ As an AI coding agent handed a Word document or a PDF, I want `wikeeper read` to
   - The agent can read the PDF itself when a table matters (Claude Code reads PDFs natively).
 
   The alternative is a GFM table when at least 3 consecutive lines split into the same number (≥ 2) of items whose left edges match within 2 pt, on pages with one text column. That is more code, and more bounce risk on real PDFs.
-- **Decision:** No table detection in PDFs: each table row becomes one line with its cells in order; EPIC-003's "tables preserved" holds for DOCX and HTML (R3; Gate 1 decision 7) — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** No table detection in PDFs: each table row becomes one line with its cells in order; EPIC-003's "tables preserved" holds for DOCX and HTML (R3; Gate 1 decision 7) — _approved (human, 2026-10-17, Gate 1)_
 
 - **Question (Q2):** How does "likely scanned" decide that a page has almost no text? The first draft counted non-whitespace characters (fewer than 25 per page). [[SPIKE-001]] round 3 found a real deck, the human's sample presentation, whose Georgian text is drawn as shapes. Its pages still carry 23–128 non-space characters of Latin words, digits and punctuation, so the character rule does not flag it, and the agent would ingest a deck with no Georgian text.
 - **Recommended:** Count letters (`\p{L}`). A page with fewer than 25 letters is near-empty, and the warning fires when at least half the pages are near-empty. In SPIKE-001 this flags the deck (9–21 letters on 10 of 11 pages) and none of the five text PDFs. The agent then reads the PDF itself.
-- **Decision:** "Likely scanned" counts letters (`\p{L}`): fewer than 25 letters on at least half the pages; for a PDF the agent runs `read` first and reads the PDF itself when `read` warns `likely_scanned` (R3; Gate 1 decision 8) — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** "Likely scanned" counts letters (`\p{L}`): fewer than 25 letters on at least half the pages; for a PDF the agent runs `read` first and reads the PDF itself when `read` warns `likely_scanned` (R3; Gate 1 decision 8) — _approved (human, 2026-10-17, Gate 1)_
 
 Already decided; cited, not reopened:
 - The libraries: mammoth, turndown + a GFM tables plugin, unpdf (human, 2026-10-17).
@@ -385,7 +385,7 @@ All transitive licenses are permissive (MIT, BSD-2-Clause, `MIT OR GPL-3.0-or-la
 ---
 
 ## ClearGate Ambiguity Gate (🟢 / 🟡 / 🔴)
-**Current Status: 🟡 Medium Ambiguity**
+**Current Status: 🟢 Low Ambiguity**
 
 *Evaluate each criterion against its literal text. If you substituted an interpretation, leave the box unchecked and surface the substitution in the Brief.*
 
@@ -396,4 +396,4 @@ Requirements to pass to Green (Ready for Execution):
 - [x] Existing Surfaces cites at least one source-tree path or explicitly states "none — net-new."
 - [x] Why not simpler? has both sub-bullets answered (no "TBD" / no "{}").
 
-Open: §1.4 Q1 (PDF tables and how EPIC-003's "tables preserved" metric applies to PDF, Gate 1 decision 7) and Q2 (the letters-based "likely scanned" rule, decision 8) carry recommended decisions that await the human's Gate 1 approval. The draft follows them.
+Gate 1 approved by the human on 2026-10-17: every §1.4 Decision line is approved as recommended.

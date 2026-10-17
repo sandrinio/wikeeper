@@ -5,8 +5,8 @@ parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
 status: Draft
-approved: false
-ambiguity: 🟡 Medium
+approved: true
+ambiguity: 🟢 Low
 context_source: SPRINT-03 gate1-decisions.md 2026-10-17 (split 4, which moves R13 out of STORY-005-05; decision 17 as revised 2026-10-17; decision 21; technical call on rule order and the SETUP.md order 002-09 → 003-10 → 005-09) · split from STORY-005-05 R13, §1.4 Q2 and Q3 (2026-10-17) · EPIC-005 (approved 2026-10-16) §2 · CR-001 (no mode allows a broad rule) · STORY-004-02 R9 (the `search` allow rule in every mode, the pattern this story follows) · STORY-002-09 (the `ai`-mode ask and prompt rules, `removeEnforce` on `update`, `test/agents/rule-match.ts`) · STORY-003-10 R10 (the `read` rules) · verified src/agents/enforce/claude.ts, src/agents/enforce/codex.ts, src/agents/enforce/index.ts, src/program.ts, templates/system/SETUP.md, test/templates/structure.ts, test/templates.test.ts, test/templates.red.node.test.ts, test/templates/setup.red.node.test.ts, test/agents/enforce.test.ts, test/agents/enforce-ai-rules.red.node.test.ts, test/agents/enforce.red.node.test.ts, test/search/search.red.node.test.ts, test/doctor-reporting.red.node.test.ts at 40018c5 · Claude Code permissions docs and Codex rules docs as cited in STORY-002-09 (fetched 2026-10-17)
 actor: AI coding agent
 complexity_label: L2
@@ -80,15 +80,15 @@ As an AI coding agent working in a wiki with `enforce` on, I want my harness to 
 
 - **Question (Q1):** STORY-005-05 carried these rules as R13. That gave it a second goal in another subsystem (the enforce writers, SETUP.md and their red tests) and complexity L3. Split them out?
 - **Recommended:** Split. STORY-005-05 keeps the `status` command; this story takes the rules with the same predecessors, plus STORY-005-05 for the `status` command the rules name.
-- **Decision:** Split: STORY-005-05 keeps `status`; STORY-005-09 takes the read-only allow rules for `lint`, `status` and `rules list` (Gate 1 split 4, added 2026-10-17) — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** Split: STORY-005-05 keeps `status`; STORY-005-09 takes the read-only allow rules for `lint`, `status` and `rules list` (Gate 1 split 4, added 2026-10-17) — _approved (human, 2026-10-17, Gate 1)_
 
 - **Question (Q2):** Gate 1 decision 17 gives the read-only `lint`, `status` and `rules list` allow rules in every permission mode, like `search`. The template checker rejects a rule for an unregistered command (`test/templates/structure.ts:157-160`), so the rules cannot land before all three commands exist. Which story adds them, and which rules?
 - **Recommended:** This story, after STORY-005-02, STORY-005-05 and STORY-005-06: the six Claude `permissions.allow` rules of R1 and the six Codex `allow` lines of R2 in every mode, built from `READ_ONLY_COMMANDS`, and nothing for `rules record`, which writes a log event. Putting them in STORY-002-09 would make STORY-002-09 and then STORY-003-10 wait for EPIC-005; weakening the checker would let a rule for a missing command pass.
-- **Decision:** This story adds the allow rules for `lint`, `status` and `rules list` in every permission mode (Claude `permissions.allow`, Codex `prefix_rule … allow`) from one exported `READ_ONLY_COMMANDS` list, last in each mode's rule order, with none for `rules record`; STORY-002-09 depends on no EPIC-005 story (Gate 1 decision 17, revised 2026-10-17) — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** This story adds the allow rules for `lint`, `status` and `rules list` in every permission mode (Claude `permissions.allow`, Codex `prefix_rule … allow`) from one exported `READ_ONLY_COMMANDS` list, last in each mode's rule order, with none for `rules record`; STORY-002-09 depends on no EPIC-005 story (Gate 1 decision 17, revised 2026-10-17) — _approved (human, 2026-10-17, Gate 1)_
 
 - **Question (Q3):** The six rules fail SPRINT-01/02 red tests that pin the exact rule lists in all three modes (§3.1, "Re-scoped red tests"). A red test changes only with the human's authorisation. May this story's QA-Red step re-scope them?
 - **Recommended:** Yes. Edit by test name, on the tree merged with STORY-002-09 and STORY-003-10, only to add the six rules at their R4 positions, and change no other assertion. Leaving them failing blocks the sprint; dropping them loses CR-001's guard that no mode allows a broad rule. The list includes `test/templates/setup.red.node.test.ts:353` (S5), whose `missing [...]` text for the `ai` row's `permissions.allow` gains the six rules after STORY-003-10's version, and the `ask` and `whitelist` assertions that no other story touches.
-- **Decision:** Re-scoping is authorised as recommended: this story's QA-Red edits exactly the assertions listed in §3.1, only by adding the six read-only rules at their R4 positions, and STORY-006-11 R6 (h) lists them (Gate 1 decision 21) — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** Re-scoping is authorised as recommended: this story's QA-Red edits exactly the assertions listed in §3.1, only by adding the six read-only rules at their R4 positions, and STORY-006-11 R6 (h) lists them (Gate 1 decision 21) — _approved (human, 2026-10-17, Gate 1)_
 
 Already decided; cited, not reopened: the rule order of R4 and the order of edits to the enforce files and the SETUP.md step-4 table, 002-09 → 003-10 → 005-09, then the SETUP.md text stories 006-10 and 006-12 (orchestrator technical calls, gate1-decisions.md).
 
@@ -290,7 +290,7 @@ Consumed (frozen): `CLAUDE_ENFORCE`, `CODEX_ENFORCE` and their item identities (
 ---
 
 ## ClearGate Ambiguity Gate (🟢 / 🟡 / 🔴)
-**Current Status: 🟡 Medium Ambiguity**
+**Current Status: 🟢 Low Ambiguity**
 
 *Evaluate each criterion against its literal text. If you substituted an interpretation, leave the box unchecked and surface the substitution in the Brief.*
 
@@ -301,4 +301,4 @@ Requirements to pass to Green (Ready for Execution):
 - [x] Existing Surfaces cites at least one source-tree path or explicitly states "none — net-new."
 - [x] Why not simpler? has both sub-bullets answered (no "TBD" / no "{}").
 
-Status stays 🟡 although every box is checked: the §1.4 Decision lines (Q1, the split, Gate 1 split 4; Q2, the owner and the rules, decision 17 as revised; Q3, the red-test re-scope, decision 21) are recommended answers pending the human's Gate 1 approval.
+Gate 1 approved by the human on 2026-10-17: every §1.4 Decision line is approved as recommended.

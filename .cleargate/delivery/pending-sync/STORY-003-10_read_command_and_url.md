@@ -5,8 +5,8 @@ parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
 status: Draft
-approved: false
-ambiguity: 🟡 Medium
+approved: true
+ambiguity: 🟢 Low
 context_source: EPIC-003 (approved 2026-10-16; §0 `read` objective, §2 `read` and CR-002 C2 bullets, §3 Network and Dependencies rows, §1 `read` metric) · architecture.md §7.6, §7.7, §10, D-20 · CR-002 C2 · CR-001 · SPRINT-03 decomposition brief (human decisions 2026-10-17, `--out` design call, contracts K7 and K9) · verified src/program.ts, src/commands/ingest-start.ts, src/agents/enforce/claude.ts, src/agents/enforce/codex.ts, src/core/output.ts, src/core/exit-codes.ts, src/core/paths.ts, src/search/engine.ts, templates/system/SETUP.md, ./package.json, test/e2e/pack.ts · linkedom 0.18.13, defuddle 0.19.5, turndown 7.2.4 checked on npm 2026-10-17 · SPRINT-03 gate1-decisions.md 2026-10-17 (decisions 5, 6, 8, 21; decision 17 as revised 2026-10-17 and split 4, which put the read-only allow rules in STORY-005-09; technical calls on rule order, package.json order and src/program.ts merge order) · SPRINT-03 consistency-audit.md 2026-10-17 (findings 9, 10, 12, 13) · SPIKE-001 (real pages, install size, Node versions, import cost) · verified test/agents/enforce-ai-rules.red.node.test.ts, test/agents/enforce.red.node.test.ts, test/agents/enforce.test.ts, test/templates/setup.red.node.test.ts at 40018c5
 actor: AI coding agent
 complexity_label: L3
@@ -193,15 +193,15 @@ As an AI coding agent given a link or a document I can't read well myself, I wan
   - not inside the wiki's content directory.
 
   This follows CR-001's rule that an auto-allowed command must not be able to damage the user's files. Agents use a fresh name for each read, in the system temp directory (§1.3 hands this text to STORY-006-09). The alternative is to overwrite like `curl -o`, which is simpler but turns the `ai`-mode allow rule into an unprompted write to any path.
-- **Decision:** `--out` creates new `.md` / `.txt` files only: never an existing file, never `AGENTS.md`, `CLAUDE.md` or `GEMINI.md`, no path segment starting with a dot, nothing inside the wiki's content directory, and the file is created with the `wx` flag (R8; Gate 1 decision 5) — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** `--out` creates new `.md` / `.txt` files only: never an existing file, never `AGENTS.md`, `CLAUDE.md` or `GEMINI.md`, no path segment starting with a dot, nothing inside the wiki's content directory, and the file is created with the `wx` flag (R8; Gate 1 decision 5) — _approved (human, 2026-10-17, Gate 1)_
 
 - **Question (Q2):** Should the markdown carry the title, author and date, or should they appear only in `--json`?
 - **Recommended:** Add a header (R5): `# <title>` unless the body already starts with that heading, then `Author: … · Date: …` with the known parts. An agent using `--out` gets the file only, and `raw/<id>.md` should keep what the page said about itself; the date matters for dated facts. `--json` still returns the three fields separately, and `markdown` is the same text in all three outputs.
-- **Decision:** The markdown starts with `# <title>` unless the body already opens with that heading, then `Author: … · Date: …` with only the known parts; `--json` keeps `title`, `author` and `date` as separate fields (R5; Gate 1 decision 6) — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** The markdown starts with `# <title>` unless the body already opens with that heading, then `Author: … · Date: …` with only the known parts; `--json` keeps `title`, `author` and `date` as separate fields (R5; Gate 1 decision 6) — _approved (human, 2026-10-17, Gate 1)_
 
 - **Question (Q3):** May this story's QA-Red step re-scope the SPRINT-01/02 red-test assertions that pin the exact `ai`-mode rule lists (§3.1, "Re-scoped red tests")? They were written before `read` existed and fail once the read rules are added, and a red test changes only with the human's authorisation.
 - **Recommended:** Yes. Edit by test name, only to add the read pair at its R10 position, on the tree merged with STORY-002-09, and change no other assertion. The alternative, leaving them failing, blocks the sprint; dropping them loses CR-001's guard that `ai` mode allows no broad rule.
-- **Decision:** Re-scoping is authorised as recommended: this story's QA-Red edits exactly the assertions listed in §3.1, only to add the read rules, and STORY-006-11 R6 lists them, including `test/templates/setup.red.node.test.ts:353` (Gate 1 decision 21) — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** Re-scoping is authorised as recommended: this story's QA-Red edits exactly the assertions listed in §3.1, only to add the read rules, and STORY-006-11 R6 lists them, including `test/templates/setup.red.node.test.ts:353` (Gate 1 decision 21) — _approved (human, 2026-10-17, Gate 1)_
 
 Already decided; cited, not reopened:
 - The dependencies, "only `read` uses the network", the 20 s timeout, the 10 MB cap and "tests never use the internet" (human, 2026-10-17, decomposition brief).
@@ -563,7 +563,7 @@ All transitive licenses are permissive (MIT, ISC, BSD-2-Clause, `MIT OR GPL-3.0-
 ---
 
 ## ClearGate Ambiguity Gate (🟢 / 🟡 / 🔴)
-**Current Status: 🟡 Medium Ambiguity**
+**Current Status: 🟢 Low Ambiguity**
 
 *Evaluate each criterion against its literal text. If you substituted an interpretation, leave the box unchecked and surface the substitution in the Brief.*
 
@@ -574,4 +574,4 @@ Requirements to pass to Green (Ready for Execution):
 - [x] Existing Surfaces cites at least one source-tree path or explicitly states "none — net-new."
 - [x] Why not simpler? has both sub-bullets answered (no "TBD" / no "{}").
 
-Open: §1.4 Q1 (`--out` safety, Gate 1 decision 5), Q2 (metadata header, decision 6) and Q3 (red-test re-scope, decision 21) carry recommended decisions that await the human's Gate 1 approval. The draft follows them.
+Gate 1 approved by the human on 2026-10-17: every §1.4 Decision line is approved as recommended.

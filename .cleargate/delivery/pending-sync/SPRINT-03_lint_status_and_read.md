@@ -50,6 +50,7 @@ draft_tokens:
 - **Release:** the sprint sets the package version to `0.3.0`; publishing to npm is a separate step the human approves after Gate 4.
 - **Walkthrough part 3 (Goal check):** headless, in `~/walkthrough-wiki`, after execution and before Gate 4. Run as a real user, not as a test (human, 2026-10-17): no walkthrough framing and no logging request in the prompts; plain product-management requests in the human's voice that never name a wikeeper command or WIKI.md; facts mentioned in passing, to see whether the agent records them unprompted; a fresh session per task; some permission prompts declined. The orchestrator keeps the notes table (`wikeeper-test-notes-sprint-03.md`) from the transcripts, the wiki log and the files. Any PDF on the machine may be used for `read`. The real knowledge base comes from the `~/product_repo` ClearGate wiki; the human will use wikeeper for product management, so the walkthrough also asks questions of that kind.
 - **CR-003:** approved with all five recommended answers (`--no-miss`, dropped fact lines refused at `finish`, `ai` mode prompts for `abort --drop` and `apply --force-unlock`, `search --mark`, `--version` build stamp).
+- **Gate 1 (stories):** all 20 stories approved as revised, with every decision in `.cleargate/sprint-runs/SPRINT-03/plans/gate1-decisions.md` (human, 2026-10-17). Decisions 14 (`search --mark`, the `--status` hint narrowed) and 16 (Codex prompts for every `abort`; `apply --force-unlock` stays allowed) change CR-003 as approved.
 
 ## 0. Stakeholder Brief
 
@@ -72,7 +73,7 @@ Items selected for this sprint. Each is decomposed into stories at planning time
 | `EPIC-003` | Epic | Ingest pipeline: `read` | no | Archived after SPRINT-02 without `read`. `read` keeps the next EPIC-003 ids (decided at SPRINT-02 planning), with CR-002 C2 (its `ai`-mode allow rule). |
 | `CR-003` | CR | SPRINT-02 walkthrough feedback | n/a | Items A–F go into stories under EPIC-001…006. Approved 2026-10-17. |
 
-**Story set (20, drafted; Gate 1 pending):**
+**Story set (20; Gate 1 approved 2026-10-17):**
 
 <!-- cleargate:ignore-ids -->
 | Proposed story | Title | Source |

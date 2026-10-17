@@ -5,9 +5,9 @@ parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
 status: Draft
-approved: false
-ambiguity: 🟡 Medium
-context_source: CR-003 E1–E10 and Open Question 2 (approved 2026-10-17) · STORY-003-12 R1–R3 and §1.3 (dropped fact lines; the WIKI.md and writer text it hands to this story) · SPRINT-03 Gate 1 decisions 3, 9, 18, 19, 21 (plans/gate1-decisions.md; recommended 2026-10-17, pending Gate 1) and consistency-audit findings 3, 9, 18 · CR-002 D1 (lint is the shell-write backstop) · split from the first draft of STORY-006-10 (its Group B) · gate1-decisions technical call on the SETUP.md order (002-09 → 003-10 → 005-09 → 006-10 / 006-12) · SPRINT-02 walkthrough notes, walkthrough-wiki (rows 0.9a, 0.9b, 1.2, 2.4, 7.1, 7.15, 7.17, 8.9, 10.3, 11.4, 11.20, 11.26, 11.27a–c) · verified templates/system/{WIKI,SETUP,ONBOARDING}.md, templates/system/templates/me.md, templates/skills/wiki-ingest/SKILL.md, templates/agents/*/wiki-{extractor,writer}.*, src/agents/enforce/index.ts, src/wiki/parse-page.ts, src/ingest/validate.ts, test/templates/*.red.node.test.ts, test/templates/structure.ts
+approved: true
+ambiguity: 🟢 Low
+context_source: CR-003 E1–E10 and Open Question 2 (approved 2026-10-17) · STORY-003-12 R1–R3 and §1.3 (dropped fact lines; the WIKI.md and writer text it hands to this story) · SPRINT-03 Gate 1 decisions 3, 9, 18, 19, 21 (plans/gate1-decisions.md; approved at Gate 1, 2026-10-17) and consistency-audit findings 3, 9, 18 · CR-002 D1 (lint is the shell-write backstop) · split from the first draft of STORY-006-10 (its Group B) · gate1-decisions technical call on the SETUP.md order (002-09 → 003-10 → 005-09 → 006-10 / 006-12) · SPRINT-02 walkthrough notes, walkthrough-wiki (rows 0.9a, 0.9b, 1.2, 2.4, 7.1, 7.15, 7.17, 8.9, 10.3, 11.4, 11.20, 11.26, 11.27a–c) · verified templates/system/{WIKI,SETUP,ONBOARDING}.md, templates/system/templates/me.md, templates/skills/wiki-ingest/SKILL.md, templates/agents/*/wiki-{extractor,writer}.*, src/agents/enforce/index.ts, src/wiki/parse-page.ts, src/ingest/validate.ts, test/templates/*.red.node.test.ts, test/templates/structure.ts
 actor: AI coding agent (main agent or sub-agent) operating the wiki
 complexity_label: L2
 parallel_eligible: n
@@ -91,19 +91,19 @@ CR-003's five decisions and the brief's design calls are settled and not reopene
 
 - **Question:** Q1. CR-003 E10b asks SETUP.md to say how to turn `enforce` off, but today `wikeeper update` with `enforce: false` keeps wikeeper's hook and rules for every configured agent (`src/agents/enforce/index.ts:199`). What does SETUP.md say?
 - **Recommended:** STORY-002-09 makes `update` remove them; SETUP.md then names the two steps (R12).
-- **Decision:** `update` with `enforce: false` removes wikeeper's hook and rules from each agent's settings (owner STORY-002-09); SETUP.md says "set `enforce: false` in `.wiki/config.yml` and run `wikeeper update`" — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** `update` with `enforce: false` removes wikeeper's hook and rules from each agent's settings (owner STORY-002-09); SETUP.md says "set `enforce: false` in `.wiki/config.yml` and run `wikeeper update`" — _approved (human, 2026-10-17, Gate 1)_
 
 - **Question:** Q2. CR-003 E9 says extra preferences go "under an `## Other` section" of `me.md`. A literal `## Other` line in the template fails the SPRINT-02 schema check (`test/templates/onboarding.red.node.test.ts:47`). Where does the rule live?
 - **Recommended:** In the template's single-line guidance comment and ONBOARDING.md step 4 (R10).
-- **Decision:** The rule lives in the template's guidance comment, not as a literal `## Other` heading — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** The rule lives in the template's guidance comment, not as a literal `## Other` heading — _approved (human, 2026-10-17, Gate 1)_
 
 - **Question:** Q3. Does a fact line corrected in place (a date or a word fixed) count as dropped, so the writer text must say "add a new line, keep the old"?
 - **Recommended:** Yes (R4), as STORY-003-12 R1 builds it.
-- **Decision:** `finish` treats a fact line corrected in place as dropped: the writer adds the new line and keeps the old one; deleting a whole page stays allowed, and the check is per updated page — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** `finish` treats a fact line corrected in place as dropped: the writer adds the new line and keeps the old one; deleting a whole page stays allowed, and the check is per updated page — _approved (human, 2026-10-17, Gate 1)_
 
 - **Question:** Q4. R11 changes the ONBOARDING step-2 string that `test/templates/onboarding.red.node.test.ts:145` pins. May this story's QA-Red apply STORY-006-11 R6 (e)?
 - **Recommended:** Yes; this story is the one whose text needs it.
-- **Decision:** Authorised as recommended: the QA-Red step of the story that first needs a re-scope makes it; this story applies R6 (e), and STORY-006-11 verifies it — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** Authorised as recommended: the QA-Red step of the story that first needs a re-scope makes it; this story applies R6 (e), and STORY-006-11 verifies it — _approved (human, 2026-10-17, Gate 1)_
 
 ### 1.5 Risks
 
@@ -269,13 +269,13 @@ Not applicable — template text. Consumes read-only: the `finish` refusal and `
 ---
 
 ## ClearGate Ambiguity Gate (🟢 / 🟡 / 🔴)
-**Current Status: 🟡 Medium Ambiguity**
+**Current Status: 🟢 Low Ambiguity**
 
 *Evaluate each criterion against its literal text. If you substituted an interpretation, leave the box unchecked and surface the substitution in the Brief.*
 
 Requirements to pass to Green (Ready for Execution):
 - [x] Gherkin scenarios completely cover all detailed requirements in §1.2.
 - [x] Implementation Guide (§3) maps to specific, verified file paths from the approved Epic and verified codebase grounding.
-- [x] No "TBDs" exist anywhere in the specification or technical logic. (None; the §1.4 decisions are recommended answers awaiting Gate 1, which is why the status stays 🟡.)
+- [x] No "TBDs" exist anywhere in the specification or technical logic. (None; the §1.4 decisions were approved at Gate 1 on 2026-10-17.)
 - [x] Existing Surfaces cites at least one source-tree path or explicitly states "none — net-new."
 - [x] Why not simpler? has both sub-bullets answered (no "TBD" / no "{}").

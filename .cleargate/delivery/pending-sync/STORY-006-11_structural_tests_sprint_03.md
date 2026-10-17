@@ -5,9 +5,9 @@ parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
 status: Draft
-approved: false
-ambiguity: 🟡 Medium
-context_source: "EPIC-006 §1 success metric (every command the content mentions exists in wikeeper --help) and §5 · STORY-006-06 (structural checks R1–R9, test/templates/structure.ts) · SPRINT-03 Gate 1 decisions 3, 17 (owner STORY-005-09, split 4), 21 (plans/gate1-decisions.md; recommended 2026-10-17, pending Gate 1) and consistency-audit findings 1, 12, 18 and its red-test table · STORY-002-09 R7 (the `*` wildcard rule in structure.ts) · SPRINT-03 decomposition brief (commands and flags at the end of SPRINT-03; contracts K1, K2, K4–K9; shared files: 006-11 last) · CR-002 (14-line cap) · flashcard 2026-10-17 #enforce #qa (the story that breaks a red test re-scopes it in its QA-Red) · verified test/templates/structure.ts, test/templates.test.ts, test/templates.red.node.test.ts, test/templates/{wiki-protocol,setup,onboarding,profile}.red.node.test.ts, test/agents/enforce-ai-rules.red.node.test.ts, test/agents/enforce.red.node.test.ts, test/search/search-misses.red.node.test.ts, src/program.ts, src/agents/enforce/{claude,codex}.ts at 40018c5"
+approved: true
+ambiguity: 🟢 Low
+context_source: "EPIC-006 §1 success metric (every command the content mentions exists in wikeeper --help) and §5 · STORY-006-06 (structural checks R1–R9, test/templates/structure.ts) · SPRINT-03 Gate 1 decisions 3, 17 (owner STORY-005-09, split 4), 21 (plans/gate1-decisions.md; approved at Gate 1, 2026-10-17) and consistency-audit findings 1, 12, 18 and its red-test table · STORY-002-09 R7 (the `*` wildcard rule in structure.ts) · SPRINT-03 decomposition brief (commands and flags at the end of SPRINT-03; contracts K1, K2, K4–K9; shared files: 006-11 last) · CR-002 (14-line cap) · flashcard 2026-10-17 #enforce #qa (the story that breaks a red test re-scopes it in its QA-Red) · verified test/templates/structure.ts, test/templates.test.ts, test/templates.red.node.test.ts, test/templates/{wiki-protocol,setup,onboarding,profile}.red.node.test.ts, test/agents/enforce-ai-rules.red.node.test.ts, test/agents/enforce.red.node.test.ts, test/search/search-misses.red.node.test.ts, src/program.ts, src/agents/enforce/{claude,codex}.ts at 40018c5"
 actor: Maintainer changing wikeeper's templates or commands
 complexity_label: L2
 parallel_eligible: n
@@ -111,11 +111,11 @@ As a maintainer, I want the structural template tests to know the SPRINT-03 comm
 
 - **Question:** Q1. Authorise the SPRINT-03 edits to older red tests in R6? They change assertions written to fail on SPRINT-03 commands (`wikeeper lint` in S5), to pin the SPRINT-02 section and command lists, ONBOARDING's old code span, the exact SPRINT-02 rule lists and the misses header.
 - **Recommended:** Authorise. Each edit replaces a SPRINT-02 assumption with its SPRINT-03 equivalent and keeps the test's purpose: S5 still proves an unknown command fails, with `wikeeper publish`; the section, command and rule lists still pin exact sets. No assertion is deleted.
-- **Decision:** Re-scoping the SPRINT-01/02 red tests that SPRINT-03 makes obsolete is authorised as recommended; R6 holds the full table, including STORY-003-10's `test/templates/setup.red.node.test.ts:353` edit and STORY-002-09's enforce edits — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** Re-scoping the SPRINT-01/02 red tests that SPRINT-03 makes obsolete is authorised as recommended; R6 holds the full table, including STORY-003-10's `test/templates/setup.red.node.test.ts:353` edit and STORY-002-09's enforce edits — _approved (human, 2026-10-17, Gate 1)_
 
 - **Question:** Q2. The edits must be in place before the text or code that needs them merges, but this story runs last. Who applies them?
 - **Recommended:** The QA-Red step of the story that first needs each edit, as R6's last column says; each lists the files in its §3.1. This story owns the table and verifies the result (same pattern as STORY-006-02's QA-Red re-scoping `test/template-loader.red.node.test.ts` for SPRINT-02, and flashcard 2026-10-17 `#enforce #qa`).
-- **Decision:** Each edit is made by the QA-Red step of the story that first needs it and is listed in that story; STORY-006-10 makes (a) and (b), STORY-006-12 (e), STORY-006-09 (c) and (d), and this story verifies all of R6 — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** Each edit is made by the QA-Red step of the story that first needs it and is listed in that story; STORY-006-10 makes (a) and (b), STORY-006-12 (e), STORY-006-09 (c) and (d), and this story verifies all of R6 — _approved (human, 2026-10-17, Gate 1)_
 
 ### 1.5 Risks
 
@@ -287,13 +287,13 @@ Not applicable — test code only. New exports of `test/templates/structure.ts`:
 ---
 
 ## ClearGate Ambiguity Gate (🟢 / 🟡 / 🔴)
-**Current Status: 🟡 Medium Ambiguity**
+**Current Status: 🟢 Low Ambiguity**
 
 *Evaluate each criterion against its literal text. If you substituted an interpretation, leave the box unchecked and surface the substitution in the Brief.*
 
 Requirements to pass to Green (Ready for Execution):
 - [x] Gherkin scenarios completely cover all detailed requirements in §1.2.
 - [x] Implementation Guide (§3) maps to specific, verified file paths from the approved Epic and verified codebase grounding.
-- [x] No "TBDs" exist anywhere in the specification or technical logic. (None; R6 waits for the Gate 1 authorisation recorded in §1.4, which is why the status stays 🟡.)
+- [x] No "TBDs" exist anywhere in the specification or technical logic. (None; the R6 authorisation in §1.4 was approved at Gate 1 on 2026-10-17.)
 - [x] Existing Surfaces cites at least one source-tree path or explicitly states "none — net-new."
 - [x] Why not simpler? has both sub-bullets answered (no "TBD" / no "{}").

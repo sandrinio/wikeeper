@@ -5,9 +5,9 @@ parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
 status: Draft
-approved: false
-ambiguity: 🟡 Medium
-context_source: EPIC-005 (approved 2026-10-16) §2, §4 (rule-proposal events), §5 (rejected-proposal scenario) · architecture.md §9 (rejected → logged so it isn't offered again), D-14, D-28 · SPRINT-03 decomposition brief contract K4 (and K5, the consumer) · verified src/ingest/log.ts, src/ingest/kind-rules.ts, src/ingest/registry.ts, src/ingest/source-id.ts, src/ingest/diff.ts, src/program.ts, test/ingest/log.test.ts · SPRINT-03 gate1-decisions.md item 12 (recommended 2026-10-17, pending Gate 1), item 17 (owner STORY-005-09) and the `src/program.ts` merge-order call (revised 2026-10-17)
+approved: true
+ambiguity: 🟢 Low
+context_source: EPIC-005 (approved 2026-10-16) §2, §4 (rule-proposal events), §5 (rejected-proposal scenario) · architecture.md §9 (rejected → logged so it isn't offered again), D-14, D-28 · SPRINT-03 decomposition brief contract K4 (and K5, the consumer) · verified src/ingest/log.ts, src/ingest/kind-rules.ts, src/ingest/registry.ts, src/ingest/source-id.ts, src/ingest/diff.ts, src/program.ts, test/ingest/log.test.ts · SPRINT-03 gate1-decisions.md item 12 (approved at Gate 1, 2026-10-17), item 17 (owner STORY-005-09) and the `src/program.ts` merge-order call (revised 2026-10-17)
 actor: AI coding agent
 complexity_label: L2
 parallel_eligible: y
@@ -93,7 +93,7 @@ As an AI coding agent that proposes `kb_instructions.md` changes, I want each ac
 ### 1.4 Open Questions
 
 - **Question:** What does `--kind` name for a proposal that is not about a source kind, such as a new *Never capture* line, a new question or a new entity? K4 normalises `kind` with `normalizeKindId`, which suggests a source kind, but architecture.md §9 also lists *Never capture* proposals (the "salary" example). The fingerprint includes the kind, so agents must use the same word every time.
-- **Decision:** A source-kind id for a source-kind rule (not checked against `kb_instructions.md`), otherwise one of the section keys STORY-005-01 freezes for non-kind proposals, `questions`, `entities`, `capture-signals`, `write-policy`, `never-capture` (`KB_PROPOSAL_SECTION_KEYS`; revised from the singular list, since the kind is part of the fingerprint); `source-kinds` and `rule-changelog` are refused (R2, R5), and WIKI.md documents the keys (STORY-006-10 R7) (gate1-decisions item 12) — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** A source-kind id for a source-kind rule (not checked against `kb_instructions.md`), otherwise one of the section keys STORY-005-01 freezes for non-kind proposals, `questions`, `entities`, `capture-signals`, `write-policy`, `never-capture` (`KB_PROPOSAL_SECTION_KEYS`; revised from the singular list, since the kind is part of the fingerprint); `source-kinds` and `rule-changelog` are refused (R2, R5), and WIKI.md documents the keys (STORY-006-10 R7) (gate1-decisions item 12) — _approved (human, 2026-10-17, Gate 1)_
 
 ### 1.5 Risks
 
@@ -277,7 +277,7 @@ Event written to `log/` (frontmatter, key order from `orderedFields`, `src/inges
 ---
 
 ## ClearGate Ambiguity Gate (🟢 / 🟡 / 🔴)
-**Current Status: 🟡 Medium Ambiguity**
+**Current Status: 🟢 Low Ambiguity**
 
 *Evaluate each criterion against its literal text. If you substituted an interpretation, leave the box unchecked and surface the substitution in the Brief.*
 
@@ -288,4 +288,4 @@ Requirements to pass to Green (Ready for Execution):
 - [x] Existing Surfaces cites at least one source-tree path or explicitly states "none — net-new."
 - [x] Why not simpler? has both sub-bullets answered (no "TBD" / no "{}").
 
-Status stays 🟡 although every box is checked: the §1.4 Decision line (what `--kind` names, gate1-decisions item 12) is a recommended answer pending the human's Gate 1 approval.
+Gate 1 approved by the human on 2026-10-17: every §1.4 Decision line is approved as recommended.
