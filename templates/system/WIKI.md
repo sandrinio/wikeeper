@@ -35,18 +35,19 @@ Run `wikeeper ingest start <path|url|->` for each source. The CLI stores the ori
 
 ## Write phase
 
-One source at a time.
+One source at a time. A `wiki-writer` works from the facts file and the brief in its task (section "Brief").
 
-1. Run `wikeeper ingest apply <id>`. It takes the lock and prints the facts and the brief. A lock held by another ingest: wait or ask the user. `--force-unlock` is for stale locks only.
+1. Run `wikeeper ingest apply <id>`. It takes the lock and prints the brief's `ingest` line and the facts. A lock held by another ingest: wait or ask the user. `--force-unlock` is for stale locks only.
 2. Reconcile each fact against the existing pages as new, confirms, updates or contradicts, and resolve aliases to the entity they name.
 3. Create new pages in the shapes of section "Page format", with the page names and entity types listed under Entities in `.wiki/kb_instructions.md`.
 4. Only `sources/<id>.md` starts from `.wiki/system/templates/source.md`.
 5. End every claim with the citation `[[<id>]]`.
 6. Flag a contradiction with both sources; never overwrite the earlier fact.
 7. Write nothing outside `pages/`.
-8. Run `wikeeper ingest finish <id>` and show the user its report. The report holds metadata only.
+8. Write and edit pages only with your file-edit tools: Write or Edit in Claude Code, `apply_patch` in Codex, `write_to_file` or `replace_file_content` in Antigravity. Never write a page from the shell: no redirection, heredoc or `sed`.
+9. Run `wikeeper ingest finish <id>` and show the user its report. The report holds metadata only.
 
-If `finish` fails, fix the pages it names and rerun it, or run `wikeeper ingest abort <id>` (`--drop` also deletes the registered source). Pages never change outside this phase. If `wikeeper ingest` cannot run, write nothing and tell the user.
+If `finish` fails, fix the pages it names and rerun it, or run `wikeeper ingest abort <id>` (`--drop` also deletes the registered source). Once `finish` exits 0 the ingest is closed: change nothing under `pages/`; a fix needs a new ingest. Pages never change outside this phase. If `wikeeper ingest` cannot run, write nothing and tell the user.
 
 ## Facts file
 
@@ -93,7 +94,7 @@ If `finish` fails, fix the pages it names and rerun it, or run `wikeeper ingest 
 
 ## Brief
 
-The brief tells the writer what the extractor learned from the user. It has four lines, always in this order: `ingest` (the id and the facts file), `user said` (what the user said about the source), `resolved` (names the user resolved to entities) and `focus` (what to capture and what to ignore).
+The main agent writes the brief into the writer's task when it hands over the write phase: it carries what the user said, which the facts file does not hold. It has four lines, always in this order: `ingest` (the id and the facts file), `user said` (what the user said about the source), `resolved` (names the user resolved to entities) and `focus` (what to capture and what to ignore). `wikeeper ingest apply` prints only the `ingest` line; no command takes the other three. A main agent that writes the pages itself needs no brief.
 
 ```text
 ingest:    src-2026-10-16-q4-status   facts: raw/src-2026-10-16-q4-status.facts.json
@@ -104,7 +105,7 @@ focus:     dates and owners; ignore the budget appendix
 
 ## Page format
 
-Every page starts with frontmatter: `type`, `title`, `summary`, `aliases`, `sources` and `updated`. Below it are two layers.
+Every page starts with frontmatter: `type`, `title`, `summary`, `aliases`, `sources` and `updated`. It must be valid YAML, or `wikeeper ingest finish` refuses the page: quote a value that contains `: `, as in `summary: "Atlas: the portal relaunch"`. Below it are two layers.
 
 - Summary: rewritten on every ingest so it is true today.
 - Facts: one dated line each, marked `decided` or `tentative`, with a citation. A replaced fact stays in the list; the newer line carries the change.
@@ -174,7 +175,7 @@ status:: monitoring
 | Link | the main agent fetches the text; `wiki-extractor` or the main agent extracts | `wiki-writer`, or the main agent |
 
 - `wiki-extractor` (small tier) extracts and submits facts and never writes pages.
-- `wiki-writer` (medium tier) gets the brief and the facts file path — facts, not sources — and runs `wikeeper ingest apply`, writes the pages, and runs `wikeeper ingest finish`.
+- `wiki-writer` (medium tier) gets the brief, which the main agent writes into its task, and the facts file path — facts, not sources — and runs `wikeeper ingest apply`, writes the pages, and runs `wikeeper ingest finish`.
 - When `ingest.delegate` is `never`, or the agent cannot delegate, the main agent runs both phases itself, with the same steps and the same facts file.
 
 ## Ambient offers
@@ -189,7 +190,7 @@ On approval, run `wikeeper ingest start -` with the excerpt on stdin, then conti
 
 - `--type <type>`: only entities of that type.
 - `--where key=value`: filter on a typed link value; repeatable.
-- `--status <status>`: only `decided` or `tentative` facts.
+- `--status <status>`: only entities whose `status::` link, or whose page frontmatter `status`, has that value, such as `open`. It does not filter facts by `decided` or `tentative`.
 - `--entity <name>`: a name or an alias; returns the entity, its facts, its backlinks and other matches. Not combined with a query or filters.
 - `--since <date>`: YYYY-MM-DD or an ISO date-time; dated facts and pages changed by an ingest.
 - `--misses`: list the queries that found nothing.
