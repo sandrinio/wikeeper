@@ -21,9 +21,10 @@ const SECTIONS = [
   "Search",
   "Answering questions",
   "Proposing rule changes",
+  "Lint and status",
   "Log and index",
 ];
-const COMMANDS = new Set(["init", "update", "remove", "doctor", "setup", "hook", "ingest", "index", "search"]);
+const COMMANDS = new Set(["init", "update", "remove", "doctor", "setup", "hook", "ingest", "index", "search", "read", "lint", "status", "rules"]);
 const VERBS = new Set(["start", "plan", "facts", "apply", "finish", "abort"]);
 
 async function readWiki(): Promise<string> {
@@ -71,7 +72,7 @@ function splitSections(text: string): { headings: string[]; sections: Section[] 
   return { headings: sections.map((s) => s.name), sections };
 }
 
-/** Every `wikeeper <word>` and `wikeeper ingest <verb>` that is outside the SPRINT-02 vocabulary. */
+/** Every `wikeeper <word>` and `wikeeper ingest <verb>` that is outside the SPRINT-03 vocabulary. */
 function checkVocabulary(text: string): Array<{ ref: string; line: number }> {
   const out: Array<{ ref: string; line: number }> = [];
   text.split("\n").forEach((l, i) => {
@@ -128,7 +129,7 @@ const TERMS: Array<[string, string[]]> = [
 ];
 
 describe("STORY-006-04 S1: every section exists, in order, with its required terms", () => {
-  it("has exactly the thirteen sections in order", async () => {
+  it("has exactly the fourteen sections in order", async () => {
     expect(splitSections(await readWiki()).headings).toEqual(SECTIONS);
   });
 
@@ -138,7 +139,7 @@ describe("STORY-006-04 S1: every section exists, in order, with its required ter
   });
 });
 
-describe("STORY-006-04 S2: one SPRINT-02 vocabulary and the right phase order", () => {
+describe("STORY-006-04 S2: one SPRINT-03 vocabulary and the right phase order", () => {
   it("every wikeeper reference is in the vocabulary", async () => {
     const text = await readWiki();
     expect(text.length).toBeGreaterThan(200);
@@ -239,12 +240,12 @@ describe("STORY-006-04 S4: delegation covers every ingest case and the fallback"
   });
 });
 
-describe("STORY-006-04 S5: a SPRINT-03 command fails the vocabulary check", () => {
-  it("names wikeeper lint and its line number", async () => {
-    const text = (await readWiki()) + "Run `wikeeper lint` after every ingest.\n";
+describe("STORY-006-04 S5: a command that does not exist fails the vocabulary check", () => {
+  it("names wikeeper publish and its line number", async () => {
+    const text = (await readWiki()) + "Run `wikeeper publish` after every ingest.\n";
     const lines = text.split("\n");
-    const n = lines.findIndex((l) => l.includes("wikeeper lint")) + 1;
-    expect(checkVocabulary(text)).toEqual([{ ref: "wikeeper lint", line: n }]);
+    const n = lines.findIndex((l) => l.includes("wikeeper publish")) + 1;
+    expect(checkVocabulary(text)).toEqual([{ ref: "wikeeper publish", line: n }]);
   });
 
   it("flags a bad ingest verb", () => {

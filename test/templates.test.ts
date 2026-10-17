@@ -4,6 +4,10 @@ import os from "node:os";
 import path from "node:path";
 import { templatesDir } from "../src/core/templates.js";
 import {
+  checkCommands,
+  checkCoverage,
+  checkKbSeeds,
+  checkLintIds,
   checkSections,
   classifyWikiPath,
   commandTree,
@@ -32,6 +36,11 @@ describe("reference extractor", () => {
     expect(extractCommandRefs("a.toml", toml)).toEqual([
       { line: 3, words: ["ingest", "apply"], flags: [] },
       { line: 3, words: ["search"], flags: ["--misses"] },
+    ]);
+  });
+  it("marks a '*' where the subcommand would be as a wildcard reference", () => {
+    expect(extractCommandRefs("a.md", "`Bash(wikeeper ingest *--drop*)`")).toEqual([
+      { line: 1, words: ["ingest"], flags: ["--drop"], wildcard: true },
     ]);
   });
   it("turns a Codex prefix_rule into the words it matches and skips placeholders", () => {
@@ -106,6 +115,126 @@ describe("structural checks", () => {
     await writeFile(setup, `${text.endsWith("\n") ? text : `${text}\n`}\`wikeeper ingest publish <id>\`\n`);
     const findings = await runAllChecks(copy, await doctorCheckIds());
     expect(findings.some((f) => f.file === "system/SETUP.md" && f.message.includes("ingest publish"))).toBe(true);
+  }, 60_000);
+});
+
+describe("wildcard references (copy-mutation)", () => {
+  async function withLine(line: string) {
+    const copy = await mkdtemp(path.join(os.tmpdir(), "wikeeper-tpl-"));
+    copies.push(copy);
+    await cp(dir, copy, { recursive: true });
+    const setup = path.join(copy, "system", "SETUP.md");
+    const text = (await readFile(setup, "utf8")).replace(/\r\n/g, "\n");
+    await writeFile(setup, `${text.endsWith("\n") ? text : `${text}\n`}${line}\n`);
+    return checkCommands(copy);
+  }
+  it("passes *--drop* and reports *--nope* naming --nope", async () => {
+    expect(await withLine("`Bash(wikeeper ingest *--drop*)`")).toEqual([]);
+    const bad = await withLine("`Bash(wikeeper ingest *--nope*)`");
+    expect(bad.some((f) => f.message.includes("--nope"))).toBe(true);
+  }, 60_000);
+});
+
+describe("rules naming an unregistered subcommand (copy-mutation)", () => {
+  it("reports 'unknown subcommand \"rules lists\"' on the ask row, and the restored copy is clean", async () => {
+    const copy = await mkdtemp(path.join(os.tmpdir(), "wikeeper-tpl-"));
+    copies.push(copy);
+    await cp(dir, copy, { recursive: true });
+    const setup = path.join(copy, "system", "SETUP.md");
+    const original = (await readFile(setup, "utf8")).replace(/\r\n/g, "\n");
+    const mutated = original
+      .split("\n")
+      .map((l) => (l.startsWith("| `ask` |") ? l.replace("Bash(wikeeper rules list *)", "Bash(wikeeper rules lists *)") : l))
+      .join("\n");
+    expect(mutated).not.toBe(original);
+    const rowLine = mutated.split("\n").findIndex((l) => l.startsWith("| `ask` |")) + 1;
+    await writeFile(setup, mutated);
+    const ids = await doctorCheckIds();
+    const bad = await runAllChecks(copy, ids);
+    expect(bad.some((f) => f.file === "system/SETUP.md" && f.line === rowLine && f.message.includes('unknown subcommand "rules lists"'))).toBe(true);
+    await writeFile(setup, original);
+    expect(await runAllChecks(copy, ids)).toEqual([]);
+  }, 60_000);
+});
+
+describe("SPRINT-03 structural checks (STORY-006-11)", () => {
+  async function copyWith(file: string, edit: (text: string) => string): Promise<{ copy: string; text: string }> {
+    const copy = await mkdtemp(path.join(os.tmpdir(), "wikeeper-tpl-"));
+    copies.push(copy);
+    await cp(dir, copy, { recursive: true });
+    const target = path.join(copy, ...file.split("/"));
+    const original = (await readFile(target, "utf8")).replace(/\r\n/g, "\n");
+    const text = edit(original);
+    await writeFile(target, text);
+    return { copy, text };
+  }
+  const appended = (lines: string[]) => (t: string) => `${t.endsWith("\n") ? t : `${t}\n`}${lines.join("\n")}\n`;
+
+  it("the command tree has the SPRINT-03 commands, subcommands and options", () => {
+    const tree = commandTree();
+    for (const c of ["read", "lint", "status", "rules"]) expect(tree.commands.has(c), c).toBe(true);
+    expect([...tree.commands.get("rules")!.subcommands.keys()].sort()).toEqual(["list", "record"]);
+    expect([...tree.commands.get("search")!.options]).toEqual(expect.arrayContaining(["--no-miss", "--mark"]));
+    expect([...tree.commands.get("lint")!.options]).toEqual(expect.arrayContaining(["--rules", "--check"]));
+    expect([...tree.commands.get("read")!.options]).toContain("--out");
+    expect([...tree.commands.get("ingest")!.subcommands.get("facts")!]).toContain("--dry-run");
+    expect([...tree.commands.get("rules")!.subcommands.get("record")!].sort()).toEqual(["--accepted", "--from", "--kind", "--rejected", "--summary"]);
+  });
+
+  it("checkCoverage names the one form whose last mention was removed", async () => {
+    const { copy, text } = await copyWith("system/WIKI.md", (t) => t.replaceAll(" --dry-run`", "`"));
+    expect(text).not.toContain(" --dry-run`");
+    const all = await checkCoverage(copy);
+    expect(all.filter((f) => f.message.includes("ingest facts --dry-run"))).toEqual([
+      { file: "templates/", line: 0, message: '"wikeeper ingest facts --dry-run" is named by no template' },
+    ]);
+  }, 60_000);
+
+  it("checkLintIds reads both lint --check forms and the finding form", async () => {
+    const { copy, text } = await copyWith(
+      "system/SETUP.md",
+      appended(["`wikeeper lint --check nope-a`", "`wikeeper lint --rules --check nope-b`", "The `nope-c` finding.", "`wikeeper lint --check stale-fact`"]),
+    );
+    const first = text.split("\n").length - 5;
+    const found = await checkLintIds(copy, await doctorCheckIds());
+    expect(found).toEqual([
+      { file: "system/SETUP.md", line: first + 1, message: 'check "nope-a" is not registered in lint or doctor' },
+      { file: "system/SETUP.md", line: first + 2, message: 'check "nope-b" is not registered in lint or doctor' },
+      { file: "system/SETUP.md", line: first + 3, message: 'check "nope-c" is not registered in lint or doctor' },
+    ]);
+  }, 60_000);
+
+  it("the finding table is compared as a set: reordered rows pass", async () => {
+    const { copy } = await copyWith("system/WIKI.md", (t) => {
+      const lines = t.split("\n");
+      const start = lines.findIndex((l) => l.startsWith("| Finding |")) + 2;
+      let end = start;
+      while (end < lines.length && lines[end]!.startsWith("|")) end++;
+      return [...lines.slice(0, start), ...lines.slice(start, end).reverse(), ...lines.slice(end)].join("\n");
+    });
+    expect((await checkLintIds(copy, await doctorCheckIds())).filter((f) => f.message.startsWith("finding table:"))).toEqual([]);
+  }, 60_000);
+
+  it("a wrong id and a repeated id in the finding table are named", async () => {
+    const ids = await doctorCheckIds();
+    const wrong = await copyWith("system/WIKI.md", (t) => t.replace("| `orphan-page` |", "| `dead-link` |"));
+    expect(wrong.text).toContain("| `dead-link` |");
+    const wrongMessages = (await checkLintIds(wrong.copy, ids)).map((f) => f.message);
+    expect(wrongMessages).toContain('finding table: no row for "orphan-page"');
+    expect(wrongMessages).toContain('finding table: "dead-link" is not a page check');
+    const dup = await copyWith("system/WIKI.md", (t) => t.replace("| `orphan-page` |", "| `broken-link` |"));
+    const dupMessages = (await checkLintIds(dup.copy, ids)).map((f) => f.message);
+    expect(dupMessages).toContain('finding table: no row for "orphan-page"');
+    expect(dupMessages).toContain('finding table: "broken-link" has more than one row');
+  }, 60_000);
+
+  it("checkKbSeeds reports a malformed question in a seed copy with its line", async () => {
+    const { copy, text } = await copyWith("kb_instructions.management.md", (t) => t.replace("## Entities", "Q1\n\n## Entities"));
+    const line = text.split("\n").indexOf("Q1") + 1;
+    expect(line).toBeGreaterThan(0);
+    expect(await checkKbSeeds(copy)).toEqual([
+      { file: "kb_instructions.management.md", line, message: "malformed-question: Q1 has no question text" },
+    ]);
   }, 60_000);
 });
 

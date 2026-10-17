@@ -13,9 +13,10 @@ import { createLineReader } from "./ask-agents.js";
 import { createAskAgents } from "./ask-agents.js";
 import { detectAgentFiles, needsInputError, resolveAgents, resolveTargets } from "./detect.js";
 import type { AgentFile, AgentSource } from "./detect.js";
-import { AGENT_CHECKS, readBlockSignature } from "./doctor-checks.js";
+import { AGENT_CHECKS, blockTargets, readBlockSignature, wiringSummary } from "./doctor-checks.js";
 import type { AgentCheckInput, BlockSignature } from "./doctor-checks.js";
-import { injectIntoFile, stripFromFile } from "./inject.js";
+import { injectIntoFile, refreshInFile, stripFromFile } from "./inject.js";
+import { SHIPPED_BLOCKS } from "./shipped-blocks.js";
 import { SHARED_AGENT, upsertManifestEntry } from "./skills.js";
 import { installAgentAssets } from "./subagents.js";
 import { snapshotForRollback } from "./rollback.js";
@@ -129,6 +130,22 @@ async function stripBlockEntry(ctx: IntegrationContext, e: ManifestEntry, a: Acc
   else a.warnings.push(`${e.path} has WIKI:START without WIKI:END; left unchanged`);
 }
 
+/** update only: replace each manifest block that is exactly a shipped block (Gate 1 decision 23); never write any other. */
+async function refreshBlocks(ctx: IntegrationContext, a: Acc): Promise<void> {
+  const entries = ctx.options.manifest.files.filter((f) => f.kind === "block");
+  if (entries.length === 0) return;
+  const block = await loadBlock(ctx);
+  for (const e of entries) {
+    const { status } = await refreshInFile(fromPosixRelative(ctx.root, e.path), block, SHIPPED_BLOCKS);
+    if (status === "refreshed") a.replaced.push(`${e.path}#wiki-block`);
+    else if (status === "edited") {
+      a.warnings.push(
+        `${e.path}: WIKI block was edited, so update left it unchanged; to get the current block, delete it from its WIKI:START line to its WIKI:END line and run wikeeper init`,
+      );
+    } else if (status === "not-utf8") a.warnings.push(`${e.path} is not valid UTF-8; WIKI block left unchanged`);
+  }
+}
+
 function depth(p: string): number {
   return p.split("/").length;
 }
@@ -190,6 +207,8 @@ async function pruneDeconfigured(
   const targets = new Set(resolveTargets(agents, existing).map((t) => t.path as string));
   for (const e of [...manifest.files]) {
     if (e.kind !== "block" || targets.has(e.path)) continue;
+    // a file that is gone has no block to strip: no warning, and the entry stays so doctor keeps reporting it (R5)
+    if (!(await lstatOrNull(fromPosixRelative(ctx.root, e.path)))) continue;
     await stripBlockEntry(ctx, e, a);
     dropEntry(ctx, e);
   }
@@ -294,6 +313,7 @@ async function update(ctx: IntegrationContext): Promise<PhaseReport> {
   const existing = await detectAgentFiles(ctx.root);
   await pruneDeconfigured(ctx, agents, existing, a);
   await installAssets(ctx, agents, a);
+  await refreshBlocks(ctx, a);
   const state: AgentsState = { agents, lines: null };
   for (const ext of AGENTS_EXTENSIONS) merge(a, await ext.update?.(ctx, state));
   return a;
@@ -356,7 +376,7 @@ async function doctor(ctx: IntegrationContext): Promise<DoctorCheck[]> {
     out.unshift({
       id: "agent-wiring",
       severity: "ok",
-      message: `agents ${agents.join(", ")}: WIKI block in ${n("block")} files, ${n("skill")} skills, ${n("subagent")} sub-agents`,
+      message: wiringSummary(agents, blockTargets(input), n("skill"), n("subagent")),
     });
   }
   return out;

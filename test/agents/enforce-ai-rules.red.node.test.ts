@@ -42,6 +42,37 @@ const SEARCH_CODEX = [
   'prefix_rule(pattern=["npx","wikeeper","search"], decision="allow")',
   'prefix_rule(pattern=["wikeeper","search"], decision="allow")',
 ];
+const READ_CLAUDE = ["Bash(npx wikeeper read *)", "Bash(wikeeper read *)"];
+const READ_CODEX = [
+  'prefix_rule(pattern=["npx","wikeeper","read"], decision="allow")',
+  'prefix_rule(pattern=["wikeeper","read"], decision="allow")',
+];
+const READ_ONLY_CLAUDE = [
+  "Bash(npx wikeeper lint *)",
+  "Bash(wikeeper lint *)",
+  "Bash(npx wikeeper status *)",
+  "Bash(wikeeper status *)",
+  "Bash(npx wikeeper rules list *)",
+  "Bash(wikeeper rules list *)",
+];
+const READ_ONLY_CODEX = [
+  'prefix_rule(pattern=["npx","wikeeper","lint"], decision="allow")',
+  'prefix_rule(pattern=["wikeeper","lint"], decision="allow")',
+  'prefix_rule(pattern=["npx","wikeeper","status"], decision="allow")',
+  'prefix_rule(pattern=["wikeeper","status"], decision="allow")',
+  'prefix_rule(pattern=["npx","wikeeper","rules","list"], decision="allow")',
+  'prefix_rule(pattern=["wikeeper","rules","list"], decision="allow")',
+];
+const ASK_CLAUDE = [
+  "Bash(npx wikeeper ingest *--drop*)",
+  "Bash(wikeeper ingest *--drop*)",
+  "Bash(npx wikeeper ingest *--force-unlock*)",
+  "Bash(wikeeper ingest *--force-unlock*)",
+];
+const PROMPT_CODEX = [
+  'prefix_rule(pattern=["npx","wikeeper","ingest","abort"], decision="prompt")',
+  'prefix_rule(pattern=["wikeeper","ingest","abort"], decision="prompt")',
+];
 const sorted = (xs: readonly string[]): string[] => [...xs].sort();
 
 beforeEach(async () => {
@@ -124,7 +155,7 @@ describe("CR-001 outline: init --enforce with permission ai writes only ingest a
     const r = await drive(root, ["init", "--json", "--agents", "claude", "--enforce", "--yes"]);
     expect(r.code).toBe(0);
     const s = await readJson(root, ".claude/settings.json");
-    expect(sorted(s.permissions.allow)).toEqual(sorted([...NARROW_CLAUDE, ...SEARCH_CLAUDE]));
+    expect(sorted(s.permissions.allow)).toEqual(sorted([...NARROW_CLAUDE, ...READ_CLAUDE, ...SEARCH_CLAUDE, ...READ_ONLY_CLAUDE]));
     for (const cmd of REMOVE_CMDS) {
       for (const rule of s.permissions.allow as string[]) expect(claudeMatches(rule, cmd)).toBe(false);
     }
@@ -136,7 +167,7 @@ describe("CR-001 outline: init --enforce with permission ai writes only ingest a
     const r = await drive(root, ["init", "--json", "--agents", "codex", "--enforce", "--yes"]);
     expect(r.code).toBe(0);
     const lines = await ruleLines(root);
-    expect(sorted(lines)).toEqual(sorted([...NARROW_CODEX, ...SEARCH_CODEX]));
+    expect(sorted(lines)).toEqual(sorted([...NARROW_CODEX, ...PROMPT_CODEX, ...READ_CODEX, ...SEARCH_CODEX, ...READ_ONLY_CODEX]));
     for (const line of lines) {
       const pat = codexPattern(line);
       expect(isPrefix(pat, ["wikeeper", "remove"])).toBe(false);
@@ -178,10 +209,10 @@ describe("CR-001: update replaces old broad rules with the narrow ones (red)", (
     const u = await drive(root, ["update", "--json"]);
     expect(u.code).toBe(0);
     const after = await readJson(root, ".claude/settings.json");
-    expect(sorted(after.permissions.allow)).toEqual(sorted([...NARROW_CLAUDE, ...SEARCH_CLAUDE]));
+    expect(sorted(after.permissions.allow)).toEqual(sorted([...NARROW_CLAUDE, ...READ_CLAUDE, ...SEARCH_CLAUDE, ...READ_ONLY_CLAUDE]));
     expect(after.model).toBe("opus");
     expect(after.permissions.deny).toEqual(["Read(./.env)"]);
-    expect(sorted(await ruleLines(root))).toEqual(sorted([...NARROW_CODEX, ...SEARCH_CODEX]));
+    expect(sorted(await ruleLines(root))).toEqual(sorted([...NARROW_CODEX, ...PROMPT_CODEX, ...READ_CODEX, ...SEARCH_CODEX, ...READ_ONLY_CODEX]));
     const identities = (await readJson(root, mpath)).files.map((f: any) => String(f.identity ?? ""));
     expect(identities.some((i: string) => i.includes("wikeeper *]"))).toBe(false);
     for (const line of OLD_CODEX) expect(identities).not.toContain(line);
@@ -195,15 +226,15 @@ describe("CR-001: ask and whitelist are unchanged (guard)", () => {
     expect((await drive(root, ["init", "--json", "--enforce", "--yes"])).code).toBe(0);
     const s = await readJson(root, ".claude/settings.json");
     expect(s.permissions.ask).toEqual(["Bash(npx wikeeper ingest start *)", "Bash(wikeeper ingest start *)"]);
-    expect(sorted(s.permissions.allow)).toEqual(sorted(SEARCH_CLAUDE));
-    expect(sorted(await ruleLines(root))).toEqual(sorted([...ASK_RULES, ...SEARCH_CODEX]));
+    expect(sorted(s.permissions.allow)).toEqual(sorted([...SEARCH_CLAUDE, ...READ_ONLY_CLAUDE]));
+    expect(sorted(await ruleLines(root))).toEqual(sorted([...ASK_RULES, ...SEARCH_CODEX, ...READ_ONLY_CODEX]));
 
     await writeFile(abs(root, ".wiki/config.yml"), "agents: [claude, codex]\nenforce: true\ningest:\n  permission: whitelist\n");
     expect((await drive(root, ["update", "--json"])).code).toBe(0);
     const w = await readJson(root, ".claude/settings.json");
     expect(Object.keys(w.permissions)).toEqual(["allow"]);
-    expect(sorted(w.permissions.allow)).toEqual(sorted(SEARCH_CLAUDE));
-    expect(sorted(await ruleLines(root))).toEqual(sorted(SEARCH_CODEX));
+    expect(sorted(w.permissions.allow)).toEqual(sorted([...SEARCH_CLAUDE, ...READ_ONLY_CLAUDE]));
+    expect(sorted(await ruleLines(root))).toEqual(sorted([...SEARCH_CODEX, ...READ_ONLY_CODEX]));
   });
 });
 
@@ -231,7 +262,7 @@ describe("CR-001: obsolete wildcard allow rules are gone from the writer specs (
     const { CLAUDE_ENFORCE } = await loadClaude();
     const { CODEX_ENFORCE } = await loadCodex();
     const claudeAllow = CLAUDE_ENFORCE.items("CMD", "ai").filter((i: any) => i.kind === "rule").map((i: any) => i.value);
-    expect(claudeAllow).toEqual([...NARROW_CLAUDE, ...SEARCH_CLAUDE]);
-    expect(CODEX_ENFORCE[1].items("CMD", "ai").map((i: any) => i.value)).toEqual([...NARROW_CODEX, ...SEARCH_CODEX]);
+    expect(claudeAllow).toEqual([...NARROW_CLAUDE, ...ASK_CLAUDE, ...READ_CLAUDE, ...SEARCH_CLAUDE, ...READ_ONLY_CLAUDE]);
+    expect(CODEX_ENFORCE[1].items("CMD", "ai").map((i: any) => i.value)).toEqual([...NARROW_CODEX, ...PROMPT_CODEX, ...READ_CODEX, ...SEARCH_CODEX, ...READ_ONLY_CODEX]);
   });
 });

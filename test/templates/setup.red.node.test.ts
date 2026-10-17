@@ -193,14 +193,14 @@ describe("STORY-006-02 S1: SETUP.md steps and skill", () => {
     expect(step(8)).toContain("wikeeper setup --done");
   });
 
-  it("names no team.md and only SPRINT-02 commands outside the preview table", () => {
+  it("names no team.md and only SPRINT-03 commands outside the preview table", () => {
     expect(text).not.toMatch(/team\.md/);
     const s4 = st.find((s) => s.n === 4);
     let stripped = text;
     if (s4) for (const row of firstTable(s4.body)) stripped = stripped.replace(row, "");
     const cmds = codeCommands(stripped);
     expect([...cmds].sort()).toEqual(expect.arrayContaining(["doctor", "ingest", "setup", "update"]));
-    for (const c of cmds) expect(["doctor", "update", "setup", "ingest"]).toContain(c);
+    for (const c of cmds) expect(["doctor", "update", "setup", "ingest", "read", "lint"]).toContain(c);
   });
 
   it("states the defaults: unset ingest.permission means DEFAULT_CONFIG's value, enforce is off", () => {
@@ -350,7 +350,7 @@ describe("STORY-006-02 S5: a preview row that differs from the writers fails", (
     const joined = problems.join("\n");
     expect(joined).toContain("mode ai");
     expect(joined).toContain("agent claude");
-    expect(joined).toContain("missing [Bash(npx wikeeper ingest *), Bash(wikeeper ingest *), Bash(npx wikeeper search *), Bash(wikeeper search *)]");
+    expect(joined).toContain("missing [Bash(npx wikeeper ingest *), Bash(wikeeper ingest *), Bash(npx wikeeper read *), Bash(wikeeper read *), Bash(npx wikeeper search *), Bash(wikeeper search *), Bash(npx wikeeper lint *), Bash(wikeeper lint *), Bash(npx wikeeper status *), Bash(wikeeper status *), Bash(npx wikeeper rules list *), Bash(wikeeper rules list *)]");
     expect(joined).toContain("unexpected [Bash(wikeeper *)]");
   });
 });

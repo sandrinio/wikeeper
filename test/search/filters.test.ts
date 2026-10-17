@@ -79,3 +79,19 @@ describe("hasFilters / describeFilters", () => {
     expect(describeFilters(f({}))).toBe("");
   });
 });
+
+describe("parseMark / markHits", () => {
+  it("parses case-insensitively and rejects other values", async () => {
+    const { parseMark } = await import("../../src/search/filters.js");
+    expect(parseMark(undefined)).toBeUndefined();
+    expect(parseMark(" Tentative ")).toBe("tentative");
+    expect(parseMark("DECIDED")).toBe("decided");
+    for (const bad of ["", "open", "maybe"]) {
+      expect(() => parseMark(bad)).toThrowError(/--mark must be decided or tentative/);
+    }
+  });
+  it("describeFilters appends --mark after --since", () => {
+    const filters: SearchFilters = { ...EMPTY_FILTERS, where: [], since: "2026-10-01", mark: "decided" };
+    expect(describeFilters(filters)).toBe("--since 2026-10-01 --mark decided");
+  });
+});

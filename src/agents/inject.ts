@@ -135,3 +135,53 @@ export async function stripFromFile(path: string): Promise<{ status: StripStatus
   if (result.status === "stripped") await atomicWrite(existing.real, result.text);
   return { status: result.status };
 }
+
+export type RefreshStatus = "current" | "refreshed" | "edited" | "absent" | "malformed";
+
+/** Drops a leading BOM, turns CRLF into LF and drops trailing line breaks. Nothing else is normalised. */
+export function normaliseBlock(text: string): string {
+  return splitBom(text).body.replace(/\r\n/g, "\n").replace(/\n+$/, "");
+}
+
+/** Replaces the block when it is exactly an entry of `shipped`; a current, edited or unmatched block is left as it is. */
+export function refreshBlock(
+  text: string,
+  block: string,
+  shipped: readonly string[],
+): { text: string; status: RefreshStatus } {
+  const tpl = normaliseBlock(validateBlock(block));
+  const { bom, body } = splitBom(text);
+  const starts = [...body.matchAll(/^<!-- WIKI:START\b.*-->$/gm)];
+  if (starts.length === 0) return { text, status: "absent" };
+  if (starts.length > 1) return { text, status: "malformed" };
+  const s = starts[0] as RegExpMatchArray & { index: number };
+  const afterStart = s.index + s[0].length;
+  const end = /^<!-- WIKI:END -->$/m.exec(body.slice(afterStart));
+  if (!end) return { text, status: "malformed" };
+  const endIdx = afterStart + end.index + end[0].length;
+  const cur = normaliseBlock(body.slice(s.index, endIdx));
+  if (cur === tpl) return { text, status: "current" };
+  if (!shipped.some((b) => normaliseBlock(b) === cur)) return { text, status: "edited" };
+  return {
+    text: bom + body.slice(0, s.index) + tpl.split("\n").join(detectEol(body)) + body.slice(endIdx),
+    status: "refreshed",
+  };
+}
+
+export async function refreshInFile(
+  path: string,
+  block: string,
+  shipped: readonly string[],
+): Promise<{ status: RefreshStatus | "missing" | "not-utf8" }> {
+  let existing: { text: string; real: string } | null;
+  try {
+    existing = await readUtf8(path);
+  } catch (err) {
+    if ((err as { code?: string }).code === "E_NOT_UTF8") return { status: "not-utf8" };
+    throw err;
+  }
+  if (!existing) return { status: "missing" };
+  const result = refreshBlock(existing.text, block, shipped);
+  if (result.status === "refreshed") await atomicWrite(existing.real, result.text);
+  return { status: result.status };
+}
