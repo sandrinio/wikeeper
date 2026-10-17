@@ -265,11 +265,12 @@ Feature: wikeeper lint — check registry and page checks
 | Item | Value |
 |---|---|
 | Primary File (new) | `src/lint/checks.ts` |
-| Related Files (new) | `src/commands/lint.ts`, `src/lint/links.ts`, `src/lint/citations.ts`, `test/lint/checks.test.ts`, `test/lint/links.test.ts`, `test/lint/citations.test.ts`, `test/lint/lint-command.test.ts` |
+| Related Files (new) | `src/commands/lint.ts`, `src/lint/links.ts`, `src/lint/citations.ts`, `src/lint/paths.ts`, `test/lint/checks.test.ts`, `test/lint/links.test.ts`, `test/lint/citations.test.ts`, `test/lint/lint-command.test.ts` |
 | Related Files | `src/ingest/lint-hook.ts`, `src/program.ts` |
-| New Files Needed | `src/lint/checks.ts`, `src/lint/links.ts`, `src/lint/citations.ts`, `src/commands/lint.ts`, `test/lint/checks.test.ts`, `test/lint/links.test.ts`, `test/lint/citations.test.ts`, `test/lint/lint-command.test.ts` |
+| New Files Needed | `src/lint/checks.ts`, `src/lint/links.ts`, `src/lint/citations.ts`, `src/lint/paths.ts`, `src/commands/lint.ts`, `test/lint/checks.test.ts`, `test/lint/links.test.ts`, `test/lint/citations.test.ts`, `test/lint/lint-command.test.ts` |
 
 ### 3.2 Technical Logic
+- **`src/lint/paths.ts`** (CR:approach-change, M1 plan Open decision 1, orchestrator 2026-10-17). It holds the final `pagePath`, written once by the C2 skeleton; `checks.ts` re-exports it, so the frozen export is unchanged. Check modules import `checks.ts` for types only: a value import of the registry from a check module throws a TDZ `ReferenceError` when the check module loads first.
 - **`src/lint/checks.ts`.** It holds the types, `PAGE_CHECKS = [brokenLinkCheck, uncitedClaimCheck, orphanPageCheck, indexDriftCheck]`, `RULE_CHECKS = []`, `runLint` (R2), `countFindings`, `pagePath`, `findingLine` and `indexDriftCheck` (R8), so the files stay within EPIC-005's `src/lint/` list.
   - `pagePath(paths, rel)` is `toPosixRelative(paths.root, path.join(paths.pagesDir, ...rel.split("/")))`. `runLint` maps `ctx.only` through it once into a `Set` and keeps the findings whose `path` is in it.
   - `findingLine(f)` is `<label> <id>`, then ` <path>` and `:<line>` when present, then `: <message>`. Its labels are `[error]`, `[warn]` and `[info]`, the strings of the doctor's `LABEL` (`src/commands/doctor.ts:274`), which is not exported. It lives here, not in the command, so STORY-005-03's `finish` imports it from the lint module.

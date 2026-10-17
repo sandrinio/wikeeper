@@ -6,6 +6,11 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-17 · #esm #contract #lint · A check module that value-imports its registry (checks.ts ↔ links.ts) throws "Cannot access X before initialization" when loaded first; registry-only value imports.
+2026-10-17 · #cli #commander #qa · Commander wraps command and option descriptions at 80 columns in --help (addHelpText is not wrapped); match help with whitespace collapsed.
+2026-10-17 · #cli #commander · A variadic option (--check <id...>) also concatenates repeated uses (--check a --check b → ["a","b"]); no collector needed.
+2026-10-17 · #ts #contract · .includes() on an `as const` tuple rejects a string argument; widen with (LIST as readonly string[]).includes(s).
+2026-10-17 · #windows #test-harness · Overriding PATH for a child: delete every key whose upper-case form is PATH first (Windows has Path), then set PATH.
 2026-10-17 · #templates #subagents · wiki-writer text must stay identical in all 3 agents (006-05 R6, red S3): name each agent's tools in one sentence.
 2026-10-17 · #yaml #parser · yaml prettyErrors end " at line L, column C:" plus a code frame; keep line 1 and strip the suffix for one-line findings.
 2026-10-17 · #pre-commit #surface-gate · The surface gate isn't wired as a git or Claude hook here; QA-Verify's file-list diff is the only surface check.
