@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-005
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: Draft
+status: "Completed"
 approved: true
 ambiguity: 🟢 Low
 context_source: EPIC-005 (approved 2026-10-16) §2 (`status`), §5 (re-ingest scenario) · CR-003 D5 (row 8.12) · architecture.md §8 (rule versions → re-ingest candidates), §9, D-28 · SPRINT-03 decomposition brief contracts K1, K4, K5, K9 · verified src/ingest/lock.ts, src/ingest/registry.ts, src/ingest/log.ts, src/ingest/facts.ts, src/commands/ingest-abort.ts, src/commands/ingest-finish.ts, src/commands/ingest-start.ts, src/core/config.ts, src/core/paths.ts · real data checked read-only in ~/Documents/Dev/formapass_management/.wiki (9 finished ingests, 42 uncovered items, 52 miss events) · SPRINT-03 gate1-decisions.md item 11 (approved at Gate 1, 2026-10-17), split 4 (2026-10-17, the read-only allow rules this story carried as R13 moved to STORY-005-09) and the `src/program.ts` merge-order call (revised 2026-10-17) · consistency audit findings 15, 16 (`origin` on re-ingest candidates) · verified src/program.ts at 40018c5

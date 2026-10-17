@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-006
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: Draft
+status: "Completed"
 approved: true
 ambiguity: 🟢 Low
 context_source: "EPIC-006 (archived; instruction content for every command) · EPIC-005 §2 (lint, lint --rules, status, rules record/list, ingest facts --dry-run; CR-002 D1 and CR-003 D4–D5 scope additions) · CR-002 D1 (approved 2026-10-16) · SPRINT-03 Gate 1 decisions 5, 8 (local `.html` / `.htm` files added 2026-10-17), 10, 11, 12, 13, 15, 17 (owner STORY-005-09), 20, 21, 24, 26 (plans/gate1-decisions.md; approved at Gate 1, 2026-10-17) and consistency-audit findings 9, 10, 11, 12, 14, 16 · the instruction text handed to this story by STORY-003-10 §1.3, STORY-005-03 §1.3, STORY-005-05 R6–R7, STORY-005-07 §1.5 · SPRINT-03 decomposition brief (contracts K2–K7; shared files: 006-10 → 006-12 → 006-09 on WIKI.md and SETUP.md, 006-11 last) · SPIKE-001 (the human's deck is an outlined-text PDF: `read` warns likely_scanned) · architecture.md §7.7 (read), §9 (rule evolution), §10 · SPRINT-02 walkthrough notes, formapass_management (rows 8.12, 11.4, 11.27c) · verified templates/system/{WIKI,SETUP}.md, templates/skills/*/SKILL.md, templates/agents/*/wiki-writer.*, templates/agent-block.md, src/ingest/registry.ts, src/ingest/permissions.ts, src/ingest/source-id.ts, src/commands/ingest-start.ts, src/commands/ingest-facts.ts, src/core/config.ts, test/templates/*.red.node.test.ts, test/templates/structure.ts"

@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-002
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: Draft
+status: "Completed"
 approved: true
 ambiguity: 🟢 Low
 context_source: SPRINT-03 gate1-decisions.md 2026-10-17 (split 6; decision 23, approved by the human 2026-10-17 with the real-user review additions; decision 22, the block text STORY-006-12 writes) · architecture.md D-11 (`:517`) and §6.5 (`:249`, `:264`), which decision 23 amends · STORY-006-01 §1.3 and §1.5 (the gap this story closes, and why the marker stays `v1`) · SPRINT-02 plan (D-11 kept, 2026-10-16) · git history of templates/agent-block.md (`dc3ca13`, `f7951a0`; sprint closes `3876726`, `a0f0550`) · cleargate-wiki-query 2026-10-17 · verified src/agents/inject.ts, src/agents/index.ts, src/agents/doctor-checks.ts, src/commands/update.ts, src/commands/init.ts, src/commands/doctor.ts, templates/agent-block.md, test/agents/integration.red.node.test.ts, test/settings-reports.red.node.test.ts, test/update.red.node.test.ts, test/agents/inject.red.node.test.ts, test/agents/pointer-block.red.node.test.ts, test/templates/structure.ts at 31d363a (no code change since 40018c5)

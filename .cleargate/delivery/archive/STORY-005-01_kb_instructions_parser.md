@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-005
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: Draft
+status: "Completed"
 approved: true
 ambiguity: 🟢 Low
 context_source: EPIC-005 (approved 2026-10-16) · CR-003 D1–D3 (approved 2026-10-17) · architecture.md §5.2, §9, D-14, D-31 · SPRINT-03 decomposition brief contract K1 and the orchestrator design call on `note:` and `(dated facts)` · verified src/ingest/kind-rules.ts, src/core/paths.ts, src/commands/ingest-start.ts, templates/kb_instructions.management.md, templates/system/profiles/management.md and ~/Documents/Dev/formapass_management/.wiki/kb_instructions.md (2026-10-17) · SPRINT-03 gate1-decisions.md items 12 and 15 (approved at Gate 1, 2026-10-17)

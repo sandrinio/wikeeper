@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-005
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: Draft
+status: "Completed"
 approved: true
 ambiguity: 🟢 Low
 context_source: EPIC-005 (approved 2026-10-16) §2, §5 · CR-002 D1 · CR-003 E2 · architecture.md §7.3 (finish step 5), §8, D-27, D-28 · SPRINT-03 decomposition brief (design call — hash-based unlogged-change with a baseline for pre-SPRINT-03 events; K2, K3) · SPRINT-03 gate1-decisions.md items 2 (split, `stale-fact` → STORY-005-08) and 10, technical calls (finding paths, page hashes) — approved at Gate 1, 2026-10-17 · SPRINT-03 consistency-audit.md findings 2, 9, 11, 13 · STORY-003-09 R4, R5, R8 · verified src/ingest/log.ts, src/commands/ingest-finish.ts, src/ingest/snapshot.ts, src/ingest/lock.ts, src/ingest/diff.ts, src/ingest/lint-hook.ts, src/core/gitignore.ts, src/core/paths.ts, src/search/since.ts, test/ingest/finish.test.ts, test/ingest/finish.red.node.test.ts · probed read-only against ~/Documents/Dev/formapass_management/.wiki (9 ingest events, 20 pages, every page in an event) on 2026-10-17

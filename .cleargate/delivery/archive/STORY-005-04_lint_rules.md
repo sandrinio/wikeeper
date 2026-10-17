@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-005
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: Draft
+status: "Completed"
 approved: true
 ambiguity: 🟢 Low
 context_source: EPIC-005 (approved 2026-10-16) §2 `lint --rules` · CR-002 C1, lint half (approved 2026-10-16) · CR-003 D3, D4 (approved 2026-10-17) · architecture.md §5.2 (questions are the root), §9 · SPRINT-03 decomposition brief contracts K1, K2 · SPRINT-03 gate1-decisions.md item 15 (approved at Gate 1, 2026-10-17) and the repository-relative finding-path call · consistency audit findings 5, 13, 14 · verified src/ingest/permissions.ts, src/core/config.ts, src/commands/doctor.ts, src/ingest/lint-hook.ts, test/doctor.red.node.test.ts, test/setup-files.red.node.test.ts and ~/Documents/Dev/formapass_management/.wiki/kb_instructions.md (2026-10-17)

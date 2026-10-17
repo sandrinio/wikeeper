@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-003
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: Draft
+status: "Completed"
 approved: true
 ambiguity: 🟢 Low
 context_source: EPIC-003 (approved 2026-10-16; §0 `read` objective, §2 `read` and CR-002 C2 bullets, §3 Network and Dependencies rows, §1 `read` metric) · architecture.md §7.6, §7.7, §10, D-20 · CR-002 C2 · CR-001 · SPRINT-03 decomposition brief (human decisions 2026-10-17, `--out` design call, contracts K7 and K9) · verified src/program.ts, src/commands/ingest-start.ts, src/agents/enforce/claude.ts, src/agents/enforce/codex.ts, src/core/output.ts, src/core/exit-codes.ts, src/core/paths.ts, src/search/engine.ts, templates/system/SETUP.md, ./package.json, test/e2e/pack.ts · linkedom 0.18.13, defuddle 0.19.5, turndown 7.2.4 checked on npm 2026-10-17 · SPRINT-03 gate1-decisions.md 2026-10-17 (decisions 5, 6, 8, 21, 26; decision 17 as revised 2026-10-17 and split 4, which put the read-only allow rules in STORY-005-09; technical calls on rule order, package.json order and src/program.ts merge order) · SPRINT-03 consistency-audit.md 2026-10-17 (findings 9, 10, 12, 13) · SPIKE-001 (real pages, install size, Node versions, import cost) · verified test/agents/enforce-ai-rules.red.node.test.ts, test/agents/enforce.red.node.test.ts, test/agents/enforce.test.ts, test/templates/setup.red.node.test.ts at 40018c5

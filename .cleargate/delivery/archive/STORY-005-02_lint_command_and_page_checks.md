@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-005
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: Draft
+status: "Completed"
 approved: true
 ambiguity: 🟢 Low
 context_source: EPIC-005 (approved 2026-10-16) §0 rules, §2, §3, §5 · architecture.md §8 (citations, frontmatter-built index), §10, D-28 · SPRINT-03 decomposition brief (K1 types, K2 owner) · SPRINT-03 gate1-decisions.md (orchestrator technical call — finding paths; approved at Gate 1, 2026-10-17) · SPRINT-03 consistency-audit.md findings 2, 5, 6 · CR-003 E2 · verified src/wiki/parse-page.ts, src/search/aliases.ts, src/ingest/index-builder.ts, src/ingest/lint-hook.ts, src/ingest/log.ts, src/ingest/validate.ts, src/core/paths.ts, src/commands/doctor.ts, src/commands/init.ts, src/core/output.ts, src/program.ts · probed read-only against ~/Documents/Dev/formapass_management/.wiki (20 pages, 242 fact lines) on 2026-10-17
