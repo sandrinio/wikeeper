@@ -12,7 +12,7 @@ In short: register the source with `wikeeper ingest start`, triage and extract i
 ## Who does what
 
 - A directory: after `wikeeper ingest plan` is approved, hand each source to its own `wiki-extractor` sub-agent, one per source, in parallel. Give each the ingest id, where to read the source and its kind.
-- Every write phase: hand it to a `wiki-writer` sub-agent, one per source and one at a time, never in parallel. Give it the brief and the facts file path, not the original source.
+- Every write phase: hand it to a `wiki-writer` sub-agent, one per source and one at a time, never in parallel. Write the brief (section "Brief") into its task, with the facts file path, not the original source.
 - A file or text you have already read: extract the facts yourself, then hand the write phase to `wiki-writer`.
 - If `ingest.delegate` is `never` in the config, or your agent has no sub-agents, do both the extraction and the writing yourself, following the same sections of WIKI.md.
 
