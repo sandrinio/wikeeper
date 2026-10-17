@@ -6,6 +6,10 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-17 · #templates #subagents · wiki-writer text must stay identical in all 3 agents (006-05 R6, red S3): name each agent's tools in one sentence.
+2026-10-17 · #yaml #parser · yaml prettyErrors end " at line L, column C:" plus a code frame; keep line 1 and strip the suffix for one-line findings.
+2026-10-17 · #pre-commit #surface-gate · The surface gate isn't wired as a git or Claude hook here; QA-Verify's file-list diff is the only surface check.
+2026-10-17 · #walkthrough #templates · Structural template tests miss wrong semantics: WIKI.md called --status fact status; only a real agent run caught it.
 2026-10-17 · #test-harness #perf · search-perf p95 also fails (532–630 ms) in a plain full vitest run, not only with stories in parallel.
 2026-10-17 · #pre-gate #red-test · 'red tests modified after QA-Red' fires on a red file the branch created; check its blob at the qa-red commit.
 2026-10-17 · #templates #sections · A section target named in a non-system file is a structure.ts finding; R4 covers only .wiki/system/ files.
