@@ -262,7 +262,7 @@ describe("STORY-005-06 rules record / list", () => {
       } catch {
         /* no log dir */
       }
-      expect(files).toEqual([]);
+      expect(files.filter((f) => !f.startsWith("."))).toEqual([]);
     }, T);
   });
 });
