@@ -178,9 +178,9 @@ describe("STORY-002-09 S1: ai mode prompts for the destructive flags (red)", () 
     ["npx wikeeper ingest apply src-2026-10-17-notes", "allow", "allow"],
     ["wikeeper ingest finish src-2026-10-17-notes --json", "allow", "allow"],
     ["wikeeper ingest abort src-2026-10-17-notes", "allow", "prompt"],
-    ["wikeeper ingest abort src-2026-10-17-notes --drop", "prompt", "prompt"],
-    ["npx wikeeper ingest abort --drop src-2026-10-17-notes", "prompt", "prompt"],
-    ["npx wikeeper ingest apply src-2026-10-17-notes --force-unlock", "prompt", "allow"],
+    ["wikeeper ingest abort src-2026-10-17-notes --drop", "ask", "prompt"],
+    ["npx wikeeper ingest abort --drop src-2026-10-17-notes", "ask", "prompt"],
+    ["npx wikeeper ingest apply src-2026-10-17-notes --force-unlock", "ask", "allow"],
     ["wikeeper search roadmap --json", "allow", "allow"],
   ];
   it.each(rows)("%s -> claude %s, codex %s", async (command, claude, codex) => {
