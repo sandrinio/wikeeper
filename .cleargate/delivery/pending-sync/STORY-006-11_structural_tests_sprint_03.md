@@ -256,14 +256,14 @@ Not applicable — test code only. New exports of `test/templates/structure.ts`:
 
 ## Task Breakdown
 
-- [ ] Confirm R6 (a)–(j) are in place as their owners made them, and that every file listed passes -> R6, R7
-- [ ] Add the SPRINT-03 command-tree unit tests -> R1
-- [ ] Add `DOCUMENTED_FORMS` and `checkCoverage`, with a unit test on a template copy that lacks one form -> R2
-- [ ] Add `checkLintIds` and its table reader, with unit tests for both id forms, a reordered table and a table with a wrong id -> R3
-- [ ] Add `checkKbSeeds`, with a unit test on a seed copy carrying a malformed question -> R4
-- [ ] Wire the three checks into `runAllChecks`; add the error outline rows -> R5
-- [ ] Add `test/lint/check-fixtures.ts` with one trigger and one pass fixture per registered lint id -> R8
-- [ ] Run `npm test` on the integrated sprint branch -> R5, R7
+- [x] Confirm R6 (a)–(j) are in place as their owners made them, and that every file listed passes -> R6, R7
+- [x] Add the SPRINT-03 command-tree unit tests -> R1
+- [x] Add `DOCUMENTED_FORMS` and `checkCoverage`, with a unit test on a template copy that lacks one form -> R2
+- [x] Add `checkLintIds` and its table reader, with unit tests for both id forms, a reordered table and a table with a wrong id -> R3
+- [x] Add `checkKbSeeds`, with a unit test on a seed copy carrying a malformed question -> R4
+- [x] Wire the three checks into `runAllChecks`; add the error outline rows -> R5
+- [x] Add `test/lint/check-fixtures.ts` with one trigger and one pass fixture per registered lint id -> R8
+- [x] Run `npm test` on the integrated sprint branch -> R5, R7
 
 ## 4. Quality Gates
 
