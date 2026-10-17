@@ -5,7 +5,13 @@ source_tool: manual-paste
 status: Triaged
 synced_at: null
 triaged_at: 2026-10-16T13:08:06Z
-spawned_items: ["EPIC-001", "EPIC-002", "EPIC-003", "EPIC-004", "EPIC-005", "EPIC-006"]
+spawned_items:
+  - EPIC-001
+  - EPIC-002
+  - EPIC-003
+  - EPIC-004
+  - EPIC-005
+  - EPIC-006
 created_at: 2026-10-16T12:00:00Z
 updated_at: 2026-10-16T12:00:00Z
 created_at_version: strategy-phase-pre-init
@@ -14,7 +20,7 @@ server_pushed_at_version: null
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-16T11:59:27Z
+  last_gate_check: 2026-10-17T12:13:07Z
   transition: ready-for-decomposition
 pushed_by: null
 pushed_at: null
