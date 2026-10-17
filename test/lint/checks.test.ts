@@ -23,6 +23,7 @@ function fakeCheck(id: string, findings: LintFinding[]): LintCheck {
 describe("lint registry", () => {
   it("PAGE_CHECKS starts with the four story ids in order; RULE_CHECKS has no page check", () => {
     expect(PAGE_CHECKS.slice(0, 4).map((c) => c.id)).toEqual(["broken-link", "uncited-claim", "orphan-page", "index-drift"]);
+    expect(PAGE_CHECKS[4]?.id).toBe("unlogged-change");
     expect(RULE_CHECKS.some((c) => PAGE_CHECKS.some((p) => p.id === c.id))).toBe(false);
   });
 

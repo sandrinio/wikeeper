@@ -22,6 +22,7 @@ import type { Page } from "../wiki/parse-page.js";
 import { uncitedClaimCheck } from "./citations.js";
 import { brokenLinkCheck, orphanPageCheck } from "./links.js";
 // INSERTION POINT STORY-005-03: import { unloggedChangeCheck } from "./unlogged.js";
+import { unloggedChangeCheck } from "./unlogged.js";
 // (keep this line: it separates the STORY-005-03 and STORY-005-04 imports)
 // INSERTION POINT STORY-005-04: import { RULES_LINT_CHECKS } from "./rules-lint.js";
 // (keep this line: it separates the STORY-005-04 and STORY-005-08 imports)
@@ -152,6 +153,7 @@ export const PAGE_CHECKS: LintCheck[] = [
   orphanPageCheck,
   indexDriftCheck,
   // INSERTION POINT STORY-005-03: unloggedChangeCheck,
+  unloggedChangeCheck,
   // (keep this line: it separates the STORY-005-03 and STORY-005-08 entries)
   // INSERTION POINT STORY-005-08: staleFactCheck,
 ];
