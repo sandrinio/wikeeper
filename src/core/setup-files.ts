@@ -74,6 +74,7 @@ export async function checkSetupFiles(
     return out;
   }
 
+  let meRule: IgnoreRule | null = null;
   if (hasMe) {
     const tracked = await git.isTracked(me);
     if (tracked) {
@@ -86,6 +87,7 @@ export async function checkSetupFiles(
       });
     }
     const rule = await git.ignoreRule(me);
+    meRule = rule;
     const ignored = rule !== null && !rule.negated;
     if (!ignored) {
       if (rule !== null) {
@@ -138,7 +140,7 @@ export async function checkSetupFiles(
   }
 
   if (!out.some((c) => c.severity !== "ok")) {
-    return [{ id, severity: "ok", message: "me.md and project.md are in place" }];
+    return [{ id, severity: "ok", message: `${me} present, ignored by ${meRule!.source}:${meRule!.line}, not committed; ${project} present, not ignored` }];
   }
   return out;
 }

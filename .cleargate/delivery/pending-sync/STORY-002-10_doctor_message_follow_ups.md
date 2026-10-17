@@ -181,10 +181,10 @@ No new command, option or JSON field. The two messages are R1 and R2; `doctor --
 
 ## Task Breakdown
 
-- [ ] Export `blockTargets` from `src/agents/doctor-checks.ts` and use it in `checkAgentBlocks` -> R1
-- [ ] Add `wiringSummary` and build the `agent-wiring` `ok` message from it in `src/agents/index.ts` -> R1
-- [ ] Keep the `me.md` ignore rule and build the `setup-files` `ok` message from the checks that passed -> R2
-- [ ] Add the unit tests and the four scenario tests -> R1, R2, R3
+- [x] Export `blockTargets` from `src/agents/doctor-checks.ts` and use it in `checkAgentBlocks` -> R1
+- [x] Add `wiringSummary` and build the `agent-wiring` `ok` message from it in `src/agents/index.ts` -> R1
+- [x] Keep the `me.md` ignore rule and build the `setup-files` `ok` message from the checks that passed -> R2
+- [x] Add the unit tests and the four scenario tests -> R1, R2, R3
 
 ## 4. Quality Gates
 

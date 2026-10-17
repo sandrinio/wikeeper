@@ -3,7 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { DEFAULT_CONFIG } from "../../src/core/config.js";
-import { AGENT_CHECKS, checkAgentBlocks, readBlockSignature } from "../../src/agents/doctor-checks.js";
+import { AGENT_CHECKS, blockTargets, checkAgentBlocks, readBlockSignature, wiringSummary } from "../../src/agents/doctor-checks.js";
 import type { AgentCheckInput } from "../../src/agents/doctor-checks.js";
 
 const START = "<!-- WIKI:START v1 — managed by wikeeper -->";
@@ -49,5 +49,28 @@ describe("doctor-checks", () => {
   });
   it("AGENT_CHECKS has the four core checks", () => {
     expect(AGENT_CHECKS.length).toBeGreaterThanOrEqual(4);
+  });
+
+  it("blockTargets orders CLAUDE.md, AGENTS.md, GEMINI.md, then others, without duplicates", async () => {
+    const i = await input({});
+    i.agents = ["claude", "codex"];
+    i.existing = ["AGENTS.md", "CLAUDE.md"];
+    i.manifest = {
+      package_version: "0",
+      files: [
+        { path: "docs/x.md", sha256: null, kind: "block", created: false },
+        { path: "GEMINI.md", sha256: null, kind: "block", created: false },
+        { path: "AGENTS.md", sha256: null, kind: "block", created: false },
+        { path: "CLAUDE.md", sha256: null, kind: "block", created: false },
+      ],
+    };
+    expect(blockTargets(i)).toEqual(["CLAUDE.md", "AGENTS.md", "GEMINI.md", "docs/x.md"]);
+  });
+  it("wiringSummary handles 0, 1 and 2 files and singular counts", () => {
+    expect(wiringSummary(["claude"], [], 0, 0)).toBe("agents claude: no WIKI block (0 files), 0 skills, 0 sub-agents");
+    expect(wiringSummary(["claude"], ["AGENTS.md"], 1, 1)).toBe("agents claude: WIKI block in AGENTS.md (1 file), 1 skill, 1 sub-agent");
+    expect(wiringSummary(["claude", "codex"], ["CLAUDE.md", "AGENTS.md"], 3, 2)).toBe(
+      "agents claude, codex: WIKI block in CLAUDE.md, AGENTS.md (2 files), 3 skills, 2 sub-agents",
+    );
   });
 });
