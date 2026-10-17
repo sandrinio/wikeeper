@@ -132,7 +132,7 @@ export function emitError(ctx: OutputContext, error: unknown): ExitCode {
     const envelope: ErrorEnvelope = { ok: false, command: ctx.command, error: { code, message, details } };
     ctx.stdout.write(JSON.stringify(envelope) + "\n");
   } else if (print) {
-    ctx.stderr.write(`error: ${message}\n`);
+    ctx.stderr.write(exitCode === ExitCode.NEEDS_APPROVAL ? `${message}\n` : `error: ${message}\n`);
   }
   return exitCode;
 }

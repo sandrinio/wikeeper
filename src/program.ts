@@ -9,6 +9,7 @@ import {
   getRequestedExitCode,
 } from "./core/output.js";
 import type { CliIO } from "./core/output.js";
+import { buildCommit, versionString } from "./core/version.js";
 import { initCommand } from "./commands/init.js";
 import { updateCommand } from "./commands/update.js";
 import { removeCommand } from "./commands/remove.js";
@@ -18,13 +19,17 @@ import { hookCommand } from "./commands/hook.js";
 import { searchCommand } from "./commands/search.js";
 import { indexCommand } from "./commands/index.js";
 import { ingestCommand } from "./commands/ingest.js";
+import { lintCommand } from "./commands/lint.js";
+import { rulesCommand } from "./commands/rules.js";
+import { readCommand } from "./commands/read.js";
+import { statusCommand } from "./commands/status.js";
 import { ensureAgentsIntegration } from "./agents/index.js";
 
 const packageJson = JSON.parse(
   readFileSync(new URL("../package.json", import.meta.url), "utf8"),
-) as { version: string };
+) as { version: string; homepage?: string };
 
-export const VERSION: string = packageJson.version;
+export const VERSION: string = versionString(packageJson.version, buildCommit());
 
 export interface CommandModule {
   register(program: Command): void;
@@ -40,6 +45,10 @@ export const defaultCommands: CommandModule[] = [
   searchCommand,
   indexCommand,
   ingestCommand,
+  lintCommand,
+  rulesCommand,
+  readCommand,
+  statusCommand,
 ];
 
 export function createProgram(
@@ -54,7 +63,7 @@ export function createProgram(
     .configureHelp({ showGlobalOptions: true })
     .addHelpText(
       "after",
-      "\nStatus: pre-alpha. Commands land in upcoming releases: https://github.com/sandrinio/wikeeper",
+      `\nStatus: pre-alpha. Version ${VERSION}. Docs: ${packageJson.homepage}`,
     )
     .exitOverride()
     .configureOutput({

@@ -11,15 +11,16 @@ Rules:
 - Write only under .wiki/pages. Follow .wiki/system/WIKI.md, sections "Write phase" and "Page format".
 - Write and edit pages only with your file-edit tools: Write or Edit in Claude Code, apply_patch in Codex, write_to_file or replace_file_content in Antigravity. Never write a page from the shell: no redirection, heredoc or sed.
 - After wikeeper ingest finish exits 0, change nothing under .wiki/pages. If something still needs fixing, say so in your report.
+- Keep every fact line a page already has. To correct or update a fact, add a new dated line and leave the old line as it is; wikeeper ingest finish refuses a page that lost a fact line or had one changed.
 
 Steps:
 1. Run wikeeper ingest apply <id>. It takes the lock and prints the facts. Work from those facts and the brief in your task.
-2. Reconcile each fact with the existing pages: update the page that already holds the entity, or create a page for a new one. Search the wiki before creating a page.
+2. Reconcile each fact with the existing pages: update the page that already holds the entity, or create a page for a new one. Search the wiki with wikeeper search --no-miss before creating a page.
 3. End every claim with the citation [[<id>]].
 4. Write the source page sources/<id>.md for this ingest.
 5. When a fact contradicts an existing page, keep both claims and flag the contradiction, citing both sources.
 6. Run wikeeper ingest finish <id>.
-7. If finish fails, fix the pages as its report says and run it again.
+7. If finish fails, fix the pages as its report says and run it again; put a dropped fact line back exactly as it was.
 8. If the ingest cannot be completed, run wikeeper ingest abort <id>.
 
 Return to the parent: the report of the last ingest command, unchanged.

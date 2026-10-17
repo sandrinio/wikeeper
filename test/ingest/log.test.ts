@@ -43,4 +43,57 @@ describe("log events", () => {
   it("empty view", () => {
     expect(renderLogView([])).toContain("_No events yet._");
   });
+
+  it("a miss names its filters in the body line and the view line", async () => {
+    const at = "2026-10-16T00:00:00.000Z";
+    const cases: Array<[string, Record<string, string | string[]>, string, string]> = [
+      ["", { status: "tentative" }, "No results for --status tentative.", "· miss · --status tentative"],
+      ["vendor", { type: "risk" }, 'No results for "vendor" --type risk.', '· miss · "vendor" --type risk'],
+      ["", { entity: "Nobody" }, "No results for --entity Nobody.", "· miss · --entity Nobody"],
+      ["", { where: ["a=1", "b=2"], mark: "decided", zed: "z", alpha: "a" }, "No results for --where a=1 --where b=2 --mark decided --alpha a --zed z.", "· miss · --where a=1 --where b=2 --mark decided --alpha a --zed z"],
+      ["x", {}, 'No results for "x".', '· miss · "x"'],
+      ["", {}, 'No results for "".', '· miss · ""'],
+    ];
+    for (const [query, filters, body, view] of cases) {
+      const rel = await writeLogEvent(paths, { type: "miss", at, query, filters });
+      const text = await readFile(path.join(root, ...rel.split("/")), "utf8");
+      expect(text.endsWith(`---\n${body}\n`)).toBe(true);
+      const { events } = await readLogEvents(paths);
+      expect(renderLogView(events)).toContain(view);
+      await rm(path.join(root, ...rel.split("/")));
+    }
+  });
+});
+
+describe("page_hashes (STORY-005-03)", () => {
+  const base = {
+    type: "ingest" as const, at: "2026-10-16T00:00:00.000Z", source_id: "src-1", kind: "k", rule_version: null,
+    permission: "ai" as const, origin: "o", created: [] as string[], updated: [] as string[], deleted: [] as string[], contradictions: 0, rule_suggestions: 0,
+  };
+  it("isPageHashes accepts 64 lower-case hex values only", async () => {
+    const { isPageHashes } = await import("../../src/ingest/log.js");
+    const h = "ab".repeat(32);
+    expect(isPageHashes({ "a.md": h })).toBe(true);
+    expect(isPageHashes({})).toBe(true);
+    for (const bad of [[], null, "x", { "a.md": "abc" }, { "a.md": h.toUpperCase() }, { "": h }, { "a.md": 1 }]) {
+      expect(isPageHashes(bad)).toBe(false);
+    }
+  });
+  it("an event without page_hashes is written without the key; a malformed one throws and writes nothing", async () => {
+    const rel = await writeLogEvent(paths, base);
+    expect(await readFile(path.join(root, ...rel.split("/")), "utf8")).not.toContain("page_hashes");
+    const root2 = await mkdtemp(path.join(os.tmpdir(), "wikeeper-logu2-"));
+    try {
+      const p2 = resolvePaths(root2, DEFAULT_CONFIG);
+      await expect(writeLogEvent(p2, { ...base, page_hashes: { "team.md": "abc" } })).rejects.toMatchObject({ code: "invalid_event" });
+      expect((await readLogEvents(p2)).events).toEqual([]);
+    } finally {
+      await rm(root2, { recursive: true, force: true });
+    }
+  });
+  it("round-trips page_hashes", async () => {
+    const h = "cd".repeat(32);
+    await writeLogEvent(paths, { ...base, page_hashes: { "a.md": h } });
+    expect((await readLogEvents(paths)).events[0]!.event).toMatchObject({ page_hashes: { "a.md": h } });
+  });
 });
