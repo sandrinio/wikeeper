@@ -265,14 +265,14 @@ Not applicable — template text. Consumes read-only: `matchesOrigin` (C2, froze
 
 ## Task Breakdown
 
-- [ ] QA-Red: apply STORY-006-11 R6 (a) and (b) to `test/templates/wiki-protocol.red.node.test.ts` -> R10
-- [ ] QA-Red: write `test/templates/rules-and-search-text.red.node.test.ts` from the five scenarios in §2.1 -> R1–R9
-- [ ] Write the whitelist paragraph, the approval bullets and the permission-prompts bullet in WIKI.md "Register"; copy the paragraph into SETUP.md step 4, add the chat-capture kinds sentence after it, and fix the `ai` and `whitelist` mode lines -> R1, R2, R3
-- [ ] Write the kb line formats, examples and `note:` item in SETUP.md step 3; update the profile and the seed comments -> R4, R5, R6
-- [ ] Write "Triage and extract" steps 1–2, the Search options and the "Answering questions" miss sentence -> R5, R6, R8, R9
-- [ ] Write the dated-facts rule, the proposal kinds and the changelog form in "Proposing rule changes" -> R6, R7
-- [ ] Update the three extractors and three writers with identical text -> R8
-- [ ] Run `npm test` in full; check `test/templates.test.ts` reports no finding -> R10
+- [x] QA-Red: apply STORY-006-11 R6 (a) and (b) to `test/templates/wiki-protocol.red.node.test.ts` -> R10
+- [x] QA-Red: write `test/templates/rules-and-search-text.red.node.test.ts` from the five scenarios in §2.1 -> R1–R9
+- [x] Write the whitelist paragraph, the approval bullets and the permission-prompts bullet in WIKI.md "Register"; copy the paragraph into SETUP.md step 4, add the chat-capture kinds sentence after it, and fix the `ai` and `whitelist` mode lines -> R1, R2, R3
+- [x] Write the kb line formats, examples and `note:` item in SETUP.md step 3; update the profile and the seed comments -> R4, R5, R6
+- [x] Write "Triage and extract" steps 1–2, the Search options and the "Answering questions" miss sentence -> R5, R6, R8, R9
+- [x] Write the dated-facts rule, the proposal kinds and the changelog form in "Proposing rule changes" -> R6, R7
+- [x] Update the three extractors and three writers with identical text -> R8
+- [x] Run `npm test` in full; check `test/templates.test.ts` reports no finding -> R10
 
 ## 4. Quality Gates
 

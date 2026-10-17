@@ -22,14 +22,17 @@ Run `wikeeper ingest start <path|url|->` for each source. The CLI stores the ori
 - A chat excerpt goes on stdin with `-`.
 - `--title` and `--provided-by` record a title and who supplied the source.
 - A duplicate reports the prior ingest. Use `--reingest` only when the user asks for it.
-- exit code 3 (`needs_approval`): show the returned metadata, ask in chat, and rerun with `--approved` only after the user agrees.
+- exit code 3 (`needs_approval`): show the user what `wikeeper ingest start` returned (origin, size, kind and rule) and ask in chat. Rerun with `--approved` only after the user agrees. One chat approval of this exact source (same path and size) covers the `--approved` rerun, so do not ask again.
 - exit code 4 (`denied`): tell the user the reason; nothing was stored.
-- A directory: run `wikeeper ingest plan <dir>`, show the plan, get approval, then run `wikeeper ingest start` for each approved new file.
+- Permission prompts: with `enforce` on, your harness may ask the user before a command runs (in `ask` mode before `wikeeper ingest start`; in `ai` mode before `wikeeper ingest abort <id> --drop` and `wikeeper ingest apply <id> --force-unlock`, or before every `wikeeper ingest abort` in Codex). Get the user's approval in chat before you drop a source or take over a lock; the harness prompt that follows is the harness's own and is not a second approval to request in chat.
+- A directory: run `wikeeper ingest plan <dir>`, show the plan, get approval, then run `wikeeper ingest start <file> --approved` for each approved new file: the plan approval covers them.
+
+In `whitelist` mode a source runs without asking when its origin matches an entry of `ingest.whitelist.origins` or its kind is listed in `ingest.whitelist.kinds`; any other source is denied (exit code 4), even with `--approved`. A kind entry is a source-kind id and matches every version of that kind (`meeting-notes`); a source started without `--kind` passes while kind entries exist, and `wikeeper ingest facts` then checks its kind. An origin entry that contains `/`, or starts with `.` or `~`, is a path glob and matches only files. It is matched against the whole path: a file inside the repository by its path from the repository root (`docs/meetings/**`, never `./docs/meetings/**`), any other file by its absolute path (`~/Documents/notes/*.md`, where `~/` is the home folder). `*` matches within one folder, `**` across folders and `?` one character. Any other entry is a host name, without scheme, port or path, and matches only URLs, ignoring case: `docs.example.com` matches that host only, and `*.example.com` matches its subdomains but not `example.com` itself. Never start a host with `.`: that makes it a path. Text on stdin (`-`) never matches an origin, so a chat capture (`wikeeper ingest start -`) runs only when its kind is in `ingest.whitelist.kinds`. With no kind entries, a chat capture is denied at `wikeeper ingest start`.
 
 ## Triage and extract
 
-1. Read `.wiki/index.md`, then run `wikeeper search` for the entities and terms the source names (`--entity` for people and projects). Find out what the wiki already knows.
-2. Pick the source kind. Its rule in `.wiki/kb_instructions.md` (`## Source kinds`) decides what to extract and where it goes. No rule for the kind: propose one (section "Proposing rule changes").
+1. Read `.wiki/index.md`, then run `wikeeper search --no-miss` for the entities and terms the source names (`--entity` for people and projects). Find out what the wiki already knows.
+2. Pick the source kind. Its rule in `.wiki/kb_instructions.md` (`## Source kinds`) decides what to extract and where it goes; follow the `note:` lines under `## Source kinds` together with it. A bare target (`decision`) means every field listed for that entity under `## Entities`; `entity.field` (`project.status`) means that field only. No rule for the kind: propose one (section "Proposing rule changes").
 3. Extract facts. Each fact is routed to an entity and a page, is dated, is marked `decided` or `tentative`, and carries its anchor in the source. Note what the source holds that no rule covers.
 4. Submit with `wikeeper ingest facts <id> --file <facts.json>`, or on stdin. The CLI validates the file (section "Facts file").
 
@@ -190,10 +193,12 @@ On approval, run `wikeeper ingest start -` with the excerpt on stdin, then conti
 
 - `--type <type>`: only entities of that type.
 - `--where key=value`: filter on a typed link value; repeatable.
-- `--status <status>`: only entities whose `status::` link, or whose page frontmatter `status`, has that value, such as `open`. It does not filter facts by `decided` or `tentative`.
-- `--entity <name>`: a name or an alias; returns the entity, its facts, its backlinks and other matches. Not combined with a query or filters.
+- `--status <status>`: only entities whose `status::` link, or whose page frontmatter `status`, has that value, such as `open`. It does not filter facts by `decided` or `tentative`: use `--mark` for that, as in `wikeeper search --mark tentative`.
+- `--mark <decided|tentative>`: only fact lines with that mark. It combines with `--type`, `--where`, `--status`, `--entity` and `--since`; a search with a text query refuses it (exit code 2).
+- `--entity <name>`: a name or an alias; returns the entity, its facts, its backlinks and other matches. It is not combined with a query, `--type`, `--where` or `--status`; it combines with `--since` and `--mark`.
 - `--since <date>`: YYYY-MM-DD or an ISO date-time; dated facts and pages changed by an ingest.
 - `--misses`: list the queries that found nothing.
+- `--no-miss`: do not record a miss when the search finds nothing. Use it for triage and routing searches, so that a miss records only a question someone asked the wiki.
 - `--limit <n>`: cap the results.
 - `--json`: machine-readable output.
 
@@ -206,7 +211,7 @@ Use search at triage and to answer questions.
 3. Answer from them, citing the sources as `[[src-…]]`.
 4. When the wiki does not know, say so plainly. Do not guess.
 
-A search with no results is logged as a miss automatically; do nothing extra.
+A search that finds nothing is logged as a miss automatically, unless it runs with `--no-miss`; do nothing extra. A search that answers a question never uses `--no-miss`.
 
 ## Proposing rule changes
 
@@ -218,9 +223,13 @@ A search with no results is logged as a miss automatically; do nothing extra.
 - the user's corrections;
 - the user's answers during onboarding in `.wiki/system/ONBOARDING.md`.
 
-A proposal is a small diff to `.wiki/kb_instructions.md`. Show it and wait for approval.
+A proposal is a small diff to `.wiki/kb_instructions.md`, written in the file's line format (`.wiki/system/SETUP.md`, step 3). Show it and wait for approval. A question that dated facts answer, such as "What changed since <date>?", ends with ` (dated facts)`: it needs no entity, `wikeeper search --since <date>` answers it, and `wikeeper lint --rules` does not report it as a question no rule serves.
 
-- Approved: bump that kind's `(vN)` version and add a line under `## Rule changelog`.
+Every proposal has a kind: the source-kind id it adds or changes (`meeting-notes`), or, for a change to another section, that section's key: `questions`, `entities`, `capture-signals`, `write-policy` or `never-capture`. Use the same kind each time the same proposal comes back.
+
+An approved change gets one line under `## Rule changelog`, in the form `- YYYY-MM-DD: <kind> v<N>: <change>`, with the kind's new version, for example `- 2026-10-20: meeting-notes v2: also capture action owners`. Kinds changed together are listed one after another: `- YYYY-MM-DD: <kind> v<N>, <kind> v<N>: <change>`. A change to another section names its key and no version: `- 2026-10-20: never-capture: salaries and bonuses`.
+
+- Approved: bump that kind's `(vN)` version and add a changelog line in that form.
 - Rejected: add a changelog line marking it rejected, so it is not offered again.
 
 ## Log and index
