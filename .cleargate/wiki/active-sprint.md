@@ -16,7 +16,7 @@ _No active sprint found._
 
 - [[SPRINT-02]] — status: Completed
 
-- [[SPRINT-03]] — status: Active
+- [[SPRINT-03]] — status: Completed
 
 
 
