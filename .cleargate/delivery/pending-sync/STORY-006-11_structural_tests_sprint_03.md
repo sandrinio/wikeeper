@@ -44,7 +44,7 @@ server_pushed_at_version: null
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-17T12:01:07Z
+  last_gate_check: 2026-10-17T13:35:15Z
   transition: ready-for-execution
 pushed_by: null
 pushed_at: null
@@ -98,8 +98,8 @@ As a maintainer, I want the structural template tests to know the SPRINT-03 comm
   | (d) | `test/templates/setup.red.node.test.ts:196`, `:203` | the allowed command list outside the preview table gains `read` and `lint`; the title says SPRINT-03 | STORY-006-09 |
   | (e) | `test/templates/onboarding.red.node.test.ts:145` | the step-2 reference may carry a closing backtick after the file name, `` `.wiki/system/WIKI.md`, section "Proposing rule changes" `` | STORY-006-12 |
   | (f) | `test/agents/enforce-ai-rules.red.node.test.ts:139`, `:184`, `:234`, `:235`; `test/agents/enforce.red.node.test.ts:259`, `:260`, `:520–526`, `:544–548` | add the `ai`-mode ask and prompt rules (K9) | STORY-002-09 |
-  | (g) | `test/agents/enforce-ai-rules.red.node.test.ts:127`, `:139`, `:181`, `:184`, `:234`, `:235`; `test/agents/enforce.red.node.test.ts:260`, `:520–526`, `:544–548`; `test/templates/setup.red.node.test.ts:353` (S5's `missing [...]` text) | add the `ai`-mode `read` allow pair (K7), on the tree STORY-002-09 left | STORY-003-10 |
-  | (h) | the rule lists of every mode: `test/agents/enforce-ai-rules.red.node.test.ts:127`, `:139`, `:181`, `:184`, `:198`, `:199`, `:205`, `:206`, `:234`, `:235`; `test/agents/enforce.red.node.test.ts:260`, `:269`, `:270`, `:277`, `:279`, `:288`, `:292`, `:520–526`, `:528–534`, `:535` (the `whitelist` item count, 3 → 9), `:543`, `:544–548`; `test/templates/setup.red.node.test.ts:353` | add the read-only allow rules for `lint`, `status` and `rules list`, on the tree STORY-002-09 and STORY-003-10 left (decision 17; owner STORY-005-09 since Gate 1 split 4, 2026-10-17) | STORY-005-09 |
+  | (g) | `test/agents/enforce-ai-rules.red.node.test.ts:127`, `:139`, `:181`, `:184`, `:234`, `:235`; `test/agents/enforce.red.node.test.ts:260`, `:520–526`, `:544–548`; `test/templates/setup.red.node.test.ts:353` (S5's `missing [...]` text); `test/agents/enforce-prompts.red.node.test.ts:156`, `:158`, `:166`, `:247`, `:251` (added 2026-10-17, M2 Open decision 1) | add the `ai`-mode `read` allow pair (K7), on the tree STORY-002-09 left | STORY-003-10 |
+  | (h) | the rule lists of every mode: `test/agents/enforce-ai-rules.red.node.test.ts:127`, `:139`, `:181`, `:184`, `:198`, `:199`, `:205`, `:206`, `:234`, `:235`; `test/agents/enforce.red.node.test.ts:260`, `:269`, `:270`, `:277`, `:279`, `:288`, `:292`, `:520–526`, `:528–534`, `:535` (the `whitelist` item count, 3 → 9), `:543`, `:544–548`; `test/templates/setup.red.node.test.ts:353`; `test/agents/enforce-prompts.red.node.test.ts:156`, `:158`, `:166`, `:247`, `:251`, `:273–282` (added 2026-10-17, M2 Open decision 1) | add the read-only allow rules for `lint`, `status` and `rules list`, on the tree STORY-002-09 and STORY-003-10 left (decision 17; owner STORY-005-09 since Gate 1 split 4, 2026-10-17) | STORY-005-09 |
   | (i) | `test/search/search-misses.red.node.test.ts:86` | the misses header becomes `<N> misses, <M> distinct queries` (CR-003 A2) | STORY-004-07 |
   | (j) | `test/templates.red.node.test.ts:53` (S1) | none expected: STORY-002-09 R7 keeps S1 green; an edit only if that rule cannot | STORY-002-09 |
 

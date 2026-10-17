@@ -12,6 +12,7 @@ import { assertInitialised, findRepoRoot, isInside, resolvePaths } from "../core
 import { stripBom } from "../core/text.js";
 import { findKindRule, isValidKindId, normalizeKindId, parseSourceKinds } from "../ingest/kind-rules.js";
 import type { SourceKindRule } from "../ingest/kind-rules.js";
+import { formatSize } from "../ingest/report.js";
 import { evaluatePermission } from "../ingest/permissions.js";
 import type { PermissionResult } from "../ingest/permissions.js";
 import {
@@ -255,7 +256,7 @@ export function createIngestStartCommand(deps: { now?: () => Date } = {}): Inges
               throw new WikeeperError(
                 ExitCode.NEEDS_APPROVAL,
                 "needs_approval",
-                `${resolved.origin} (${size} bytes) needs approval: ${perm.reason}`,
+                `${resolved.origin} needs approval (${formatSize(size)}, ${kind === null ? "no kind yet" : rule === null ? `kind ${kind}, no rule for ${kind}` : `kind ${kind}, rule ${rule.id} v${rule.version}`}): ${perm.reason}`,
                 details,
               );
             }

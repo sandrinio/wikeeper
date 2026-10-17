@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { templatesDir } from "../src/core/templates.js";
 import {
+  checkCommands,
   checkSections,
   classifyWikiPath,
   commandTree,
@@ -32,6 +33,11 @@ describe("reference extractor", () => {
     expect(extractCommandRefs("a.toml", toml)).toEqual([
       { line: 3, words: ["ingest", "apply"], flags: [] },
       { line: 3, words: ["search"], flags: ["--misses"] },
+    ]);
+  });
+  it("marks a '*' where the subcommand would be as a wildcard reference", () => {
+    expect(extractCommandRefs("a.md", "`Bash(wikeeper ingest *--drop*)`")).toEqual([
+      { line: 1, words: ["ingest"], flags: ["--drop"], wildcard: true },
     ]);
   });
   it("turns a Codex prefix_rule into the words it matches and skips placeholders", () => {
@@ -106,6 +112,23 @@ describe("structural checks", () => {
     await writeFile(setup, `${text.endsWith("\n") ? text : `${text}\n`}\`wikeeper ingest publish <id>\`\n`);
     const findings = await runAllChecks(copy, await doctorCheckIds());
     expect(findings.some((f) => f.file === "system/SETUP.md" && f.message.includes("ingest publish"))).toBe(true);
+  }, 60_000);
+});
+
+describe("wildcard references (copy-mutation)", () => {
+  async function withLine(line: string) {
+    const copy = await mkdtemp(path.join(os.tmpdir(), "wikeeper-tpl-"));
+    copies.push(copy);
+    await cp(dir, copy, { recursive: true });
+    const setup = path.join(copy, "system", "SETUP.md");
+    const text = (await readFile(setup, "utf8")).replace(/\r\n/g, "\n");
+    await writeFile(setup, `${text.endsWith("\n") ? text : `${text}\n`}${line}\n`);
+    return checkCommands(copy);
+  }
+  it("passes *--drop* and reports *--nope* naming --nope", async () => {
+    expect(await withLine("`Bash(wikeeper ingest *--drop*)`")).toEqual([]);
+    const bad = await withLine("`Bash(wikeeper ingest *--nope*)`");
+    expect(bad.some((f) => f.message.includes("--nope"))).toBe(true);
   }, 60_000);
 });
 

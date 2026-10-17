@@ -83,7 +83,7 @@ describe("Scenario: A miss is logged (red)", () => {
     const h = await drive(root, ["search", "--misses"]);
     expect(h.code).toBe(0);
     const lines = h.out.split("\n");
-    expect(lines[0]).toBe("1 recorded miss");
+    expect(lines[0]).toBe("1 miss, 1 distinct query");
     expect(lines.some((x) => x.startsWith('1× "budget burn"'))).toBe(true);
   });
 

@@ -1,6 +1,7 @@
 import { accessSync, constants, existsSync, statSync } from "node:fs";
 import path from "node:path";
 import type { AgentName } from "../agent-names.js";
+import { npmVersion } from "../../core/version.js";
 
 export type GuardForm = "path" | "local" | "npx";
 export interface ResolveGuardOptions {
@@ -69,6 +70,6 @@ export function guardCommand(form: GuardForm, agent: AgentName, packageVersion: 
         ? `"$CLAUDE_PROJECT_DIR"/node_modules/.bin/wikeeper ${tail}`
         : `"$(git rev-parse --show-toplevel)"/node_modules/.bin/wikeeper ${tail}`;
     case "npx":
-      return `npx -y wikeeper@${packageVersion} ${tail}`;
+      return `npx -y wikeeper@${npmVersion(packageVersion)} ${tail}`;
   }
 }

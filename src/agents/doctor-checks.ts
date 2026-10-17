@@ -6,6 +6,7 @@ import { fromPosixRelative } from "../core/paths.js";
 import type { AgentName } from "./agent-names.js";
 import type { AgentFile } from "./detect.js";
 import { resolveTargets } from "./detect.js";
+import { plural } from "../commands/doctor.js";
 import { ENFORCE_JSON_FILES, inspectOwnedEntries } from "./enforce/index.js";
 import { WIKI_END, WIKI_START_PREFIX } from "./inject.js";
 
@@ -39,8 +40,8 @@ export function readBlockSignature(blockText: string): BlockSignature {
   return { heading: (heading ?? "## Project Wiki").trim(), reference: REFERENCE };
 }
 
-export async function checkAgentBlocks(input: AgentCheckInput): Promise<DoctorCheck[]> {
-  const { root, manifest, agents, existing, signature } = input;
+export function blockTargets(input: AgentCheckInput): string[] {
+  const { manifest, agents, existing } = input;
   const targets: string[] = [];
   for (const e of manifest.files) if (e.kind === "block" && !targets.includes(e.path)) targets.push(e.path);
   for (const t of resolveTargets(agents, existing)) if (!t.create && !targets.includes(t.path)) targets.push(t.path);
@@ -50,6 +51,17 @@ export async function checkAgentBlocks(input: AgentCheckInput): Promise<DoctorCh
     const ib = order.indexOf(b);
     return (ia < 0 ? order.length : ia) - (ib < 0 ? order.length : ib);
   });
+  return targets;
+}
+
+export function wiringSummary(agents: readonly string[], files: readonly string[], skills: number, subagents: number): string {
+  const where = files.length > 0 ? `WIKI block in ${files.join(", ")} (${plural(files.length, "file")})` : "no WIKI block (0 files)";
+  return `agents ${agents.join(", ")}: ${where}, ${plural(skills, "skill")}, ${plural(subagents, "sub-agent")}`;
+}
+
+export async function checkAgentBlocks(input: AgentCheckInput): Promise<DoctorCheck[]> {
+  const { root, signature } = input;
+  const targets = blockTargets(input);
   const out: DoctorCheck[] = [];
   for (const f of targets) {
     let text: string;
