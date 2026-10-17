@@ -16,7 +16,7 @@ Ask what they will ask the wiki and what they are working on. These become the `
 
 If the answers name questions that `.wiki/kb_instructions.md` does not cover:
 
-- If `.wiki/config.yml` has a `setup_completed_at`, propose them as described in `.wiki/system/WIKI.md, section "Proposing rule changes"`. Never edit `.wiki/kb_instructions.md` directly, because it is shared with everyone in the repository.
+- If `.wiki/config.yml` has a `setup_completed_at`, propose them as described in `.wiki/system/WIKI.md`, section "Proposing rule changes". Never edit `.wiki/kb_instructions.md` directly, because it is shared with everyone in the repository.
 - If setup is not finished, keep them for SETUP.md step 3, which drafts the questions.
 
 Done when both lines are answered and any new questions are proposed or kept.
@@ -29,7 +29,7 @@ Done when the user has answered or skipped each.
 
 ## 4. Write me.md
 
-Write `.wiki/me.md` from `.wiki/system/templates/me.md`. Leave out every line the user has not given a value for. Show the file and wait for the user's approval before writing it.
+Write `.wiki/me.md` from `.wiki/system/templates/me.md`. Leave out every line the user has not given a value for. Extra preferences the user gives go under a final `## Other` heading, one `key: value` line each. Show the file and wait for the user's approval before writing it.
 
 Later changes to `.wiki/me.md` are made only with the user's approval.
 
