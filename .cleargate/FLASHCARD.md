@@ -6,6 +6,12 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-17 · #test-harness #finish · finish refuses a page that does not cite [[<this ingest's id>]] (validation_failed, details.uncited); every page a fixture writer changes must cite the ingest's own id.
+2026-10-17 · #read #output · read's human output prints only warning:/error: messages; codes (likely_scanned, http_error) and details.status are only in --json (data.warnings[].code, error.code).
+2026-10-17 · #templates #structure · A check added to runAllChecks runs in every real-tree caller (templates.test.ts, other stories' red S4); build it on a tree that already has the text it checks.
+2026-10-17 · #templates #sections · SECTION_RE reads "section" plus up to 40 characters plus a double quote; a --summary "<one line>" span after the word "section" is read as a section name; keep "section" out of that sentence.
+2026-10-17 · #goal #acceptance · The Goal Acceptance Check's "006-11 coverage check" (a fixture per lint id) matched no story requirement; check each acceptance clause against a story R before the last wave.
+2026-10-17 · #test-harness #reingest · A re-ingest of a temp copy outside the repository records origin as the absolute POSIX path; compare with copy.split(path.sep).join("/").
 2026-10-17 · #pre-gate #red-test #contract · A story cut from another story's contract commit carries that owner's QA-Red files, and the post-flight 'red modified' scan counts them; diff them against the owner's QA-Red commit before routing a bounce.
 2026-10-17 · #contract #merge · To prove a re-sync merge has no hand edits, compare `git merge-tree --write-tree <p1> <p2>` with `<merge>^{tree}`; equal trees mean a dependent built on the same contract stays valid.
 2026-10-17 · #test-harness #ingest · isSourceId rejects ids like src-open; lock and snapshot unit tests need src-YYYY-MM-DD-slug ids, or readLock reports the lock unreadable.
