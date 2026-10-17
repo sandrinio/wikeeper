@@ -33,24 +33,26 @@ In `whitelist` mode a source runs without asking when its origin matches an entr
 
 1. Read `.wiki/index.md`, then run `wikeeper search --no-miss` for the entities and terms the source names (`--entity` for people and projects). Find out what the wiki already knows.
 2. Pick the source kind. Its rule in `.wiki/kb_instructions.md` (`## Source kinds`) decides what to extract and where it goes; follow the `note:` lines under `## Source kinds` together with it. A bare target (`decision`) means every field listed for that entity under `## Entities`; `entity.field` (`project.status`) means that field only. No rule for the kind: propose one (section "Proposing rule changes").
-3. Extract facts. Each fact is routed to an entity and a page, is dated, is marked `decided` or `tentative`, and carries its anchor in the source. Note what the source holds that no rule covers.
+3. Extract facts. Each fact is routed to an entity and a page, is dated, is marked `decided` or `tentative`, and carries its anchor in the source. Note what the source holds that no rule covers. A page name with a `<…>` placeholder under `## Entities` is filled with the entity's id when the source gives one (`initiatives/initiative-005.md`), otherwise with its title as a lowercase, hyphenated slug.
 4. Submit with `wikeeper ingest facts <id> --file <facts.json>`, or on stdin. The CLI validates the file (section "Facts file").
+
+A source that only points to another file ("read … for the rest") or is cut short: report it to the user, who decides whether to ingest the real file instead. Write nothing for it until they decide.
 
 ## Write phase
 
 One source at a time. A `wiki-writer` works from the facts file and the brief in its task (section "Brief").
 
 1. Run `wikeeper ingest apply <id>`. It takes the lock and prints the brief's `ingest` line and the facts. A lock held by another ingest: wait or ask the user. `--force-unlock` is for stale locks only.
-2. Reconcile each fact against the existing pages as new, confirms, updates or contradicts, and resolve aliases to the entity they name.
+2. Reconcile each fact against the existing pages as new, confirms, updates or contradicts, and resolve aliases to the entity they name. Add an alias to a page only when a fact carries it.
 3. Create new pages in the shapes of section "Page format", with the page names and entity types listed under Entities in `.wiki/kb_instructions.md`.
 4. Only `sources/<id>.md` starts from `.wiki/system/templates/source.md`.
-5. End every claim with the citation `[[<id>]]`.
-6. Flag a contradiction with both sources; never overwrite the earlier fact.
+5. End every claim with the citation `[[<id>]]`. Cite only what the source says: the rules in `.wiki/kb_instructions.md` and the project brief are not sources, so nothing that comes only from them goes on a page.
+6. Flag a contradiction with both sources; never overwrite the earlier fact. Keep every fact line an updated page had at apply. An update or a correction is a new dated line, and the old line stays as it was: never reword, redate or re-mark it, and never move it to another page. Moving a line within the page, or changing its list marker or spacing, is fine.
 7. Write nothing outside `pages/`.
-8. Write and edit pages only with your file-edit tools: Write or Edit in Claude Code, `apply_patch` in Codex, `write_to_file` or `replace_file_content` in Antigravity. Never write a page from the shell: no redirection, heredoc or `sed`.
+8. Write and edit pages only with your file-edit tools: Write or Edit in Claude Code, `apply_patch` in Codex, `write_to_file` or `replace_file_content` in Antigravity. Never write a page from the shell: no redirection, heredoc or `sed`. With `enforce` on, the write guard sees only the file-edit tools, so a shell write is not blocked, and `wikeeper lint` reports it later as an `unlogged-change` finding.
 9. Run `wikeeper ingest finish <id>` and show the user its report. The report holds metadata only.
 
-If `finish` fails, fix the pages it names and rerun it, or run `wikeeper ingest abort <id>` (`--drop` also deletes the registered source). Once `finish` exits 0 the ingest is closed: change nothing under `pages/`; a fix needs a new ingest. Pages never change outside this phase. If `wikeeper ingest` cannot run, write nothing and tell the user.
+If `finish` fails, fix the pages it names and rerun it, or run `wikeeper ingest abort <id>` (`--drop` also deletes the registered source). When `finish` refuses with `fact lines dropped`, put each named line back exactly as it was and run `wikeeper ingest finish <id>` again; the lock is still held. Deleting a whole page stays allowed, and the report counts it. Once `finish` exits 0 the ingest is closed: change nothing under `pages/`. A correction after `finish` comes in as a chat-excerpt ingest: run `wikeeper ingest start -` with the user's correction on stdin, then triage and the write phase, so every page change has a source and a log entry; its write phase adds the corrected fact as a new line (step 6). Pages never change outside this phase. If `wikeeper ingest` cannot run, write nothing and tell the user.
 
 ## Facts file
 
@@ -111,7 +113,7 @@ focus:     dates and owners; ignore the budget appendix
 Every page starts with frontmatter: `type`, `title`, `summary`, `aliases`, `sources` and `updated`. It must be valid YAML, or `wikeeper ingest finish` refuses the page: quote a value that contains `: `, as in `summary: "Atlas: the portal relaunch"`. Below it are two layers.
 
 - Summary: rewritten on every ingest so it is true today.
-- Facts: one dated line each, marked `decided` or `tentative`, with a citation. A replaced fact stays in the list; the newer line carries the change.
+- Facts: one dated line each, marked `decided` or `tentative`, with a citation. A replaced fact stays in the list; the newer line carries the change. Fact lines are ordered by date, oldest first; a new line goes in at its date.
 
 Typed links are lines of the form `key:: [[target]]`. Link an entity by its name or an alias (`[[Ana Kim]]`), never by path, because `wikeeper search --entity` resolves names and aliases.
 
@@ -136,9 +138,9 @@ risks:: [[Vendor delay]]
 Atlas relaunches the customer portal for self-service clients. The launch is planned for 2026-11-17 [[src-2026-10-16-q4-status]].
 
 ## Facts
-- 2026-10-15 · tentative · Launch targets 2026-11-17. [[src-2026-10-16-q4-status]]
 - 2026-09-30 · decided · Scope is the self-service portal only. [[src-2026-09-30-kickoff]]
 - 2026-10-14 · tentative · Launch slips to December. [[src-2026-10-14-vendor-call]] · contradicts:: [[src-2026-10-16-q4-status]]
+- 2026-10-15 · tentative · Launch targets 2026-11-17. [[src-2026-10-16-q4-status]]
 ```
 
 A multi-entry page, such as a people page or a risk register, has one `##` entry per entity. Each entry starts with `type::` and `aliases::` typed links. The frontmatter `type` names the collection (`risk-register`), never the entry type, or `wikeeper search --type risk` would return the page too.
@@ -185,7 +187,7 @@ status:: monitoring
 
 A capture signal is a decision, a date, an owner or a commitment that appears in conversation and is not in the wiki. Do not ingest it silently. At the end of your reply, offer to capture it, batching all signals of that reply into one offer. Say which items are decided and which are still being considered. When unsure whether something is worth capturing, ask.
 
-On approval, run `wikeeper ingest start -` with the excerpt on stdin, then continue with triage and the write phase. Setting `ingest.ambient_offers: false` in `.wiki/config.yml` turns offers off.
+On approval, run `wikeeper ingest start -` with the excerpt on stdin, then continue with triage and the write phase. When `.wiki/kb_instructions.md` lists a source kind for chat captures, pass its id, without the version, with `--kind` (`wikeeper ingest start - --kind <kind>`), so that in `whitelist` mode the capture is allowed or denied at `ingest start`, before any extraction (section "Register"). Setting `ingest.ambient_offers: false` in `.wiki/config.yml` turns offers off.
 
 ## Search
 
@@ -210,6 +212,8 @@ Use search at triage and to answer questions.
 2. Read the pages it returns.
 3. Answer from them, citing the sources as `[[src-…]]`.
 4. When the wiki does not know, say so plainly. Do not guess.
+
+When no page answers, you may quote `.wiki/project.md`, labelled as uncited context from the project brief. The core terms in `.wiki/project.md` are the brief; term pages written by ingests hold cited terms. When the two disagree, the cited page wins: answer from it and offer the user an update to `.wiki/project.md`.
 
 A search that finds nothing is logged as a miss automatically, unless it runs with `--no-miss`; do nothing extra. A search that answers a question never uses `--no-miss`.
 

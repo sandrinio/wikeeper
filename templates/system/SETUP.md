@@ -59,7 +59,7 @@ In `whitelist` mode a source runs without asking when its origin matches an entr
 
 Agree with the user which source kinds chat captures use, such as `chat-excerpt` when step 3 kept that profile suggestion, and list them in `ingest.whitelist.kinds`.
 
-Apply the choice by writing the keys to `.wiki/config.yml`, then run `wikeeper update` so the agents' settings match. Do not turn `enforce` on here; only explain its effect.
+Apply the choice by writing the keys to `.wiki/config.yml`, then run `wikeeper update` so the agents' settings match. Do not turn `enforce` on here; only explain its effect. To turn `enforce` off, set `enforce: false` in `.wiki/config.yml` and run `wikeeper update`, which removes wikeeper's hook and rules from each agent's settings.
 
 ## 5. Wiring
 

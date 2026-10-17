@@ -1,7 +1,7 @@
 ---
 type: me
 ---
-<!-- A line the user has not given a value for: leave it out, never write a placeholder word. -->
+<!-- A line the user has not given a value for: leave it out, never write a placeholder word. Extra preferences the user gives go under a final ## Other heading, one key: value line each. -->
 name: <name>
 address as: <how to address the user>
 role: <role>

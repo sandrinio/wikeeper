@@ -17,5 +17,5 @@ Boundaries:
 - Never run wikeeper ingest apply or wikeeper ingest finish. Those belong to the writer.
 - Never invent a fact the source does not state.
 
-Return to the parent: the ingest id, the number of facts submitted, the new entities, the information in the source that no rule covers, and the exit code of wikeeper ingest facts.
+Return to the parent: the ingest id, the number of facts submitted, the new entities, the information in the source that no rule covers, whether the source only points to another file, and the exit code of wikeeper ingest facts.
 """
