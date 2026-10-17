@@ -1,4 +1,4 @@
-import type { AgentEnforceSpec, EnforceItem } from "./claude.js";
+import { READ_ONLY_COMMANDS, type AgentEnforceSpec, type EnforceItem } from "./claude.js";
 
 const AI_LINES = [
   'prefix_rule(pattern=["npx","wikeeper","ingest"], decision="allow")',
@@ -24,6 +24,12 @@ const SEARCH_LINES = [
   'prefix_rule(pattern=["wikeeper","search"], decision="allow")',
 ];
 
+const READ_ONLY_LINES = READ_ONLY_COMMANDS.flatMap((c) =>
+  [["npx", "wikeeper"], ["wikeeper"]].map(
+    (head) => `prefix_rule(pattern=[${[...head, ...c.split(" ")].map((t) => `"${t}"`).join(",")}], decision="allow")`,
+  ),
+);
+
 const hooks: AgentEnforceSpec = {
   file: ".codex/hooks.json",
   format: "json",
@@ -44,7 +50,7 @@ const rules: AgentEnforceSpec = {
   format: "lines",
   items(_cmd, permission) {
     const mode = permission === "ai" ? [...AI_LINES, ...AI_PROMPT_LINES] : permission === "ask" ? ASK_LINES : [];
-    const lines = [...mode, ...(permission === "ai" ? READ_LINES : []), ...SEARCH_LINES];
+    const lines = [...mode, ...(permission === "ai" ? READ_LINES : []), ...SEARCH_LINES, ...READ_ONLY_LINES];
     return lines.map((line): EnforceItem => ({ kind: "rule", agent: "codex", identity: line, value: line }));
   },
 };
