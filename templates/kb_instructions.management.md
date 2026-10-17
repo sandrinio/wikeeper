@@ -4,11 +4,11 @@ purpose: management
 
 ## Questions this wiki must answer
 
-<!-- Drafted in .wiki/system/SETUP.md step 3 from .wiki/project.md, .wiki/me.md and the profile's suggestions. -->
+<!-- Drafted in .wiki/system/SETUP.md step 3 from .wiki/project.md, .wiki/me.md and the profile's suggestions. One line each: Q<n> <question>, ending in (dated facts) when dated facts answer it. -->
 
 ## Entities
 
-<!-- Drafted in .wiki/system/SETUP.md step 3 from .wiki/project.md, .wiki/me.md and the profile's suggestions. -->
+<!-- Drafted in .wiki/system/SETUP.md step 3 from .wiki/project.md, .wiki/me.md and the profile's suggestions. One line each: <entity> <fields> → <page> <question refs>. -->
 
 ## Capture signals
 
@@ -20,7 +20,7 @@ purpose: management
 
 ## Source kinds
 
-<!-- Drafted in .wiki/system/SETUP.md step 3 from .wiki/project.md, .wiki/me.md and the profile's suggestions. -->
+<!-- Drafted in .wiki/system/SETUP.md step 3 from .wiki/project.md, .wiki/me.md and the profile's suggestions. One line each: <kind-id> (v1) → <targets>; note: lines hold routing notes and exclusions. -->
 
 ## Write policy
 

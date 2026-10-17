@@ -4,6 +4,8 @@ This profile holds suggestions, not a structure. During SETUP.md step 3, offer o
 
 ## Questions
 
+Each line reads `Q<n> <question>`. A question that dated facts answer, such as what changed since a date, ends with ` (dated facts)` and needs no entity.
+
 Q1 Who owns or decides X?
 Q2 What was decided about X, and why?
 Q3 What is the status of X?
@@ -23,6 +25,7 @@ term meaning, aliases → glossary.md Q5
 
 ## Source kinds
 
+<!-- One line each: <kind-id> (v1) → <targets>. A bare target (decision) means every field listed for that entity; entity.field (project.status) means that field only. Routing notes and exclusions go on note: lines, which are not rules. -->
 meeting-notes (v1) → decision, risk, project.status, person.owns
 status-report (v1) → project.status, feature.status, risk
 prd (v1) → feature, feature.scope, decision

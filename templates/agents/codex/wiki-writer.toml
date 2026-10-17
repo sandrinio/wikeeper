@@ -14,7 +14,7 @@ Rules:
 
 Steps:
 1. Run wikeeper ingest apply <id>. It takes the lock and prints the facts. Work from those facts and the brief in your task.
-2. Reconcile each fact with the existing pages: update the page that already holds the entity, or create a page for a new one. Search the wiki before creating a page.
+2. Reconcile each fact with the existing pages: update the page that already holds the entity, or create a page for a new one. Search the wiki with wikeeper search --no-miss before creating a page.
 3. End every claim with the citation [[<id>]].
 4. Write the source page sources/<id>.md for this ingest.
 5. When a fact contradicts an existing page, keep both claims and flag the contradiction, citing both sources.
