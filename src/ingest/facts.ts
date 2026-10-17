@@ -5,9 +5,11 @@
 import { existsSync } from "node:fs";
 import { readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { DATE_RE, isCalendarDate } from "../core/dates.js";
 import { ExitCode, WikeeperError } from "../core/exit-codes.js";
 import { toPosixRelative } from "../core/paths.js";
 import type { ResolvedPaths } from "../core/paths.js";
+import { stripBom } from "../core/text.js";
 import { isValidKindId } from "./kind-rules.js";
 import { hashText } from "./registry.js";
 import { isSourceId } from "./source-id.js";
@@ -44,7 +46,7 @@ export const FACTS_REQUIRED: readonly string[] = ["source_id", "kind", "rule_ver
 export const FACT_KEYS: readonly string[] = ["entity", "field", "value", "status", "as_of", "anchor", "page", "exists"];
 export const FACT_REQUIRED: readonly string[] = ["entity", "field", "value", "status", "as_of", "anchor", "page", "exists"];
 export const FACT_ENTITY_RE: RegExp = /^[a-z][a-z0-9-]*:\S(?:.*\S)?$/;
-export const FACT_AS_OF_RE: RegExp = /^\d{4}-\d{2}-\d{2}$/;
+export const FACT_AS_OF_RE: RegExp = DATE_RE;
 export const FACT_PAGE_RE: RegExp = /^(?![/\\])(?!(?:.*\/)?\.\.(?:\/|$))[^\\]+\.md$/;
 
 function isRecord(v: unknown): v is Record<string, unknown> {
@@ -53,15 +55,6 @@ function isRecord(v: unknown): v is Record<string, unknown> {
 
 function isText(v: unknown): v is string {
   return typeof v === "string" && v.trim() !== "";
-}
-
-function isRealDate(v: string): boolean {
-  if (!FACT_AS_OF_RE.test(v)) return false;
-  const [y, m, d] = v.split("-").map(Number) as [number, number, number];
-  const t = new Date(Date.UTC(y, m - 1, d));
-  // Date.UTC maps years 0-99 to 1900-1999; setUTCFullYear keeps them.
-  t.setUTCFullYear(y);
-  return t.getUTCFullYear() === y && t.getUTCMonth() === m - 1 && t.getUTCDate() === d;
 }
 
 function checkList(input: unknown, key: string, errors: FactsError[]): string[] {
@@ -112,7 +105,7 @@ function checkFact(input: unknown, at: string, errors: FactsError[]): Fact | nul
         msg = `must be one of ${FACT_STATUSES.join(", ")}`;
         break;
       case "as_of":
-        ok = typeof v === "string" && isRealDate(v);
+        ok = typeof v === "string" && isCalendarDate(v);
         msg = "must be a real calendar date, YYYY-MM-DD";
         break;
       case "page":
@@ -205,7 +198,7 @@ export async function readFacts(paths: ResolvedPaths, sourceId: string): Promise
   }
   let parsed: unknown;
   try {
-    parsed = JSON.parse(text.charCodeAt(0) === 0xfeff ? text.slice(1) : text);
+    parsed = JSON.parse(stripBom(text));
   } catch (err) {
     throw invalidFacts(target, [{ path: "$", message: `invalid JSON: ${err instanceof Error ? err.message : String(err)}` }]);
   }

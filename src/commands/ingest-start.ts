@@ -8,7 +8,8 @@ import { loadConfig } from "../core/config.js";
 import { ExitCode, WikeeperError } from "../core/exit-codes.js";
 import { emitResult, getOutputContext } from "../core/output.js";
 import type { OutputContext } from "../core/output.js";
-import { findRepoRoot, isInside, resolvePaths } from "../core/paths.js";
+import { assertInitialised, findRepoRoot, isInside, resolvePaths } from "../core/paths.js";
+import { stripBom } from "../core/text.js";
 import { findKindRule, isValidKindId, normalizeKindId, parseSourceKinds } from "../ingest/kind-rules.js";
 import type { SourceKindRule } from "../ingest/kind-rules.js";
 import { evaluatePermission } from "../ingest/permissions.js";
@@ -32,10 +33,6 @@ const MAX_STDIN_BYTES = 10 * 1024 * 1024;
 
 function usage(message: string): WikeeperError {
   return new WikeeperError(ExitCode.USAGE, "usage", message);
-}
-
-function stripBom(text: string): string {
-  return text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
 }
 
 async function readStdinText(ctx: OutputContext): Promise<string> {
@@ -100,14 +97,7 @@ export function createIngestStartCommand(deps: { now?: () => Date } = {}): Inges
           const root = findRepoRoot(ctx.cwd);
           const { config } = await loadConfig(root);
           const paths = resolvePaths(root, config);
-          try {
-            await stat(paths.configFile);
-          } catch (err) {
-            if ((err as NodeJS.ErrnoException).code === "ENOENT") {
-              throw new WikeeperError(ExitCode.ERROR, "not_initialised", "wiki is not initialised: run wikeeper init");
-            }
-            throw err;
-          }
+          await assertInitialised(paths);
 
           if (opts.providedBy !== "user" && opts.providedBy !== "agent") {
             throw usage(`--provided-by must be "user" or "agent", got "${opts.providedBy}"`);

@@ -2,11 +2,12 @@
 import { homedir } from "node:os";
 import type { WikeeperConfig } from "../core/config.js";
 import { normalizeKindId } from "./kind-rules.js";
+import type { OriginType } from "./registry.js";
 
 export type PermissionDecision = "allowed" | "needs_approval" | "denied";
 export interface PermissionRequest {
   origin: string; // as SourceMeta.origin records it
-  originType: "file" | "url" | "stdin";
+  originType: OriginType;
   kind: string | null;
   approved: boolean;
 }
@@ -60,7 +61,7 @@ function isPathEntry(entry: string): boolean {
 export function matchesOrigin(
   entry: string,
   origin: string,
-  originType: "file" | "url" | "stdin",
+  originType: OriginType,
   options?: { homeDir?: string },
 ): boolean {
   if (originType === "stdin") return false;

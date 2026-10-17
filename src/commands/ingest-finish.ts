@@ -1,6 +1,6 @@
 // src/commands/ingest-finish.ts
 // `wikeeper ingest finish <id>`: close the write phase — check what changed, record the ingest, print its report.
-import { readFile, stat } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import type { Command } from "commander";
 import { compareCodeUnits } from "../core/compare.js";
@@ -8,7 +8,7 @@ import { loadConfig } from "../core/config.js";
 import { ExitCode, WikeeperError } from "../core/exit-codes.js";
 import { sha256File } from "../core/manifest.js";
 import { emitResult, getOutputContext } from "../core/output.js";
-import { findRepoRoot, resolvePaths, toPosixRelative } from "../core/paths.js";
+import { assertInitialised, findRepoRoot, resolvePaths, toPosixRelative } from "../core/paths.js";
 import { diffOutside, diffPages } from "../ingest/diff.js";
 import { factsFilePath, readFacts } from "../ingest/facts.js";
 import { normalizeKindId } from "../ingest/kind-rules.js";
@@ -49,14 +49,7 @@ export function createIngestFinishCommand(deps: { now?: () => Date } = {}): Inge
           const root = findRepoRoot(ctx.cwd);
           const { config } = await loadConfig(root);
           const paths = resolvePaths(root, config);
-          try {
-            await stat(paths.configFile);
-          } catch (err) {
-            if ((err as NodeJS.ErrnoException).code === "ENOENT") {
-              throw new WikeeperError(ExitCode.ERROR, "not_initialised", "wiki is not initialised: run wikeeper init");
-            }
-            throw err;
-          }
+          await assertInitialised(paths);
           if (!isSourceId(id)) throw new WikeeperError(ExitCode.USAGE, "usage", `not a source id: ${id}`);
 
           const prior = (await readLogEvents(paths, { type: "ingest", sourceId: id })).events;

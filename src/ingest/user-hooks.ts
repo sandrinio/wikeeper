@@ -2,6 +2,7 @@
 // failure means (003-04 rolls back on pre_ingest, 003-09 warns on post_ingest).
 import { spawn, spawnSync } from "node:child_process";
 import { ExitCode, WikeeperError } from "../core/exit-codes.js";
+import { isSourceId } from "./source-id.js";
 
 export type UserHookPhase = "pre_ingest" | "post_ingest";
 export type UserHookStatus = "ok" | "failed" | "timed_out" | "skipped";
@@ -23,7 +24,6 @@ export interface UserHookResult {
 export const USER_HOOK_TIMEOUT_MS = 60_000;
 export const USER_HOOK_OUTPUT_LIMIT = 65_536;
 
-const SOURCE_ID_PATTERN = /^src-\d{4}-\d{2}-\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const TRUNCATED_MARKER = "… [truncated]";
 const KILL_GRACE_MS = 1000;
 
@@ -166,7 +166,7 @@ export async function runUserHooks(
   commands: readonly string[],
   options: UserHookOptions,
 ): Promise<UserHookResult[]> {
-  if (!SOURCE_ID_PATTERN.test(options.sourceId)) {
+  if (!isSourceId(options.sourceId)) {
     throw new WikeeperError(ExitCode.ERROR, "invalid_source_id", `invalid source id "${options.sourceId}"`);
   }
   const timeoutMs = options.timeoutMs ?? USER_HOOK_TIMEOUT_MS;

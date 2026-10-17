@@ -4,17 +4,20 @@ import { constants } from "node:fs";
 import { copyFile, mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { compareCodeUnits } from "../core/compare.js";
+import type { IngestPermission } from "../core/config.js";
 import { ExitCode, WikeeperError } from "../core/exit-codes.js";
 import { sha256File } from "../core/manifest.js";
 import { isInside, toPosixRelative } from "../core/paths.js";
 import type { ResolvedPaths } from "../core/paths.js";
+import { stripBom } from "../core/text.js";
+import type { WhitelistMatch } from "./permissions.js";
 import { isSourceId, makeSourceId } from "./source-id.js";
 
 export type OriginType = "file" | "url" | "stdin";
 export interface SourcePermission {
-  mode: "ai" | "ask" | "whitelist";
+  mode: IngestPermission;
   approved: boolean; // --approved was passed
-  matched: { by: "kind" | "origin"; entry: string } | null;
+  matched: WhitelistMatch | null;
   kind_pending: boolean; // whitelist kind still to be checked at `ingest facts`
 }
 export interface SourceMeta {
@@ -170,7 +173,7 @@ export async function registerSource(paths: ResolvedPaths, input: RegisterInput)
 function parseMeta(text: string): SourceMeta | null {
   let value: unknown;
   try {
-    value = JSON.parse(text.charCodeAt(0) === 0xfeff ? text.slice(1) : text);
+    value = JSON.parse(stripBom(text));
   } catch {
     return null;
   }
