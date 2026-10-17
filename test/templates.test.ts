@@ -132,6 +132,28 @@ describe("wildcard references (copy-mutation)", () => {
   }, 60_000);
 });
 
+describe("rules naming an unregistered subcommand (copy-mutation)", () => {
+  it("reports 'unknown subcommand \"rules lists\"' on the ask row, and the restored copy is clean", async () => {
+    const copy = await mkdtemp(path.join(os.tmpdir(), "wikeeper-tpl-"));
+    copies.push(copy);
+    await cp(dir, copy, { recursive: true });
+    const setup = path.join(copy, "system", "SETUP.md");
+    const original = (await readFile(setup, "utf8")).replace(/\r\n/g, "\n");
+    const mutated = original
+      .split("\n")
+      .map((l) => (l.startsWith("| `ask` |") ? l.replace("Bash(wikeeper rules list *)", "Bash(wikeeper rules lists *)") : l))
+      .join("\n");
+    expect(mutated).not.toBe(original);
+    const rowLine = mutated.split("\n").findIndex((l) => l.startsWith("| `ask` |")) + 1;
+    await writeFile(setup, mutated);
+    const ids = await doctorCheckIds();
+    const bad = await runAllChecks(copy, ids);
+    expect(bad.some((f) => f.file === "system/SETUP.md" && f.line === rowLine && f.message.includes('unknown subcommand "rules lists"'))).toBe(true);
+    await writeFile(setup, original);
+    expect(await runAllChecks(copy, ids)).toEqual([]);
+  }, 60_000);
+});
+
 describe("structural template tests (real templates tree)", () => {
   it("every check is clean on the package's templates", async () => {
     const findings = await runAllChecks(dir, await doctorCheckIds());

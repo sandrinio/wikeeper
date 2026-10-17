@@ -247,12 +247,12 @@ Consumed (frozen): `CLAUDE_ENFORCE`, `CODEX_ENFORCE` and their item identities (
 
 ## Task Breakdown
 
-- [ ] Build now from `sprint/S-03` (C6 and every upstream except STORY-005-05 are in); re-sync on `sprint/S-03` after STORY-005-05 merges and before QA-Verify (CR:approach-change, orchestrator 2026-10-17, M4 plan Open decision 4a)
+- [x] Build now from `sprint/S-03` (C6 and every upstream except STORY-005-05 are in); re-sync on `sprint/S-03` after STORY-005-05 merges and before QA-Verify (CR:approach-change, orchestrator 2026-10-17, M4 plan Open decision 4a)
 - [ ] QA-Red: re-scope the §3.1 red-test assertions on the merged tree, only by adding the six rules (§1.4 Q3) -> R1, R2, R4
-- [ ] Export `READ_ONLY_COMMANDS` and append the six rules to `CLAUDE_ENFORCE` in every mode -> R1, R3, R4
-- [ ] Build `READ_ONLY_LINES` in `codex.ts` and append them after `SEARCH_LINES` in every mode -> R2, R3, R4
-- [ ] Add the six rules to the three SETUP.md step-4 rows -> R6, R7
-- [ ] Update `test/agents/enforce.test.ts` and `test/agents/rule-match.test.ts`; write the init, update and error scenarios -> R1, R2, R5, R7
+- [x] Export `READ_ONLY_COMMANDS` and append the six rules to `CLAUDE_ENFORCE` in every mode -> R1, R3, R4
+- [x] Build `READ_ONLY_LINES` in `codex.ts` and append them after `SEARCH_LINES` in every mode -> R2, R3, R4
+- [x] Add the six rules to the three SETUP.md step-4 rows -> R6, R7
+- [x] Update `test/agents/enforce.test.ts` and `test/agents/rule-match.test.ts`; write the init, update and error scenarios -> R1, R2, R5, R7
 
 ## 4. Quality Gates
 
