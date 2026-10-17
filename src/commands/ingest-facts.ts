@@ -8,7 +8,8 @@ import { ExitCode, WikeeperError } from "../core/exit-codes.js";
 import { emitResult, getOutputContext } from "../core/output.js";
 import { assertInitialised, findRepoRoot, resolvePaths } from "../core/paths.js";
 import { stripBom } from "../core/text.js";
-import { FACTS_SCHEMA_REL, validateFacts, writeFacts } from "../ingest/facts.js";
+import type { Fact, FactsFile } from "../ingest/facts.js";
+import { FACTS_SCHEMA_REL, FACT_DIFF_FIELDS, diffFacts, readFacts, validateFacts, writeFacts } from "../ingest/facts.js";
 import { findKindRule, normalizeKindId } from "../ingest/kind-rules.js";
 import { readLogEvents } from "../ingest/log.js";
 import { evaluatePermission } from "../ingest/permissions.js";
@@ -44,7 +45,9 @@ export const ingestFactsCommand: IngestSubcommand = {
       .addHelpText("after", "\n" + FACTS_HELP)
       .argument("<id>", "source id from wikeeper ingest start")
       .option("--file <path>", "read the facts JSON from this file instead of stdin")
-      .action(async (id: string, opts: { file?: string }, command: Command) => {
+      .option("--dry-run", "check the facts and show what would change against the stored facts; store nothing")
+      .action(async (id: string, opts: { file?: string; dryRun?: boolean }, command: Command) => {
+        const dryRun = opts.dryRun === true;
         const ctx = getOutputContext(command);
         const root = findRepoRoot(ctx.cwd);
         const { config } = await loadConfig(root);
@@ -86,7 +89,8 @@ export const ingestFactsCommand: IngestSubcommand = {
         const meta = await readMeta(paths, id);
         if (meta === null) throw new WikeeperError(ExitCode.ERROR, "unknown_source", `no source ${id} is registered`);
         const finished = await readLogEvents(paths, { type: "ingest", sourceId: id });
-        if (finished.events.length > 0) {
+        const isFinished = finished.events.length > 0;
+        if (isFinished && !dryRun) {
           throw new WikeeperError(ExitCode.ERROR, "ingest_finished", `the ingest of ${id} is already finished`);
         }
 
@@ -119,6 +123,13 @@ export const ingestFactsCommand: IngestSubcommand = {
             approved: true,
           });
           if (r.decision === "denied") {
+            if (dryRun) {
+              throw new WikeeperError(ExitCode.DENIED, "denied", `${r.reason}; dry run: nothing was removed`, {
+                reason: r.reason,
+                removed: [],
+                dry_run: true,
+              });
+            }
             let removed: string[] = [];
             try {
               removed = await removeSource(paths, id);
@@ -158,6 +169,51 @@ export const ingestFactsCommand: IngestSubcommand = {
           warnings.push(
             `rule_version ${value.rule_version === null ? "null" : value.rule_version} for kind ${kind} does not match kb_instructions.md (v${rule.version})`,
           );
+        }
+
+        if (dryRun) {
+          const stored = await readFacts(paths, id);
+          const d = diffFacts(stored ?? { ...value, facts: [], new_entities: [], uncovered: [] }, value);
+          const summary = (f: FactsFile) => ({
+            kind: f.kind,
+            rule_version: f.rule_version,
+            facts: f.facts.length,
+            uncovered: f.uncovered.length,
+          });
+          const unchanged = value.facts.length - d.added.length - d.changed.length;
+          const data = {
+            source_id: id,
+            dry_run: true,
+            finished: isFinished,
+            stored: stored === null ? null : summary(stored),
+            next: summary(value),
+            added: d.added,
+            removed: d.removed,
+            changed: d.changed,
+            unchanged,
+          };
+          const line = (label: string, s: ReturnType<typeof summary> | null): string =>
+            s === null
+              ? `${label}: none`
+              : `${label}: ${plural(s.facts, "fact")} (${s.kind} ${s.rule_version === null ? "no rule" : `v${s.rule_version}`}), ${s.uncovered} uncovered`;
+          const factLine = (sign: string, f: Fact): string =>
+            `${sign} ${f.entity} ${f.field} = ${JSON.stringify(f.value)} (${f.status}, ${f.as_of}) → ${f.page}`;
+          const lines = [
+            `dry run for ${id}: nothing stored${isFinished ? " (ingest finished)" : ""}`,
+            line("stored", data.stored),
+            line("submitted", data.next),
+            `added ${d.added.length} · removed ${d.removed.length} · changed ${d.changed.length} · unchanged ${unchanged}`,
+            ...d.added.map((f) => factLine("+", f)),
+            ...d.removed.map((f) => factLine("-", f)),
+            ...d.changed.map(({ before, after }) => {
+              const parts = FACT_DIFF_FIELDS.filter((k) => before[k] !== after[k]).map(
+                (k) => `${k} ${JSON.stringify(before[k])} → ${JSON.stringify(after[k])}`,
+              );
+              return `~ ${after.entity} ${after.field}: ${parts.join("; ")}`;
+            }),
+          ];
+          emitResult(ctx, { command: "ingest facts", data, warnings, message: lines.join("\n") });
+          return;
         }
 
         // 11. store
