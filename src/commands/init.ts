@@ -11,10 +11,10 @@ import { readManifest, serializeManifest, writeManifest } from "../core/manifest
 import type { Manifest, ManifestEntry } from "../core/manifest.js";
 import { emitResult, getOutputContext } from "../core/output.js";
 import { findRepoRoot, resolvePaths, toPosixRelative } from "../core/paths.js";
+import { fullVersion } from "../core/version.js";
 import {
   copyTemplate,
   listTemplateFiles,
-  readPackageVersion,
   templatesDir as defaultTemplatesDir,
 } from "../core/templates.js";
 import type { CommandModule } from "../program.js";
@@ -89,7 +89,7 @@ async function execInit(
   const paths = resolvePaths(root, config);
   const old = await readManifest(paths.manifestFile);
   const tplDir = deps.templatesDir ?? defaultTemplatesDir();
-  const packageVersion = deps.packageVersion ?? readPackageVersion();
+  const packageVersion = deps.packageVersion ?? fullVersion();
 
   const tpl = await listTemplateFiles("system", tplDir);
   const systemTargets = tpl.map((rel) => {
