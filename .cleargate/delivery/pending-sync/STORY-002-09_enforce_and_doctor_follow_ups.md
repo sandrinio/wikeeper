@@ -277,13 +277,13 @@ No new command or option. The written rules are the R1 and R2 tables in the R3 o
 
 ## Task Breakdown
 
-- [ ] Add the four `ai` ask rules to `CLAUDE_ENFORCE` -> R1, R3
-- [ ] Add the two `ai` abort prompt lines to the Codex rules writer -> R2, R3
-- [ ] Route the enforce `update` hook to `removeEnforce` when `enforce` is not true -> R5
-- [ ] Update the `ai` row of the SETUP.md step-4 table -> R6
-- [ ] Teach `test/templates/structure.ts` the wildcard reference; add its unit rows to `test/templates.test.ts` -> R7
-- [ ] Add `test/agents/rule-match.ts` and `test/agents/rule-match.test.ts` with the §2.1 command table -> R1, R2
-- [ ] Update `test/agents/enforce.test.ts`; add the update, malformed-settings and `enforce: false` tests with hand-built SPRINT-02 state -> R4, R5
+- [x] Add the four `ai` ask rules to `CLAUDE_ENFORCE` -> R1, R3
+- [x] Add the two `ai` abort prompt lines to the Codex rules writer -> R2, R3
+- [x] Route the enforce `update` hook to `removeEnforce` when `enforce` is not true -> R5
+- [x] Update the `ai` row of the SETUP.md step-4 table -> R6
+- [x] Teach `test/templates/structure.ts` the wildcard reference; add its unit rows to `test/templates.test.ts` -> R7
+- [x] Add `test/agents/rule-match.ts` and `test/agents/rule-match.test.ts` with the §2.1 command table -> R1, R2
+- [x] Update `test/agents/enforce.test.ts`; add the update, malformed-settings and `enforce: false` tests with hand-built SPRINT-02 state -> R4, R5
 
 ## 4. Quality Gates
 
