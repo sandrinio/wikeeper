@@ -447,7 +447,7 @@ export const enforceExtension: AgentsExtension = {
     return report;
   },
   update(ctx, state) {
-    return applyEnforce(ctx, state, ctx.config.enforce === true);
+    return ctx.config.enforce === true ? applyEnforce(ctx, state, true) : removeEnforce(ctx);
   },
   remove(ctx) {
     return removeEnforce(ctx);
