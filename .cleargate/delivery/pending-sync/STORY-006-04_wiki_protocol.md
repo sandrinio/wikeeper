@@ -20,14 +20,14 @@ lane: standard
 db_write_set: []
 deferred_verification: []
 created_at: 2026-10-16T18:45:00Z
-updated_at: 2026-10-16T20:46:34Z
+updated_at: 2026-10-17T07:30:08Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
 server_pushed_at_version: 3
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-16T20:47:57Z
+  last_gate_check: 2026-10-17T07:30:41Z
   transition: ready-for-execution
 pushed_by: null
 pushed_at: null
@@ -62,13 +62,13 @@ As an AI coding agent, I want one protocol file that tells me how to register a 
 - **R3 — Ingest (§7.1–7.3, D-04, D-17).** The four triggers (file shared in chat — the common case, directory, link, ambient); the three phases (register → triage & extract → write); several sources may be in triage at once, writes are one at a time.
 - **R4 — Register (§7.2, §7.3).** `wikeeper ingest start <path|url|->` with `--kind` when the kind is known and `--text-file` for text the agent already read (the CLI stores originals and never converts or fetches); a chat excerpt goes on stdin with `-`; a duplicate reports the prior ingest and is re-ingested with `--reingest` only when the user asks; exit code 3 (`needs_approval`) → show the returned metadata, ask in chat, rerun with `--approved` only after the user agrees; exit code 4 (`denied`) → tell the user the reason, nothing was stored; a directory → `wikeeper ingest plan <dir>`, show the plan, get approval, then `start` each approved file.
 - **R5 — Triage and extract (§7.4 steps 1–3, D-18).** Read `.wiki/index.md` and run `wikeeper search` for the entities and terms the source names; pick the source kind whose rule in `.wiki/kb_instructions.md` decides what to extract and where; no matching rule → propose one; extract facts routed to an entity and page, each dated, marked decided or tentative, with its anchor in the source; note uncovered information; submit with `wikeeper ingest facts <id>`.
-- **R6 — Write phase (§7.4 steps 4–6, §7.5, D-08, contract 8).** One source at a time: `wikeeper ingest apply <id>` takes the lock and prints the facts and brief; reconcile each fact as new / confirms / updates / contradicts and resolve aliases; create new pages in the shapes of section "Page format", with the page names and entity types listed under Entities in `.wiki/kb_instructions.md` (contract 13: the package ships no fixed pages); only source pages start from `.wiki/system/templates/source.md`; end every claim with the citation `[[<id>]]`; write `sources/<id>.md`; flag contradictions with both sources, never overwrite; write nothing outside `pages/`; run `wikeeper ingest finish <id>` and show the user its report (metadata only); if `finish` fails, fix the pages it names and rerun it, or run `wikeeper ingest abort <id>` (`--drop` also deletes the registered source). Pages never change outside this phase; if `wikeeper ingest` is unavailable, write nothing and tell the user.
+- **R6 — Write phase (§7.4 steps 4–6, §7.5, D-08, contract 8).** One source at a time: `wikeeper ingest apply <id>` takes the lock and prints the brief's `ingest` line and the facts; reconcile each fact as new / confirms / updates / contradicts and resolve aliases; create new pages in the shapes of section "Page format", with the page names and entity types listed under Entities in `.wiki/kb_instructions.md` (contract 13: the package ships no fixed pages); only source pages start from `.wiki/system/templates/source.md`; end every claim with the citation `[[<id>]]`; write `sources/<id>.md`; flag contradictions with both sources, never overwrite; write nothing outside `pages/`; write and edit pages only with the agent's file-edit tools (Write or Edit in Claude Code, `apply_patch` in Codex, `write_to_file` or `replace_file_content` in Antigravity), never from the shell (redirection, heredoc, `sed`) (walkthrough row 8.4); run `wikeeper ingest finish <id>` and show the user its report (metadata only); if `finish` fails, fix the pages it names and rerun it, or run `wikeeper ingest abort <id>` (`--drop` also deletes the registered source); once `finish` exits 0 the ingest is closed and nothing under `pages/` changes — a fix needs a new ingest. Pages never change outside this phase; if `wikeeper ingest` is unavailable, write nothing and tell the user.
 - **R7 — Facts file (§7.4).** Describes every field and carries one complete JSON example; points to `.wiki/system/schemas/facts.schema.json` (contract 12).
-- **R8 — Brief (§7.4).** The fixed template — `ingest`, `facts`, `user said`, `resolved`, `focus` — with one example.
-- **R9 — Page format (§8, contracts 1 and 13).** Frontmatter `type`, `title`, `summary`, `aliases`, `sources`, `updated`; the two layers (Summary rewritten every ingest; Facts dated, decided/tentative, cited, replaced facts kept); typed links `key:: [[target]]`; the fact-line syntax and the contradiction flag exactly as STORY-004-01 defines them. Two page shapes, since no page templates ship besides `source.md`: a single-entity page, whose frontmatter `type` is the entity type; and a multi-entry page (for example a people page or a risk register) holding one `##` section per entry, each starting with `type:: <entity type>` and `aliases::` typed links, because STORY-004-01 R8 types a section entity only from its own `type::` link, which `search --type` filters on. One example of each shape.
-- **R10 — Delegation (§7.6, D-16, D-19).** A table for the four cases (file shared in chat, something said in chat, directory, link) naming who triages/extracts and who writes; `wiki-extractor` (small tier) extracts and submits facts and never writes pages; `wiki-writer` (medium tier) receives the brief and the facts file path — facts, not sources — and runs `apply` → pages → `finish`; with `ingest.delegate: never`, or where the agent cannot delegate, the main agent runs both phases with the same steps and facts file.
+- **R8 — Brief (§7.4).** The fixed template — `ingest`, `facts`, `user said`, `resolved`, `focus` — with one example. The main agent writes the brief into the writer's task; `wikeeper ingest apply` prints only the `ingest` line and no command takes the other fields; a main agent that writes the pages itself needs no brief (walkthrough rows 7.21, 8.2; CR review-feedback 2026-10-17).
+- **R9 — Page format (§8, contracts 1 and 13).** Frontmatter `type`, `title`, `summary`, `aliases`, `sources`, `updated`; the two layers (Summary rewritten every ingest; Facts dated, decided/tentative, cited, replaced facts kept); typed links `key:: [[target]]`; the fact-line syntax and the contradiction flag exactly as STORY-004-01 defines them. Two page shapes, since no page templates ship besides `source.md`: a single-entity page, whose frontmatter `type` is the entity type; and a multi-entry page (for example a people page or a risk register) holding one `##` section per entry, each starting with `type:: <entity type>` and `aliases::` typed links, because STORY-004-01 R8 types a section entity only from its own `type::` link, which `search --type` filters on. One example of each shape. Frontmatter must be valid YAML, or `wikeeper ingest finish` refuses the page (STORY-003-09 R10); a value containing `: ` is quoted.
+- **R10 — Delegation (§7.6, D-16, D-19).** A table for the four cases (file shared in chat, something said in chat, directory, link) naming who triages/extracts and who writes; `wiki-extractor` (small tier) extracts and submits facts and never writes pages; `wiki-writer` (medium tier) receives the brief, which the main agent writes into its task, and the facts file path — facts, not sources — and runs `apply` → pages → `finish`; with `ingest.delegate: never`, or where the agent cannot delegate, the main agent runs both phases with the same steps and facts file.
 - **R11 — Ambient offers (§7.1, D-26).** On a capture signal, offer at the end of the reply, batched; say which items are decided and which are being considered; ask when unsure; on approval ingest the excerpt with `wikeeper ingest start -`; `ingest.ambient_offers: false` turns offers off.
-- **R12 — Search.** `wikeeper search "<query>"` and its options `--type`, `--where key=value`, `--status`, `--entity`, `--since`, `--misses`, `--json`, as built by STORY-004-02…004-05; used at triage and to answer questions.
+- **R12 — Search.** `wikeeper search "<query>"` and its options `--type`, `--where key=value`, `--status`, `--entity`, `--since`, `--misses`, `--json`, each described as built by STORY-004-02…004-05: `--status` matches an entity's `status::` link or its page's frontmatter `status` (STORY-004-03 R3), not a fact's `decided`/`tentative` (walkthrough row 8.11, UR:bug 2026-10-17); used at triage and to answer questions.
 - **R13 — Answering questions.** Search first, read the pages returned, answer with `[[src-…]]` citations, say plainly when the wiki does not know; a search with no results is logged as a miss automatically.
 - **R14 — Proposing rule changes (§9, D-14).** Where proposals come from (a source kind with no rule, information that keeps appearing uncaptured, misses, the user's corrections, and a user's answers during onboarding in `.wiki/system/ONBOARDING.md`, STORY-006-07); a proposal is a small diff to `.wiki/kb_instructions.md` the user approves; approved → bump that kind's version and add a changelog line; rejected → add a changelog line marking it rejected, so it is not offered again.
 - **R15 — Log and index (CR-002 B7, D-28).** `log/` holds one file per event, is committed and is merge-safe; `log.md` is a generated view and is gitignored; `index.md` is generated from page frontmatter and never edited by hand; after a merge or pull that touched the wiki, run `wikeeper index rebuild`.
@@ -119,13 +119,13 @@ Feature: WIKI.md — the wiki protocol
       | Ingest                 | "shared", "directory", "link", "ambient"                                               |
       | Register               | "wikeeper ingest start", "--kind", "--text-file", "--reingest", "--approved", "wikeeper ingest plan" |
       | Triage and extract     | ".wiki/index.md", "wikeeper search", ".wiki/kb_instructions.md", "wikeeper ingest facts" |
-      | Write phase            | "wikeeper ingest apply", "[[<id>]]", "sources/<id>.md", ".wiki/system/templates/source.md", "Page format", "wikeeper ingest finish", "wikeeper ingest abort" |
+      | Write phase            | "wikeeper ingest apply", "[[<id>]]", "sources/<id>.md", ".wiki/system/templates/source.md", "Page format", "wikeeper ingest finish", "wikeeper ingest abort", "file-edit tools", "heredoc", "change nothing under `pages/`" |
       | Facts file             | ".wiki/system/schemas/facts.schema.json"                                               |
-      | Brief                  | "user said", "resolved", "focus"                                                       |
-      | Page format            | "aliases", "type::", "decided", "tentative"                                            |
+      | Brief                  | "user said", "resolved", "focus", "main agent", "writer's task"                        |
+      | Page format            | "aliases", "type::", "decided", "tentative", "valid YAML"                              |
       | Delegation             | "wiki-extractor", "wiki-writer", "ingest.delegate"                                     |
       | Ambient offers         | "wikeeper ingest start -", "ingest.ambient_offers"                                     |
-      | Search                 | "--type", "--where", "--status", "--entity", "--since", "--misses"                     |
+      | Search                 | "--type", "--where", "--status", "--entity", "--since", "--misses", "status::"         |
       | Answering questions    | "[[src-", "miss"                                                                       |
       | Proposing rule changes | ".wiki/kb_instructions.md", "changelog", "version", "rejected", ".wiki/system/ONBOARDING.md" |
       | Log and index          | "log/", "log.md", "gitignored", "index.md", "wikeeper index rebuild"                   |
@@ -176,7 +176,7 @@ Feature: WIKI.md — the wiki protocol
 | Item | Value |
 |---|---|
 | Primary File | `templates/system/WIKI.md` |
-| Test Files | `test/templates/wiki-protocol.test.ts` |
+| Test Files | `test/templates/wiki-protocol.test.ts`, `test/templates/walkthrough-fixes.red.node.test.ts` (QA-Red, R6/R8/R9/R10/R12; 2026-10-17) |
 | New Files Needed | Yes — `test/templates/wiki-protocol.test.ts` |
 
 ### 3.2 Technical Logic
@@ -200,6 +200,7 @@ Not applicable — content. Consumes `parsePage` and `pageEntities` (contract 1)
 - [x] Add the embedded-example checks against `validateFacts` and `parsePage` (R7–R9).
 - [x] Add the delegation table check (R10).
 - [x] Run `npm test` on the integrated tree after STORY-004-01 and STORY-003-06 merge.
+- [ ] Walkthrough fixes W1–W8 (plans/M6.md): file-edit-tool and post-finish rules, the brief channel, valid-YAML note, `--status` as built -> R6, R8, R9, R10, R12
 
 ## 4. Quality Gates
 

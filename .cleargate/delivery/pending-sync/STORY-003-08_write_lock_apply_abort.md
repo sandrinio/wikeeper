@@ -21,14 +21,14 @@ lane: standard
 db_write_set: []
 deferred_verification: []
 created_at: 2026-10-16T18:45:00Z
-updated_at: 2026-10-16T18:45:00Z
+updated_at: 2026-10-17T07:30:08Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
 server_pushed_at_version: 2
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-16T19:19:10Z
+  last_gate_check: 2026-10-17T07:30:41Z
   transition: ready-for-execution
 pushed_by: null
 pushed_at: null
@@ -61,8 +61,8 @@ As the agent that writes pages for an ingest, I want to open a write phase that 
 - **R1 — Lock.** The lock is `paths.lockFile` (`.wiki/.lock`), created exclusively (`wx`), holding JSON `{ source_id, pid, hostname, acquired_at }`. The existing guard (`src/commands/hook.ts:59`) allows page writes exactly while this file exists, so its path and existence semantics do not change. `readLock` reports `{ held, lock, stale, age_ms }`; a lock file that is not valid JSON counts as held, unreadable and stale.
 - **R2 — Stale rule.** A lock is stale when it is older than `STALE_LOCK_MS` (2 hours) or unreadable. `pid` and `hostname` are recorded for diagnostics only: the process that wrote them is the short-lived `wikeeper ingest apply`, which exits as soon as it prints, so its liveness says nothing about whether a writer agent is still working.
 - **R3 — Snapshot.** Taken at `apply`, under `.wiki/.snapshots/<id>/` (already gitignored, `src/core/gitignore.ts:77`): a copy of `pages/` in `pages/`, and `snapshot.json` = `{ source_id, taken_at, facts_sha256, pages, outside }`. `pages` maps every file under `pages/` (path relative to `pages/`, POSIX) to its sha256. `outside` maps to sha256 the files of the content directory that a writer must not touch: `index.md`, every file under `log/`, and every file under `raw/` except `*.facts.json`. STORY-003-09 compares against it: modified or deleted entries are violations, new files are allowed (other sources' `start`, `facts` and search misses may add files during this write phase).
-- **R4 — `wikeeper ingest apply <id> [--force-unlock] [--json]`.** Preconditions: the source is registered (else exit 1 `unknown_source`), facts are stored (else exit 1 `no_facts`, naming `wikeeper ingest facts <id>`), and the ingest is not finished (no `ingest` log event names it, else exit 1 `ingest_finished`). Then it takes the lock, then the snapshot (recording the facts file hash); if the snapshot fails the lock is released and the error returned. It prints the facts and the brief template of architecture.md §7.4 with `ingest` and `facts` filled in and `user said`, `resolved` and `focus` as `<…>` placeholders for the main agent. Output data: `{ source_id, already_applied, lock, snapshot: { dir, pages }, facts_file, facts, brief }`.
-- **R5 — Re-apply is idempotent.** `apply <id>` while the lock already names `<id>` takes no new snapshot and changes nothing; it re-prints the facts and brief with `already_applied: true`.
+- **R4 — `wikeeper ingest apply <id> [--force-unlock] [--json]`.** Preconditions: the source is registered (else exit 1 `unknown_source`), facts are stored (else exit 1 `no_facts`, naming `wikeeper ingest facts <id>`), and the ingest is not finished (no `ingest` log event names it, else exit 1 `ingest_finished`). Then it takes the lock, then the snapshot (recording the facts file hash); if the snapshot fails the lock is released and the error returned. It prints the brief's `ingest` line — `ingest:    <id>   facts: raw/<id>.facts.json`, the part of architecture.md §7.4's brief the CLI knows — and the facts. `user said`, `resolved` and `focus` are not printed: the main agent writes the whole brief into the writer's task (STORY-006-04 R8; walkthrough row 8.2, CR review-feedback 2026-10-17). Output data: `{ source_id, already_applied, lock, snapshot: { dir, pages }, facts_file, facts, brief }`.
+- **R5 — Re-apply is idempotent.** `apply <id>` while the lock already names `<id>` takes no new snapshot and changes nothing; it re-prints the `ingest` line and the facts with `already_applied: true`.
 - **R6 — Held lock.** `apply <id>` while the lock names another ingest exits 1, code `locked`, naming the holder, its age, whether it is stale, and the two ways out: `wikeeper ingest abort <holder>` (restores its pages) or, only when stale, `--force-unlock`. With `--force-unlock` and a stale lock, `apply` removes the lock, keeps the old ingest's snapshot directory, warns that the old ingest's page changes were not restored and where its snapshot is, and proceeds. With `--force-unlock` and a fresh lock it exits 1, code `lock_not_stale`, and changes nothing.
 - **R7 — `wikeeper ingest abort <id> [--drop] [--json]`.** When the lock names `<id>`: restore `pages/` from the snapshot (changed files rewritten, deleted files recreated, files created since apply removed, directories left empty by that removal removed), remove the snapshot, release the lock. When `<id>` is registered but not applied there is nothing to restore. `--drop` also deletes the registered source with `removeSource(paths, id)` (STORY-003-01: original, meta, facts and text files). Either way an `abort` log event `{ source_id, dropped, restored }` is written (`restored` = page paths reverted). Output data: `{ source_id, restored, removed, dropped, dropped_files, log_file }` (`dropped_files` = what `removeSource` returned, `[]` without `--drop`).
 - **R8 — Abort refusals.** Unknown id (no meta and no lock naming it) → exit 1 `unknown_source`. A finished ingest → exit 1 `ingest_finished` (its pages and raw files are provenance). `--drop` while another ingest holds the lock → exit 1 `locked` (dropping raw files mid-write would look like a write outside `pages/` to that ingest's `finish`). If the lock names `<id>` but the snapshot is missing or unreadable, abort releases the lock, restores nothing, and warns "snapshot missing; pages were not restored".
@@ -108,7 +108,7 @@ Feature: Write lock, snapshot, ingest apply and ingest abort
     When I run "wikeeper ingest apply src-2026-10-16-q4-status --json"
     Then the exit code is 0 and .wiki/.lock names "src-2026-10-16-q4-status"
     And .wiki/.snapshots/src-2026-10-16-q4-status/snapshot.json lists both pages and the facts file hash
-    And the data holds the facts and a brief starting "ingest:    src-2026-10-16-q4-status"
+    And the data holds the facts and a brief that is the one line "ingest:    src-2026-10-16-q4-status   facts: raw/src-2026-10-16-q4-status.facts.json"
     And "wikeeper hook guard --agent claude" allows a Write to .wiki/pages/team.md
     And running the same apply again reports already_applied true and leaves the snapshot unchanged
 
@@ -181,7 +181,7 @@ Feature: Write lock, snapshot, ingest apply and ingest abort
 | Item | Value |
 |---|---|
 | Primary File | `src/ingest/lock.ts` |
-| Related Files | `src/ingest/snapshot.ts`, `src/commands/ingest-apply.ts`, `src/commands/ingest-abort.ts`, `src/commands/ingest.ts`, `test/ingest/lock.test.ts`, `test/ingest/snapshot.test.ts`, `test/ingest/ingest-apply-abort.test.ts` |
+| Related Files | `src/ingest/snapshot.ts`, `src/commands/ingest-apply.ts`, `src/commands/ingest-abort.ts`, `src/commands/ingest.ts`, `test/ingest/lock.test.ts`, `test/ingest/snapshot.test.ts`, `test/ingest/ingest-apply-abort.test.ts`, `test/ingest/apply-brief.red.node.test.ts` (QA-Red, R4; 2026-10-17) |
 | New Files Needed | Yes — `src/ingest/lock.ts`, `src/ingest/snapshot.ts`, `src/commands/ingest-apply.ts`, `src/commands/ingest-abort.ts`, `test/ingest/lock.test.ts`, `test/ingest/snapshot.test.ts`, `test/ingest/ingest-apply-abort.test.ts` |
 
 ### 3.2 Technical Logic
@@ -189,7 +189,7 @@ Feature: Write lock, snapshot, ingest apply and ingest abort
 - **Time.** All functions take an optional `now: Date` so tests can age a lock without sleeping; the CLI passes `new Date()`.
 - **Hashing.** `hashTree(dir, exclude?)` walks with `readdir({ withFileTypes: true })`, skips symlinks, returns `Record<posixRel, sha256>` with keys sorted; `sha256File` from `src/core/manifest.ts:50`. `hashOutside(paths)` = `index.md` + `log/**` + `raw/**` minus `*.facts.json`, keys relative to `paths.contentDir`.
 - **Copy and restore.** `fs.cp(pagesDir, <snap>/pages, { recursive: true })`; restore compares current hashes with `snapshot.pages`, rewrites changed files and recreates deleted ones from the copy, removes files absent from the snapshot, then removes directories that became empty (deepest first, never `pages/` itself).
-- **Brief.** Exactly the four lines of architecture.md §7.4, columns aligned as there: `ingest:    <id>   facts: raw/<id>.facts.json`, `user said: <what the user said about this source>`, `resolved:  <aliases resolved, e.g. "AK" = [[Ana Kim]]>`, `focus:     <what to concentrate on or ignore>`. Human output prints the brief, then one line per fact: `- <entity> <field> = <value> (<status>, <as_of>) → <page>`.
+- **Brief.** One line, columns aligned as in architecture.md §7.4: `ingest:    <id>   facts: raw/<id>.facts.json` (`buildBrief(id)`, `data.brief`). Human output prints it, a blank line, then one line per fact: `- <entity> <field> = <value> (<status>, <as_of>) → <page>`. (The three `<…>` lines were dropped, CR review-feedback 2026-10-17.)
 - **Phase derivation** (contract 3): registered = `readMeta` non-null; extracted = `readFacts` non-null; applied = lock names id; finished = `readLogEvents(paths, { type: "ingest", sourceId })` non-empty.
 - **Registration.** `src/commands/ingest-apply.ts` and `src/commands/ingest-abort.ts` export `ingestApplyCommand` and `ingestAbortCommand` (`IngestSubcommand`); append both to `ingestSubcommands` in `src/commands/ingest.ts` (STORY-003-04 §3.3).
 - **`content_dir`.** The lock and snapshots stay under `.wiki/` (`paths.wikiDir`) even when `content_dir` moves `pages/`; build the snapshot path as `path.join(paths.wikiDir, ".snapshots", id)`, matching `src/core/gitignore.ts:77`.
@@ -248,6 +248,7 @@ Consumed (frozen in their stories' §3.3): `readMeta`, `removeSource` (STORY-003
 - [x] Implement `ingest abort`: restore, release, `--drop` via `removeSource`, abort log event, refusals and missing-snapshot warning -> R7, R8
 - [x] Register both subcommands in `src/commands/ingest.ts` -> R4, R7
 - [x] Tests: unit tests for lock and snapshot; CLI tests per Gherkin scenario, including the guard checks through `runGuard` -> §2.1
+- [ ] `buildBrief` returns only the `ingest` line; `apply`'s description and header comment follow -> R4
 
 ## 4. Quality Gates
 
