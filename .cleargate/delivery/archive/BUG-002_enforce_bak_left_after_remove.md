@@ -14,7 +14,7 @@ created_at: 2026-10-16T17:02:00Z
 updated_at: 2026-10-16T17:02:00Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
-server_pushed_at_version: 4
+server_pushed_at_version: 5
 cached_gate_result:
   pass: true
   failing_criteria: []
@@ -27,7 +27,7 @@ last_pulled_at: null
 last_remote_update: null
 source: local-authored
 last_synced_status: null
-last_synced_body_sha: eda9aef6ce023b5fe96b79f9d1ed449ef238f8b0176cc637f073679a80b44ea2
+last_synced_body_sha: c2e18f977d4109cb8783ce4f2b127c8b0c15ac0144983890bdab32edc72a5745
 stamp_error: no ledger rows for work_item_id BUG-002
 draft_tokens:
   input: null

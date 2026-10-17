@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-001
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: "Completed"
+status: Completed
 approved: true
 ambiguity: 🟢 Low
 context_source: CR-002 A1 (approved 2026-10-16; SPRINT-01 walkthrough) · EPIC-001 · verified src/commands/init.ts, src/agents/index.ts, src/core/integrations.ts, src/agents/enforce/index.ts
@@ -19,7 +19,7 @@ created_at: 2026-10-16T18:40:00Z
 updated_at: 2026-10-16T18:40:00Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
-server_pushed_at_version: 3
+server_pushed_at_version: 4
 cached_gate_result:
   pass: true
   failing_criteria: []
@@ -32,7 +32,7 @@ last_pulled_at: null
 last_remote_update: null
 source: local-authored
 last_synced_status: null
-last_synced_body_sha: e4cffc5d7d6d637dfbd0446948ebbc5783cef57b0408923ca408b091fa0386ba
+last_synced_body_sha: ccc897c5c33a054ea62dad5a68578b8299a177bcb539949cab25b6aa77b818f0
 draft_tokens:
   input: 0
   output: 0

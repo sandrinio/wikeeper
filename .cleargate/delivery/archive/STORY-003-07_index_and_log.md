@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-003
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: "Completed"
+status: Completed
 approved: true
 ambiguity: 🟢 Low
 context_source: EPIC-003 (approved 2026-10-16) · architecture.md §4, §7.3, §8, D-28 · SPRINT-02 decomposition brief contracts 1 and 7 · verified src/core/paths.ts, src/core/gitignore.ts, src/program.ts
@@ -21,7 +21,7 @@ created_at: 2026-10-16T18:45:00Z
 updated_at: 2026-10-16T18:45:00Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
-server_pushed_at_version: 4
+server_pushed_at_version: 5
 cached_gate_result:
   pass: true
   failing_criteria: []
@@ -34,7 +34,7 @@ last_pulled_at: null
 last_remote_update: null
 source: local-authored
 last_synced_status: null
-last_synced_body_sha: 249963ef77ec43e40a07555dce5855d8aa885923f6df460ea2aa40c722bf5a45
+last_synced_body_sha: 5df0f2a242ce07c3e7b90942ccef1ad6e791a938bfa77bf114e284acd404460e
 stamp_error: no ledger rows for work_item_id STORY-003-07
 draft_tokens:
   input: null

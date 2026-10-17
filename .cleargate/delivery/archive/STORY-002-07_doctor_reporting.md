@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-002
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: "Completed"
+status: Completed
 approved: true
 ambiguity: 🟢 Low
 context_source: CR-002 A2, A5 (approved 2026-10-16; SPRINT-01 walkthrough steps 0.1c, 1.4e, 1.5b, 2.4) · EPIC-002 · verified src/commands/doctor.ts, src/agents/doctor-checks.ts, src/agents/enforce/index.ts, src/core/config.ts, src/core/integrations.ts
@@ -19,7 +19,7 @@ created_at: 2026-10-16T18:40:00Z
 updated_at: 2026-10-16T18:40:00Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
-server_pushed_at_version: 4
+server_pushed_at_version: 5
 cached_gate_result:
   pass: true
   failing_criteria: []
@@ -32,7 +32,7 @@ last_pulled_at: null
 last_remote_update: null
 source: local-authored
 last_synced_status: null
-last_synced_body_sha: aa6080e958b4e2d626b168f66562b6f53816135e9518ec5ad1f5869d3f1d430b
+last_synced_body_sha: bb79d0d1fb4c00c6978b5bfb277a02dc0fbb382ebb6d721297f8126d537e7058
 stamp_error: no ledger rows for work_item_id STORY-002-07
 draft_tokens:
   input: null

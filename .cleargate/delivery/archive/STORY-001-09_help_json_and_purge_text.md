@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-001
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: "Completed"
+status: Completed
 approved: true
 ambiguity: 🟢 Low
 context_source: CR-002 A3, A4 (approved 2026-10-16; SPRINT-01 walkthrough step 0.4e) · EPIC-001 · verified src/program.ts, src/commands/remove.ts, commander 15.0.0 help behaviour
@@ -19,7 +19,7 @@ created_at: 2026-10-16T18:40:00Z
 updated_at: 2026-10-16T18:40:00Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
-server_pushed_at_version: 3
+server_pushed_at_version: 4
 cached_gate_result:
   pass: true
   failing_criteria: []
@@ -32,7 +32,7 @@ last_pulled_at: null
 last_remote_update: null
 source: local-authored
 last_synced_status: null
-last_synced_body_sha: e85611190c5fbb9662ba1daa87cad94059d36d53c6bc5ca0f7602d264d2736d6
+last_synced_body_sha: 4ef765f3a04d872620e30d4a02d46fd093f5f0097430cc5eccc427548ec97775
 stamp_error: no ledger rows for work_item_id STORY-001-09
 draft_tokens:
   input: null

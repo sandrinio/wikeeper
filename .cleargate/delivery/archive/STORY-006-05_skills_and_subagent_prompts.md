@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-006
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: "Completed"
+status: Completed
 approved: true
 ambiguity: 🟢 Low
 context_source: EPIC-006 (approved 2026-10-16) · architecture.md §6.2, §6.3, §7.4, §7.6, D-16, D-19 · SPRINT-02 decomposition brief (commands at end of SPRINT-02; WIKI.md section names from STORY-006-04 R1) · verified templates/skills/*, templates/agents/*, src/agents/skills.ts, src/agents/subagents.ts, src/agents/model-tiers.ts, test/agents/subagents.red.node.test.ts
@@ -20,7 +20,7 @@ created_at: 2026-10-16T18:45:00Z
 updated_at: 2026-10-17T07:30:08Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
-server_pushed_at_version: 3
+server_pushed_at_version: 4
 cached_gate_result:
   pass: true
   failing_criteria: []
@@ -33,7 +33,7 @@ last_pulled_at: null
 last_remote_update: null
 source: local-authored
 last_synced_status: null
-last_synced_body_sha: f06187388ccc33ae1e829599d003b900196d5a59775ebf19932454a6b0e30c2d
+last_synced_body_sha: 8d27bb6107b4c532acddb848b207d9f41100b1565e6c3710ebe3d2139af2ce95
 stamp_error: no ledger rows for work_item_id STORY-006-05
 draft_tokens:
   input: null

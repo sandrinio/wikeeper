@@ -22,7 +22,7 @@ created_at: 2026-10-16T13:30:00Z
 updated_at: 2026-10-16T13:30:00Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
-server_pushed_at_version: 4
+server_pushed_at_version: 5
 cached_gate_result:
   pass: true
   failing_criteria: []
@@ -35,7 +35,7 @@ last_pulled_at: null
 last_remote_update: null
 source: local-authored
 last_synced_status: null
-last_synced_body_sha: cc1070fdfa490dcf97f96ce544129d5cbd80960ecbbbb776541d7f5bba946e8a
+last_synced_body_sha: 7462fa6842172aa12fbc5901086c9225890af154417771d5cb191f0d800bbe6b
 stamp_error: no ledger rows for work_item_id STORY-002-05
 draft_tokens:
   input: null

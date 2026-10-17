@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-003
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: "Completed"
+status: Completed
 approved: true
 ambiguity: 🟢 Low
 context_source: EPIC-003 §2 (ids, raw registry, duplicates) · architecture.md §4, §7.3 steps 1–4, §8 · SPRINT-02 decomposition brief contract 3 · verified src/core/manifest.ts, src/core/paths.ts
@@ -20,7 +20,7 @@ created_at: 2026-10-16T18:45:00Z
 updated_at: 2026-10-16T18:45:00Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
-server_pushed_at_version: 6
+server_pushed_at_version: 7
 cached_gate_result:
   pass: true
   failing_criteria: []
@@ -33,7 +33,7 @@ last_pulled_at: null
 last_remote_update: null
 source: local-authored
 last_synced_status: null
-last_synced_body_sha: 49cae518e3adad7fc956bf3a28941ee661794ddc5b74c4b6588556e7716fefe8
+last_synced_body_sha: dbdd3d17db7c3c78c419b45ecd2bdad83da60cc03276495de4a137ee708ba3ca
 draft_tokens:
   input: 0
   output: 0

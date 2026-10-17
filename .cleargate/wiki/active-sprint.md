@@ -14,7 +14,7 @@ _No active sprint found._
 
 - [[SPRINT-01]] — status: Completed
 
-- [[SPRINT-02]] — status: Draft
+- [[SPRINT-02]] — status: Completed
 
 
 

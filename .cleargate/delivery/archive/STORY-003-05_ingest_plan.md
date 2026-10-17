@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-003
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: "Completed"
+status: Completed
 approved: true
 ambiguity: 🟢 Low
 context_source: "EPIC-003 §2 (ingest plan <dir>: new / duplicate / denied per file, JSON plan), §5 (directory-plan scenario) · architecture.md §7.1 (directory trigger), §7.3, §7.6 (directory row) · SPRINT-02 decomposition brief contracts 3, 4 and 6"
@@ -23,7 +23,7 @@ created_at: 2026-10-16T18:45:00Z
 updated_at: 2026-10-16T22:41:37Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
-server_pushed_at_version: 4
+server_pushed_at_version: 5
 cached_gate_result:
   pass: true
   failing_criteria: []
@@ -36,7 +36,7 @@ last_pulled_at: null
 last_remote_update: null
 source: local-authored
 last_synced_status: null
-last_synced_body_sha: f1c4da140caa38bdb872b9b8578efe8bc7616387cf9c001c7750ca67815afd23
+last_synced_body_sha: c58fe9291073c8d957f64a41650a44f892615d4f6e9ee03f3ed984641fc565f4
 stamp_error: no ledger rows for work_item_id STORY-003-05
 draft_tokens:
   input: null
