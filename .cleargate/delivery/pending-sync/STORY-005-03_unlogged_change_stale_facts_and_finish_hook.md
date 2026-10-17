@@ -283,14 +283,14 @@ Consumed (frozen): `runLint`, `PAGE_CHECKS`, `LintCheck`, `LintContext`, `pagePa
 
 ## Task Breakdown
 
-- [ ] `src/ingest/log.ts`: `page_hashes` on `IngestLogEvent`, `KEY_ORDER`, `isPageHashes`, the `validate` rule -> R1
-- [ ] `src/lint/unlogged.ts`: `pageHash`, event reading, the R3 decisions with repository-relative paths, private pages, the baseline `info` finding -> R2, R3
-- [ ] `src/lint/unlogged.ts`: snapshot mode while the lock is held -> R4
-- [ ] `src/commands/ingest-finish.ts`: `page_hashes` in the ingest event -> R1
-- [ ] `src/commands/ingest-finish.ts`: `FINISH_CHECKS`, `finishLintHook` (empty `changed` returns `[]`), registration at module load, `lintLine` via `findingLine` -> R5
-- [ ] `src/lint/checks.ts`: insert `unloggedChangeCheck` after `indexDriftCheck` -> R6
-- [ ] `test/lint/lint-command.test.ts`, `test/lint/checks.test.ts`: the recorded ingest event in STORY-005-02's fixture helper, the unlogged pages in the read-only fixture, `checks` on in-memory full runs -> R7, R8
-- [ ] Unit tests per module, and CLI tests per Gherkin scenario -> §2.1
+- [x] `src/ingest/log.ts`: `page_hashes` on `IngestLogEvent`, `KEY_ORDER`, `isPageHashes`, the `validate` rule -> R1
+- [x] `src/lint/unlogged.ts`: `pageHash`, event reading, the R3 decisions with repository-relative paths, private pages, the baseline `info` finding -> R2, R3
+- [x] `src/lint/unlogged.ts`: snapshot mode while the lock is held -> R4
+- [x] `src/commands/ingest-finish.ts`: `page_hashes` in the ingest event -> R1
+- [x] `src/commands/ingest-finish.ts`: `FINISH_CHECKS`, `finishLintHook` (empty `changed` returns `[]`), registration at module load, `lintLine` via `findingLine` -> R5
+- [x] `src/lint/checks.ts`: insert `unloggedChangeCheck` after `indexDriftCheck` -> R6
+- [x] `test/lint/lint-command.test.ts`, `test/lint/checks.test.ts`: the recorded ingest event in STORY-005-02's fixture helper, the unlogged pages in the read-only fixture, `checks` on in-memory full runs -> R7, R8
+- [x] Unit tests per module, and CLI tests per Gherkin scenario -> §2.1
 
 ## 4. Quality Gates
 

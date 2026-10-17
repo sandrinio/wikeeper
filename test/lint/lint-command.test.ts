@@ -8,7 +8,9 @@ import { resolvePaths } from "../../src/core/paths.js";
 import type { ResolvedPaths } from "../../src/core/paths.js";
 import { writeIndex } from "../../src/ingest/index-builder.js";
 import { acquireLock } from "../../src/ingest/lock.js";
-import { hashTree } from "../../src/ingest/snapshot.js";
+import { writeLogEvent } from "../../src/ingest/log.js";
+import { hashTree, takeSnapshot } from "../../src/ingest/snapshot.js";
+import { pageHash } from "../../src/lint/unlogged.js";
 import { runCli } from "../../src/program.js";
 
 const T = 30_000;
@@ -37,7 +39,7 @@ async function run(root: string, args: string[]) {
 /** Initialised wiki + fixture files. Keys are relative to the content directory ("pages/team.md", "index.md"). */
 async function lintWiki(
   files: Record<string, string>,
-  opts: { contentDir?: string; index?: boolean } = {},
+  opts: { contentDir?: string; index?: boolean; recorded?: boolean } = {},
 ): Promise<{ root: string; paths: ResolvedPaths }> {
   const root = await mkdtemp(path.join(os.tmpdir(), "wk-lintcmd-"));
   tmpDirs.push(root);
@@ -52,6 +54,32 @@ async function lintWiki(
     const file = path.join(paths.contentDir, ...rel.split("/"));
     await mkdir(path.dirname(file), { recursive: true });
     await writeFile(file, body);
+  }
+  // STORY-005-03 R8: one ingest event records every fixture page with its hash, so none is an unlogged change.
+  if (opts.recorded !== false) {
+    const pageFiles = Object.keys(files)
+      .filter((k) => k.startsWith("pages/") && k.endsWith(".md"))
+      .map((k) => k.slice("pages/".length))
+      .sort();
+    if (pageFiles.length > 0) {
+      const page_hashes: Record<string, string> = {};
+      for (const rel of pageFiles) page_hashes[rel] = pageHash(files[`pages/${rel}`]!);
+      await writeLogEvent(paths, {
+        type: "ingest",
+        at: "2026-10-14T09:00:00.000Z",
+        source_id: "src-2026-10-14-fixture",
+        kind: "status-report",
+        rule_version: null,
+        permission: "ai",
+        origin: "docs/fixture.md",
+        created: pageFiles,
+        updated: [],
+        deleted: [],
+        contradictions: 0,
+        rule_suggestions: 0,
+        page_hashes,
+      });
+    }
   }
   if (opts.index !== false) await writeIndex(paths);
   return { root, paths };
@@ -107,12 +135,18 @@ describe("wikeeper lint (command)", () => {
 
   it.each([false, true])("is read-only (lock held: %s)", async (locked) => {
     const r = await lintWiki({ ...S1, ...TESTER, "index.md": "# stale\n" }, { index: false });
-    if (locked) await acquireLock(r.paths, Q4);
+    // R7: an unlogged edit made after the recorded ingest (plain) or before apply (lock held, snapshot taken).
+    await writeFile(path.join(r.paths.pagesDir, "people", "tester.md"), TESTER["pages/people/tester.md"] + "\nEdited by hand.\n");
+    if (locked) {
+      await acquireLock(r.paths, Q4);
+      await takeSnapshot(r.paths, Q4, "0".repeat(64), new Date("2026-10-16T12:00:00Z"));
+    }
     const snap = async (): Promise<string[]> => (await readdir(r.root, { recursive: true })).sort();
     const before = await hashTree(r.root);
     const names = await snap();
-    await run(r.root, ["lint"]);
+    const plain = await run(r.root, ["lint"]);
     await run(r.root, ["lint", "--json"]);
+    if (!locked) expect(plain.text).toContain("unlogged-change");
     expect(await hashTree(r.root)).toEqual(before);
     expect(await snap()).toEqual(names);
   }, T);

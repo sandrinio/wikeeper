@@ -13,8 +13,8 @@ import { diffOutside, diffPages } from "../ingest/diff.js";
 import { factsFilePath, readFacts } from "../ingest/facts.js";
 import { normalizeKindId } from "../ingest/kind-rules.js";
 import { writeIndex } from "../ingest/index-builder.js";
-import { runLintHook } from "../ingest/lint-hook.js";
-import type { LintFinding } from "../ingest/lint-hook.js";
+import { runLintHook, setLintHook } from "../ingest/lint-hook.js";
+import type { LintFinding, LintHook } from "../ingest/lint-hook.js";
 import { readLock, releaseLock } from "../ingest/lock.js";
 import { readLogEvents, regenerateLogView, writeLogEvent } from "../ingest/log.js";
 import type { IngestLogEvent } from "../ingest/log.js";
@@ -26,15 +26,29 @@ import { readSnapshot, removeSnapshot } from "../ingest/snapshot.js";
 import { hookFailed, runUserHooks } from "../ingest/user-hooks.js";
 import type { UserHookResult } from "../ingest/user-hooks.js";
 import { validateIngest } from "../ingest/validate.js";
-import { parsePage } from "../wiki/parse-page.js";
+import { findingLine, runLint } from "../lint/checks.js";
+import { pageHash } from "../lint/unlogged.js";
+import { loadPages, parsePage } from "../wiki/parse-page.js";
 import type { Page } from "../wiki/parse-page.js";
 import type { IngestSubcommand } from "./ingest.js";
 
 const msg = (err: unknown): string => (err instanceof Error ? err.message : String(err));
 
 function lintLine(f: LintFinding): string {
-  return `lint ${f.severity} ${f.id}: ${f.message}${f.path === undefined ? "" : ` (${f.path})`}`;
+  return `lint ${findingLine(f)}`;
 }
+
+export const FINISH_CHECKS: readonly string[] = ["broken-link", "uncited-claim", "unlogged-change"];
+export const finishLintHook: LintHook = async ({ paths, changed }) => {
+  if (changed.length === 0) return [];
+  const { config } = await loadConfig(paths.root);
+  const pages = await loadPages(paths.pagesDir);
+  const log = (await readLogEvents(paths)).events;
+  return runLint(
+    { paths, config, pages, kb: null, log, now: new Date(), only: changed },
+    { scope: "pages", checks: [...FINISH_CHECKS] },
+  );
+};
 
 export function createIngestFinishCommand(deps: { now?: () => Date } = {}): IngestSubcommand {
   const now = deps.now ?? (() => new Date());
@@ -167,9 +181,12 @@ export function createIngestFinishCommand(deps: { now?: () => Date } = {}): Inge
             warnings.push(`${toPosixRelative(root, path.join(paths.pagesDir, e.path))}: ${e.message}`);
           }
           const changedPages: Page[] = [];
-          for (const rel of [...diff.created, ...diff.updated]) {
+          const pageHashes: Record<string, string> = {};
+          for (const rel of [...diff.created, ...diff.updated].sort(compareCodeUnits)) {
             if (!rel.endsWith(".md")) continue;
-            changedPages.push(parsePage(await readFile(path.join(paths.pagesDir, ...rel.split("/")), "utf8"), rel));
+            const text = await readFile(path.join(paths.pagesDir, ...rel.split("/")), "utf8");
+            pageHashes[rel] = pageHash(text);
+            changedPages.push(parsePage(text, rel));
           }
           const contradictions = countContradictions(changedPages, id);
           const logFile = await writeLogEvent(paths, {
@@ -185,6 +202,7 @@ export function createIngestFinishCommand(deps: { now?: () => Date } = {}): Inge
             deleted: diff.deleted,
             contradictions,
             rule_suggestions: facts.uncovered?.length ?? 0,
+            page_hashes: pageHashes,
           });
           await regenerateLogView(paths);
 
@@ -246,3 +264,5 @@ export function createIngestFinishCommand(deps: { now?: () => Date } = {}): Inge
 }
 
 export const ingestFinishCommand: IngestSubcommand = createIngestFinishCommand();
+
+setLintHook(finishLintHook);

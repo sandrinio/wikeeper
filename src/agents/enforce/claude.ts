@@ -24,6 +24,9 @@ const AI_ASK_RULES = [
 
 const READ_RULES = ["Bash(npx wikeeper read *)", "Bash(wikeeper read *)"];
 
+/** Commands that write no file; allowed in every permission mode (Gate 1 decision 17). */
+export const READ_ONLY_COMMANDS = ["lint", "status", "rules list"] as const;
+
 export const CLAUDE_ENFORCE: AgentEnforceSpec = {
   file: ".claude/settings.json",
   format: "json",
@@ -53,6 +56,11 @@ export const CLAUDE_ENFORCE: AgentEnforceSpec = {
     }
     for (const rule of ["Bash(npx wikeeper search *)", "Bash(wikeeper search *)"]) {
       items.push({ kind: "rule", agent: "claude", identity: `permissions.allow[${rule}]`, value: rule });
+    }
+    for (const c of READ_ONLY_COMMANDS) {
+      for (const rule of [`Bash(npx wikeeper ${c} *)`, `Bash(wikeeper ${c} *)`]) {
+        items.push({ kind: "rule", agent: "claude", identity: `permissions.allow[${rule}]`, value: rule });
+      }
     }
     return items;
   },

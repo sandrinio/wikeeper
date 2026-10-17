@@ -23,6 +23,7 @@ export interface IngestLogEvent {
   deleted: string[];
   contradictions: number;
   rule_suggestions: number;
+  page_hashes?: Record<string, string>; // created ∪ updated .md pages, keys relative to pages/
 }
 export interface AbortLogEvent {
   type: "abort";
@@ -62,7 +63,7 @@ export interface LogReadResult {
 const KEY_ORDER: Record<string, readonly string[]> = {
   ingest: [
     "type", "at", "source_id", "kind", "rule_version", "permission", "origin",
-    "created", "updated", "deleted", "contradictions", "rule_suggestions",
+    "created", "updated", "deleted", "contradictions", "rule_suggestions", "page_hashes",
   ],
   abort: ["type", "at", "source_id", "dropped", "restored"],
   miss: ["type", "at", "query", "filters"],
@@ -74,6 +75,10 @@ function invalid(message: string): WikeeperError {
 
 const isStr = (v: unknown): v is string => typeof v === "string";
 const isStrArr = (v: unknown): boolean => Array.isArray(v) && v.every(isStr);
+export function isPageHashes(v: unknown): v is Record<string, string> {
+  if (typeof v !== "object" || v === null || Array.isArray(v)) return false;
+  return Object.entries(v).every(([k, h]) => k !== "" && typeof h === "string" && /^[0-9a-f]{64}$/.test(h));
+}
 const isNum = (v: unknown): boolean => typeof v === "number" && Number.isFinite(v);
 
 function validate(event: LogEvent): void {
@@ -94,6 +99,7 @@ function validate(event: LogEvent): void {
       need(isStrArr(e["deleted"]), "deleted");
       need(isNum(e["contradictions"]), "contradictions");
       need(isNum(e["rule_suggestions"]), "rule_suggestions");
+      need(e["page_hashes"] === undefined || isPageHashes(e["page_hashes"]), "page_hashes");
       break;
     case "abort":
       need(isStr(e["source_id"]), "source_id");
