@@ -11,13 +11,13 @@ start_date: 2026-10-17
 end_date: null
 synced_at: null
 created_at: 2026-10-16T17:25:00Z
-updated_at: 2026-10-17T07:57:15Z
+updated_at: 2026-10-17T08:08:19Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: fca928d-dirty
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-17T07:57:36Z
+  last_gate_check: 2026-10-17T08:08:40Z
   transition: ready-for-execution
 epics:
   - EPIC-001
@@ -336,6 +336,8 @@ Skeleton rules:
 - 2026-10-17 · Walkthrough ⚠️ items deferred as UR:review-feedback (need the human's sign-off at close): `--help` footer still says commands land in upcoming releases; `ai` mode auto-allows `ingest abort --drop` and `--force-unlock`; `whitelist.origins` format undefined; `kb_instructions.md` never validated; no command lists rule suggestions; every sparse-wiki triage search logs a miss; `--since` without `--limit` stops at 10 with no hint; WIKI.md silent on answering from `project.md`; `architecture.md` §7.3 still says `apply` prints the brief (Gate-4 doc refresh).
 - 2026-10-17 · Walkthrough part 2 (fresh headless session on the M6 build, after `wikeeper update`): 8.2 and 8.3 fixed (live in a throwaway repo: `apply` prints the one `ingest` line; `finish` exits 1 on an unquoted `: `, logs nothing, keeps the lock, then exits 0 after the fix); 8.11 fixed (`--status Triaged` lists the triaged initiatives, as WIKI.md now says); 8.4 fixed in the instructions (both writers used only Write/Edit and changed nothing after `finish`), not enforced (the guard still ignores Bash: by design, STORY-002-05 R2, EPIC-005 lint backstop); 7.6 resolved by a kb rule change through WIKI.md "Proposing rule changes" (roadmap v2 / product-state v2, `epic` entity). `roadmap.md` and `product-state.md` ingested (0 contradictions; bugs and CRs excluded). No new ❌. New ⚠️ added to the deferred review-feedback list: guard limit not stated in WIKI.md; `finish` checks that a citation exists, not that the source supports it, nor that a full rewrite kept earlier fact lines; writer adds aliases not in the facts; no place for routing notes or undated `as_of` in kb rules; no path for fixing a closed ingest without a new source; skill stricter than WIKI.md on who extracts; `--version` cannot tell builds apart; a filter-only miss logs `No results for "".` (STORY-003-07 summary line). Headless walkthrough cost ≈ $12.9 (part 1 $8.21, part 2 $4.65). The walkthrough wiki in `walkthrough-wiki` is left uncommitted for the human.
 - 2026-10-17 · Human decisions after the walkthrough: Goal check 4 recorded **met** (every part-1 ❌ resolved and re-verified in part 2; the 8.4 enforcement gap is by design until EPIC-005 lint); all walkthrough ⚠️ items deferred to SPRINT-03 as UR:review-feedback (sign-off given); the walkthrough wiki committed locally in `walkthrough-wiki` (ea61769; `wikeeper-test-notes.md`'s SPRINT-01 edits left unstaged; not pushed); push approved: `main` (4 commits, 173b8fc..fca928d) and `sprint/S-02` pushed, draft PR #2 `sprint/S-02` → `main` opened for Goal check 1 (CI run 39015547714, 6 jobs).
+- 2026-10-17 · CI on draft PR #2 (run 39015547714): `test/e2e/ingest.test.ts` passed on all 6 jobs (ubuntu, macos, windows × Node 22, 24) — Goal check 1 met. 4 jobs red on `test/search/search-perf.red.node.test.ts` alone (p95 506–829 ms vs 500 ms inside the full parallel suite; 100/101 files passed in each). Human chose to isolate the timing tests: `story/ci-perf-isolation` (Developer 81534d0, QA PASS) — `npm test` excludes `**/*-perf.red.node.test.ts`, new `npm run test:perf` runs the two perf files alone with `--no-file-parallelism`, CI step added, README line; budget and red tests unchanged; merged 8815f3d.
+- 2026-10-17 · Phase D.5 consolidation 51fcc4c (code-simplifier): `CITATION_RE` from `SOURCE_ID_PATTERN` and `isSourceId` in user-hooks; `OriginType`/`IngestPermission`/`WhitelistMatch` reused; `assertInitialised` replaces 7 `not_initialised` blocks; `src/core/dates.ts` replaces 3 calendar-date helpers; `stripBom` ×4; `formatLockAge` ×3; `goal.test.ts` builds through `pack.ts`. QA consolidation mode GREEN: no red file touched, frozen regex `.source`/`.flags` byte-identical at 3fcfa13 vs 51fcc4c, 18 date edge cases identical, 1011/1011. Kept. Skipped: `search.ts`'s different not-initialised check, `setup.ts` (outside the sprint diff), 3-line `usage()` helpers, two different `isRecord`s.
 
 ## Goal Acceptance Check (accepted by the human, 2026-10-16)
 
