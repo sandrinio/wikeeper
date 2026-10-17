@@ -139,3 +139,8 @@
   action: "update"
   target: "SPIKE-002"
   path: ".cleargate/delivery/archive/SPIKE-002_claude_ask_rules_for_flags.md"
+- timestamp: "2026-10-17T14:10:29.923Z"
+  actor: "cleargate wiki ingest"
+  action: "update"
+  target: "SPRINT-03"
+  path: ".cleargate/delivery/pending-sync/SPRINT-03_lint_status_and_read.md"

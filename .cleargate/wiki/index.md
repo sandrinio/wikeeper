@@ -5,7 +5,7 @@
 ## Active
 
 - [[EPIC-005]] (epic) — Draft — Lint, status and rule evolution
-- [[SPRINT-03]] (sprint) — Draft — Lint, status and read
+- [[SPRINT-03]] (sprint) — Active — Lint, status and read
 - [[INITIATIVE-001]] (initiative) — Triaged — Wiki CLI — Karpathy-style LLM wiki for AI agents
 - [[CR-002]] (cr) — Draft — SPRINT-01 walkthrough feedback — CLI polish and scope notes for SPRINT-02/03
 - [[CR-003]] (cr) — Draft — SPRINT-02 walkthrough feedback — ingest, search and instruction follow-ups for SPRINT-03
