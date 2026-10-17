@@ -55,3 +55,23 @@ describe("rule-match helper against the ai-mode writer output", () => {
     expect(codexDecision(['prefix_rule(pattern=["a"], decision="allow")', 'prefix_rule(pattern=["a","b"], decision="forbidden")'], ["a", "b"])).toBe("forbidden");
   });
 });
+
+describe("read-only commands match an allow rule in every mode", () => {
+  const rows: Array<[string, string, string]> = [
+    ["wikeeper status", "allow", "allow"],
+    ["npx wikeeper status --json", "allow", "allow"],
+    ["wikeeper lint --rules --json", "allow", "allow"],
+    ["npx wikeeper lint --check broken-link", "allow", "allow"],
+    ["wikeeper rules list --json", "allow", "allow"],
+    ["wikeeper rules record --rejected --kind meeting --summary x", "default", "default"],
+    ["wikeeper --json status", "default", "default"],
+  ];
+  for (const mode of ["ai", "ask", "whitelist"] as const) {
+    for (const [command, claude, codex] of rows) {
+      it(`${mode}: ${command}: claude ${claude}, codex ${codex}`, () => {
+        expect(claudeDecision(claudePerms(mode), command)).toBe(claude);
+        expect(codexDecision(codexLines(mode), codexArgv(command))).toBe(codex);
+      });
+    }
+  }
+});
