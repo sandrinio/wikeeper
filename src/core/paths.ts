@@ -1,6 +1,8 @@
 import { existsSync } from "node:fs";
+import { stat } from "node:fs/promises";
 import path from "node:path";
 import type { WikeeperConfig } from "./config.js";
+import { ExitCode, WikeeperError } from "./exit-codes.js";
 
 export interface ResolvedPaths {
   root: string;
@@ -10,6 +12,7 @@ export interface ResolvedPaths {
   manifestFile: string;
   kbInstructions: string;
   meFile: string;
+  projectFile: string;
   lockFile: string;
   contentDir: string;
   pagesDir: string;
@@ -43,6 +46,7 @@ export function resolvePaths(root: string, config: Pick<WikeeperConfig, "content
     manifestFile: path.join(systemDir, "manifest.json"),
     kbInstructions: path.join(wikiDir, "kb_instructions.md"),
     meFile: path.join(wikiDir, "me.md"),
+    projectFile: path.join(wikiDir, "project.md"),
     lockFile: path.join(wikiDir, ".lock"),
     contentDir,
     pagesDir: path.join(contentDir, "pages"),
@@ -65,4 +69,16 @@ export function fromPosixRelative(root: string, rel: string): string {
 export function isInside(parent: string, child: string): boolean {
   const rel = path.relative(parent, child);
   return rel !== "" && rel !== ".." && !rel.startsWith(".." + path.sep) && !path.isAbsolute(rel);
+}
+
+/** Throws WikeeperError(ExitCode.ERROR, "not_initialised") when the wiki's config file does not exist. */
+export async function assertInitialised(paths: ResolvedPaths): Promise<void> {
+  try {
+    await stat(paths.configFile);
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") {
+      throw new WikeeperError(ExitCode.ERROR, "not_initialised", "wiki is not initialised: run wikeeper init");
+    }
+    throw err;
+  }
 }

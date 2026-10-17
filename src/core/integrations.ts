@@ -3,7 +3,7 @@ import type { WikeeperConfig } from "./config.js";
 import type { ResolvedPaths } from "./paths.js";
 import type { Manifest } from "./manifest.js";
 
-export type IntegrationPhase = "init" | "update" | "remove" | "doctor";
+export type IntegrationPhase = "init" | "update" | "remove" | "doctor" | "prepare";
 export type DoctorSeverity = "ok" | "info" | "warning" | "error";
 export interface DoctorCheck {
   id: string; // stable kebab-case
@@ -35,6 +35,7 @@ export interface PhaseReport {
   replaced?: string[];
   skipped?: string[];
   removed?: string[];
+  backed_up?: string[];
   kept?: string[];
   warnings?: string[];
 }
@@ -42,6 +43,8 @@ export type PhaseHandler = (ctx: IntegrationContext) => PhaseReport | void | Pro
 export type DoctorHandler = (ctx: IntegrationContext) => DoctorCheck[] | Promise<DoctorCheck[]>;
 export interface Integration {
   name: string;
+  /** init only, before the first write: may prompt and throw; never writes. */
+  prepare?: (ctx: IntegrationContext) => Promise<void>;
   init?: PhaseHandler;
   update?: PhaseHandler;
   remove?: PhaseHandler;
@@ -52,6 +55,7 @@ export interface IntegrationRunResult {
   replaced: string[];
   skipped: string[];
   removed: string[];
+  backed_up: string[];
   kept: string[];
   warnings: string[];
   checks: DoctorCheck[];
@@ -77,12 +81,17 @@ export async function runIntegrations(
     replaced: [],
     skipped: [],
     removed: [],
+    backed_up: [],
     kept: [],
     warnings: [],
     checks: [],
   };
   const ordered = phase === "remove" ? [...registry].reverse() : [...registry];
   for (const integration of ordered) {
+    if (phase === "prepare") {
+      if (integration.prepare) await integration.prepare(ctx);
+      continue;
+    }
     if (phase === "doctor") {
       const handler = integration.doctor;
       if (!handler) continue;
@@ -106,6 +115,7 @@ export async function runIntegrations(
     result.replaced.push(...(report.replaced ?? []));
     result.skipped.push(...(report.skipped ?? []));
     result.removed.push(...(report.removed ?? []));
+    result.backed_up.push(...(report.backed_up ?? []));
     result.kept.push(...(report.kept ?? []));
     result.warnings.push(...(report.warnings ?? []));
   }

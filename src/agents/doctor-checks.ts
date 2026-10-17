@@ -6,6 +6,7 @@ import { fromPosixRelative } from "../core/paths.js";
 import type { AgentName } from "./agent-names.js";
 import type { AgentFile } from "./detect.js";
 import { resolveTargets } from "./detect.js";
+import { ENFORCE_JSON_FILES, inspectOwnedEntries } from "./enforce/index.js";
 import { WIKI_END, WIKI_START_PREFIX } from "./inject.js";
 
 export const AGENT_CHECK_IDS = [
@@ -13,6 +14,7 @@ export const AGENT_CHECK_IDS = [
   "claude-agents-md-only", "skill-link-broken", "codex-trust",
   // INSERTION POINT 3 (002-06): "antigravity-trust", "antigravity-ask-fallback",
   "antigravity-trust", "antigravity-ask-fallback",
+  "enforce-entry-missing", "enforce-settings-invalid", "backup-orphaned", "backup-stale",
 ] as const;
 export type AgentCheckId = (typeof AGENT_CHECK_IDS)[number];
 export interface BlockSignature { heading: string; reference: string }   // e.g. "## Project Wiki", ".wiki/system/WIKI.md"
@@ -103,9 +105,9 @@ export async function checkClaudeAgentsMdOnly(input: AgentCheckInput): Promise<D
   return [
     {
       id: "claude-agents-md-only",
-      severity: "warning",
-      message: "Claude Code reads AGENTS.md only when no CLAUDE.md exists (Claude Code v2.1.277 or newer)",
-      fix: "update Claude Code to v2.1.277+ or create CLAUDE.md and run wikeeper init",
+      severity: "info",
+      message: "Claude Code older than v2.1.277 ignores AGENTS.md when no CLAUDE.md exists",
+      fix: "if your Claude Code is older than v2.1.277, update it, or create CLAUDE.md and run wikeeper init",
       file: "AGENTS.md",
     },
   ];
@@ -176,8 +178,67 @@ export async function checkAntigravityAskFallback(input: AgentCheckInput): Promi
     },
   ];
 }
+export async function checkEnforceEntries(input: AgentCheckInput): Promise<DoctorCheck[]> {
+  if (input.config.enforce !== true) return [];
+  const out: DoctorCheck[] = [];
+  for (const r of await inspectOwnedEntries(input.root, input.manifest)) {
+    if (r.invalid) {
+      out.push({
+        id: "enforce-settings-invalid",
+        severity: "error",
+        message: `${r.file} cannot be parsed`,
+        fix: `fix the JSON in ${r.file}, then run wikeeper update`,
+        file: r.file,
+      });
+    } else if (r.missing.length > 0) {
+      out.push({
+        id: "enforce-entry-missing",
+        severity: "warning",
+        message: `${r.file} is missing wikeeper entries: ${r.missing.join(", ")}`,
+        fix: "run wikeeper update",
+        file: r.file,
+      });
+    }
+  }
+  return out;
+}
+
+export async function checkBackups(input: AgentCheckInput): Promise<DoctorCheck[]> {
+  const out: DoctorCheck[] = [];
+  const files = input.manifest.files;
+  for (const f of ENFORCE_JSON_FILES) {
+    const bak = f + ".bak";
+    try {
+      await lstat(fromPosixRelative(input.root, bak));
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException).code === "ENOENT" || (err as NodeJS.ErrnoException).code === "ENOTDIR") continue;
+      throw err;
+    }
+    const recorded = files.some((e) => e.kind === "hook" && e.identity === "backup" && e.path === bak);
+    if (!recorded) {
+      out.push({
+        id: "backup-orphaned",
+        severity: "warning",
+        message: `${bak} exists but wikeeper does not record it as its backup`,
+        fix: `delete ${bak} if it holds nothing you need`,
+        file: bak,
+      });
+    } else if (!files.some((e) => (e.kind === "hook" || e.kind === "rule") && e.identity !== undefined && e.identity !== "backup" && e.path === f)) {
+      out.push({
+        id: "backup-stale",
+        severity: "warning",
+        message: `${bak} is a backup that no wikeeper update or remove will restore or delete`,
+        fix: `delete ${bak}: wikeeper no longer edits ${f}`,
+        file: bak,
+      });
+    }
+  }
+  return out;
+}
+
 export const AGENT_CHECKS: readonly AgentCheck[] = [
   checkAgentBlocks, checkClaudeAgentsMdOnly, checkSkillLinks, checkCodexTrust,
   // INSERTION POINT 5 (002-06): checkAntigravityTrust, checkAntigravityAskFallback,
   checkAntigravityTrust, checkAntigravityAskFallback,
+  checkEnforceEntries, checkBackups,
 ];
