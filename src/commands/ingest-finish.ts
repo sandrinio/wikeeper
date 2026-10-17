@@ -146,11 +146,17 @@ export function createIngestFinishCommand(deps: { now?: () => Date } = {}): Inge
             if (v.invalid.length > 0) {
               parts.push(`frontmatter errors: ${v.invalid.map((f) => `${f.path} (${f.message})`).join(", ")}`);
             }
+            if (v.dropped.length > 0) {
+              const byPath = new Map<string, string[]>();
+              for (const d of v.dropped) byPath.set(d.path, [...(byPath.get(d.path) ?? []), `"${d.line}"`]);
+              const groups = [...byPath].map(([p, ls]) => `${p} (${ls.join(", ")})`).join(", ");
+              parts.push(`fact lines dropped (a replaced fact stays in the list): ${groups}`);
+            }
             throw new WikeeperError(
               ExitCode.ERROR,
               "validation_failed",
               `finish refused for ${id}: ${parts.join("; ")}. Fix them and rerun wikeeper ingest finish ${id}, or run wikeeper ingest abort ${id}`,
-              { uncited: v.uncited, outside: v.outside, invalid: v.invalid },
+              { uncited: v.uncited, outside: v.outside, invalid: v.invalid, dropped: v.dropped },
             );
           }
 

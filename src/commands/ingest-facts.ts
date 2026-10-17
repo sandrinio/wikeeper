@@ -33,11 +33,15 @@ function invalid(errors: Array<{ path: string; message: string }>, prefix: strin
   );
 }
 
+const FACTS_HELP =
+  "Running it again before apply replaces the stored facts. After apply, changed facts make finish refuse (facts_changed): run wikeeper ingest abort <id>, then apply again. After finish, the facts cannot be replaced.";
+
 export const ingestFactsCommand: IngestSubcommand = {
   register(group: Command): void {
     group
       .command("facts")
-      .description("store the facts extracted from a source (JSON on stdin or --file)")
+      .description("store the facts extracted from a source (JSON on stdin or --file); run it again before apply to replace them")
+      .addHelpText("after", "\n" + FACTS_HELP)
       .argument("<id>", "source id from wikeeper ingest start")
       .option("--file <path>", "read the facts JSON from this file instead of stdin")
       .action(async (id: string, opts: { file?: string }, command: Command) => {
