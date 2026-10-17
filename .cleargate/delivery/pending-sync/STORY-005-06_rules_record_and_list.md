@@ -187,10 +187,14 @@ Feature: Rule decisions
 
 | Item | Value |
 |---|---|
-| Primary File | `src/kb/rule-decisions.ts` |
-| Related Files | `src/commands/rules.ts`, `src/program.ts`, `src/ingest/log.ts` (`summaryLine` default branch only), `test/kb/rule-decisions.test.ts`, `test/kb/rules-command.test.ts` |
-| Consumed (unchanged) | `src/ingest/log.ts` (`writeLogEvent`, `readLogEvents`, `RuleProposalLogEvent`), `src/ingest/kind-rules.ts` (`normalizeKindId`, `isValidKindId`), `src/ingest/registry.ts` (`readMeta`), `src/ingest/source-id.ts` (`isSourceId`), `src/kb/parse-instructions.ts` (`KB_SECTION_KEYS`, `KB_PROPOSAL_SECTION_KEYS`; K1, STORY-005-01) |
-| New Files Needed | Yes — `src/kb/rule-decisions.ts`, `src/commands/rules.ts`, `test/kb/rule-decisions.test.ts`, `test/kb/rules-command.test.ts` |
+| Primary File (new) | `src/kb/rule-decisions.ts` |
+| Related Files (new) | `src/commands/rules.ts`, `test/kb/rule-decisions.test.ts`, `test/kb/rules-command.test.ts` |
+| Related Files | `src/program.ts`, `src/ingest/log.ts` |
+| New Files Needed | `src/kb/rule-decisions.ts`, `src/commands/rules.ts`, `test/kb/rule-decisions.test.ts`, `test/kb/rules-command.test.ts` |
+
+- **Notes on the files above:**
+  - Related files: `src/ingest/log.ts` (`summaryLine` default branch only); its `writeLogEvent`, `readLogEvents` and `RuleProposalLogEvent` are consumed unchanged.
+- **Read, not edited (consumed, unchanged):** `src/ingest/kind-rules.ts` (`normalizeKindId`, `isValidKindId`), `src/ingest/registry.ts` (`readMeta`), `src/ingest/source-id.ts` (`isSourceId`), `src/kb/parse-instructions.ts` (`KB_SECTION_KEYS`, `KB_PROPOSAL_SECTION_KEYS`; K1, STORY-005-01).
 
 ### 3.2 Technical Logic
 - **Fingerprint.** `createHash("sha256").update(normalizeKindId(kind) + "\n" + collapse(summary).toLowerCase()).digest("hex").slice(0, 12)`, with `collapse = (s) => s.trim().replace(/\s+/g, " ")`. Export `collapse` as `normalizeSummary` so the stored summary and the fingerprint use the same function.

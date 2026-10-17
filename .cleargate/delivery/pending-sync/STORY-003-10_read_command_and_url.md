@@ -358,13 +358,19 @@ Feature: wikeeper read — command, URL reading and limits
 
 | Item | Value |
 |---|---|
-| Primary File | `src/commands/read.ts` |
-| Related Files | `src/read/index.ts`, `src/read/url.ts`, `src/read/html.ts` |
-| Modified Files | `src/program.ts` (after STORY-001-10), `src/agents/enforce/claude.ts`, `src/agents/enforce/codex.ts` (after STORY-002-09), `templates/system/SETUP.md` (the step-4 `ai` row only, after STORY-002-09), `./package.json`, `./package-lock.json` (after STORY-001-10) |
-| Test Files | `test/read/read-command.test.ts`, `test/read/url.test.ts`, `test/read/html.test.ts`, `test/read/http-server.ts`, `test/e2e/read.test.ts`, `test/e2e/module-trace.ts`, `test/agents/enforce.test.ts` |
-| Fixtures | `test/fixtures/read/article.html`, `test/fixtures/read/app-shell.html`, `test/fixtures/read/notes.md`, `test/fixtures/read/SOURCES.md` |
-| Re-scoped red tests (QA-Red) | `test/agents/enforce-ai-rules.red.node.test.ts` (lines 127, 139, 181, 184, 234, 235), `test/agents/enforce.red.node.test.ts` (lines 260, 520–526, 544–548), `test/templates/setup.red.node.test.ts` (line 353). These are the exact `ai` rule lists, at `40018c5`; the line numbers are a guide, and QA-Red edits by test name. STORY-002-09 edits `:139`, `:184`, `:234`, `:235` (enforce-ai-rules) and `:260`, `:520–526`, `:544–548` (enforce) first, so QA-Red re-scopes those on the merged tree; `:127`, `:181` (Claude `permissions.allow`) and `:353` are first edited here, because STORY-002-09 does not change the `ai`-mode allow list. Each edit only adds the read pair at its R10 position, as §1.4 Q3 (Gate 1 decision 21) authorises. STORY-005-09 later adds the read-only rules to all of these and to the `ask` and `whitelist` assertions, which this story does not touch; STORY-006-11 R6 lists every SPRINT-03 red-test edit. |
-| New Files Needed | Yes — `src/commands/read.ts`, `src/read/index.ts`, `src/read/url.ts`, `src/read/html.ts`, every test file above except `test/agents/enforce.test.ts`, and the four fixtures |
+| Primary File (new) | `src/commands/read.ts` |
+| Related Files (new) | `src/read/index.ts`, `src/read/url.ts`, `src/read/html.ts` |
+| Modified Files | `src/program.ts`, `src/agents/enforce/claude.ts`, `src/agents/enforce/codex.ts`, `templates/system/SETUP.md`, `./package.json`, `./package-lock.json` |
+| Test Files (new) | `test/read/read-command.test.ts`, `test/read/url.test.ts`, `test/read/html.test.ts`, `test/read/http-server.ts`, `test/e2e/read.test.ts`, `test/e2e/module-trace.ts` |
+| Test Files | `test/agents/enforce.test.ts` |
+| Fixtures (new) | `test/fixtures/read/article.html`, `test/fixtures/read/app-shell.html`, `test/fixtures/read/notes.md`, `test/fixtures/read/SOURCES.md` |
+| Re-scoped red tests (QA-Red) | `test/agents/enforce-ai-rules.red.node.test.ts`, `test/agents/enforce.red.node.test.ts`, `test/templates/setup.red.node.test.ts` |
+| New Files Needed | `src/commands/read.ts`, `src/read/index.ts`, `src/read/url.ts`, `src/read/html.ts`, `test/read/read-command.test.ts`, `test/read/url.test.ts`, `test/read/html.test.ts`, `test/read/http-server.ts`, `test/e2e/read.test.ts`, `test/e2e/module-trace.ts`, `test/fixtures/read/article.html`, `test/fixtures/read/app-shell.html`, `test/fixtures/read/notes.md`, `test/fixtures/read/SOURCES.md` |
+
+- **Notes on the files above:**
+  - Modified files: `src/program.ts` (after STORY-001-10), `src/agents/enforce/codex.ts` (after STORY-002-09), `templates/system/SETUP.md` (the step-4 `ai` row only, after STORY-002-09), `./package-lock.json` (after STORY-001-10).
+  - Re-scoped red tests (QA-Red): `test/agents/enforce-ai-rules.red.node.test.ts` (lines 127, 139, 181, 184, 234, 235), `test/agents/enforce.red.node.test.ts` (lines 260, 520–526, 544–548), `test/templates/setup.red.node.test.ts` (line 353). These are the exact `ai` rule lists, at `40018c5`; the line numbers are a guide, and QA-Red edits by test name. STORY-002-09 edits `:139`, `:184`, `:234`, `:235` (enforce-ai-rules) and `:260`, `:520–526`, `:544–548` (enforce) first, so QA-Red re-scopes those on the merged tree; `:127`, `:181` (Claude `permissions.allow`) and `:353` are first edited here, because STORY-002-09 does not change the `ai`-mode allow list. Each edit only adds the read pair at its R10 position, as §1.4 Q3 (Gate 1 decision 21) authorises. STORY-005-09 later adds the read-only rules to all of these and to the `ask` and `whitelist` assertions, which this story does not touch; STORY-006-11 R6 lists every SPRINT-03 red-test edit.
+  - New files needed: `src/commands/read.ts`, `src/read/index.ts`, `src/read/url.ts`, `src/read/html.ts`, every test file above except `test/agents/enforce.test.ts`, and the four fixtures.
 
 ### 3.2 Technical Logic
 - **Command.** Use the factory pattern of `src/commands/search.ts:266`: `createReadCommand(deps?: ReadDeps)` returns a `CommandModule`, and `readCommand` is the default instance. The action does the following, in order:

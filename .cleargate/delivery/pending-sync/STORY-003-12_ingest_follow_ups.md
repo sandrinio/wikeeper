@@ -210,9 +210,14 @@ Feature: Ingest follow-ups
 |---|---|
 | Primary File | `src/ingest/validate.ts` |
 | Related Files | `src/commands/ingest-finish.ts`, `src/commands/ingest-start.ts`, `src/core/output.ts`, `src/commands/ingest-facts.ts`, `src/commands/ingest-abort.ts` |
-| Consumed (not modified) | `src/ingest/snapshot.ts` (`snapshotDir`), `src/wiki/parse-page.ts` (`parsePage`, `Fact`), `src/ingest/report.ts` (`formatSize`) |
-| Test Files | `test/ingest/finish.test.ts`, `test/output.test.ts`, `test/ingest/ingest-follow-ups.test.ts`, `test/ingest/ingest-follow-ups.red.node.test.ts` (QA-Red) |
-| New Files Needed | Yes — `test/ingest/ingest-follow-ups.test.ts` and QA-Red's `test/ingest/ingest-follow-ups.red.node.test.ts` |
+| Test Files | `test/ingest/finish.test.ts`, `test/output.test.ts` |
+| Test Files (new) | `test/ingest/ingest-follow-ups.test.ts`, `test/ingest/ingest-follow-ups.red.node.test.ts` |
+| New Files Needed | `test/ingest/ingest-follow-ups.test.ts`, `test/ingest/ingest-follow-ups.red.node.test.ts` |
+
+- **Notes on the files above:**
+  - Test files: `test/ingest/ingest-follow-ups.red.node.test.ts` (QA-Red).
+  - New files needed: `test/ingest/ingest-follow-ups.test.ts` and QA-Red's `test/ingest/ingest-follow-ups.red.node.test.ts`.
+- **Read, not edited (consumed, not modified):** `src/ingest/snapshot.ts` (`snapshotDir`), `src/wiki/parse-page.ts` (`parsePage`, `Fact`), `src/ingest/report.ts` (`formatSize`).
 
 ### 3.2 Technical Logic
 - **Dropped check** (R1–R3), inside `validateIngest`, with no signature change; it still only reads.

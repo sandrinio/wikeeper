@@ -191,11 +191,14 @@ Feature: Allow rules for the read-only commands
 | Item | Value |
 |---|---|
 | Primary File | `src/agents/enforce/claude.ts` |
-| Related Files | `src/agents/enforce/codex.ts`, `templates/system/SETUP.md` (the three step-4 rows only) |
-| Test Files | `test/agents/enforce.test.ts`, `test/agents/rule-match.test.ts` |
+| Related Files | `src/agents/enforce/codex.ts`, `templates/system/SETUP.md` |
+| Test Files | `test/agents/enforce.test.ts`, `test/agents/rule-match.test.ts`, `test/templates.test.ts` |
 | Re-scoped red tests (QA-Red) | `test/agents/enforce-ai-rules.red.node.test.ts`, `test/agents/enforce.red.node.test.ts`, `test/templates/setup.red.node.test.ts` |
-| Consumed (unchanged) | `src/agents/enforce/index.ts` (identity diff, `IDENTITY_RE`, the line append at `:232`, `removeEnforce` as STORY-002-09 routes `update` to it), `test/agents/rule-match.ts` (STORY-002-09), `test/templates/structure.ts` (`checkCommands`, `enforceSources`), `src/program.ts` (`lintCommand`, `statusCommand`, `rulesCommand`, registered by STORY-005-02, STORY-005-05 and STORY-005-06) |
 | New Files Needed | No |
+
+- **Notes on the files above:**
+  - Related files: `templates/system/SETUP.md` (the three step-4 rows only).
+- **Read, not edited (consumed, unchanged):** `src/agents/enforce/index.ts` (identity diff, `IDENTITY_RE`, the line append at `:232`, `removeEnforce` as STORY-002-09 routes `update` to it), `test/agents/rule-match.ts` (STORY-002-09), `test/templates/structure.ts` (`checkCommands`, `enforceSources`), `src/program.ts` (`lintCommand`, `statusCommand`, `rulesCommand`, registered by STORY-005-02, STORY-005-05 and STORY-005-06).
 
 Re-scoped red-test assertions (lines at `40018c5`, a guide only; QA-Red edits by test name on the tree merged with STORY-002-09 and STORY-003-10, only by adding the six rules at their R4 positions, §1.4 Q3):
 - `test/agents/enforce-ai-rules.red.node.test.ts`:
@@ -228,7 +231,7 @@ Of these, `:139`, `:184`, `:234`, `:235` (enforce-ai-rules) and `:260`, `:520-52
 - **Tests.**
   - `test/agents/enforce.test.ts`: "CR-001 ai mode allows only ingest and search commands" (`:245-270`, as STORY-002-09 and STORY-003-10 leave it) expects the full `ai` lists in R4 order; add the `ask` and `whitelist` lists. The first and third scenarios run here through `runCli`; the update step hand-builds the older settings and manifest (FLASHCARD 2026-10-17 `#qa #test-harness`: a test that relies on `init` does not exercise the identity diff).
   - `test/agents/rule-match.test.ts` (STORY-002-09) gains the second scenario's rows for every mode.
-  - The fourth scenario is S2 plus the real-tree check (`test/templates.test.ts:113`); the error scenario runs `runAllChecks` on a templates copy built as the copy-mutation test at `test/templates.test.ts:100` builds one. It does not import the S2 red file (importing a test file registers its tests twice).
+  - The fourth scenario is S2 plus the real-tree check (`test/templates.test.ts:113`); the error scenario is a new test in `test/templates.test.ts` that runs `runAllChecks` on a templates copy built as the copy-mutation test at `test/templates.test.ts:100` builds one (file added to §3.1 at the Sprint Design Review, 2026-10-17). It does not import the S2 red file (importing a test file registers its tests twice).
 
 ### 3.3 API Contract (if applicable)
 

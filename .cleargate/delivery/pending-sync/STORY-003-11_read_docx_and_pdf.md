@@ -250,12 +250,16 @@ Feature: wikeeper read — DOCX and PDF
 
 | Item | Value |
 |---|---|
-| Primary File | `src/read/pdf.ts` |
-| Related Files | `src/read/docx.ts`, `src/read/vendor.d.ts` |
-| Modified Files | `src/read/index.ts` (the bodies of `convertDocx` and `convertPdf` only), `test/read/read-command.test.ts` (removes STORY-003-10's two stub rows, `report.docx` and `report.pdf` → `unsupported`), `test/read/http-server.ts` (the three document routes), `test/fixtures/read/SOURCES.md` (one line for the generator), `./package.json`, `./package-lock.json` |
-| Test Files | `test/read/docx.test.ts`, `test/read/pdf.test.ts`, `test/read/read-documents.test.ts`, `test/e2e/read-documents.test.ts`, `test/fixtures/read/make-fixtures.test.ts` |
-| Fixtures | `test/fixtures/read/make-fixtures.ts` |
-| New Files Needed | Yes — `src/read/docx.ts`, `src/read/pdf.ts`, `src/read/vendor.d.ts`, `test/fixtures/read/make-fixtures.ts` and the five test files |
+| Primary File (new) | `src/read/pdf.ts` |
+| Related Files (new) | `src/read/docx.ts`, `src/read/vendor.d.ts` |
+| Modified Files | `src/read/index.ts`, `test/read/read-command.test.ts`, `test/read/http-server.ts`, `test/fixtures/read/SOURCES.md`, `./package.json`, `./package-lock.json` |
+| Test Files (new) | `test/read/docx.test.ts`, `test/read/pdf.test.ts`, `test/read/read-documents.test.ts`, `test/e2e/read-documents.test.ts`, `test/fixtures/read/make-fixtures.test.ts` |
+| Fixtures (new) | `test/fixtures/read/make-fixtures.ts` |
+| New Files Needed | `src/read/docx.ts`, `src/read/pdf.ts`, `src/read/vendor.d.ts`, `test/fixtures/read/make-fixtures.ts`, `test/read/docx.test.ts`, `test/read/pdf.test.ts`, `test/read/read-documents.test.ts`, `test/e2e/read-documents.test.ts`, `test/fixtures/read/make-fixtures.test.ts` |
+
+- **Notes on the files above:**
+  - Modified files: `src/read/index.ts` (the bodies of `convertDocx` and `convertPdf` only), `test/read/read-command.test.ts` (removes STORY-003-10's two stub rows, `report.docx` and `report.pdf` → `unsupported`), `test/read/http-server.ts` (the three document routes), `test/fixtures/read/SOURCES.md` (one line for the generator).
+  - New files needed: `src/read/docx.ts`, `src/read/pdf.ts`, `src/read/vendor.d.ts`, `test/fixtures/read/make-fixtures.ts` and the five test files.
 
 ### 3.2 Technical Logic
 - **DOCX.**

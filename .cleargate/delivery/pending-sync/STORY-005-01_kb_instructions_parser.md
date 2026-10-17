@@ -206,11 +206,14 @@ Feature: kb_instructions.md parser
 
 | Item | Value |
 |---|---|
-| Primary File | `src/kb/parse-instructions.ts` |
-| Related Files | `src/ingest/kind-rules.ts` (`parseSourceKinds`, `SourceKindRule` — consumed unchanged, C2), `src/core/paths.ts` (`ResolvedPaths.kbInstructions` — consumed) |
-| Test Files | `test/kb/parse-instructions.test.ts`, `test/kb/load-instructions.test.ts` |
-| Fixtures | `test/fixtures/kb/real-management.md` |
-| New Files Needed | Yes — all four files above |
+| Primary File (new) | `src/kb/parse-instructions.ts` |
+| Test Files (new) | `test/kb/parse-instructions.test.ts`, `test/kb/load-instructions.test.ts` |
+| Fixtures (new) | `test/fixtures/kb/real-management.md` |
+| New Files Needed | `src/kb/parse-instructions.ts`, `test/kb/parse-instructions.test.ts`, `test/kb/load-instructions.test.ts`, `test/fixtures/kb/real-management.md` |
+
+- **Notes on the files above:**
+  - New files needed: all four files above.
+- **Read, not edited:** `src/ingest/kind-rules.ts` (`parseSourceKinds`, `SourceKindRule` — consumed unchanged, C2), `src/core/paths.ts` (`ResolvedPaths.kbInstructions` — consumed).
 
 ### 3.2 Technical Logic
 - One pass over the lines with three pieces of state: the open fence character (C2's `^\s*(```+|~~~+)` rule), whether an HTML comment is open, and the current section. `kinds` comes from one `parseSourceKinds(text)` call on the original text; its `line` values form the set of kind lines used in R7 and R12.

@@ -165,10 +165,12 @@ Feature: --version tells builds apart; --help names the version and the docs
 
 | Item | Value |
 |---|---|
-| Primary File | `src/core/version.ts` |
-| Related Files | `scripts/build-info.mjs`, `src/program.ts`, `src/commands/init.ts`, `src/commands/update.ts`, `src/agents/enforce/guard-command.ts`, `./package.json`, `./package-lock.json`, `test/e2e/pack.ts` |
-| Test Files | `test/version.test.ts`, `test/build-info.test.ts`, `test/program.test.ts`, `test/e2e/goal.test.ts` |
-| New Files Needed | Yes — `src/core/version.ts`, `scripts/build-info.mjs`, `test/version.test.ts`, `test/build-info.test.ts` |
+| Primary File (new) | `src/core/version.ts` |
+| Related Files (new) | `scripts/build-info.mjs` |
+| Related Files | `src/program.ts`, `src/commands/init.ts`, `src/commands/update.ts`, `src/agents/enforce/guard-command.ts`, `./package.json`, `./package-lock.json`, `test/e2e/pack.ts` |
+| Test Files (new) | `test/version.test.ts`, `test/build-info.test.ts` |
+| Test Files | `test/program.test.ts`, `test/e2e/goal.test.ts` |
+| New Files Needed | `src/core/version.ts`, `scripts/build-info.mjs`, `test/version.test.ts`, `test/build-info.test.ts` |
 
 ### 3.2 Technical Logic
 - `scripts/build-info.mjs` (R2): plain ESM, Node built-ins only (`node:child_process`, `node:fs`, `node:path`), so it runs before or without the TypeScript build and is not part of `tsconfig.json`'s `include`. `execFileSync("git", ["rev-parse", "--short=7", "HEAD"], { cwd: process.cwd(), encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 10_000, windowsHide: true })` inside `try`; trim; accept `/^[0-9a-f]{7,64}$/`; write `JSON.stringify({ commit }) + "\n"` to `path.join(outDir, "build-info.json")`, creating `outDir` if needed. `execFileSync("git")` resolves `git.exe` on Windows; `&&` in the npm script works in cmd and sh.

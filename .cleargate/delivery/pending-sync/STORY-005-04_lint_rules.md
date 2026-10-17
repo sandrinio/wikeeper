@@ -223,11 +223,15 @@ Feature: Rules lint and the doctor parse warning
 
 | Item | Value |
 |---|---|
-| Primary File | `src/lint/rules-lint.ts` |
-| Related Files | `src/kb/parse-instructions.ts` (`loadInstructions`, `KbInstructions` — consumed, STORY-005-01), `src/ingest/permissions.ts` (`matchesKind` — consumed), `src/ingest/lint-hook.ts` (`LintFinding` — consumed, C9 plus K2's `line?`), `src/core/paths.ts` (`toPosixRelative` — consumed), `test/fixtures/kb/real-management.md` (consumed, STORY-005-01) |
-| Modified Files | `src/lint/checks.ts` (one import, one `RULE_CHECKS` entry), `src/commands/doctor.ts` (one `guard` call after `setup-files`) |
-| Test Files | `test/lint/rules-lint.test.ts`, `test/lint/lint-rules-command.test.ts`, `test/doctor-kb.test.ts` |
-| New Files Needed | Yes — `src/lint/rules-lint.ts` and the three test files |
+| Primary File (new) | `src/lint/rules-lint.ts` |
+| Modified Files | `src/lint/checks.ts`, `src/commands/doctor.ts` |
+| Test Files (new) | `test/lint/rules-lint.test.ts`, `test/lint/lint-rules-command.test.ts`, `test/doctor-kb.test.ts` |
+| New Files Needed | `src/lint/rules-lint.ts`, `test/lint/rules-lint.test.ts`, `test/lint/lint-rules-command.test.ts`, `test/doctor-kb.test.ts` |
+
+- **Notes on the files above:**
+  - Modified files: `src/lint/checks.ts` (one import, one `RULE_CHECKS` entry), `src/commands/doctor.ts` (one `guard` call after `setup-files`).
+  - New files needed: `src/lint/rules-lint.ts` and the three test files.
+- **Read, not edited (related files):** `src/kb/parse-instructions.ts` (`loadInstructions`, `KbInstructions` — consumed, STORY-005-01), `src/ingest/permissions.ts` (`matchesKind` — consumed), `src/ingest/lint-hook.ts` (`LintFinding` — consumed, C9 plus K2's `line?`), `src/core/paths.ts` (`toPosixRelative` — consumed), `test/fixtures/kb/real-management.md` (consumed, STORY-005-01).
 
 ### 3.2 Technical Logic
 - Build lookups once per run from `ctx.kb`: first kind per id, first entity per name, first question per id, and the set of question ids. Each check is a small function over them; a helper `issueCheck(code, severity)` builds the five K1-issue checks from `kb.issues`.

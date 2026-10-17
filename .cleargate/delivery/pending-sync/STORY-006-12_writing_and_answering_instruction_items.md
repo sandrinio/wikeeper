@@ -200,9 +200,12 @@ Feature: CR-003 writing, answering and onboarding text
 |---|---|
 | Primary File | `templates/system/WIKI.md` |
 | Related Files | `templates/system/SETUP.md`, `templates/system/ONBOARDING.md`, `templates/system/templates/me.md`, `templates/skills/wiki-ingest/SKILL.md`, `templates/agents/claude/wiki-extractor.md`, `templates/agents/claude/wiki-writer.md`, `templates/agents/antigravity/wiki-extractor.md`, `templates/agents/antigravity/wiki-writer.md`, `templates/agents/codex/wiki-extractor.toml`, `templates/agents/codex/wiki-writer.toml` |
-| Test Files | `test/templates/writing-and-answering-text.red.node.test.ts` (QA-Red) |
+| Test Files (new) | `test/templates/writing-and-answering-text.red.node.test.ts` |
 | Re-scoped SPRINT-02 red test (STORY-006-11 R6 (e), applied by this story's QA-Red) | `test/templates/onboarding.red.node.test.ts` |
-| New Files Needed | Yes — `test/templates/writing-and-answering-text.red.node.test.ts` |
+| New Files Needed | `test/templates/writing-and-answering-text.red.node.test.ts` |
+
+- **Notes on the files above:**
+  - Test files: `test/templates/writing-and-answering-text.red.node.test.ts` (QA-Red).
 
 ### 3.2 Technical Logic
 - Start from WIKI.md, SETUP.md and the sub-agent files as STORY-006-10 leaves them. Edit in WIKI.md order: "Triage and extract" steps 3 and the pointer rule (R8, R9), "Write phase" steps 2, 5, 6, 8 and the closing paragraph (R2–R5), "Page format" (R6), "Answering questions" (R1). Then SETUP.md step 4 (R12), ONBOARDING.md steps 2 and 4 and the `me.md` comment (R10, R11), the skill (R7), and the six sub-agent files (R4, R9).

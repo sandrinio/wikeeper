@@ -235,9 +235,10 @@ Feature: Page hashes, unlogged-change and the finish lint hook
 
 | Item | Value |
 |---|---|
-| Primary File | `src/lint/unlogged.ts` |
-| Related Files | `src/lint/checks.ts`, `src/ingest/log.ts`, `src/commands/ingest-finish.ts`, `test/lint/unlogged.test.ts`, `test/ingest/finish-lint.test.ts`, `test/ingest/log.test.ts`, `test/lint/lint-command.test.ts`, `test/lint/checks.test.ts` |
-| New Files Needed | Yes — `src/lint/unlogged.ts`, `test/lint/unlogged.test.ts`, `test/ingest/finish-lint.test.ts` |
+| Primary File (new) | `src/lint/unlogged.ts` |
+| Related Files | `src/lint/checks.ts`, `src/ingest/log.ts`, `src/commands/ingest-finish.ts`, `test/ingest/log.test.ts`, `test/lint/lint-command.test.ts`, `test/lint/checks.test.ts` |
+| Related Files (new) | `test/lint/unlogged.test.ts`, `test/ingest/finish-lint.test.ts` |
+| New Files Needed | `src/lint/unlogged.ts`, `test/lint/unlogged.test.ts`, `test/ingest/finish-lint.test.ts` |
 
 ### 3.2 Technical Logic
 - **`src/lint/unlogged.ts`.**

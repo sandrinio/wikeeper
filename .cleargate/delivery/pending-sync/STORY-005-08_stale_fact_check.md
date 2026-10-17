@@ -186,9 +186,10 @@ Feature: stale-fact — statuses and planned dates older than lint.stale_after_d
 
 | Item | Value |
 |---|---|
-| Primary File | `src/lint/staleness.ts` |
-| Related Files | `src/lint/checks.ts`, `test/lint/staleness.test.ts` |
-| New Files Needed | Yes — `src/lint/staleness.ts`, `test/lint/staleness.test.ts` |
+| Primary File (new) | `src/lint/staleness.ts` |
+| Related Files | `src/lint/checks.ts` |
+| Related Files (new) | `test/lint/staleness.test.ts` |
+| New Files Needed | `src/lint/staleness.ts`, `test/lint/staleness.test.ts` |
 
 ### 3.2 Technical Logic
 - **`src/lint/staleness.ts`.**

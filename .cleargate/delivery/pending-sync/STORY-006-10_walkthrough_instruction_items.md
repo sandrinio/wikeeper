@@ -229,9 +229,12 @@ Feature: CR-003 rules, permissions and search text
 |---|---|
 | Primary File | `templates/system/WIKI.md` |
 | Related Files | `templates/system/SETUP.md`, `templates/system/profiles/management.md`, `templates/kb_instructions.management.md`, `templates/agents/claude/wiki-extractor.md`, `templates/agents/claude/wiki-writer.md`, `templates/agents/antigravity/wiki-extractor.md`, `templates/agents/antigravity/wiki-writer.md`, `templates/agents/codex/wiki-extractor.toml`, `templates/agents/codex/wiki-writer.toml` |
-| Test Files | `test/templates/rules-and-search-text.red.node.test.ts` (QA-Red) |
+| Test Files (new) | `test/templates/rules-and-search-text.red.node.test.ts` |
 | Re-scoped SPRINT-02 red test (STORY-006-11 R6 (a), (b), applied by this story's QA-Red) | `test/templates/wiki-protocol.red.node.test.ts` |
-| New Files Needed | Yes — `test/templates/rules-and-search-text.red.node.test.ts` |
+| New Files Needed | `test/templates/rules-and-search-text.red.node.test.ts` |
+
+- **Notes on the files above:**
+  - Test files: `test/templates/rules-and-search-text.red.node.test.ts` (QA-Red).
 
 ### 3.2 Technical Logic
 - Edit in WIKI.md order: "Register" (R1, R2, R3), "Triage and extract" (R5, R6, R8), "Search" (R8, R9), "Answering questions" (R8), "Proposing rule changes" (R6, R7). Then SETUP.md step 3 (R4, R5, R6) and step 4 (R1, R3), the profile and the seed (R4), and the six sub-agent files (R8).
