@@ -53,4 +53,26 @@ describe("update unit", () => {
     expect(m.files[0].sha256).toBe(sha("new\n"));
     expect(typeof createUpdateCommand().register).toBe("function");
   });
+
+  it("re-adds a deleted .wiki/me.md line to a well-formed managed block and reports .gitignore as replaced", async () => {
+    const root = await tmp();
+    const tpl = await tmp();
+    await mkdir(path.join(root, ".git"));
+    await mkdir(path.join(root, ".wiki", "system"), { recursive: true });
+    await mkdir(path.join(tpl, "system"), { recursive: true });
+    await writeFile(path.join(tpl, "system", "NEW.md"), "new\n");
+    await writeFile(
+      path.join(root, ".wiki", "system", "manifest.json"),
+      JSON.stringify({ package_version: "0.0.1", files: [] }),
+    );
+    await writeFile(
+      path.join(root, ".gitignore"),
+      "node_modules/\n# >>> wikeeper >>>\n/.wiki/.lock\n# <<< wikeeper <<<\n",
+    );
+    const r = await runUpdate(root, run(root), { templatesDir: tpl, packageVersion: "1.0.0" });
+    expect(r.replaced).toContain(".gitignore");
+    const gi = await readFile(path.join(root, ".gitignore"), "utf8");
+    expect(gi.split("\n")).toContain(".wiki/me.md");
+    expect(gi.startsWith("node_modules/\n")).toBe(true);
+  });
 });

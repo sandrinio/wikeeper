@@ -145,7 +145,7 @@ export const removeCommand: CommandModule = {
     program
       .command("remove")
       .description("Uninstall wikeeper's tooling; --purge also deletes the wiki")
-      .option("--purge", "also delete .wiki/ and the content directory (needs confirmation)")
+      .option("--purge", "also delete .wiki/ (config.yml, kb_instructions.md, me.md) and the wiki content: pages/, raw/, index.md, log/, in .wiki/ or content_dir (needs confirmation)")
       .option("--confirm <word>", `confirmation word for --purge (${CONFIRM_WORD})`)
       .action(async (opts: { purge?: boolean; confirm?: string }, cmd) => {
         const ctx = getOutputContext(cmd);
@@ -193,6 +193,13 @@ export const removeCommand: CommandModule = {
           }
         }
 
+        const cacheDir = path.join(paths.wikiDir, ".cache");
+        if (await exists(cacheDir)) {
+          const cached = await filesUnder(cacheDir);
+          for (const f of cached.length > 0 ? cached : [cacheDir]) removed.push(toPosixRelative(root, f));
+          await rm(cacheDir, { recursive: true, force: true, maxRetries: 3 });
+        }
+
         const gi = manifest.files.find((e) => e.kind === "gitignore");
         await stripGitignore(root, gi?.created === true, removed, warnings);
 
@@ -226,6 +233,7 @@ export const removeCommand: CommandModule = {
           paths.configFile,
           paths.kbInstructions,
           paths.meFile,
+          paths.projectFile,
           paths.indexFile,
           paths.pagesDir,
           paths.rawDir,
