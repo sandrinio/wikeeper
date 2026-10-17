@@ -5,18 +5,18 @@ parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
 status: Draft
-approved: false
+approved: true
 complexity_label: L2
 context_source: "SPRINT-02 walkthrough (Goal check 4), parts 1 and 2: ~/Documents/Dev/formapass_management/wikeeper-test-notes-sprint-02.md (2026-10-17) · SPRINT-02_REPORT.md §4.3 · human sign-off 2026-10-17 to defer every ⚠️ item to SPRINT-03 · verified against src/ and the raw epic files"
 created_at: 2026-10-17T08:27:39Z
-updated_at: 2026-10-17T08:30:13Z
+updated_at: 2026-10-17T08:40:53Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
 server_pushed_at_version: null
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-17T08:30:34Z
+  last_gate_check: 2026-10-17T08:41:13Z
   transition: ready-to-apply
 pushed_by: null
 pushed_at: null
@@ -45,23 +45,23 @@ All items below are `UR:review-feedback` from the SPRINT-02 walkthrough in `form
 
 - **Question:** How should triage searches on a sparse wiki stop filling `log/` with misses (rows 7.8, 8.6: 45 miss files after the first directory ingest)?
 - **Recommended:** Add `search --no-miss`. WIKI.md and the extractor and writer prompts use it for triage and routing searches, so a miss records only a question someone asked the wiki. The alternatives are worse: a page-count threshold hides real misses on a small wiki, and merging misses into one file breaks the one-file-per-event log (D-28).
-- **Human decision:** {populated during Brief review}
+- **Human decision:** Approved as recommended (human, 2026-10-17, SPRINT-03 planning).
 
 - **Question:** What should `ingest finish` do when a page lost a fact line that its snapshot had (row 11.26a)?
 - **Recommended:** Refuse, like the frontmatter check from SPRINT-02 M6: exit `validation_failed`, name the page and the missing lines, keep the lock so the writer can restore them and run `finish` again. WIKI.md "Page format" already says a replaced fact stays in the list, so a dropped line is always a writer error. A warning would let a full-page rewrite lose facts silently.
-- **Human decision:** {populated during Brief review}
+- **Human decision:** Approved as recommended (human, 2026-10-17, SPRINT-03 planning).
 
 - **Question:** In `ai` mode, should `ingest abort --drop` (deletes the stored source) and `ingest apply --force-unlock` still run without a prompt (rows 0.9c, 4.2d)?
 - **Recommended:** No. Allow the routine verbs (`start`, `plan`, `facts`, `apply`, `finish`, `abort` without `--drop`) and make those two forms prompt: a Claude `ask` rule and a Codex `prompt` prefix rule. If a Claude rule cannot match a flag inside the command, the story drops `abort` from the allow list instead, so every `abort` prompts.
-- **Human decision:** {populated during Brief review}
+- **Human decision:** Approved as recommended (human, 2026-10-17, SPRINT-03 planning).
 
 - **Question:** Since `--status` now filters `status::` values, nothing lists tentative facts (row 11.6c). Add a filter?
 - **Recommended:** Add `search --mark decided|tentative`, which returns fact lines with that mark (combinable with `--type`, `--entity` and `--since`). `--status` with no results adds the hint "fact marks are filtered with --mark".
-- **Human decision:** {populated during Brief review}
+- **Human decision:** Approved as recommended (human, 2026-10-17, SPRINT-03 planning).
 
 - **Question:** How should `--version` tell builds apart (row 11.1: every build reports `0.0.1`)?
 - **Recommended:** Stamp the commit at build time: `wikeeper --version` prints `0.3.0+a0f0550` (`+dev` when the build has no git). `package.json` moves to `0.3.0` this sprint, and the install manifest records the full version string.
-- **Human decision:** {populated during Brief review}
+- **Human decision:** Approved as recommended (human, 2026-10-17, SPRINT-03 planning).
 
 ## 1. The Context Override (Old vs. New)
 
@@ -152,7 +152,7 @@ All items below are `UR:review-feedback` from the SPRINT-02 walkthrough in `form
 - `templates/system/WIKI.md`, `templates/system/SETUP.md`, `templates/system/ONBOARDING.md`, `templates/system/templates/me.md`, `templates/skills/wiki-ingest/SKILL.md`, `templates/agents/*/wiki-extractor.*`, `templates/agents/*/wiki-writer.*`
 - The EPIC-005 files named in its own stories
 
-**Now (on approval):** add a one-line "CR-003 scope addition" bullet to EPIC-005 §2 (pending-sync), pointing at this CR. The archived epics are not edited.
+**Now (on approval, done 2026-10-17):** add a one-line "CR-003 scope addition" bullet to EPIC-005 §2 (pending-sync), pointing at this CR. The archived epics are not edited.
 
 ## 4. Verification Protocol
 
@@ -222,8 +222,8 @@ Feature: SPRINT-02 walkthrough feedback
 
 Requirements to pass to Green (Ready for Execution):
 - [x] "Obsolete Logic" to be evicted is explicitly declared.
-- [ ] All impacted downstream Epics/Stories are identified and reverted to 🔴 High Ambiguity.
+- [ ] All impacted downstream Epics/Stories are identified and reverted to 🔴 High Ambiguity. (Downstream epics are identified in §2, but they take scope additions instead of reverting to 🔴, and five of them are archived; left unchecked on the literal text, as for CR-002. Human informed 2026-10-17.)
 - [x] Execution Sandbox contains exact file paths.
 - [x] Verification command is provided.
-- [ ] `approved: true` is set in the YAML frontmatter.
+- [x] `approved: true` is set in the YAML frontmatter.
 - [x] Existing Surfaces cites at least one source-tree path the CR extends.

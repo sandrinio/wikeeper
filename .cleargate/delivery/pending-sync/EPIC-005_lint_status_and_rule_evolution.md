@@ -11,14 +11,14 @@ context_source: architecture.md v0.4 §5.2, §8, §9, §10 (D-14, D-31) · INITI
 owner: Sandro Suladze
 target_date: null
 created_at: 2026-10-16T13:15:00Z
-updated_at: 2026-10-16T13:15:00Z
+updated_at: 2026-10-17T08:41:00Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
 server_pushed_at_version: 4
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-16T13:22:47Z
+  last_gate_check: 2026-10-17T08:41:20Z
   transition: ready-for-decomposition
 pushed_by: null
 pushed_at: null
@@ -87,6 +87,7 @@ A wiki that only grows decays: broken links, uncited claims, changes made outsid
 - [ ] `ingest facts <id> --dry-run`: diff new facts against the stored facts file without storing.
 - [ ] Fill the lint hook point called by `ingest finish`.
 - [ ] CR-002 scope addition (SPRINT-03): D1 lint's "page changed without a log entry" check is the stated backstop for shell writes the guard cannot see; C1 `lint --rules` checks that whitelist kinds name existing kinds ([[CR-002]]).
+- [ ] CR-003 scope addition (SPRINT-03): D1–D3 a defined `kb_instructions.md` line format for questions, entities, source kinds and `note:` lines, frozen by the parser; D4 `doctor` warns when the file does not parse; D5 `status` lists pending rule suggestions (the `uncovered` items of finished ingests) ([[CR-003]]).
 
 **❌ OUT-OF-SCOPE (Do NOT Build This)**
 - Automatic fixes; LLM-based contradiction detection (the writer agent flags contradictions).
