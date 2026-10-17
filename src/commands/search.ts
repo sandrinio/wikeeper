@@ -15,11 +15,11 @@ import { resolveEntity, toEntityMatch } from "../search/aliases.js";
 import { factsSince, pagesChangedSince, parseSince } from "../search/since.js";
 import type { SinceBound } from "../search/since.js";
 import type { SinceChanges } from "../search/engine.js";
-import { buildBacklinks } from "../wiki/parse-page.js";
+import { buildBacklinks, normalizeName } from "../wiki/parse-page.js";
 import { EMPTY_FILTERS, hitSources, loadSearchCorpus, makeSnippet } from "../search/engine.js";
 import type { RankedHit, SearchData, SearchDeps, SearchHit, SearchRequest } from "../search/engine.js";
 import type { Entity, Page } from "../wiki/parse-page.js";
-import { describeFilters, entityHit, hasFilters, matchesFilters, parseFilterValue, parseWhere } from "../search/filters.js";
+import { describeFilters, entityHit, hasFilters, markHits, matchesFilters, parseFilterValue, parseMark, parseWhere } from "../search/filters.js";
 import { plural } from "./doctor.js";
 import { listMisses, recordMiss, renderMisses, shouldRecordMiss } from "../search/misses.js";
 
@@ -47,7 +47,9 @@ function where(path: string, section: string): string {
 
 function renderChanges(c: SinceChanges): string {
   if (c.facts.length === 0 && c.pages.length === 0) return `no changes since ${c.since}`;
-  const lines = [`changes since ${c.since}: ${plural(c.facts.length, "fact")}, ${plural(c.pages.length, "page change")}`];
+  const lines = [
+    `changes since ${c.since}: ${plural(c.facts_total ?? c.facts.length, "fact")}, ${plural(c.pages_total ?? c.pages.length, "page change")}`,
+  ];
   for (const f of c.facts) lines.push(`- ${f.date} · ${f.status} · ${f.text} (${where(f.path, f.section)})`);
   for (const p of c.pages) lines.push(`- ${p.change} ${p.path} · ${p.source_id ?? "no source"} · ${p.at}`);
   return lines.join("\n");
@@ -73,7 +75,36 @@ function renderEntity(data: SearchData): string {
   return lines.join("\n");
 }
 
+function joinParts(parts: string[]): string {
+  if (parts.length <= 1) return parts.join("");
+  return `${parts.slice(0, -1).join(", ")} and ${parts[parts.length - 1]}`;
+}
+
+/** R4: one line naming every list that `--limit` cut, or null. */
+function limitNote(data: SearchData): string | null {
+  const parts: string[] = [];
+  const countsChanges = data.query === null && !hasFilters(data.filters) && data.changes !== null;
+  if (data.mode === "query" && !countsChanges && data.results.length < data.total) {
+    parts.push(`${data.results.length} of ${data.total} results`);
+  }
+  const c = data.changes;
+  if (c !== null) {
+    if (c.facts_total !== undefined && c.facts.length < c.facts_total) parts.push(`${c.facts.length} of ${c.facts_total} facts`);
+    if (c.pages_total !== undefined && c.pages.length < c.pages_total) parts.push(`${c.pages.length} of ${c.pages_total} page changes`);
+  }
+  if (data.mode === "misses" && data.misses !== null && data.misses.length < data.total) {
+    parts.push(`${data.misses.length} of ${data.total} distinct queries`);
+  }
+  return parts.length === 0 ? null : `showing ${joinParts(parts)}; use --limit to see more`;
+}
+
 function renderSearch(data: SearchData): string {
+  const body = renderSearchBody(data);
+  const note = limitNote(data);
+  return note === null ? body : `${body}\n${note}`;
+}
+
+function renderSearchBody(data: SearchData): string {
   if (data.mode === "misses") return renderMisses(data);
   if (data.mode === "entity") {
     const head = renderEntity(data);
@@ -90,6 +121,7 @@ export async function executeSearch(root: string, req: SearchRequest, deps: Sear
   if (!Number.isInteger(req.limit) || req.limit < 1 || req.limit > 100) {
     throw new WikeeperError(ExitCode.USAGE, "usage", "--limit must be an integer from 1 to 100");
   }
+  markUsage(req);
   const f = req.filters;
   if (
     req.query === null &&
@@ -97,6 +129,7 @@ export async function executeSearch(root: string, req: SearchRequest, deps: Sear
     f.where.length === 0 &&
     f.status === null &&
     f.since === null &&
+    f.mark === undefined &&
     req.entity === null &&
     !req.misses
   ) {
@@ -126,6 +159,9 @@ export async function executeSearch(root: string, req: SearchRequest, deps: Sear
         .sort((a, b) => compareCodeUnits(a.path, b.path) || a.line - b.line)
         .map((e) => entityHit(e, pageOf.get(e.path)!, root, paths));
     }
+  }
+  if (f.mark !== undefined && req.entity === null && f.since === null) {
+    entityHits = markHits(corpus.entities, corpus.pages, f.mark, req.filters, root, paths);
   }
   // 4. build the data
   const pageByPath = new Map<string, Page>(corpus.pages.map((p) => [p.path, p]));
@@ -171,12 +207,17 @@ export async function executeSearch(root: string, req: SearchRequest, deps: Sear
       let changes: SinceChanges | null = null;
       if (sinceBound !== null) {
         if (entity !== null) entity = { ...entity, facts: entity.facts.filter((x) => x.date >= sinceDate) };
+        const eFacts = res === null ? [] : factsSince([res.entity], corpus.pages, sinceBound).filter((x) => f.mark === undefined || x.status === f.mark);
+        const ePages = res === null || f.mark !== undefined ? [] : changedPages.filter((p) => p.path === res.entity.path);
         changes = {
           since: req.filters.since!,
-          facts: res === null ? [] : factsSince([res.entity], corpus.pages, sinceBound).slice(0, req.limit),
-          pages: res === null ? [] : changedPages.filter((p) => p.path === res.entity.path).slice(0, req.limit),
+          facts: eFacts.slice(0, req.limit),
+          pages: ePages.slice(0, req.limit),
+          facts_total: eFacts.length,
+          pages_total: ePages.length,
         };
       }
+      if (f.mark !== undefined && entity !== null) entity = { ...entity, facts: entity.facts.filter((x) => x.status === f.mark) };
       data = { ...data, mode: "entity", entity_query: req.entity, total: entity === null ? 0 : 1, results: [], entity, changes };
     } else if (sinceBound !== null) {
       const changed = new Set(changedPages.map((p) => p.path));
@@ -204,12 +245,18 @@ export async function executeSearch(root: string, req: SearchRequest, deps: Sear
         kept = corpus.entities.filter((e) => keys.has(e.key));
       }
       const keptPaths = new Set(kept.map((e) => e.path));
-      const facts = factsSince(kept, corpus.pages, sinceBound);
-      const pages = sinceOnly ? changedPages : changedPages.filter((p) => keptPaths.has(p.path));
+      const facts = factsSince(kept, corpus.pages, sinceBound).filter((x) => f.mark === undefined || x.status === f.mark);
+      const pages = f.mark !== undefined ? [] : sinceOnly ? changedPages : changedPages.filter((p) => keptPaths.has(p.path));
       data = {
         ...data,
         total: sinceOnly ? facts.length + pages.length : data.total,
-        changes: { since: req.filters.since!, facts: facts.slice(0, req.limit), pages: pages.slice(0, req.limit) },
+        changes: {
+          since: req.filters.since!,
+          facts: facts.slice(0, req.limit),
+          pages: pages.slice(0, req.limit),
+          facts_total: facts.length,
+          pages_total: pages.length,
+        },
       };
     }
   }
@@ -227,9 +274,16 @@ export async function executeSearch(root: string, req: SearchRequest, deps: Sear
       entity: null,
       changes: null,
       misses: misses.slice(0, req.limit),
+      events: misses.reduce((n, m) => n + m.count, 0),
     };
   }
-  if (shouldRecordMiss(data)) {
+  if (data.mode !== "misses" && data.total === 0) {
+    const status = normalizeName(f.status ?? "");
+    if (status === "decided" || status === "tentative") {
+      warnings.push(`fact marks are filtered with --mark: wikeeper search --mark ${status}`);
+    }
+  }
+  if (!req.noMiss && shouldRecordMiss(data)) {
     const miss = await recordMiss(paths, data, (deps.now ?? (() => new Date()))());
     if (miss.warning !== null) warnings.push(miss.warning);
   }
@@ -261,6 +315,8 @@ interface SearchOptions {
   since?: string;
   // INSERTION POINT STORY-004-05: misses?: boolean;
   misses?: boolean;
+  mark?: string;
+  miss: boolean;
 }
 
 export function createSearchCommand(deps: SearchDeps = {}): CommandModule {
@@ -285,6 +341,8 @@ export function createSearchCommand(deps: SearchDeps = {}): CommandModule {
         .option("--since <date>", "facts dated, and pages changed by an ingest, on or after this date (YYYY-MM-DD or ISO 8601)")
         // INSERTION POINT STORY-004-05: --misses
         .option("--misses", "list the searches that found nothing, grouped and counted (only with --since and --limit)")
+        .option("--mark <mark>", "only fact lines marked decided or tentative; with --type, --where, --status, --entity or --since")
+        .option("--no-miss", "do not record this search as a miss when it finds nothing (for triage and routing searches)")
         .action(async (words: string[], opts: SearchOptions, command: Command) => {
           const ctx = getOutputContext(command);
           const req: SearchRequest = {
@@ -298,6 +356,8 @@ export function createSearchCommand(deps: SearchDeps = {}): CommandModule {
           req.filters.type = parseFilterValue("--type", opts.type);
           req.filters.where = (opts.where ?? []).map(parseWhere);
           req.filters.status = parseFilterValue("--status", opts.status);
+          const mark = parseMark(opts.mark);
+          if (mark !== undefined) req.filters.mark = mark;
           // INSERTION POINT STORY-004-04: req.entity and req.filters.since from opts
           if (opts.entity !== undefined) req.entity = opts.entity;
           if (opts.since !== undefined) req.filters.since = opts.since;
@@ -305,6 +365,8 @@ export function createSearchCommand(deps: SearchDeps = {}): CommandModule {
           // INSERTION POINT STORY-004-05: req.misses from opts
           req.misses = opts.misses === true;
           missesUsage(req);
+          req.noMiss = opts.miss === false;
+          markUsage(req);
           const data = await executeSearch(findRepoRoot(ctx.cwd), req, deps);
           emitResult(ctx, { command: "search", data, warnings: [...searchWarnings(data)], message: renderSearch(data) });
         });
@@ -316,7 +378,22 @@ export const searchCommand: CommandModule = createSearchCommand();
 
 /** STORY-004-05 R5: --misses lists recorded misses; it combines only with --since and --limit. */
 function missesUsage(req: SearchRequest): void {
-  if (req.misses && (req.query !== null || hasFilters(req.filters) || req.entity !== null)) {
-    throw new WikeeperError(ExitCode.USAGE, "usage", "--misses cannot be combined with a query, --type, --where, --status or --entity");
+  if (req.misses && (req.query !== null || hasFilters(req.filters) || req.filters.mark !== undefined || req.entity !== null)) {
+    throw new WikeeperError(
+      ExitCode.USAGE,
+      "usage",
+      "--misses cannot be combined with a query, --type, --where, --status, --mark or --entity",
+    );
+  }
+}
+
+/** STORY-004-07 R7: --mark lists fact lines, so it does not take a text query. */
+function markUsage(req: SearchRequest): void {
+  if (req.filters.mark !== undefined && req.query !== null) {
+    throw new WikeeperError(
+      ExitCode.USAGE,
+      "usage",
+      "--mark cannot be combined with a query; use --type, --where, --status, --entity or --since",
+    );
   }
 }
