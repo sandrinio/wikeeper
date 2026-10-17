@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "sprint": "SPRINT-03",
-  "generated_at": "2026-10-17T11:19:38Z",
+  "generated_at": "2026-10-17T12:08:12Z",
   "contracts": [
     {
       "id": "C1",
@@ -178,20 +178,36 @@
       ],
       "created_by": "STORY-006-10's own Developer commit (not a skeleton): cut from story/STORY-006-10 (itself cut from contract/S-03-lint) at the Developer commit; carries WIKI.md, SETUP.md, the profile, the kb seed, the six sub-agent prompts and the shared red-test re-scopes (R6(a)/(b)) that STORY-006-12 builds on",
       "create_when": "when STORY-006-10's Developer reports done, before its QA-Verify",
-      "notes": "Text-only contract: it carries ordered bytes (template text and red-test edits), not code exports. The changelog line format '- YYYY-MM-DD: <kind> v<N>: <change>' stated by STORY-006-10 is fixed for STORY-006-12 and STORY-006-09."
+      "notes": "Text-only contract: it carries ordered bytes (template text and red-test edits), not code exports. The changelog line format '- YYYY-MM-DD: <kind> v<N>: <change>' stated by STORY-006-10 is fixed for STORY-006-12 and STORY-006-09. STORY-006-12 reaches C8 through C10, which stacks STORY-002-11 on it."
     },
     {
       "id": "C9",
       "branch": "contract/S-03-text-writing",
-      "base": "contract/S-03-text-rules",
+      "base": "contract/S-03-shipped-blocks",
       "owner_story": "STORY-006-12",
       "frozen_exports": [],
       "consumers": [
         "STORY-006-09"
       ],
-      "created_by": "STORY-006-12's own Developer commit (not a skeleton): cut from story/STORY-006-12 (itself cut from contract/S-03-text-rules) at the Developer commit; carries WIKI.md, SETUP.md and the wiki-ingest SKILL.md after STORY-006-10 and STORY-006-12",
+      "created_by": "STORY-006-12's own Developer commit (not a skeleton): cut from story/STORY-006-12 (itself cut from contract/S-03-shipped-blocks) at the Developer commit; carries WIKI.md, SETUP.md and the wiki-ingest SKILL.md after STORY-006-10 and STORY-006-12, plus STORY-002-11's commit through C10",
       "create_when": "when STORY-006-12's Developer reports done, before its QA-Verify",
       "notes": "Text-only contract (ordered bytes), as C8."
+    },
+    {
+      "id": "C10",
+      "branch": "contract/S-03-shipped-blocks",
+      "base": "contract/S-03-text-rules",
+      "owner_story": "STORY-002-11",
+      "frozen_exports": [
+        "src/agents/shipped-blocks.ts: SHIPPED_BLOCKS(readonly string[]) (append-only, oldest first, starting with the SPRINT-01 and SPRINT-02 block bodies; STORY-006-12 appends one entry and never edits or reorders an earlier one)",
+        "test/agents/shipped-blocks.test.ts: SHIPPED_BLOCK_SHA256(const) (one sha256 pin per SHIPPED_BLOCKS entry, same order; STORY-006-12 appends one pin)"
+      ],
+      "consumers": [
+        "STORY-006-12"
+      ],
+      "created_by": "STORY-002-11's own Developer commit (not a skeleton), stacked like C5: branch cut from contract/S-03-text-rules, then story/STORY-002-11 merged in at its Developer commit (STORY-002-11 shares no file with C1, C2 or STORY-006-10's commit, so the merge is clean); carries src/agents/shipped-blocks.ts, test/agents/shipped-blocks.test.ts, the src/agents/inject.ts refresh functions, the src/agents/index.ts update change and test/agents/block-refresh.test.ts",
+      "create_when": "when both STORY-006-10's and STORY-002-11's Developers report done; cut before C9 (C9 stacks on it)",
+      "notes": "Only the two exports STORY-006-12 consumes are frozen. normaliseBlock, refreshBlock and refreshInFile have no consumer in this sprint."
     }
   ],
   "stories": {
@@ -206,6 +222,12 @@
     "STORY-002-10": {
       "base": "sprint/S-03",
       "upstream": []
+    },
+    "STORY-002-11": {
+      "base": "sprint/S-03",
+      "upstream": [
+        "STORY-002-10"
+      ]
     },
     "STORY-003-10": {
       "base": "contract/S-03-enforce",
@@ -297,6 +319,7 @@
     "STORY-006-09": {
       "base": "contract/S-03-text-writing",
       "upstream": [
+        "STORY-002-11",
         "STORY-003-10",
         "STORY-003-11",
         "STORY-005-01",
@@ -331,6 +354,7 @@
         "STORY-001-10",
         "STORY-002-09",
         "STORY-002-10",
+        "STORY-002-11",
         "STORY-003-10",
         "STORY-003-11",
         "STORY-003-12",
@@ -350,9 +374,10 @@
       ]
     },
     "STORY-006-12": {
-      "base": "contract/S-03-text-rules",
+      "base": "contract/S-03-shipped-blocks",
       "upstream": [
         "STORY-002-09",
+        "STORY-002-11",
         "STORY-003-12",
         "STORY-005-01",
         "STORY-005-02",
@@ -374,18 +399,19 @@
         "STORY-005-01"
       ],
       "parallel": true,
-      "rationale": "integration layer 0: no upstream; no real collision among the six (no shared path); 005-01 builds from its own C1, the rest from sprint/S-03; the Developer commits of 001-10 and 002-09 seed C4/C5 for 003-10"
+      "rationale": "integration layer 0: no upstream; no real collision among the six (no shared path); 005-01 builds from its own C1, the rest from sprint/S-03; the Developer commits of 001-10 and 002-09 seed C4/C5 for 003-10; 002-10 merges before 002-11 (shared src/agents/index.ts, dep edge)"
     },
     {
       "wave": "wave2",
       "stories": [
+        "STORY-002-11",
         "STORY-003-10",
         "STORY-005-02",
         "STORY-005-06",
         "STORY-005-07"
       ],
       "parallel": true,
-      "rationale": "integration layer 1: 003-10 (upstream 001-10, 002-09; real collisions on the package files and the enforce/SETUP.md/red-test lines, so it builds from C5); 005-02 (upstream 005-01; builds from its own C2); 005-06 (upstream 004-07, 005-01; builds from its own C3); 005-07 (upstream 003-12; builds from sprint/S-03). No real collision among them: src/program.ts gets one import + one defaultCommands entry each from 003-10, 005-02 and 005-06 (insert-only, keep every line). parallel_eligible n on 005-02 is a hint; the predicate finds no collision in this layer"
+      "rationale": "integration layer 1: 002-11 (upstream 002-10; the shared src/agents/index.ts is not shown to be a real collision, so it builds from sprint/S-03, re-applies its update-path edit at integration and re-syncs on 002-10's merge; its Developer commit seeds C10); 003-10 (upstream 001-10, 002-09; real collisions on the package files and the enforce/SETUP.md/red-test lines, so it builds from C5); 005-02 (upstream 005-01; builds from its own C2); 005-06 (upstream 004-07, 005-01; builds from its own C3); 005-07 (upstream 003-12; builds from sprint/S-03). No real collision among them: 002-11 shares no path with the other four; src/program.ts gets one import + one defaultCommands entry each from 003-10, 005-02 and 005-06 (insert-only, keep every line). parallel_eligible n on 002-11 and 005-02 is a hint; the predicate finds no collision in this layer"
     },
     {
       "wave": "wave3",
@@ -413,7 +439,7 @@
         "STORY-006-10"
       ],
       "parallel": false,
-      "rationale": "integration layer 4: upstream 005-09 (L3), 005-04 (L2) and the rest; builds from C2 (consumes RULE_CHECKS, parseInstructions); its SETUP.md prose (step 3, step-4 bullets) and 005-09's step-4 table rows are separate hunks; re-syncs before QA-Verify"
+      "rationale": "integration layer 4: upstream 005-09 (L3; edge kept by the human), 005-04 (L2) and the rest; builds from C2 (consumes RULE_CHECKS, parseInstructions); its SETUP.md prose (step 3, step-4 bullets including the decision-25 whitelist text) and 005-09's step-4 table rows are separate hunks; re-syncs before QA-Verify"
     },
     {
       "wave": "wave6",
@@ -421,7 +447,7 @@
         "STORY-006-12"
       ],
       "parallel": false,
-      "rationale": "integration layer 5: upstream 006-10 (L4); builds from C8 (on top of 006-10's WIKI.md, SETUP.md and sub-agent prompt text and its shared red-test re-scopes; real collision, ordered edits)"
+      "rationale": "integration layer 5: upstream 006-10 (L4) and 002-11 (L1); builds from C10 (006-10's WIKI.md, SETUP.md and sub-agent prompt text and shared red-test re-scopes via C8, plus 002-11's shipped-blocks.ts and pin test, which 006-12 appends to; real collisions, ordered edits)"
     },
     {
       "wave": "wave7",
@@ -429,7 +455,7 @@
         "STORY-006-09"
       ],
       "parallel": false,
-      "rationale": "integration layer 6: upstream 006-12 (L5), 006-10, 005-09 and every command story; builds from C9 (WIKI.md, SETUP.md, wiki-ingest SKILL.md, and wiki-protocol.red lines next to 006-10's, all on top; real collision, ordered edits); its two setup.red.node.test.ts lines are re-applied at integration on top of 003-10/005-09"
+      "rationale": "integration layer 6: upstream 006-12 (L5), 006-10, 005-09, 002-11 (via C10) and every command story; builds from C9 (WIKI.md, SETUP.md, wiki-ingest SKILL.md, and wiki-protocol.red lines next to 006-10's, all on top; real collision, ordered edits); its two setup.red.node.test.ts lines are re-applied at integration on top of 003-10/005-09"
     },
     {
       "wave": "wave8",
@@ -437,13 +463,14 @@
         "STORY-006-11"
       ],
       "parallel": false,
-      "rationale": "integration layer 7: upstream every other story; builds from C2 (consumes PAGE_CHECKS, RULE_CHECKS, parseInstructions); adds new checks to test/templates/structure.ts and rows to test/templates.test.ts (insert-only against 002-09 and 005-09); verified after re-sync on the final tree; merges last"
+      "rationale": "integration layer 7: upstream every other story (20); builds from C2 (consumes PAGE_CHECKS, RULE_CHECKS, parseInstructions); adds new checks to test/templates/structure.ts and rows to test/templates.test.ts (insert-only against 002-09 and 005-09); verified after re-sync on the final tree; merges last"
     }
   ],
   "lane_assignments": {
     "STORY-001-10": "standard",
     "STORY-002-09": "standard",
     "STORY-002-10": "standard",
+    "STORY-002-11": "standard",
     "STORY-003-10": "standard",
     "STORY-003-11": "standard",
     "STORY-003-12": "standard",
