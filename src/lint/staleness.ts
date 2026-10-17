@@ -75,21 +75,18 @@ export const staleFactCheck: LintCheck = {
       for (const entity of pageEntities(page)) {
         if (entity.facts.length === 0) continue;
         const newest = entity.facts.reduce((a, f) => (f.date > a ? f.date : a), "");
-        const status = statusOf(page, entity);
-        if (status !== null && !isFinal(status.value)) {
-          const age = ageOf(newest);
-          if (age > limit) {
-            const f: LintFinding = {
-              id: "stale-fact",
-              severity: "warning",
-              path,
-              message: `${entity.name}: status "${status.value}" was last dated ${newest}, ${age} days ago (lint.stale_after_days is ${limit})`,
-            };
-            if (status.line !== undefined) f.line = status.line;
-            out.push(f);
-          }
-        }
         const age = ageOf(newest);
+        const status = statusOf(page, entity);
+        if (status !== null && !isFinal(status.value) && age > limit) {
+          const f: LintFinding = {
+            id: "stale-fact",
+            severity: "warning",
+            path,
+            message: `${entity.name}: status "${status.value}" was last dated ${newest}, ${age} days ago (lint.stale_after_days is ${limit})`,
+          };
+          if (status.line !== undefined) f.line = status.line;
+          out.push(f);
+        }
         if (age <= limit) continue;
         for (const fact of entity.facts) {
           if (fact.status !== "tentative" || fact.date !== newest) continue;

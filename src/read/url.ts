@@ -15,6 +15,11 @@ function isTimeout(err: unknown): boolean {
   return err instanceof Error && err.name === "TimeoutError";
 }
 
+/** The network error code (ECONNREFUSED, …) when there is one, else the error's message. */
+function causeOf(err: unknown): string {
+  return (err as { cause?: { code?: string } }).cause?.code ?? (err instanceof Error ? err.message : String(err));
+}
+
 function tooLarge(maxBytes: number): WikeeperError {
   return new WikeeperError(ExitCode.ERROR, "too_large", `the response is larger than ${formatSize(maxBytes)}`, {
     limit_bytes: maxBytes,
@@ -42,7 +47,7 @@ export async function fetchSource(
     });
   } catch (err) {
     if (isTimeout(err)) throw timeout(url, opts.timeoutMs);
-    const cause = (err as { cause?: { code?: string } }).cause?.code ?? (err instanceof Error ? err.message : String(err));
+    const cause = causeOf(err);
     throw new WikeeperError(ExitCode.ERROR, "fetch_failed", `could not fetch ${url.href}: ${cause}`, {
       url: url.href,
       cause,
@@ -78,7 +83,7 @@ export async function fetchSource(
     } catch (err) {
       if (err instanceof WikeeperError) throw err;
       if (isTimeout(err)) throw timeout(url, opts.timeoutMs);
-      const cause = (err as { cause?: { code?: string } }).cause?.code ?? (err instanceof Error ? err.message : String(err));
+      const cause = causeOf(err);
       throw new WikeeperError(ExitCode.ERROR, "fetch_failed", `could not read ${url.href}: ${cause}`, {
         url: url.href,
         cause,

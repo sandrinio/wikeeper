@@ -173,14 +173,18 @@ function buildLines(items: ReadonlyArray<Item>): PdfLine[] {
   return lines;
 }
 
+function notReadable(err: unknown): WikeeperError {
+  const message = err instanceof Error ? err.message : String(err);
+  return new WikeeperError(ExitCode.ERROR, "conversion_failed", `the file is not a readable PDF: ${message}`);
+}
+
 export async function readPdf(bytes: Uint8Array): Promise<Converted> {
   const { getDocumentProxy, extractTextItems, getMeta } = await import("unpdf");
   let pdf;
   try {
     pdf = await getDocumentProxy(new Uint8Array(bytes), { verbosity: 0, useSystemFonts: false, disableFontFace: true });
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    throw new WikeeperError(ExitCode.ERROR, "conversion_failed", `the file is not a readable PDF: ${message}`);
+    throw notReadable(err);
   }
   let pages: PdfLine[][];
   let info: Record<string, unknown>;
@@ -189,8 +193,7 @@ export async function readPdf(bytes: Uint8Array): Promise<Converted> {
     pages = items.map((page) => buildLines(page));
     info = (await getMeta(pdf)).info;
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    throw new WikeeperError(ExitCode.ERROR, "conversion_failed", `the file is not a readable PDF: ${message}`);
+    throw notReadable(err);
   } finally {
     await pdf.loadingTask.destroy();
   }

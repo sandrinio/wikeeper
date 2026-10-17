@@ -5,6 +5,7 @@ import { compareCodeUnits } from "../core/compare.js";
 import { ExitCode, WikeeperError } from "../core/exit-codes.js";
 import { toPosixRelative } from "../core/paths.js";
 import type { ResolvedPaths } from "../core/paths.js";
+import { stripBom } from "../core/text.js";
 import { parsePage } from "../wiki/parse-page.js";
 import type { Fact, Page, PageError } from "../wiki/parse-page.js";
 import type { PageDiff } from "./diff.js";
@@ -66,7 +67,7 @@ export async function validateIngest(
         );
       }
       const kept = new Set(page.facts.map(factKey));
-      const lines = oldText.replace(/^\uFEFF/, "").split(/\r?\n/);
+      const lines = stripBom(oldText).split(/\r?\n/);
       const seen = new Set<string>();
       for (const f of parsePage(oldText, rel).facts) {
         const key = factKey(f);

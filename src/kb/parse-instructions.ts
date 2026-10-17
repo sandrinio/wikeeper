@@ -5,6 +5,7 @@
 import { readFile } from "node:fs/promises";
 import { compareCodeUnits } from "../core/compare.js";
 import type { ResolvedPaths } from "../core/paths.js";
+import { stripBom } from "../core/text.js";
 import { parseSourceKinds, type SourceKindRule } from "../ingest/kind-rules.js";
 
 /** The `## ` section keys, in STORY-005-01 R3 order. */
@@ -114,7 +115,7 @@ function hasArrow(line: string): boolean {
 export function parseInstructions(text: string): KbInstructions {
   const kinds = parseSourceKinds(text);
   const kindLines = new Set(kinds.map((k) => k.line));
-  const lines = text.replace(/^﻿/, "").split(/\r?\n/);
+  const lines = stripBom(text).split(/\r?\n/);
 
   const sections: KbSection[] = [];
   const questions: KbQuestion[] = [];
