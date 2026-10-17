@@ -12,10 +12,10 @@ import { readManifest, sha256File, writeManifest } from "../core/manifest.js";
 import type { ManifestEntry } from "../core/manifest.js";
 import { emitResult, getOutputContext } from "../core/output.js";
 import { findRepoRoot, fromPosixRelative, isInside, resolvePaths, toPosixRelative } from "../core/paths.js";
+import { fullVersion } from "../core/version.js";
 import {
   copyTemplate,
   listTemplateFiles,
-  readPackageVersion,
   templatesDir as defaultTemplatesDir,
 } from "../core/templates.js";
 import type { CommandModule } from "../program.js";
@@ -82,7 +82,7 @@ export async function runUpdate(
   if (!manifest) throw new WikeeperError(ExitCode.ERROR, "not_initialised", "not initialised — run wikeeper init");
 
   const tplDir = deps.templatesDir ?? defaultTemplatesDir();
-  const packageVersion = deps.packageVersion ?? readPackageVersion();
+  const packageVersion = deps.packageVersion ?? fullVersion();
   const stamp = formatBackupStamp((deps.now ?? (() => new Date()))());
 
   const pkgFiles = (await listTemplateFiles("system", tplDir)).map((rel) => {

@@ -134,3 +134,27 @@ describe.each(Object.keys(FIXTURES))("goal acceptance: %s fixture", (name) => {
     expect(parsed.data.checks.some((c) => c.id === "agent-block-missing" && c.file === "AGENTS.md")).toBe(true);
   }, 120_000);
 });
+
+describe("packed build stamp", () => {
+  it("--version carries the stamped commit and the manifest records the same string", async () => {
+    const stamp = JSON.parse(await readFile(path.join(path.dirname(cli), "build-info.json"), "utf8")) as {
+      commit: string | null;
+    };
+    const pkgVersion = (JSON.parse(await readFile(path.join(process.cwd(), "package.json"), "utf8")) as { version: string }).version;
+    const v = wk(tmp, ["--version"]);
+    expect(v.code, v.err).toBe(0);
+    const shown = v.out.trim();
+    expect(shown).toBe(`${pkgVersion}+${stamp.commit ?? "dev"}`);
+    const git = spawnSync("git", ["rev-parse", "--short=7", "HEAD"], { cwd: process.cwd(), encoding: "utf8" });
+    if (git.status === 0) expect(stamp.commit).toBe(git.stdout.trim());
+
+    const root = await mkdtemp(path.join(tmp, "stamp-"));
+    await mkdir(path.join(root, ".git"));
+    const init = wk(root, ["init", "--yes", "--agents", "claude"]);
+    expect(init.code, init.err).toBe(0);
+    const manifest = JSON.parse(await readFile(path.join(root, ".wiki", "system", "manifest.json"), "utf8")) as {
+      package_version: string;
+    };
+    expect(manifest.package_version).toBe(shown);
+  }, 120_000);
+});
