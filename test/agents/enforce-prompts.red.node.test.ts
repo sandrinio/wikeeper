@@ -50,6 +50,11 @@ const SEARCH_CODEX = [
   'prefix_rule(pattern=["npx","wikeeper","search"], decision="allow")',
   'prefix_rule(pattern=["wikeeper","search"], decision="allow")',
 ];
+const READ_CLAUDE = ["Bash(npx wikeeper read *)", "Bash(wikeeper read *)"];
+const READ_CODEX = [
+  'prefix_rule(pattern=["npx","wikeeper","read"], decision="allow")',
+  'prefix_rule(pattern=["wikeeper","read"], decision="allow")',
+];
 const sorted = (xs: readonly string[]): string[] => [...xs].sort();
 
 beforeEach(async () => {
@@ -153,9 +158,9 @@ describe("STORY-002-09 S1: ai mode prompts for the destructive flags (red)", () 
   it("settings.json and wikeeper.rules hold exactly the ai rules, Codex in R3 order", async () => {
     const root = await aiRepo();
     const s = await readJson(root, ".claude/settings.json");
-    expect(s.permissions.allow).toEqual([...NARROW_CLAUDE, ...SEARCH_CLAUDE]);
+    expect(s.permissions.allow).toEqual([...NARROW_CLAUDE, ...READ_CLAUDE, ...SEARCH_CLAUDE]);
     expect(s.permissions.ask).toEqual(ASK_CLAUDE);
-    expect(await ruleLines(root)).toEqual([...NARROW_CODEX, ...PROMPT_CODEX, ...SEARCH_CODEX]);
+    expect(await ruleLines(root)).toEqual([...NARROW_CODEX, ...PROMPT_CODEX, ...READ_CODEX, ...SEARCH_CODEX]);
   });
 
   it("the ai row of the SETUP.md step-4 table lists exactly those rules", async () => {
@@ -163,7 +168,7 @@ describe("STORY-002-09 S1: ai mode prompts for the destructive flags (red)", () 
     await expectRowMatchesFiles(root, "ai");
     const row = setupRow(await readFile(SETUP, "utf8"), "ai");
     expect(row.claude["permissions.ask"]).toEqual(ASK_CLAUDE);
-    expect(row.codex).toEqual([...NARROW_CODEX, ...PROMPT_CODEX, ...SEARCH_CODEX]);
+    expect(row.codex).toEqual([...NARROW_CODEX, ...PROMPT_CODEX, ...READ_CODEX, ...SEARCH_CODEX]);
   });
 
   it("the template structure check reports no finding for the writer items or SETUP.md", async () => {
@@ -244,11 +249,11 @@ describe("STORY-002-09 S2: update brings a SPRINT-02 ai install up to date; mode
     const root = await sprint02Install();
     expect((await drive(root, ["update", "--json"])).code).toBe(0);
     const s = await readJson(root, ".claude/settings.json");
-    expect(sorted(s.permissions.allow)).toEqual(sorted([...NARROW_CLAUDE, ...SEARCH_CLAUDE]));
+    expect(sorted(s.permissions.allow)).toEqual(sorted([...NARROW_CLAUDE, ...READ_CLAUDE, ...SEARCH_CLAUDE]));
     expect(sorted(s.permissions.ask)).toEqual(sorted(ASK_CLAUDE));
     expect(s.model).toBe("opus");
     expect(s.permissions.deny).toEqual(["Read(./.env)"]);
-    expect(await ruleLines(root)).toEqual([...NARROW_CODEX, ...SEARCH_CODEX, ...PROMPT_CODEX]);
+    expect(await ruleLines(root)).toEqual([...NARROW_CODEX, ...SEARCH_CODEX, ...PROMPT_CODEX, ...READ_CODEX]);
     const m = await readJson(root, MANIFEST);
     for (const rule of ASK_CLAUDE) {
       expect(m.files.some((f: any) => f.kind === "rule" && f.agent === "claude" && f.identity === `permissions.ask[${rule}]`)).toBe(true);
