@@ -24,14 +24,14 @@ lane: standard
 db_write_set: []
 deferred_verification: []
 created_at: 2026-10-16T18:45:00Z
-updated_at: 2026-10-16T23:35:21Z
+updated_at: 2026-10-17T07:30:08Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
 server_pushed_at_version: 1
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-16T23:35:41Z
+  last_gate_check: 2026-10-17T07:30:40Z
   transition: ready-for-execution
 pushed_by: null
 pushed_at: null
@@ -63,7 +63,7 @@ As a user whose agent just wrote wiki pages from a source, I want the CLI to che
 ### 1.2 Detailed Requirements
 - **R1 — Preconditions.** `wikeeper ingest finish <id> [--json]` requires the lock to name `<id>` (no lock → exit 1 `not_applied`; another holder → exit 1 `locked`, naming it), a readable snapshot (else exit 1 `snapshot_missing`, lock kept, pointing to `wikeeper ingest abort <id>`), and the facts file unchanged since `apply` (its sha256 equals `snapshot.facts_sha256`, else exit 1 `facts_changed` with "run wikeeper ingest abort <id>, then apply again"; lock kept).
 - **R2 — Diff.** Compares `pages/` now with `snapshot.pages`: `created`, `updated`, `deleted`, each a sorted list of paths relative to `pages/`, POSIX.
-- **R3 — Validation.** Every created or updated `.md` page must cite the source. `citesSource(page, id)` is true when any of these holds: its parsed wikilinks (STORY-004-01) include `<id>`, as `[[<id>]]` or `[[<id>|…]]`; its `frontmatter.sources` includes `<id>` (bare or `[[<id>]]`, both normalized by STORY-004-01 R1); or the page is the source page itself, `page.path === "sources/<id>.md"` (an agent may cite there only in frontmatter). (Human request, 2026-10-16.) Against `snapshot.outside`, any entry now modified or deleted is a write outside `pages/` (new files are allowed). On any violation: exit 1, code `validation_failed`, `details: { uncited: [...], outside: [...] }`, the human message names each file, and nothing else happens — lock and snapshot are kept for a fix or `abort` (EPIC-003 integrity rule). Deleted pages are allowed and reported. A missing `pages/sources/<id>.md` is a warning, not an error. An empty diff is valid.
+- **R3 — Validation.** Every created or updated `.md` page must cite the source. `citesSource(page, id)` is true when any of these holds: its parsed wikilinks (STORY-004-01) include `<id>`, as `[[<id>]]` or `[[<id>|…]]`; its `frontmatter.sources` includes `<id>` (bare or `[[<id>]]`, both normalized by STORY-004-01 R1); or the page is the source page itself, `page.path === "sources/<id>.md"` (an agent may cite there only in frontmatter). (Human request, 2026-10-16.) Against `snapshot.outside`, any entry now modified or deleted is a write outside `pages/` (new files are allowed). On any violation: exit 1, code `validation_failed`, `details: { uncited: [...], outside: [...], invalid: [...] }` (`invalid` per R10), the human message names each file, and nothing else happens — lock and snapshot are kept for a fix or `abort` (EPIC-003 integrity rule). Deleted pages are allowed and reported. A missing `pages/sources/<id>.md` is a warning, not an error. An empty diff is valid.
 - **R4 — Post steps, in order** (architecture.md §7.3): `writeIndex`; `writeLogEvent` with an `ingest` event; `regenerateLogView`; `runUserHooks("post_ingest", config.hooks.post_ingest, { cwd: root, sourceId: id })` (default `USER_HOOK_TIMEOUT_MS`, 60 s); `runLintHook`; remove the snapshot; release the lock; print the report.
 - **R5 — Post steps never undo a validated ingest.** A `post_ingest` command that exits non-zero or times out, a lint hook that throws, and any lint finding become warnings in the report; `finish` still exits 0 and releases the lock.
 - **R6 — Re-running an interrupted finish.** When an `ingest` log event for `<id>` already exists and the lock still names `<id>` (a previous `finish` stopped after logging), `finish` writes no second event and runs no hooks again; it regenerates the index and log view, removes the snapshot, releases the lock, exits 0, and warns that the ingest was already recorded in that log file.
@@ -77,6 +77,7 @@ As a user whose agent just wrote wiki pages from a source, I want the CLI to che
   (`rule <kind> v…` reads `no rule for <kind>` when `rule_version` is null; `<size>` in B, KB or MB with one decimal.)
 - **R8 — Lint hook point** (`src/ingest/lint-hook.ts`, contract 9). `setLintHook(hook | null)` registers one hook; `runLintHook(ctx)` returns its findings, or `[]` when none is registered (the default in SPRINT-02). EPIC-005 fills it in SPRINT-03 without touching `finish`.
 - **R9 — End-to-end test** `test/e2e/ingest.test.ts`, run against the packed package like `test/e2e/goal.test.ts`. It plays the agent for each source type under the permission mode in §2.1's last scenario: `start` (or `plan` then `start`), `facts`, `apply`, page edits citing the source plus `pages/sources/<id>.md`, `finish`. It asserts the report, the log event, the index line, no `.wiki/.lock`, and that every page changed in the test appears in exactly one `ingest` log event (EPIC-003 metric: zero page changes without a log entry).
+- **R10 — Valid frontmatter** (walkthrough row 8.3; CR review-feedback, human 2026-10-17). A created or updated `.md` page whose `parsePage` errors include `frontmatter_yaml` or `frontmatter_field` (STORY-004-01) is an R3 violation: `details.invalid` holds one `{ path, message }` per such error, sorted by `path` (relative to `pages/`, POSIX; a page's own errors keep parser order); `message` is `line <n>: <the parser message's first line without yaml's " at line L, column C:" suffix>`, or that text alone when the error has no line; the human message adds `frontmatter errors: <path> (<message>), …`. "details.invalid names <file>" means one entry's `path` is that file. Such a page is not judged for citations (its frontmatter `sources` could not be read); the rerun after the fix judges it. Lock and snapshot are kept (R3), so the writer fixes the page in the same write phase. Fact-line errors (`fact_status`, `fact_date`) and pages not created or updated by this ingest are not checked here; they stay `writeIndex` warnings (STORY-003-07 R6).
 
 ### 1.3 Out of Scope
 - The lint checks themselves (EPIC-005, SPRINT-03); a lint finding never changes the exit code here.
@@ -117,6 +118,7 @@ Feature: wikeeper ingest finish
     Given permission mode "ai", source "src-2026-10-16-notes" applied with facts holding one uncovered item
     And since apply pages/projects/atlas.md was updated with a fact citing "[[src-2026-10-16-notes]]" and a contradiction-flagged fact citing it
     And pages/sources/src-2026-10-16-notes.md was created citing it only in its frontmatter sources
+    And pages/old.md, unchanged since before apply, has the frontmatter line "title: Old: page"
     When I run "wikeeper ingest finish src-2026-10-16-notes --json"
     Then the exit code is 0
     And the report lists updated ["projects/atlas.md"], created ["sources/src-2026-10-16-notes.md"], contradictions 1 and rule_suggestions 1
@@ -124,9 +126,10 @@ Feature: wikeeper ingest finish
     And index.md lists projects/atlas.md and log.md shows the event
     And .wiki/.lock and .wiki/.snapshots/src-2026-10-16-notes are gone
     And the human output's first line is "✅ Ingested src-2026-10-16-notes"
+    And the warnings name .wiki/pages/old.md
 
   @rules @data
-  Scenario Outline: Error — finish rejects uncited changes and writes outside pages/
+  Scenario Outline: Error — finish rejects uncited changes, invalid frontmatter and writes outside pages/
     Given "src-2026-10-16-notes" is applied
     And since apply <change>
     When I run "wikeeper ingest finish src-2026-10-16-notes --json"
@@ -139,6 +142,7 @@ Feature: wikeeper ingest finish
       | pages/team.md changed without "[[src-2026-10-16-notes]]"     | uncited  | team.md                              |
       | raw/src-2026-10-16-older.meta.json was edited                | outside  | raw/src-2026-10-16-older.meta.json   |
       | index.md was edited                                          | outside  | index.md                             |
+      | pages/glossary.md was created citing "[[src-2026-10-16-notes]]" with the frontmatter line "summary: Acmeworks terms: a glossary" | invalid  | glossary.md                          |
 
   @rules
   Scenario: Post steps report problems but never undo a validated ingest
@@ -192,13 +196,14 @@ Feature: wikeeper ingest finish
 | Item | Value |
 |---|---|
 | Primary File | `src/commands/ingest-finish.ts` |
-| Related Files | `src/ingest/diff.ts`, `src/ingest/validate.ts`, `src/ingest/report.ts`, `src/ingest/lint-hook.ts`, `src/commands/ingest.ts`, `test/ingest/finish.test.ts`, `test/ingest/report.test.ts`, `test/e2e/ingest.test.ts`, `test/e2e/pack.ts` |
+| Related Files | `src/ingest/diff.ts`, `src/ingest/validate.ts`, `src/ingest/report.ts`, `src/ingest/lint-hook.ts`, `src/commands/ingest.ts`, `test/ingest/finish.test.ts`, `test/ingest/report.test.ts`, `test/e2e/ingest.test.ts`, `test/e2e/pack.ts`, `test/ingest/finish-frontmatter.red.node.test.ts` (QA-Red, R10; 2026-10-17) |
 | New Files Needed | Yes — `src/commands/ingest-finish.ts`, `src/ingest/diff.ts`, `src/ingest/validate.ts`, `src/ingest/report.ts`, `src/ingest/lint-hook.ts`, `test/ingest/finish.test.ts`, `test/ingest/report.test.ts`, `test/e2e/ingest.test.ts`, `test/e2e/pack.ts` |
 
 ### 3.2 Technical Logic
 - **Diff.** `hashTree(pagesDir)` (STORY-003-08) against `snapshot.pages`; `diffOutside` = `hashOutside(paths)` against `snapshot.outside`, keeping only modified and deleted keys.
 - **Citation check.** Parse each created/updated `.md` page with `parsePage(text, rel)`; a page cites `<id>` when `page.wikilinks` contains `<id>` (the parser strips `|alias`). Non-`.md` files under `pages/` are diffed and reported but not citation-checked.
 - **Contradictions.** For created/updated pages, count `page.facts` entries with `contradiction === true` whose `sources` include `<id>`.
+- **Frontmatter check** (R10). In the citation loop, parse each page once; collect its errors with code `frontmatter_yaml` or `frontmatter_field` into `invalid` (a private helper keeps the first message line and drops yaml's position suffix); a page with such errors skips `citesSource`; `invalid` is stable-sorted by path. `ingest finish` adds the `frontmatter errors:` message part and `invalid` to `details`.
 - **Order and failure.** Validation is pure (reads only). The first write is `writeIndex`; from there on errors in index/log writing are real errors (exit 1, lock kept, so `finish` can be re-run per R6), while hook and lint problems follow R5.
 - **Re-run detection** (R6): `readLogEvents(paths, { type: "ingest", sourceId: id })` before validation; when non-empty and the lock names `id`, skip validation, event and hooks.
 - **Hook results.** `runUserHooks` returns one `UserHookResult` per command; each result for which `hookFailed(result)` is true becomes the warning `post_ingest hook failed: <command> (exit <n> | timed out)`.
@@ -227,7 +232,7 @@ export function diffOutside(paths: ResolvedPaths, snapshot: SnapshotInfo): Promi
 
 // src/ingest/validate.ts
 import type { Page } from "../wiki/parse-page.js";
-export interface IngestValidation { ok: boolean; uncited: string[]; outside: string[]; warnings: string[] }
+export interface IngestValidation { ok: boolean; uncited: string[]; outside: string[]; invalid: Array<{ path: string; message: string }>; warnings: string[] }   // invalid: additive (R10, 2026-10-17)
 export function citesSource(page: Page, sourceId: string): boolean;
 export function validateIngest(
   paths: ResolvedPaths, sourceId: string, diff: PageDiff, outside: { modified: string[]; deleted: string[] },
@@ -271,6 +276,9 @@ Consumed (frozen in their stories' §3.3, except the parser, drafted in parallel
 - [x] Implement `ingest finish`: preconditions, validation, ordered post steps, warnings policy, re-run path; register in `src/commands/ingest.ts` -> R1, R4, R5, R6
 - [x] Add `test/e2e/pack.ts` and `test/e2e/ingest.test.ts` covering the four source paths and three modes -> R9
 - [x] CLI tests per Gherkin scenario in `test/ingest/finish.test.ts`; report formatting tests in `test/ingest/report.test.ts` -> §2.1
+- [ ] `validate.ts`: frontmatter errors of created/updated pages into `invalid`, sorted; invalid pages skip the citation check -> R10
+- [ ] `ingest finish`: `details.invalid` and the `frontmatter errors:` message part -> R3, R10
+- [ ] Unit tests for R10 in `test/ingest/finish.test.ts` -> R10
 
 ## 4. Quality Gates
 
@@ -278,7 +286,7 @@ Consumed (frozen in their stories' §3.3, except the parser, drafted in parallel
 
 | Test Type | Minimum Count | Notes |
 |---|---|---|
-| Unit tests | 6 | diff created/updated/deleted; outside modified vs new; citation with and without alias, through `frontmatter.sources` only, and the source page `sources/<id>.md` with no citation at all; contradiction count; size formatting; lint hook default and registered |
+| Unit tests | 7 | diff created/updated/deleted; outside modified vs new; citation with and without alias, through `frontmatter.sources` only, and the source page `sources/<id>.md` with no citation at all; contradiction count; size formatting; lint hook default and registered; frontmatter YAML and field errors on created/updated pages, sorted, and an invalid page not judged for citations (R10) |
 | Integration tests | 0 | Temp directories only. |
 | E2E / acceptance tests | 5 | One per Gherkin scenario (Outline rows counted once); the last is covered in-process by QA-Red's `test/ingest/ingest-flow.red.node.test.ts` and run against the packed package by the Developer's `test/e2e/ingest.test.ts`, with all four rows (CR:spec-clarification 2026-10-16: red-first stays intact and the Goal check's file name is kept; one pack per file). |
 

@@ -17,14 +17,14 @@ lane: standard
 db_write_set: []
 deferred_verification: []
 created_at: 2026-10-16T18:45:00Z
-updated_at: 2026-10-16T18:45:00Z
+updated_at: 2026-10-17T07:30:08Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
 server_pushed_at_version: 3
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-16T19:24:05Z
+  last_gate_check: 2026-10-17T07:30:41Z
   transition: ready-for-execution
 pushed_by: null
 pushed_at: null
@@ -55,10 +55,10 @@ As an AI coding agent, I want skills whose descriptions make me load the right w
 
 ### 1.2 Detailed Requirements
 - **R1 — wiki-ingest skill.** `templates/skills/wiki-ingest/SKILL.md`; frontmatter exactly `name: wiki-ingest` and `description`. The description (≤ 1024 characters) says to use it when the user shares, attaches or pastes a file, document, link, directory or text to keep, asks to add or ingest something into the wiki, or when the agent notices a decision, owner change, deadline or risk worth offering. The body summarises register → triage & extract → write and sends the agent to `.wiki/system/WIKI.md` sections "Ingest", "Register", "Triage and extract", "Write phase", "Delegation" and "Ambient offers".
-- **R2 — Explicit delegation (§6.2, §7.6).** Because Codex delegates only when told, the wiki-ingest body states: a directory → one `wiki-extractor` per source, in parallel, after `wikeeper ingest plan` is approved; every write phase → one `wiki-writer` per source, one at a time, given the brief and the facts file path; a file or text the main agent already read → the main agent extracts and `wiki-writer` writes; with `ingest.delegate: never`, or without sub-agent support, the main agent does both.
+- **R2 — Explicit delegation (§6.2, §7.6).** Because Codex delegates only when told, the wiki-ingest body states: a directory → one `wiki-extractor` per source, in parallel, after `wikeeper ingest plan` is approved; every write phase → one `wiki-writer` per source, one at a time, given the brief, which the main agent writes into its task, and the facts file path; a file or text the main agent already read → the main agent extracts and `wiki-writer` writes; with `ingest.delegate: never`, or without sub-agent support, the main agent does both.
 - **R3 — wiki-search skill.** `templates/skills/wiki-search/SKILL.md`; frontmatter exactly `name: wiki-search` and `description`. The description (≤ 1024 characters) says to use it when the user asks who owns or decides something, what is at risk, why something was decided, what changed since a date, or about a person, project or term the wiki may know — before answering from memory. The body says to run `wikeeper search … --json`, answer with citations, and follow `.wiki/system/WIKI.md` sections "Search" and "Answering questions".
 - **R4 — wiki-extractor prompt.** Input: the ingest id, where to read the source, its kind. It reads the kind's rule in `.wiki/kb_instructions.md`, `.wiki/index.md` and `wikeeper search` results; extracts facts per WIKI.md "Triage and extract" and "Facts file"; submits them with `wikeeper ingest facts <id>`; never edits pages and never runs `wikeeper ingest apply` or `finish`; returns the id, the number of facts, new entities, uncovered information and the CLI's exit code.
-- **R5 — wiki-writer prompt.** Input: the brief and the facts file path — never the original source (D-16). It runs `wikeeper ingest apply <id>`, reconciles and writes pages per WIKI.md "Write phase" and "Page format", ends each claim with `[[<id>]]`, writes `sources/<id>.md`, flags contradictions with both sources, runs `wikeeper ingest finish <id>`, fixes and reruns on failure or runs `wikeeper ingest abort <id>`, and returns the CLI's report unchanged.
+- **R5 — wiki-writer prompt.** Input: the brief, written by the main agent into the writer's task, and the facts file path — never the original source (D-16). It runs `wikeeper ingest apply <id>` (which takes the lock and prints the facts), reconciles and writes pages per WIKI.md "Write phase" and "Page format", writes and edits pages only with its file-edit tools — the one shared text (R6) names Write or Edit (Claude Code), apply_patch (Codex), and write_to_file or replace_file_content (Antigravity) — never from the shell (redirection, heredoc, sed), ends each claim with `[[<id>]]`, writes `sources/<id>.md`, flags contradictions with both sources, runs `wikeeper ingest finish <id>`, fixes and reruns on failure or runs `wikeeper ingest abort <id>`, changes nothing under .wiki/pages once `finish` exits 0 (anything left to fix goes in its report), and returns the CLI's report unchanged (walkthrough rows 8.2, 8.4; CR review-feedback 2026-10-17).
 - **R6 — One text per sub-agent.** For each sub-agent the instruction text is identical in the Claude body, the Antigravity body and the Codex `developer_instructions` (compared after trimming and normalising line endings); the descriptions say when to delegate to it, since Claude and Antigravity delegate by description.
 - **R7 — Formats unchanged (EPIC-006 §3, STORY-002-03).** Claude `.md` frontmatter keys exactly `name`, `description`, `model`; Antigravity `.md` exactly `name`, `description`, `model`, `mainAgent: false`; Codex `.toml` exactly `name`, `description`, `model`, `developer_instructions`. Each keeps its `{{model}}` line on a line of its own (`renderModelLine` drops that line when no model is mapped, `src/agents/subagents.ts:39`). Codex lines outside `developer_instructions` stay `key = "value"` with no `"` in the value, and the instruction block contains no `"""` (`test/agents/subagents.red.node.test.ts:131`). Names equal the file names.
 - **R8 — No placeholders; SPRINT-02 vocabulary.** The `placeholder` markers are removed from all eight files; every command named is from the SPRINT-02 set and every ingest verb is `start`, `plan`, `facts`, `apply`, `finish` or `abort`.
@@ -113,7 +113,7 @@ Feature: wiki skills and sub-agent prompts
   Scenario: wiki-ingest tells every agent when to delegate
     Given the wiki-ingest skill body
     Then it names "wiki-extractor" for a directory, one per source, after "wikeeper ingest plan"
-    And it names "wiki-writer" for every write phase, one source at a time, with the brief and the facts file path
+    And it names "wiki-writer" for every write phase, one source at a time, with the brief written into its task and the facts file path
     And it says the main agent does both when "ingest.delegate" is "never" or sub-agents are unavailable
 
   @interfaces @data
@@ -135,6 +135,7 @@ Feature: wiki skills and sub-agent prompts
     Then the extractor names "wikeeper ingest facts" and says never to edit pages or run "wikeeper ingest apply" or "wikeeper ingest finish"
     And the writer names "wikeeper ingest apply", "wikeeper ingest finish", "wikeeper ingest abort" and "[[<id>]]"
     And the writer says not to open the original source
+    And the writer names the file-edit tools of all three agents, forbids redirection, heredocs and sed, and changes nothing under .wiki/pages after finish exits 0
     And every ingest verb in all eight files is one of start, plan, facts, apply, finish, abort
 
   Scenario: Error — drifted instruction text fails the comparison
@@ -155,7 +156,7 @@ Feature: wiki skills and sub-agent prompts
 |---|---|
 | Primary File | `templates/skills/wiki-ingest/SKILL.md` |
 | Related Files | `templates/skills/wiki-search/SKILL.md`, `templates/agents/claude/wiki-extractor.md`, `templates/agents/claude/wiki-writer.md`, `templates/agents/antigravity/wiki-extractor.md`, `templates/agents/antigravity/wiki-writer.md`, `templates/agents/codex/wiki-extractor.toml`, `templates/agents/codex/wiki-writer.toml` |
-| Test Files | `test/templates/skills-subagents.test.ts` |
+| Test Files | `test/templates/skills-subagents.test.ts`, `test/templates/walkthrough-fixes.red.node.test.ts` (QA-Red, R2/R5; 2026-10-17) |
 | New Files Needed | Yes — `test/templates/skills-subagents.test.ts` |
 
 ### 3.2 Technical Logic
