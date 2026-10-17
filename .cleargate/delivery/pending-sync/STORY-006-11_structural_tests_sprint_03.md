@@ -112,6 +112,7 @@ As a maintainer, I want the structural template tests to know the SPRINT-03 comm
   - `test/agents/pointer-block.red.node.test.ts` S1–S3 (`:47`, `:61`, `:87`) and `test/agents/inject.red.node.test.ts:287`. The 14-line block keeps the cap, the 200-character limit, the `v1` marker, `## Project Wiki`, the S2 phrases and the ingest verbs.
   - Neither story edits any red test. STORY-002-11's own invariant (`test/agents/shipped-blocks.test.ts`) is a new plain test, not a red-test re-scope.
 - **R7 — Nothing else in SPRINT-01 and SPRINT-02 tests changes.** `test/templates/profile.red.node.test.ts`, `skills-subagents.red.node.test.ts`, `walkthrough-fixes.red.node.test.ts`, the tests R6 lists as needing no row, and the rest of the files in R6 pass unchanged on the merged tree.
+- **R8 — Every lint check id has a trigger fixture and a pass fixture (CR:scope-change, human-approved 2026-10-17, M5 plan Open decision 1; sprint Goal Acceptance Check, EPIC-005 metric).** A test-only helper `test/lint/check-fixtures.ts` exports `LINT_FIXTURES: Record<string, { scope: "pages" | "rules"; trigger(): Promise<LintContext>; pass(): Promise<LintContext> }>`, built from copies of the existing fixtures (the `lint-rules.red` mutations and `cleanFile`, the `checks.test.ts` in-memory contexts, the `staleness.test.ts` pages, the `unlogged.test.ts` and `index-drift` temp roots; copied, never imported from a test file). Its keys, as a set, equal the ids of `[...PAGE_CHECKS, ...RULE_CHECKS]`. For each id, `runLint(await trigger(), { scope, checks: [id] })` gives at least one finding with that id and `runLint(await pass(), …)` gives none. A registered id with no entry, or an entry with no registered id, fails naming the id. No `src/` change.
 
 ### 1.3 Out of Scope
 - Content checks the text stories own: STORY-006-10's whitelist, kb-format and prompt checks, STORY-006-12's fact-line and template-shape checks, STORY-006-09's section, `read`, status and decision checks. The finding table's comparison with the registry is this story's (R3 (b)).
@@ -201,6 +202,7 @@ Feature: Structural template tests for the SPRINT-03 commands
     And a copy whose table has "`dead-link`" in place of "`orphan-page`" fails with 'finding table: no row for "orphan-page"' and 'finding table: "dead-link" is not a page check'
     And templates/kb_instructions.management.md parses with parseInstructions with no issues
     And runAllChecks reports no finding, and test/templates.red.node.test.ts passes unchanged
+    And LINT_FIXTURES has exactly one entry per id of PAGE_CHECKS and RULE_CHECKS, each trigger fixture gives a finding with its id and each pass fixture gives none
 
   @rules
   Scenario: The older red tests are re-scoped as R6 lists, not deleted
@@ -237,7 +239,7 @@ Feature: Structural template tests for the SPRINT-03 commands
 |---|---|
 | Primary File | `test/templates/structure.ts` |
 | Related Files | `test/templates.test.ts` |
-| New Files Needed | No |
+| New Files Needed | `test/lint/check-fixtures.ts` (R8, test-only helper; CR:scope-change 2026-10-17) |
 
 - **Read, not edited (red tests verified here, edited by the R6 owners):** `test/templates/wiki-protocol.red.node.test.ts`, `test/templates/setup.red.node.test.ts`, `test/templates/onboarding.red.node.test.ts`, `test/agents/enforce-ai-rules.red.node.test.ts`, `test/agents/enforce.red.node.test.ts`, `test/search/search-misses.red.node.test.ts`, `test/templates.red.node.test.ts`.
 
@@ -250,7 +252,7 @@ Feature: Structural template tests for the SPRINT-03 commands
 
 ### 3.3 API Contract (if applicable)
 
-Not applicable — test code only. New exports of `test/templates/structure.ts`: `DOCUMENTED_FORMS: readonly string[]`, `checkCoverage(dir: string): Promise<Finding[]>`, `checkLintIds(dir: string, doctorIds: readonly string[]): Promise<Finding[]>`, `checkKbSeeds(dir: string): Promise<Finding[]>`. Consumes `createProgram`, `PAGE_CHECKS`, `RULE_CHECKS` (K2) and `parseInstructions` (K1) read-only.
+Not applicable — test code only. New exports of `test/templates/structure.ts`: `DOCUMENTED_FORMS: readonly string[]`, `checkCoverage(dir: string): Promise<Finding[]>`, `checkLintIds(dir: string, doctorIds: readonly string[]): Promise<Finding[]>`, `checkKbSeeds(dir: string): Promise<Finding[]>`. Consumes `createProgram`, `PAGE_CHECKS`, `RULE_CHECKS` (K2) and `parseInstructions` (K1) read-only. New export of `test/lint/check-fixtures.ts` (R8): `LINT_FIXTURES: Record<string, { scope: "pages" | "rules"; trigger(): Promise<LintContext>; pass(): Promise<LintContext> }>`; consumes `runLint` and `LintContext` read-only.
 
 ## Task Breakdown
 
@@ -260,6 +262,7 @@ Not applicable — test code only. New exports of `test/templates/structure.ts`:
 - [ ] Add `checkLintIds` and its table reader, with unit tests for both id forms, a reordered table and a table with a wrong id -> R3
 - [ ] Add `checkKbSeeds`, with a unit test on a seed copy carrying a malformed question -> R4
 - [ ] Wire the three checks into `runAllChecks`; add the error outline rows -> R5
+- [ ] Add `test/lint/check-fixtures.ts` with one trigger and one pass fixture per registered lint id -> R8
 - [ ] Run `npm test` on the integrated sprint branch -> R5, R7
 
 ## 4. Quality Gates
