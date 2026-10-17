@@ -6,6 +6,7 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-17 · #qa #red-test · A red row that asserts an empty findings list passes vacuously when the stub errors; assert json.ok first.
 2026-10-17 · #test-harness #init · init seeds .gitkeep in .wiki/raw and .wiki/log; an "empty dir" assertion on an initialised wiki must ignore dotfiles or compare with a before-listing.
 2026-10-17 · #red-test #manifest · update always rewrites manifest.package_version; assert the one manifest entry under test, never the whole manifest, after update.
 2026-10-17 · #update #manifest · pruneDeconfigured treated a deleted agent file as deconfigured: it warned "already gone" and dropped the manifest block entry.
