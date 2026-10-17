@@ -5,6 +5,8 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { compareCodeUnits } from "../core/compare.js";
+import { isInside, toPosixRelative } from "../core/paths.js";
+import { stripBom } from "../core/text.js";
 import { isPageHashes } from "../ingest/log.js";
 import { readLock } from "../ingest/lock.js";
 import { readSnapshot, snapshotDir } from "../ingest/snapshot.js";
@@ -15,7 +17,7 @@ import { pagePath } from "./paths.js";
 
 /** sha256 hex of the text without a leading BOM and with CRLF changed to LF. */
 export function pageHash(text: string): string {
-  return createHash("sha256").update(text.replace(/^﻿/, "").replace(/\r\n/g, "\n"), "utf8").digest("hex");
+  return createHash("sha256").update(stripBom(text).replace(/\r\n/g, "\n"), "utf8").digest("hex");
 }
 
 type Change = "created" | "updated" | "deleted";
@@ -29,9 +31,8 @@ const hasDotSegment = (rel: string): boolean => rel.split("/").some((seg) => seg
 function isPrivate(ctx: LintContext, rel: string): boolean {
   for (const entry of ctx.config.private) {
     const abs = path.resolve(ctx.paths.pagesDir, entry);
-    const r = path.relative(ctx.paths.pagesDir, abs);
-    if (r === "" || r === ".." || r.startsWith(".." + path.sep) || path.isAbsolute(r)) continue;
-    const posix = r.split(path.sep).join("/");
+    if (!isInside(ctx.paths.pagesDir, abs)) continue;
+    const posix = toPosixRelative(ctx.paths.pagesDir, abs);
     if (rel === posix || rel.startsWith(posix + "/")) return true;
   }
   return false;

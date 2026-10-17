@@ -140,7 +140,7 @@ export type RefreshStatus = "current" | "refreshed" | "edited" | "absent" | "mal
 
 /** Drops a leading BOM, turns CRLF into LF and drops trailing line breaks. Nothing else is normalised. */
 export function normaliseBlock(text: string): string {
-  return (text.startsWith(BOM) ? text.slice(1) : text).replace(/\r\n/g, "\n").replace(/\n+$/, "");
+  return splitBom(text).body.replace(/\r\n/g, "\n").replace(/\n+$/, "");
 }
 
 /** Replaces the block when it is exactly an entry of `shipped`; a current, edited or unmatched block is left as it is. */

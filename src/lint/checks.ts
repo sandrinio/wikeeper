@@ -10,6 +10,7 @@ import { readFile } from "node:fs/promises";
 import { compareCodeUnits } from "../core/compare.js";
 import { ExitCode, WikeeperError } from "../core/exit-codes.js";
 import { toPosixRelative } from "../core/paths.js";
+import { stripBom } from "../core/text.js";
 import { buildIndex } from "../ingest/index-builder.js";
 import { plural } from "../commands/doctor.js";
 import { pagePath } from "./paths.js";
@@ -133,7 +134,7 @@ export const indexDriftCheck: LintCheck = {
       if ((err as NodeJS.ErrnoException).code === "ENOENT") return make("index.md is missing: run wikeeper index rebuild");
       throw err;
     }
-    const cur = text.replace(/^\uFEFF/, "").replace(/\r\n/g, "\n");
+    const cur = stripBom(text).replace(/\r\n/g, "\n");
     const want = buildIndex(ctx.pages);
     if (cur === want) return [];
     const a = entryPaths(cur);
