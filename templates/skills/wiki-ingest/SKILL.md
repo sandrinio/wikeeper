@@ -5,9 +5,9 @@ description: Use when the user shares, attaches or pastes a file, document, link
 
 # Ingest a source into the wiki
 
-The full procedure is in `.wiki/system/WIKI.md`. Read these sections before you start: "Ingest", "Register", "Triage and extract", "Write phase", "Delegation" and "Ambient offers".
+The full procedure is in `.wiki/system/WIKI.md`. Read these sections before you start: "Ingest", "Register", "Triage and extract", "Write phase", "Delegation", "Ambient offers" and "Lint and status".
 
-In short: register the source with `wikeeper ingest start`, triage and extract its facts, then write the pages and finish the ingest. For a directory, run `wikeeper ingest plan` first and wait for the plan to be approved. When you notice something worth keeping that the user did not hand you, offer to record it (section "Ambient offers") and do not ingest until they agree.
+In short: read a URL, a DOCX, an HTML file or a PDF with `wikeeper read` first, then register the source with `wikeeper ingest start`; a markdown, text, CSV or TSV file is registered directly. Triage and extract its facts, then write the pages and finish the ingest. For a directory, run `wikeeper ingest plan` first and wait for the plan to be approved. When you notice something worth keeping that the user did not hand you, offer to record it (section "Ambient offers") and do not ingest until they agree.
 
 ## Who does what
 
