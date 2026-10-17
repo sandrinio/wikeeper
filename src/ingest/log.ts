@@ -122,7 +122,9 @@ function summaryLine(event: LogEvent): string {
     case "miss":
       return `No results for ${missLabel(event, (q) => `"${q}"`)}.`;
     default:
-      return isStr(e["summary"]) ? `Rule proposal: ${e["summary"]}` : "Rule proposal";
+      return isStr(e["decision"]) && isStr(e["kind"])
+        ? `Rule proposal ${e["decision"]} for ${e["kind"]}: ${isStr(e["summary"]) ? e["summary"] : ""}`
+        : isStr(e["summary"]) ? `Rule proposal: ${e["summary"]}` : "Rule proposal";
   }
 }
 
