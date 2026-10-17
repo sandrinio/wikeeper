@@ -1,5 +1,8 @@
 # SPRINT-03 — Decomposition brief
 
+> **Superseded in parts (2026-10-17).** The drafting agents and the consistency audit corrected several contracts and the shared-file list; see `consistency-audit.md` and `gate1-decisions.md`. The 20 story files are the source of truth; this brief records the starting point.
+> STORY-005-05's read-only allow rules for `lint`, `status` and `rules list` were split into STORY-005-09 (gate1-decisions split 4, 2026-10-17).
+
 Written by the orchestrator at SPRINT-03 planning (2026-10-17), before story drafting. It fixes the story set, the scope of each story, the files each one owns and the cross-story contracts, so the stories can be drafted in parallel and the Sprint Design Review can form contracts from them. Story files are the source of truth once drafted; this brief is their common input.
 
 ## Human decisions (2026-10-17)
@@ -34,7 +37,7 @@ SPRINT-02's set (`init`, `update`, `remove`, `doctor`, `setup`, `hook guard`, `i
 | STORY-003-11 | `read` for DOCX and PDF ("likely scanned") | EPIC-003 | 003-10 |
 | STORY-003-12 | Ingest follow-ups: dropped fact lines refused, `needs_approval` output, help text | CR-003 B1–B3 | — |
 | STORY-004-07 | Search follow-ups: `--no-miss`, `--mark`, misses count, filter-only miss text, limit note | CR-003 A1–A5 | — |
-| STORY-002-09 | Enforce and doctor follow-ups: `ai`-mode prompts, wiring line, setup-files sub-checks | CR-003 C1, F3, F4 | — |
+| STORY-002-09 | `ai`-mode prompts for `--drop` and `--force-unlock`, and `update` with `enforce: false` removes the rules | CR-003 C1, F3, F4 | — |
 | STORY-001-10 | `--version` build stamp, version `0.3.0`, `--help` footer | CR-003 F1, F2 | — |
 | STORY-006-09 | Instructions for `read`, `lint`, `status` and `rules` | EPIC-006 | command surfaces of 003-10, 005-02…07 (frozen as contracts) |
 | STORY-006-10 | CR-003 instruction items, kb line format in SETUP.md and the profile | CR-003 C2, C3, D1–D3 text, E1–E10, A1 text | 005-01 (K1 format), 004-07 (flag names) |

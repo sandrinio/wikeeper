@@ -7,25 +7,26 @@ carry_over: false
 status: Draft
 approved: false
 ambiguity: 🟡 Medium
-context_source: EPIC-003 (approved 2026-10-16; §0 `read` objective, §2 `read` and CR-002 C2 bullets, §3 Network and Dependencies rows, §1 `read` metric) · architecture.md §7.6, §7.7, §10, D-20 · CR-002 C2 · CR-001 · SPRINT-03 decomposition brief (human decisions 2026-10-17, `--out` design call, contracts K7 and K9) · verified src/program.ts, src/commands/ingest-start.ts, src/agents/enforce/claude.ts, src/agents/enforce/codex.ts, src/core/output.ts, src/core/exit-codes.ts, src/core/paths.ts, src/search/engine.ts, templates/system/SETUP.md, ./package.json, test/e2e/pack.ts · linkedom 0.18.13, defuddle 0.19.5, turndown 7.2.4 checked on npm 2026-10-17
+context_source: EPIC-003 (approved 2026-10-16; §0 `read` objective, §2 `read` and CR-002 C2 bullets, §3 Network and Dependencies rows, §1 `read` metric) · architecture.md §7.6, §7.7, §10, D-20 · CR-002 C2 · CR-001 · SPRINT-03 decomposition brief (human decisions 2026-10-17, `--out` design call, contracts K7 and K9) · verified src/program.ts, src/commands/ingest-start.ts, src/agents/enforce/claude.ts, src/agents/enforce/codex.ts, src/core/output.ts, src/core/exit-codes.ts, src/core/paths.ts, src/search/engine.ts, templates/system/SETUP.md, ./package.json, test/e2e/pack.ts · linkedom 0.18.13, defuddle 0.19.5, turndown 7.2.4 checked on npm 2026-10-17 · SPRINT-03 gate1-decisions.md 2026-10-17 (decisions 5, 6, 8, 21; decision 17 as revised 2026-10-17 and split 4, which put the read-only allow rules in STORY-005-09; technical calls on rule order, package.json order and src/program.ts merge order) · SPRINT-03 consistency-audit.md 2026-10-17 (findings 9, 10, 12, 13) · SPIKE-001 (real pages, install size, Node versions, import cost) · verified test/agents/enforce-ai-rules.red.node.test.ts, test/agents/enforce.red.node.test.ts, test/agents/enforce.test.ts, test/templates/setup.red.node.test.ts at 40018c5
 actor: AI coding agent
 complexity_label: L3
 parallel_eligible: y
 dep_predecessors:
+  - STORY-001-10
   - STORY-002-09
 expected_bounce_exposure: med
 lane: standard
 db_write_set: []
 deferred_verification: []
 created_at: 2026-10-17T09:06:15Z
-updated_at: 2026-10-17T09:06:15Z
+updated_at: 2026-10-17T10:23:02Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
 server_pushed_at_version: null
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-17T09:09:16Z
+  last_gate_check: 2026-10-17T10:23:27Z
   transition: ready-for-execution
 pushed_by: null
 pushed_at: null
@@ -41,7 +42,7 @@ draft_tokens:
   cache_creation: 0
   cache_read: 0
   model: null
-  last_stamp: 2026-10-17T09:08:59Z
+  last_stamp: 2026-10-17T10:00:28Z
   sessions:
     - session: 47c84598-2a59-4cfa-a987-cfe39161376b
       model: ""
@@ -53,7 +54,7 @@ draft_tokens:
 ---
 
 # STORY-003-10: `wikeeper read` — command, URL reading, limits, `ai`-mode allow rule
-**Complexity:** L3. This is a new command and the first network access in the CLI, with a timeout, a size cap and an error for each failure. It also adds three runtime dependencies, loaded lazily; a format dispatcher that STORY-003-11 fills; an `--out` writer with safety rules; and the CR-002 C2 allow rule in two enforce writers plus the SETUP.md preview row. Only the allow-rule part waits for STORY-002-09.
+**Complexity:** L3. This is a new command and the first network access in the CLI, with a timeout, a size cap and an error for each failure. It also adds three runtime dependencies, loaded lazily; a format dispatcher that STORY-003-11 fills; an `--out` writer with safety rules; and the CR-002 C2 allow rule in two enforce writers plus the SETUP.md `ai` preview row. It runs after STORY-001-10 (`package.json`, `package-lock.json`, `src/program.ts`) and STORY-002-09 (the enforce writers, their red tests and the SETUP.md `ai` row).
 
 ## 1. The Spec (The Contract)
 
@@ -77,7 +78,7 @@ As an AI coding agent given a link or a document I can't read well myself, I wan
     | `application/pdf` | pdf |
     | `application/vnd.openxmlformats-officedocument.wordprocessingml.document` | docx |
 
-    Any other or missing type falls back to the extension of the final URL's path. If that is unknown too, the read exits 2 with `unsupported`.
+    Any other or missing type falls back to the extension of the final URL's path. If that is unknown too, the read fails with the `unsupported` error (exit 2).
   - **File format.** It comes from the extension, case-insensitive:
 
     | Extension | Format |
@@ -87,25 +88,25 @@ As an AI coding agent given a link or a document I can't read well myself, I wan
     | `.txt` | text |
     | `.docx` | docx |
     | `.pdf` | pdf |
-  - **Unsupported.** `.doc`, `.pptx` and `.xlsx` exit 2 with `unsupported` and a hint (`UNSUPPORTED_HINTS`):
+  - **Unsupported.** `.doc`, `.pptx` and `.xlsx` fail with the `unsupported` error (exit 2) and a hint (`UNSUPPORTED_HINTS`):
     - `.doc`: "`.doc` (Word 97–2003) is not supported: save it as .docx"
     - `.pptx`: "`.pptx` is not supported: export it to PDF and read the PDF"
     - `.xlsx`: "`.xlsx` is not supported: export the sheet as CSV and read that file yourself"
 
-    Any other extension, or none, exits 2 with `unsupported` and a message naming the supported formats.
+    Any other extension, or none, fails with the `unsupported` error (exit 2) and a message naming the supported formats.
   - **Missing file or directory.** A missing file exits 2 with `not_found`; a directory exits 2 with `usage`.
-  - **DOCX and PDF branches.** They call `convertDocx(bytes)` and `convertPdf(bytes)`. In this story both throw exit 2 `unsupported` ("reading .docx files is not available yet", "reading .pdf files is not available yet"). STORY-003-11 replaces these two function bodies and nothing else in the dispatcher (K7).
+  - **DOCX and PDF branches.** They call `convertDocx(bytes)` and `convertPdf(bytes)`. In this story both throw the `unsupported` error, exit 2 ("reading .docx files is not available yet", "reading .pdf files is not available yet"). STORY-003-11 replaces these two function bodies and nothing else in the dispatcher (K7).
 - **R3 — Pass-through** (markdown and text).
   - Bytes are decoded as UTF-8, or as UTF-16 LE/BE when the file starts with that byte-order mark. A UTF-8 BOM is dropped.
   - CRLF and lone CR become LF, and trailing whitespace at the end is removed. The content is otherwise unchanged.
   - `title`, `author` and `date` are `null`, and no header is added.
 - **R4 — HTML** (`src/read/html.ts`).
   - **Decoding.** The charset comes from `Content-Type`, else from a `<meta charset>` or `http-equiv` charset in the first 1024 bytes, else UTF-8. An unknown label falls back to UTF-8.
-  - **Conversion.** `parseHTML` from `linkedom`, then `Defuddle(document, url, { markdown: true, useAsync: false })` from `defuddle/node`. `url` is the final URL after redirects, or the file's `file://` URL. `useAsync: false` stops defuddle's site extractors from making their own requests (R6).
-  - **Body and metadata.** The body is defuddle's `content`. `title` and `author` are defuddle's values, `null` when empty. `date` is defuddle's `published` as `YYYY-MM-DD` when it parses as a date, else `null`.
+  - **Conversion.** `parseHTML` from `linkedom`, then `Defuddle(document, url, { markdown: true, useAsync: false })` from `defuddle/node`. `url` is the final URL after redirects, or the file's `file://` URL. `useAsync: false` stops defuddle's site extractors from making their own requests (R6). [[SPIKE-001]] round 5 ran this path on real pages (en.wikipedia.org, a GitHub README, ka.wikipedia.org): main text, headings and tables kept, Georgian text intact.
+  - **Body and metadata.** The body is defuddle's `content`. Link URLs stay as defuddle writes them; links to non-ASCII pages come out percent-encoded (SPIKE-001 round 5), which makes the markdown longer but keeps each URL exact. `title` and `author` are defuddle's values, `null` when empty. `date` is defuddle's `published` as `YYYY-MM-DD` when it parses as a date, else `null`.
   - **Inline images.** An image whose source is a `data:` URI becomes `[image: <alt>]` (or `[image]` without alt text), so inline images don't flood the markdown.
   - **Needs a browser.** When the body has fewer than 20 words (`NEEDS_BROWSER_MIN_WORDS`; a word is a run of letters or digits), the result carries the warning `needs_browser` with this message: "the page has almost no main content (N words); it probably needs JavaScript or a login. Open it in your own browser and pass the text to `wikeeper ingest start <url> --text-file <file>`". The exit code stays 0 and the markdown is still returned, because K7 models this as a `ReadWarning` on a successful `ReadResult`.
-- **R5 — Header** (`withHeader`, §1.4 Q2, drafted as recommended). For html, and from STORY-003-11 also for docx and pdf, `readSource` puts a header before the body:
+- **R5 — Header** (`withHeader`; Gate 1 decision 6, §1.4 Q2). For html, and from STORY-003-11 also for docx and pdf, `readSource` puts a header before the body:
   - If the body's first non-empty line is a heading whose text equals the title (trimmed, case-insensitive), that heading stays first. Otherwise `# <title>` comes first, when a title is known.
   - Next comes one line `Author: <author> · Date: <date>`, with only the known parts. It is left out when neither is known.
   - Header lines and the body are separated by blank lines.
@@ -122,31 +123,61 @@ As an AI coding agent given a link or a document I can't read well myself, I wan
   - **With `--json`.** The envelope is `{ ok, command: "read", data, warnings }`. `data` is the `ReadResult` plus `out` (the absolute path) when `--out` was given; `warnings` holds the messages of `data.warnings`.
   - **Warnings.** In human mode they go to stderr as `warning: <message>` (`emitResult`, `src/core/output.ts:90`).
   - **Errors.** They go through `emitError` (`src/core/output.ts:110`): the JSON error envelope on stdout, or `error: …` on stderr, and nothing else.
-  - **`truncated`.** `ReadWarning.code` keeps K7's union, but no SPRINT-03 path emits `truncated`: a response over the cap fails (R6).
-- **R8 — Safe `--out`** (§1.4 Q1, drafted as recommended). `read` runs without a prompt in `ai` mode (R10), so `--out` must not let a prompt-injected page overwrite files or plant agent configuration. `--out` exits 2 with `usage`, and nothing is written, when:
+  - **Warning codes.** `ReadWarning.code` is `likely_scanned`, `needs_browser` or `unsupported`. K7's draft union also listed `truncated`. This story drops it, because no path emits it: a response over the cap fails with `too_large` (R6). No frozen contract needs it either. This story owns K7, which has no code yet; STORY-003-11 emits only `likely_scanned` and `unsupported`; STORY-006-09 leaves `truncated` out of the instructions (consistency audit finding 10). A later story that adds partial reads can add a code, which is an additive change.
+  - **Two kinds of `unsupported`** (consistency audit finding 10). The same word names an error and a warning, and they mean different things:
+    - The **`unsupported` error** exits 2 with `error.code: "unsupported"` and `error: …` on stderr. Nothing was read, because `read` does not convert that format, extension or URL content type (R2).
+    - The **`unsupported` warning** exits 0 with an entry in `data.warnings` and `warning: …` on stderr. The markdown was returned, but part of the source was not converted. In SPRINT-03 that happens only to a DOCX's images (STORY-003-11 R2).
+    - The exit code and the envelope's `ok` tell them apart, and every message says what was not converted. In prose, this story and STORY-003-11 write "the `unsupported` error" or "the `unsupported` warning", and the instruction text for STORY-006-09 (§1.3) does the same. In JSON paths, `error.code` and `data.warnings[].code` already say which one is meant.
+- **R8 — Safe `--out`** (Gate 1 decision 5, §1.4 Q1). `read` runs without a prompt in `ai` mode (R10), so `--out` must not let a prompt-injected page overwrite files or plant agent configuration. `--out` exits 2 with `usage`, and nothing is written, when:
   - the path already exists;
   - its parent directory does not exist;
   - its extension is not `.md` or `.txt`;
   - its file name is `AGENTS.md`, `CLAUDE.md` or `GEMINI.md` (case-insensitive);
-  - the path relative to the working directory has a segment that starts with `.`, other than `..`. That covers hidden directories such as `.wiki/`, `.claude/`, `.codex/`, `.agents/`, `.git/` and `~/.ssh/`;
+  - the path relative to the working directory has a segment that starts with `.`, other than `..`. That covers hidden directories such as `.wiki/`, `.claude/`, `.codex/`, `.agents/`, `.git/` and `~/.ssh/`. A `..` step is not a name, so a path into the system temp directory, such as `/tmp/page.md`, whose relative form starts with `..` steps, is accepted;
   - the path is inside the wiki's content directory: `content_dir` from `.wiki/config.yml` when the repository has one (`findRepoRoot` and `isInside`, `src/core/paths.ts:26`, `:69`).
 
   The checks run before the source is read. The file is created with the `wx` flag, so a file that appears in between is not overwritten.
-- **R9 — Lazy loading and the network rule.** `linkedom`, `defuddle` and `turndown` load only through `await import()` inside the HTML branch (the pattern at `src/search/engine.ts:175`). `wikeeper --help` and every other command load none of them. The read modules hold the only network code, so `read` remains the only command that uses the network.
-- **R10 — `ai`-mode allow rule** (CR-002 C2, CR-001). After STORY-002-09 merges, in `ai` mode only and next to that mode's ingest rules:
+- **R9 — Lazy loading and the network rule.** `linkedom`, `defuddle` and `turndown` load only through `await import()` inside the HTML branch (the pattern at `src/search/engine.ts:175`). `wikeeper --help` and every other command load none of them. The first import of defuddle and linkedom takes about 580 ms, so only an HTML read pays it ([[SPIKE-001]] round 6). The read modules hold the only network code, so `read` remains the only command that uses the network.
+- **R10 — `ai`-mode allow rule** (CR-002 C2, CR-001). After STORY-002-09 merges, the rules are added in `ai` mode only. They are appended after STORY-002-09's `ai`-mode ingest rules, not inserted next to the ingest allow rules (consistency audit finding 12).
+  - **Order.** Each agent's settings hold the rules in this order (gate1-decisions technical call):
+    1. the ingest allow rules;
+    2. STORY-002-09's ingest ask/prompt rules;
+    3. these read rules;
+    4. the search allow rules;
+    5. the allow rules for the read-only commands (`lint`, `status`, `rules list`), which STORY-005-09 appends later (Gate 1 decision 17, revised 2026-10-17). This story writes none of them.
+
+    No rule written before this story changes or moves relative to the others.
   - **Claude:** `permissions.allow` gets `Bash(npx wikeeper read *)` and `Bash(wikeeper read *)`, with identities `permissions.allow[<rule>]`.
   - **Codex:** `.codex/rules/wikeeper.rules` gets `prefix_rule(pattern=["npx","wikeeper","read"], decision="allow")` and `prefix_rule(pattern=["wikeeper","read"], decision="allow")`.
   - **Other modes and agents.** `ask` and `whitelist` get no read rule, so the harness asks before each read there. The search rules and Antigravity (which has no project rule file) are unchanged.
   - **Lifecycle.** `update` adds or removes the rules by identity when the mode changes, and `remove` takes them out like every other tagged entry.
-  - **SETUP.md.** The `ai` row of the step-4 preview table in `templates/system/SETUP.md` (line 51) lists the new rules, because `test/templates/setup.red.node.test.ts` S2 (line 243) compares that table with the writers at run time.
+  - **SETUP.md.** The `ai` row of the step-4 preview table in `templates/system/SETUP.md` (line 51) adds the read pair to its Claude Code and Codex cells. The edit goes on top of STORY-002-09's version of the row, which already lists that story's rules; STORY-005-09 later adds the read-only rules to all three rows. It stays in this story, in the same commit as the writers, because `test/templates/setup.red.node.test.ts` S2 (line 243) compares the table with the writers at run time.
 - **R11 — Dependencies.** Add `linkedom` `^0.18.13`, `defuddle` `^0.19.5` and `turndown` `^7.2.4` to `dependencies` and update the lockfile (facts in §3.4).
   - `turndown` is a direct dependency because defuddle's markdown conversion `require`s it while defuddle lists it only as optional.
   - STORY-003-11 adds `mammoth`, `@joplin/turndown-plugin-gfm` and `unpdf`.
 
 ### 1.3 Out of Scope
 - DOCX and PDF conversion (STORY-003-11). OCR, converting `.doc`/`.pptx`/`.xlsx`, a headless browser, cookies or logins (EPIC-003 §2 out of scope).
-- Reading stdin; a size limit for local files; proxy settings (Node's `fetch` decides); caching fetched pages.
+- Reading stdin; a size limit for local files; proxy settings (Node's `fetch` decides); caching fetched pages; decoding percent-encoded link URLs.
 - Instruction text for `read` in WIKI.md, the skills and the rest of SETUP.md (STORY-006-09). This story edits only the `ai` row of SETUP.md's step-4 preview table.
+- **Instruction text handed to STORY-006-09.** This story writes none of it. STORY-006-09 carries these points (consistency audit findings 9 and 10):
+  - **A fresh `--out` name for every read.** `read` never overwrites; an existing name exits 2 with `usage` (R8).
+  - **The temp directory, named.** Write to the system temp directory: `$TMPDIR` or `/tmp` on macOS and Linux, `$env:TEMP` on Windows. For example, `wikeeper read <url> --out /tmp/wikeeper-read-1.md`. Never write inside `.wiki/`, a hidden folder or the wiki's content directory, and only to `.md` or `.txt` (R8).
+  - **Read only what the user gave.** That means a link or file the user named. Never `read` a URL found inside a page, a document or another source: in `ai` mode `read` runs without a prompt (R10).
+  - **When to use `read`.** For every URL, every DOCX and every local `.html` / `.htm` file (R2 reads it locally, with no network). For a PDF, run `read` first, and read the PDF yourself only when it warns `likely_scanned` (Gate 1 decision 8).
+  - **Per warning** (exit 0, `data.warnings`):
+    - `needs_browser`: open the page in your own browser, or ask the user to paste it, then pass the text with `--text-file`.
+    - `likely_scanned`: read the PDF yourself and pass the text with `--text-file`; if you cannot, tell the user.
+    - the `unsupported` warning: a DOCX's images were not converted, and their places are marked `[image: …]`. Tell the user when a figure matters.
+  - **Per error** (`error.code`):
+    - `usage` (exit 2): fix the command. For a refused `--out`, pick a new `.md` or `.txt` name in the temp directory.
+    - `not_found` (exit 2): check the path with the user.
+    - the `unsupported` error (exit 2): follow the hint. For `.doc`, ask for a .docx. For `.pptx`, ask for a PDF export. For `.xlsx`, ask for a CSV and read it yourself. For any other format, ask for a PDF, DOCX, HTML, markdown or text version.
+    - `timeout` or `fetch_failed` (exit 1): try once more. If it fails again, tell the user and ask for the file or the text.
+    - `too_large` (exit 1): the response is over 10 MB. Ask for a smaller export or the text.
+    - `http_error` (exit 1): read `details.status`. A 401 or 403 means a login, so ask the user to paste the page. A 404 means a wrong link, so check it with the user. For any other status, tell the user.
+    - `conversion_failed` (exit 1, STORY-003-11): for a PDF, read it yourself. For a DOCX, ask the user for another export.
+  - **No `truncated`.** No command emits it (R7).
 - Storing anything. `read` never writes under `.wiki/` and never registers a source; `ingest start --text-file` does that.
 
 ### 1.4 Open Questions
@@ -161,18 +192,24 @@ As an AI coding agent given a link or a document I can't read well myself, I wan
   - no hidden-directory segment;
   - not inside the wiki's content directory.
 
-  This follows CR-001's rule that an auto-allowed command must not be able to damage the user's files. Agents use a fresh name for each read (the instruction text in STORY-006-09 can name the system temp directory). The alternative is to overwrite like `curl -o`, which is simpler but turns the `ai`-mode allow rule into an unprompted write to any path.
-- **Human decision:** (pending)
+  This follows CR-001's rule that an auto-allowed command must not be able to damage the user's files. Agents use a fresh name for each read, in the system temp directory (§1.3 hands this text to STORY-006-09). The alternative is to overwrite like `curl -o`, which is simpler but turns the `ai`-mode allow rule into an unprompted write to any path.
+- **Decision:** `--out` creates new `.md` / `.txt` files only: never an existing file, never `AGENTS.md`, `CLAUDE.md` or `GEMINI.md`, no path segment starting with a dot, nothing inside the wiki's content directory, and the file is created with the `wx` flag (R8; Gate 1 decision 5) — _recommended 2026-10-17, pending Gate 1_
 
 - **Question (Q2):** Should the markdown carry the title, author and date, or should they appear only in `--json`?
 - **Recommended:** Add a header (R5): `# <title>` unless the body already starts with that heading, then `Author: … · Date: …` with the known parts. An agent using `--out` gets the file only, and `raw/<id>.md` should keep what the page said about itself; the date matters for dated facts. `--json` still returns the three fields separately, and `markdown` is the same text in all three outputs.
-- **Human decision:** (pending)
+- **Decision:** The markdown starts with `# <title>` unless the body already opens with that heading, then `Author: … · Date: …` with only the known parts; `--json` keeps `title`, `author` and `date` as separate fields (R5; Gate 1 decision 6) — _recommended 2026-10-17, pending Gate 1_
+
+- **Question (Q3):** May this story's QA-Red step re-scope the SPRINT-01/02 red-test assertions that pin the exact `ai`-mode rule lists (§3.1, "Re-scoped red tests")? They were written before `read` existed and fail once the read rules are added, and a red test changes only with the human's authorisation.
+- **Recommended:** Yes. Edit by test name, only to add the read pair at its R10 position, on the tree merged with STORY-002-09, and change no other assertion. The alternative, leaving them failing, blocks the sprint; dropping them loses CR-001's guard that `ai` mode allows no broad rule.
+- **Decision:** Re-scoping is authorised as recommended: this story's QA-Red edits exactly the assertions listed in §3.1, only to add the read rules, and STORY-006-11 R6 lists them, including `test/templates/setup.red.node.test.ts:353` (Gate 1 decision 21) — _recommended 2026-10-17, pending Gate 1_
 
 Already decided; cited, not reopened:
 - The dependencies, "only `read` uses the network", the 20 s timeout, the 10 MB cap and "tests never use the internet" (human, 2026-10-17, decomposition brief).
 - `--out` exists because PowerShell redirection re-encodes output (orchestrator design call, 2026-10-17).
 - The allow rule is added in `ai` mode only (CR-001 Q2, CR-002 C2).
-- The type shapes, and "needs a browser" as a warning rather than an error (contract K7).
+- The type shapes, and "needs a browser" as a warning rather than an error (contract K7, less `truncated`, R7).
+- The rule order in each agent's settings (R10), the `package.json` / `package-lock.json` order (STORY-001-10, this story, STORY-003-11) and `src/program.ts` registration in merge order, where each command story appends its command (orchestrator technical calls, gate1-decisions.md, 2026-10-17; the `src/program.ts` call revised the same day).
+- The libraries convert the human's real pages on Node 22.12, 24 and 25 ([[SPIKE-001]]).
 
 ### 1.5 Risks
 
@@ -181,11 +218,11 @@ Already decided; cited, not reopened:
 - **Risk:** defuddle is at 0.x and changes often (0.19.5 published 2026-10-10). A patch release could change the headings or tables it produces.
 - **Mitigation:** `^0.19.5` stays on 0.19.x, the lockfile and `npm ci` pin CI, and the tests assert structure (heading, list and table lines present; nav and footer gone), not byte-exact output.
 - **Risk:** In `ai` mode `read` runs without a prompt. It can fetch any URL (a query string can carry data out) and read any supported file outside the project.
-- **Mitigation:** This is the scope the human chose for `ai` (CR-001, CR-002 C2). `ask` and `whitelist` keep the prompt, and R8 stops `--out` from being used to write config. The instruction text (STORY-006-09) can tell the agent to read only what the user gave it.
-- **Risk:** The install grows more than architecture.md §7.7's "about 8 MB", which counts top-level packages only. This story's three packages and their dependencies come to about 16 MB unpacked: turndown's Node DOM `@mixmark-io/domino` is 7.7 MB and defuddle's optional `temml` is 2.2 MB. All six `read` packages come to about 23 MB (npm, 2026-10-17).
-- **Mitigation:** Lazy loading keeps start-up unchanged, and the wikeeper tarball itself does not grow. The dev report records the measured size.
-- **Risk:** STORY-002-09 first rewrites the lines this story edits in `claude.ts`, `codex.ts`, SETUP.md's preview row and the enforce red tests.
-- **Mitigation:** The allow-rule tasks run after merging the sprint branch with STORY-002-09 into the story branch. The rules are added by identity, and QA-Red re-scopes only the exact-list assertions (FLASHCARD 2026-10-17 `#enforce #qa`).
+- **Mitigation:** This is the scope the human chose for `ai` (CR-001, CR-002 C2). `ask` and `whitelist` keep the prompt, and R8 stops `--out` from being used to write config. The R8 checks are lexical, so a symlinked folder could still lead into a hidden directory, but creating the link takes another shell command, which `ai` mode does not allow without a prompt. The instruction text tells the agent to read only what the user gave it (§1.3, for STORY-006-09).
+- **Risk:** The install grows well beyond architecture.md §7.7's "about 8 MB", which counts top-level packages only. All six `read` packages and their dependencies take 32 MB on disk (53 packages, no native build; [[SPIKE-001]] round 1). This story's three bring the largest parts: turndown's Node DOM `@mixmark-io/domino` (8.6 MB), defuddle (3.1 MB), linkedom (2.5 MB) and defuddle's optional `temml` (2.4 MB).
+- **Mitigation:** Lazy loading keeps start-up unchanged (R9), and the wikeeper tarball itself does not grow. The dev report records the measured size.
+- **Risk:** Two predecessors edit files this story edits first (consistency audit finding 13). STORY-001-10 edits `package.json`, `package-lock.json` and `src/program.ts`. STORY-002-09 rewrites the lines this story edits in `claude.ts`, `codex.ts`, SETUP.md's `ai` row and the enforce red tests.
+- **Mitigation:** Both are in `dep_predecessors`, and the story branch starts from the sprint branch after both merge. The lockfile is regenerated with `npm install` on top of STORY-001-10's, never merged by hand. The rules are added by identity in the R10 order. QA-Red re-scopes only the exact-list assertions in §3.1 (FLASHCARD 2026-10-17 `#enforce #qa`), as §1.4 Q3 authorises. STORY-005-09 edits the same writer lines, SETUP.md rows and red-test lines after this story and depends on it.
 - **Risk:** The packed-CLI helper links the repository's `node_modules` into the unpacked package (`test/e2e/pack.ts:37`), so e2e tests cannot prove that the libraries install from the tarball.
 - **Mitigation:** S3 checks that the packed `package.json` lists them under `dependencies`, and the DoD runs `npm pack --dry-run`.
 - **Risk:** On Windows, `node --import C:\…\register.mjs` treats `C:` as a URL scheme, which would break the module trace.
@@ -240,8 +277,8 @@ Feature: wikeeper read — command, URL reading and limits
     When I run "wikeeper read http://127.0.0.1:<port>/article --out page.md"
     Then page.md has no BOM and no "\r" and is byte-identical to the first run's stdout
     And stdout is exactly one line "wrote page.md (<n> bytes, html)", where <n> is the size of page.md
-    When I run "wikeeper read http://127.0.0.1:<port>/article --out page2.md --json"
-    Then data has title "Q4 status", author "Ana Kim", date "2026-10-01", format "html", warnings [], out set to the absolute path of page2.md, and markdown equal to page.md without its final newline
+    When I run "wikeeper read http://127.0.0.1:<port>/article --out <tmp>/page2.md --json", where <tmp> is a new directory under the system temp directory, outside the working directory
+    Then data has title "Q4 status", author "Ana Kim", date "2026-10-01", format "html", warnings [], out set to the absolute path of <tmp>/page2.md, and markdown equal to page.md without its final newline
     When I run "wikeeper read http://127.0.0.1:<port>/app"
     Then the exit code is 0 and stderr has a line starting "warning: the page has almost no main content"
     When, in an initialised wiki with ingest.permission "ai", I run "wikeeper ingest start http://127.0.0.1:<port>/article --text-file page.md --json"
@@ -293,6 +330,7 @@ Feature: wikeeper read — command, URL reading and limits
     Given an empty git repository with ingest.permission "<mode>" and a wikeeper binary on PATH
     When I run "wikeeper init --agents claude,codex --enforce --json"
     Then the read rules are <installed>: "Bash(npx wikeeper read *)" and "Bash(wikeeper read *)" in .claude/settings.json permissions.allow, and 'prefix_rule(pattern=["npx","wikeeper","read"], decision="allow")' and 'prefix_rule(pattern=["wikeeper","read"], decision="allow")' in .codex/rules/wikeeper.rules
+    And where they are present, the read rules come after the ingest rules (and, in the Codex file, STORY-002-09's abort prompt lines) and before the search rules in both files
     And the step-4 preview row for "<mode>" in templates/system/SETUP.md matches CLAUDE_ENFORCE and CODEX_ENFORCE
     When I set ingest.permission to "<next>" and run "wikeeper update --json"
     Then the read rules are <after_update> in both files
@@ -310,7 +348,7 @@ Feature: wikeeper read — command, URL reading and limits
 - [ ] Read the login page of any JavaScript-only web app and check the "needs a browser" warning.
 - [ ] In Claude Code with enforce on: in `ai` mode, ask the agent to read a link and confirm no permission prompt appears; in `ask` mode, confirm the harness asks.
 - [ ] On Windows PowerShell, run `wikeeper read <url> --out page.md` and check that page.md is UTF-8, not UTF-16.
-- [ ] Record in the dev report the size the new packages add to `node_modules` (`du -sh` of each).
+- [ ] Record in the dev report the size the new packages add to `node_modules` (`du -sh` of each), next to SPIKE-001's 32 MB on disk for all six.
 
 ## 3. The Implementation Guide
 
@@ -322,10 +360,10 @@ Feature: wikeeper read — command, URL reading and limits
 |---|---|
 | Primary File | `src/commands/read.ts` |
 | Related Files | `src/read/index.ts`, `src/read/url.ts`, `src/read/html.ts` |
-| Modified Files | `src/program.ts`, `src/agents/enforce/claude.ts`, `src/agents/enforce/codex.ts`, `templates/system/SETUP.md` (the step-4 `ai` row only, after STORY-002-09), `./package.json`, `./package-lock.json` |
+| Modified Files | `src/program.ts` (after STORY-001-10), `src/agents/enforce/claude.ts`, `src/agents/enforce/codex.ts` (after STORY-002-09), `templates/system/SETUP.md` (the step-4 `ai` row only, after STORY-002-09), `./package.json`, `./package-lock.json` (after STORY-001-10) |
 | Test Files | `test/read/read-command.test.ts`, `test/read/url.test.ts`, `test/read/html.test.ts`, `test/read/http-server.ts`, `test/e2e/read.test.ts`, `test/e2e/module-trace.ts`, `test/agents/enforce.test.ts` |
 | Fixtures | `test/fixtures/read/article.html`, `test/fixtures/read/app-shell.html`, `test/fixtures/read/notes.md`, `test/fixtures/read/SOURCES.md` |
-| Re-scoped red tests (QA-Red) | `test/agents/enforce-ai-rules.red.node.test.ts` (lines 127, 139, 181, 184, 234, 235), `test/agents/enforce.red.node.test.ts` (lines 260, 520–526, 544–548), `test/templates/setup.red.node.test.ts` (line 353). These are the exact `ai` rule lists, at `16ec56f`; STORY-002-09 edits the same lines first, so QA-Red re-scopes them on the merged tree. |
+| Re-scoped red tests (QA-Red) | `test/agents/enforce-ai-rules.red.node.test.ts` (lines 127, 139, 181, 184, 234, 235), `test/agents/enforce.red.node.test.ts` (lines 260, 520–526, 544–548), `test/templates/setup.red.node.test.ts` (line 353). These are the exact `ai` rule lists, at `40018c5`; the line numbers are a guide, and QA-Red edits by test name. STORY-002-09 edits `:139`, `:184`, `:234`, `:235` (enforce-ai-rules) and `:260`, `:520–526`, `:544–548` (enforce) first, so QA-Red re-scopes those on the merged tree; `:127`, `:181` (Claude `permissions.allow`) and `:353` are first edited here, because STORY-002-09 does not change the `ai`-mode allow list. Each edit only adds the read pair at its R10 position, as §1.4 Q3 (Gate 1 decision 21) authorises. STORY-005-09 later adds the read-only rules to all of these and to the `ask` and `whitelist` assertions, which this story does not touch; STORY-006-11 R6 lists every SPRINT-03 red-test edit. |
 | New Files Needed | Yes — `src/commands/read.ts`, `src/read/index.ts`, `src/read/url.ts`, `src/read/html.ts`, every test file above except `test/agents/enforce.test.ts`, and the four fixtures |
 
 ### 3.2 Technical Logic
@@ -337,6 +375,10 @@ Feature: wikeeper read — command, URL reading and limits
   5. `emitResult`.
 
   Errors are `WikeeperError`s with `ExitCode.USAGE` or `ExitCode.ERROR` and the codes in §3.3.
+- **Shared files and order** (gate1-decisions technical calls; consistency audit finding 13).
+  - `src/program.ts`: the edit lands on STORY-001-10's version. `readCommand` is appended, with its import, at the end of `defaultCommands` as it stands when this story merges: each command story appends its command in merge order (gate1-decisions technical call, revised 2026-10-17). STORY-005-02 (`lint`), STORY-005-05 (`status`) and STORY-005-06 (`rules`) do not depend on this story and may merge before or after it.
+  - `package.json` / `package-lock.json`: the order is STORY-001-10 (version `0.3.0`), then this story, then STORY-003-11. Add the three dependencies to STORY-001-10's `package.json` and regenerate the lockfile with `npm install`.
+  - `src/agents/enforce/claude.ts`, `codex.ts`, the enforce tests and SETUP.md's `ai` row: after STORY-002-09 (R10).
 - **`readSource`.**
   1. Classify the source as a URL or a file.
   2. A URL goes to `fetchSource`, and its format comes from the content type, else the URL extension. A file is `stat`ed (missing → `not_found`, directory → `usage`), its format comes from the extension, and its bytes are read.
@@ -357,7 +399,11 @@ Feature: wikeeper read — command, URL reading and limits
 
   Do not pass the HTML string to `Defuddle`: string input is deprecated in 0.19.
 - **`--out` checks.** Resolve against `ctx.cwd`. For the content-directory check, run `findRepoRoot(ctx.cwd)`, then `loadConfig(root)` (on a config error, fall back to the default `content_dir`), then `resolvePaths`. The hidden-segment check runs on `path.relative(ctx.cwd, abs).split(path.sep)`; on Windows across drives that is the absolute path, which is checked the same way.
-- **Allow rule.** `CLAUDE_ENFORCE.items` pushes the read pair inside the `ai` branch, after the ingest rules. In `codex.ts`, a `READ_LINES` constant is appended after the `ai` lines, so the lines are the `ai` lines, then the read lines, then `SEARCH_LINES`. Identities follow the existing pattern (`src/agents/enforce/claude.ts:32`, `src/agents/enforce/codex.ts:38`), so `update`'s identity diff and `remove` work unchanged.
+- **Allow rule** (R10 order).
+  - `CLAUDE_ENFORCE.items` pushes the read pair last in the `ai` branch, after STORY-002-09's ask rules and before the search rules.
+  - In `codex.ts`, a `READ_LINES` constant follows the `ai` lines as STORY-002-09 leaves them (the ingest allow lines, then its `abort` prompt lines) and comes before `SEARCH_LINES`. STORY-005-09 later appends its read-only allow lines after `SEARCH_LINES`.
+  - Identities follow the existing pattern (`src/agents/enforce/claude.ts:32`, `src/agents/enforce/codex.ts:38`), so `update`'s identity diff and `remove` work unchanged.
+  - The plain test `test/agents/enforce.test.ts` (the two "CR-001 ai mode allows only ingest and search commands" tests, lines 245–270 at `40018c5`, as STORY-002-09 leaves them) expects the full `ai` list in the R10 order.
 - **Test server** (`test/read/http-server.ts`). `startFixtureServer(): Promise<{ url(path): string; requests: string[]; close() }>` uses `node:http` on `127.0.0.1` with port 0. It serves these routes:
 
   | Route | Response |
@@ -391,13 +437,13 @@ Feature: wikeeper read — command, URL reading and limits
 
 | Endpoint | Method | Auth | Request Shape | Response Shape |
 |---|---|---|---|---|
-| `wikeeper read [source]` | CLI | None | `source` (file path or `http(s)` URL), `--out <file>`, `--json` | envelope `{ ok, command: "read", data: ReadCommandData, warnings }`. Errors exit 2 with `usage`, `not_found` or `unsupported`, or exit 1 with `timeout`, `too_large`, `http_error` or `fetch_failed`. |
+| `wikeeper read [source]` | CLI | None | `source` (file path or `http(s)` URL), `--out <file>`, `--json` | envelope `{ ok, command: "read", data: ReadCommandData, warnings }`. Errors exit 2 with `usage`, `not_found` or the `unsupported` error, or exit 1 with `timeout`, `too_large`, `http_error` or `fetch_failed`. Warnings (exit 0): `needs_browser`, plus STORY-003-11's `likely_scanned` and the `unsupported` warning (R7). |
 
 Frozen exports of `src/read/index.ts` (contract K7; consumers: STORY-003-11 replaces the bodies of `convertDocx` and `convertPdf`, and STORY-006-09 documents the command):
 
 ```ts
 export type ReadFormat = "html" | "docx" | "pdf" | "markdown" | "text";
-export interface ReadWarning { code: "likely_scanned" | "needs_browser" | "truncated" | "unsupported"; message: string }
+export interface ReadWarning { code: "likely_scanned" | "needs_browser" | "unsupported"; message: string } // "truncated" dropped (R7)
 export interface ReadResult { markdown: string; title: string | null; author: string | null; date: string | null; format: ReadFormat; warnings: ReadWarning[] }
 export interface ReadOptions { cwd: string; timeoutMs?: number; maxBytes?: number; fetch?: typeof fetch }
 /** What a converter branch returns; readSource adds the header (R5). */
@@ -409,8 +455,8 @@ export function readSource(input: string, opts: ReadOptions): Promise<ReadResult
 export function withHeader(converted: Converted): string;
 export function formatFromExtension(ext: string): ReadFormat | null;
 export function formatFromContentType(contentType: string | null): ReadFormat | null;
-export function convertDocx(bytes: Uint8Array): Promise<Converted>; // stub: throws unsupported; STORY-003-11 replaces the body
-export function convertPdf(bytes: Uint8Array): Promise<Converted>;  // stub: throws unsupported; STORY-003-11 replaces the body
+export function convertDocx(bytes: Uint8Array): Promise<Converted>; // stub: throws the unsupported error; STORY-003-11 replaces the body
+export function convertPdf(bytes: Uint8Array): Promise<Converted>;  // stub: throws the unsupported error; STORY-003-11 replaces the body
 ```
 
 `src/read/url.ts`:
@@ -442,7 +488,7 @@ export function createReadCommand(deps?: ReadDeps): CommandModule;
 export const readCommand: CommandModule;
 ```
 
-Additions to K7, called out as the owner story allows: `Converted`, `withHeader`, `UNSUPPORTED_HINTS`, the two format helpers, and `ReadCommandData.out`. Nothing in K7 is renamed or retyped.
+Additions to K7, called out as the owner story allows: `Converted`, `withHeader`, `UNSUPPORTED_HINTS`, the two format helpers, and `ReadCommandData.out`. One removal: `truncated` leaves the `ReadWarning.code` union (R7), before any code or consumer uses it. Nothing in K7 is renamed or retyped.
 
 ### 3.4 Dependency check (npm, 2026-10-17)
 
@@ -452,19 +498,23 @@ Additions to K7, called out as the owner story allows: `Converted`, `withHeader`
 | `defuddle` | 0.19.5 | MIT | 2.76 MB | commander ^12 (its own CLI; nested copy), mathml-to-latex; optional: linkedom, turndown, temml | no `type`; `exports["./node"]` has only an `import` condition → `dist/node.js`, CommonJS with named export `Defuddle`, loads from ESM | needs a DOM `Document` (linkedom); no native code; `useAsync` must be `false` to stop its own fetches |
 | `turndown` | 7.2.4 | MIT | 0.19 MB | @mixmark-io/domino (7.7 MB, its Node DOM parser) | CommonJS `main`, no `exports` (Node ignores `module`), default export `TurndownService`; engines node >= 18 | no native code; no bundled types (STORY-003-11 handles them) |
 
+"Unpacked" is the npm registry's `unpackedSize` of the package alone. On disk, all six `read` packages and their dependencies take 32 MB (53 packages; [[SPIKE-001]] round 1, which measured `@mixmark-io/domino` at 8.6 MB on disk). SPIKE-001 round 6 found identical output on Node 22.12.0, 24.14.0 and 25.9.0.
+
 All transitive licenses are permissive (MIT, ISC, BSD-2-Clause, `MIT OR GPL-3.0-or-later` for jszip in STORY-003-11). None of the packages needs a native build or a postinstall step.
 
 ## Task Breakdown
 
-- [ ] Add `linkedom` `^0.18.13`, `defuddle` `^0.19.5` and `turndown` `^7.2.4` to `dependencies` and update the lockfile -> R11
+- [ ] Start the story branch from the sprint branch after STORY-001-10 and STORY-002-09 have merged
+- [ ] Add `linkedom` `^0.18.13`, `defuddle` `^0.19.5` and `turndown` `^7.2.4` to `dependencies` on top of STORY-001-10's `package.json`, and regenerate the lockfile with `npm install` -> R11
 - [ ] Write `test/read/http-server.ts`, the committed fixtures and `SOURCES.md` -> R2, R4
 - [ ] Implement `src/read/url.ts`: request headers, timeout, Content-Length and streamed cap, error mapping -> R6
 - [ ] Implement `src/read/html.ts`: decoding, lazy linkedom and defuddle, metadata, `data:` images, `needs_browser` -> R4, R9
 - [ ] Implement `src/read/index.ts`: classify the source, the dispatch tables, `UNSUPPORTED_HINTS`, pass-through, the DOCX/PDF stubs, `withHeader` -> R2, R3, R5
-- [ ] Implement `src/commands/read.ts`: argument and `--out` checks, the `wx` write, the three output modes; register it in `src/program.ts` -> R1, R7, R8
+- [ ] Implement `src/commands/read.ts`: argument and `--out` checks, the `wx` write, the three output modes; append it to `defaultCommands` in `src/program.ts` -> R1, R7, R8
 - [ ] Write `test/read/*.test.ts` for the Outline in S1, S2 and the error Outline S4, plus the unit tests in §4.1
 - [ ] Write `test/e2e/module-trace.ts` and `test/e2e/read.test.ts` (S3) -> R9, R11
-- [ ] Merge the sprint branch with STORY-002-09 into the story branch; add the read pair to the `ai` branch in `claude.ts` and `codex.ts`; extend `test/agents/enforce.test.ts` -> R10
+- [ ] QA-Red: re-scope the red assertions in §3.1 on the merged tree, only by adding the read pair (§1.4 Q3) -> R10
+- [ ] Add the read pair to `claude.ts` and `codex.ts` in the R10 order; extend `test/agents/enforce.test.ts` -> R10
 - [ ] Add the read rules to the `ai` row of SETUP.md's step-4 preview table; `test/templates/setup.red.node.test.ts` S2 passes on the merged tree -> R10
 - [ ] Write the S5 Outline test (init, update across modes, remove)
 
@@ -474,7 +524,7 @@ All transitive licenses are permissive (MIT, ISC, BSD-2-Clause, `MIT OR GPL-3.0-
 
 | Test Type | Minimum Count | Notes |
 |---|---|---|
-| Unit tests | 10 | `withHeader` (title already the first heading; title not present; author or date only; nothing known); `decodeHtml` (header charset, meta charset, unknown label); `countWords`; `data:` image replacement; `formatFromContentType` with parameters and case; `formatFromExtension`; each `--out` refusal reason; `DEFAULT_TIMEOUT_MS === 20_000` and `DEFAULT_MAX_BYTES === 10 * 1024 * 1024` and the command's default instance uses them. |
+| Unit tests | 10 | `withHeader` (title already the first heading; title not present; author or date only; nothing known); `decodeHtml` (header charset, meta charset, unknown label); `countWords`; `data:` image replacement; `formatFromContentType` with parameters and case; `formatFromExtension`; each `--out` refusal reason, and an absolute path under `os.tmpdir()` and a `../` path both accepted; the `ai`-mode writer order of R10 for Claude and Codex; `DEFAULT_TIMEOUT_MS === 20_000` and `DEFAULT_MAX_BYTES === 10 * 1024 * 1024` and the command's default instance uses them. |
 | Integration tests | 0 | A local `node:http` server on 127.0.0.1 and temp directories only; no test opens a connection anywhere else. |
 | E2E / acceptance tests | 5 | One per Gherkin scenario (Outline rows counted once). S3 runs the packed CLI; the others run in-process through `runCli`. |
 
@@ -503,7 +553,7 @@ All transitive licenses are permissive (MIT, ISC, BSD-2-Clause, `MIT OR GPL-3.0-
 
 ## Prior work
 
-- [[EPIC-003]] (parent; `read` scope, the Network row, the `read` metric). [[CR-002]] (C2: this story adds the `ai`-mode allow rule). [[CR-001]] (`ai` allows only ingest commands; `read` and `search` add their own rules). [[STORY-003-04]] (`ingest start --text-file`, which deferred URL fetching to `read`). [[STORY-004-02]] (the search allow rule and the dynamic-import pattern this story follows). [[SPRINT-03]] (sprint plan). The `cleargate-wiki-query` duplicate check (2026-10-17) found no shipped or planned implementation of `read` other than this story and STORY-003-11.
+- [[EPIC-003]] (parent; `read` scope, the Network row, the `read` metric). [[CR-002]] (C2: this story adds the `ai`-mode allow rule). [[CR-001]] (`ai` allows only ingest commands; `read` and `search` add their own rules). [[STORY-003-04]] (`ingest start --text-file`, which deferred URL fetching to `read`). [[STORY-004-02]] (the search allow rule and the dynamic-import pattern this story follows). [[SPIKE-001]] (the libraries on the human's real pages; 32 MB on disk). [[STORY-001-10]] and [[STORY-002-09]] (predecessors on shared files). [[STORY-005-09]] (successor on the enforce files, the SETUP.md rows and the red tests; it adds the read-only allow rules after this story's, split from [[STORY-005-05]] on 2026-10-17). [[STORY-006-09]] (carries the instruction text in §1.3). [[SPRINT-03]] (sprint plan). The `cleargate-wiki-query` duplicate check (2026-10-17) found no shipped or planned implementation of `read` other than this story and STORY-003-11.
 
 ## Why not simpler?
 
@@ -524,4 +574,4 @@ Requirements to pass to Green (Ready for Execution):
 - [x] Existing Surfaces cites at least one source-tree path or explicitly states "none — net-new."
 - [x] Why not simpler? has both sub-bullets answered (no "TBD" / no "{}").
 
-Open: §1.4 Q1 (`--out` safety) and Q2 (metadata header) await the human. The draft follows the recommended answers.
+Open: §1.4 Q1 (`--out` safety, Gate 1 decision 5), Q2 (metadata header, decision 6) and Q3 (red-test re-scope, decision 21) carry recommended decisions that await the human's Gate 1 approval. The draft follows them.

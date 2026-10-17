@@ -7,7 +7,7 @@ carry_over: false
 status: Draft
 approved: false
 ambiguity: 🟢 Low
-context_source: CR-003 F1, F2 and Open Question 5 (approved 2026-10-17; walkthrough rows 0.6, 11.1) · SPRINT-03 decomposition contract K10 and the human decision on version 0.3.0 · EPIC-001 · verified src/program.ts, src/core/templates.ts, src/core/manifest.ts, src/commands/init.ts, src/commands/update.ts, src/agents/enforce/guard-command.ts, package.json, package-lock.json, tsconfig.build.json, test/e2e/pack.ts, test/program.test.ts, .github/workflows/ci.yml
+context_source: CR-003 F1, F2 and Open Question 5 (approved 2026-10-17; walkthrough rows 0.6, 11.1) · SPRINT-03 decomposition contract K10 and the human decision on version 0.3.0 · EPIC-001 · SPRINT-03 gate1-decisions.md technical calls (`package.json` and `src/program.ts` order; the build stamp never reaches the npx guard) and consistency-audit finding 13 · verified src/program.ts, src/core/templates.ts, src/core/manifest.ts, src/commands/init.ts, src/commands/update.ts, src/agents/enforce/guard-command.ts, package.json, package-lock.json, tsconfig.build.json, test/e2e/pack.ts, test/program.test.ts, .github/workflows/ci.yml
 actor: AI coding agent
 complexity_label: L2
 parallel_eligible: y
@@ -17,14 +17,14 @@ lane: standard
 db_write_set: []
 deferred_verification: []
 created_at: 2026-10-17T09:02:51Z
-updated_at: 2026-10-17T09:02:51Z
+updated_at: 2026-10-17T09:58:51Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
 server_pushed_at_version: null
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-17T09:04:21Z
+  last_gate_check: 2026-10-17T09:59:16Z
   transition: ready-for-execution
 pushed_by: null
 pushed_at: null
@@ -41,12 +41,12 @@ draft_tokens:
   cache_creation: null
   cache_read: null
   model: null
-  last_stamp: 2026-10-17T09:04:21Z
+  last_stamp: 2026-10-17T09:59:23Z
   sessions: []
 ---
 
 # STORY-001-10: `--version` names the build's commit; version `0.3.0`; `--help` footer
-**Complexity:** L2 — a build step that writes the commit into `dist/`, one small runtime module, the version string in three places (`--version`, `--help`, the install manifest) and the packed-CLI helper. Extends STORY-001-01, STORY-001-03, STORY-001-04, STORY-001-05 and STORY-001-09.
+**Complexity:** L2 — a build step that writes the commit into `dist/`, one small runtime module, the version string in three places (`--version`, `--help`, the install manifest) and the packed-CLI helper. Extends STORY-001-01, STORY-001-03, STORY-001-04, STORY-001-05 and STORY-001-09. No in-sprint upstream. It lands first on `package.json` and `package-lock.json` (before STORY-003-10, then STORY-003-11) and edits `src/program.ts` only at `VERSION` and the help footer, outside `defaultCommands`, where STORY-003-10, STORY-005-02, STORY-005-05 and STORY-005-06 each append their command in merge order (gate1-decisions technical call, revised 2026-10-17).
 
 ## 1. The Spec (The Contract)
 
@@ -83,7 +83,9 @@ As an AI coding agent checking which wikeeper build a repository uses, I want `w
 - **Risk:** in the build-script test, git run in a temp directory finds a repository above it and reports that commit instead of "no repository".
 - **Mitigation:** the test sets `GIT_CEILING_DIRECTORIES` to the temp directory's parent, and the no-git case sets `PATH` to an empty directory for the child.
 - **Risk:** `package.json` and `package-lock.json` are also edited by the `read` stories (STORY-003-10, STORY-003-11 add dependencies).
-- **Mitigation:** this story changes only the version fields and the `build` script; the Sprint Design Review orders the commits, and a later story regenerates the lock file on top of this one.
+- **Mitigation:** this story changes only the version fields and the `build` script, and it lands first: the order is 001-10, then STORY-003-10, then STORY-003-11 (gate1-decisions technical calls), each regenerating the lock file on top of the one before.
+- **Risk:** five stories edit `src/program.ts` this sprint.
+- **Mitigation:** this story changes only the `packageJson` type, `VERSION` and the footer (`src/program.ts:23-27`, `:57`), not `defaultCommands` (`src/program.ts:33-43`), where STORY-003-10, STORY-005-02, STORY-005-05 and STORY-005-06 each append one registration line in merge order (gate1-decisions technical call, revised 2026-10-17). STORY-003-10 depends on this story; the other three may merge before or after it, and their lines do not touch this story's.
 
 ## 2. The Truth (Executable Tests)
 
