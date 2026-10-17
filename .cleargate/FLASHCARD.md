@@ -6,6 +6,8 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-17 · #pre-gate #red-test #contract · A story cut from another story's contract commit carries that owner's QA-Red files, and the post-flight 'red modified' scan counts them; diff them against the owner's QA-Red commit before routing a bounce.
+2026-10-17 · #contract #merge · To prove a re-sync merge has no hand edits, compare `git merge-tree --write-tree <p1> <p2>` with `<merge>^{tree}`; equal trees mean a dependent built on the same contract stays valid.
 2026-10-17 · #test-harness #ingest · isSourceId rejects ids like src-open; lock and snapshot unit tests need src-YYYY-MM-DD-slug ids, or readLock reports the lock unreadable.
 2026-10-17 · #git #worktree · git stash is shared by every worktree of a repo: a parallel Developer's pop can swap another story's edits into yours; never stash, use a patch file or a temp commit.
 2026-10-17 · #qa #test-harness · runCli takes cwd from io.cwd; a top-level cwd option is ignored and init runs in the worktree itself; copy lint-command.test.ts run().
