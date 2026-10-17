@@ -98,12 +98,27 @@ describe("recordMiss", () => {
   });
 });
 
+describe("mark in miss filters", () => {
+  it("encodes mark before entity and decodes only valid values", () => {
+    const f: SearchFilters = { ...NO, since: "2026-10-01", mark: "tentative" };
+    expect(Object.keys(encodeMissFilters(f, "Nobody"))).toEqual(["since", "mark", "entity"]);
+    expect(decodeMissFilters({ mark: "tentative" }).filters.mark).toBe("tentative");
+    expect(decodeMissFilters({ mark: "bogus" }).filters.mark).toBeUndefined();
+  });
+  it("groups searches with different marks apart", () => {
+    const out = summarizeMisses([ev("2026-10-12T00:00:00Z", "", { mark: "decided" }), ev("2026-10-13T00:00:00Z", "", { mark: "tentative" })]);
+    expect(out).toHaveLength(2);
+  });
+});
+
 describe("renderMisses", () => {
   const m = (over: Partial<MissSummary>): MissSummary => ({ query: "q", filters: NO, entity: null, count: 1, first_at: "2026-10-12T00:00:00Z", last_at: "2026-10-12T00:00:00Z", ...over });
   it("pluralises and formats lines", () => {
     expect(renderMisses(data({ mode: "misses", total: 0, misses: [] }))).toBe("no recorded misses");
-    expect(renderMisses(data({ mode: "misses", total: 1, misses: [m({})] }))).toBe('1 recorded miss\n1× "q" (last 2026-10-12)');
+    expect(renderMisses(data({ mode: "misses", total: 1, misses: [m({})] }))).toBe('1 miss, 1 distinct query\n1× "q" (last 2026-10-12)');
     const out = renderMisses(data({ mode: "misses", total: 2, misses: [m({ count: 2 }), m({ query: null, entity: "Nobody" })] }));
-    expect(out).toBe('2 recorded misses\n2× "q" (last 2026-10-12)\n1× entity Nobody (last 2026-10-12)');
+    expect(out).toBe('3 misses, 2 distinct queries\n2× "q" (last 2026-10-12)\n1× entity Nobody (last 2026-10-12)')
+    const withEvents = renderMisses(data({ mode: "misses", total: 1, events: 5, misses: [m({ count: 2 })] }));
+    expect(withEvents.split("\n")[0]).toBe("5 misses, 1 distinct query");;
   });
 });

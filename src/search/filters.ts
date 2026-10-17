@@ -8,6 +8,7 @@ import { normalizeName } from "../wiki/parse-page.js";
 import type { Entity, Page } from "../wiki/parse-page.js";
 import { hitSources } from "./engine.js";
 import type { SearchFilters, SearchHit, WhereFilter } from "./engine.js";
+import { compareCodeUnits } from "../core/compare.js";
 
 const SNIPPET_LIMIT = 160;
 
@@ -49,6 +50,7 @@ export function describeFilters(filters: SearchFilters): string {
   for (const w of filters.where) parts.push(`--where ${w.key}=${w.value}`);
   if (filters.status !== null) parts.push(`--status ${filters.status}`);
   if (filters.since !== null) parts.push(`--since ${filters.since}`);
+  if (filters.mark !== undefined) parts.push(`--mark ${filters.mark}`);
   return parts.join(" ");
 }
 
@@ -128,4 +130,52 @@ export function entityHit(entity: Entity, page: Page, root: string, paths: Resol
     score: 0,
     sources: hitSources(page, entity.section),
   };
+}
+
+/** `--mark` value: `undefined` -> `undefined`; decided or tentative (case-insensitive) -> lower-case; else `invalid_filter`. */
+export function parseMark(raw: string | undefined): "decided" | "tentative" | undefined {
+  if (raw === undefined) return undefined;
+  const v = raw.trim().toLowerCase();
+  if (v === "decided" || v === "tentative") return v;
+  throw new WikeeperError(ExitCode.USAGE, "invalid_filter", "--mark must be decided or tentative", {
+    expected: "decided or tentative",
+    got: raw,
+  });
+}
+
+/** One hit per fact line with the mark, over every entity that passes the other filters. */
+export function markHits(
+  entities: readonly Entity[],
+  pages: readonly Page[],
+  mark: "decided" | "tentative",
+  filters: SearchFilters,
+  root: string,
+  paths: ResolvedPaths,
+): SearchHit[] {
+  const pageOf = new Map(pages.map((p) => [p.path, p]));
+  const filtered = hasFilters(filters);
+  const hits: Array<SearchHit & { date: string }> = [];
+  for (const e of entities) {
+    const page = pageOf.get(e.path);
+    if (page === undefined) continue;
+    if (filtered && !matchesFilters(e, filters, page)) continue;
+    for (const f of e.facts) {
+      if (f.status !== mark) continue;
+      hits.push({
+        path: e.path,
+        file: toPosixRelative(root, path.join(paths.pagesDir, ...e.path.split("/"))),
+        title: page.title,
+        entity: e.name,
+        type: e.type,
+        section: page.sections[f.section]?.heading ?? "",
+        line: f.line,
+        snippet: `${f.date} · ${f.status} · ${f.text}`.slice(0, SNIPPET_LIMIT),
+        score: 0,
+        sources: f.sources,
+        date: f.date,
+      });
+    }
+  }
+  hits.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0) || compareCodeUnits(a.path, b.path) || a.line - b.line);
+  return hits.map(({ date: _date, ...hit }) => hit);
 }

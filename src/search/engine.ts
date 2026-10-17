@@ -22,6 +22,7 @@ export interface SearchFilters {
   where: WhereFilter[];
   status: string | null;
   since: string | null;
+  mark?: "decided" | "tentative";
 }
 export interface SearchHit {
   path: string;
@@ -67,6 +68,8 @@ export interface SinceChanges {
   since: string;
   facts: FactView[];
   pages: Array<{ path: string; change: "created" | "updated" | "deleted"; source_id: string | null; at: string }>;
+  facts_total?: number;
+  pages_total?: number;
 }
 export interface MissSummary {
   query: string | null;
@@ -86,6 +89,7 @@ export interface SearchData {
   entity: EntityMatch | null;
   changes: SinceChanges | null;
   misses: MissSummary[] | null;
+  events?: number;
 }
 export interface SearchRequest {
   query: string | null;
@@ -93,6 +97,7 @@ export interface SearchRequest {
   filters: SearchFilters;
   entity: string | null;
   misses: boolean;
+  noMiss?: boolean;
 }
 export interface SearchDeps {
   now?: () => Date;

@@ -43,4 +43,24 @@ describe("log events", () => {
   it("empty view", () => {
     expect(renderLogView([])).toContain("_No events yet._");
   });
+
+  it("a miss names its filters in the body line and the view line", async () => {
+    const at = "2026-10-16T00:00:00.000Z";
+    const cases: Array<[string, Record<string, string | string[]>, string, string]> = [
+      ["", { status: "tentative" }, "No results for --status tentative.", "· miss · --status tentative"],
+      ["vendor", { type: "risk" }, 'No results for "vendor" --type risk.', '· miss · "vendor" --type risk'],
+      ["", { entity: "Nobody" }, "No results for --entity Nobody.", "· miss · --entity Nobody"],
+      ["", { where: ["a=1", "b=2"], mark: "decided", zed: "z", alpha: "a" }, "No results for --where a=1 --where b=2 --mark decided --alpha a --zed z.", "· miss · --where a=1 --where b=2 --mark decided --alpha a --zed z"],
+      ["x", {}, 'No results for "x".', '· miss · "x"'],
+      ["", {}, 'No results for "".', '· miss · ""'],
+    ];
+    for (const [query, filters, body, view] of cases) {
+      const rel = await writeLogEvent(paths, { type: "miss", at, query, filters });
+      const text = await readFile(path.join(root, ...rel.split("/")), "utf8");
+      expect(text.endsWith(`---\n${body}\n`)).toBe(true);
+      const { events } = await readLogEvents(paths);
+      expect(renderLogView(events)).toContain(view);
+      await rm(path.join(root, ...rel.split("/")));
+    }
+  });
 });
