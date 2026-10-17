@@ -20,7 +20,7 @@ export interface CommandTree {
   rootOptions: Set<string>;
   commands: Map<string, { options: Set<string>; subcommands: Map<string, Set<string>> }>;
 }
-export interface CommandRef { line: number; words: string[]; flags: string[] }
+export interface CommandRef { line: number; words: string[]; flags: string[]; wildcard?: true }
 
 export function formatFinding(f: Finding): string {
   return `${f.file}:${f.line} — ${f.message}`;
@@ -78,7 +78,9 @@ function refsInUnit(unit: string, line: number): CommandRef[] {
     const flags = [...text.slice(start, end).matchAll(/--[a-z][a-z-]*/g)].map((f) => f[0]);
     const words = [m[1]!];
     if (m[2] !== undefined) words.push(m[2]);
-    return { line, words, flags };
+    const ref: CommandRef = { line, words, flags };
+    if (m[2] === undefined && /^\s+\*/.test(text.slice(start))) ref.wildcard = true;
+    return ref;
   });
 }
 
@@ -167,6 +169,13 @@ function checkRefs(file: string, refs: CommandRef[], tree: CommandTree): Finding
         continue;
       }
       allowed = new Set([...allowed, ...sub]);
+    }
+    if (ref.wildcard === true && cmd.subcommands.size > 0) {
+      for (const sub of cmd.subcommands.values()) allowed = new Set([...allowed, ...sub]);
+      for (const flag of ref.flags) {
+        if (!allowed.has(flag)) out.push({ file, line: ref.line, message: `"${flag}" is not an option of "${cmdName}" or any of its subcommands` });
+      }
+      continue;
     }
     const shown = cmd.subcommands.size > 0 && second !== undefined ? `${cmdName} ${second}` : cmdName!;
     for (const flag of ref.flags) {
