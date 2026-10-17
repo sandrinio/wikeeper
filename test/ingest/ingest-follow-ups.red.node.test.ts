@@ -229,7 +229,7 @@ describe("STORY-003-12 S3 approval request is a question", () => {
       await writeFile(path.join(r.root, "notes.md"), "hello\n");
       const human = await run(r.root, ["ingest", "start", "notes.md", ...kindArgs]);
       expect(human.code).toBe(3);
-      expect(await exists(path.join(r.root, ".wiki", "raw"))).toBe(false);
+      expect((await readdir(path.join(r.root, ".wiki", "raw"))).filter((f) => f !== ".gitkeep")).toEqual([]);
       expect(human.err).toBe(
         `notes.md needs approval (6 B, ${named}): ingest.permission is ask: show the user the source "notes.md" and rerun with --approved once they agree.\n`,
       );
