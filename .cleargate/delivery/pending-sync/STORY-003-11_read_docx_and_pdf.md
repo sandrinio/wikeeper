@@ -337,14 +337,14 @@ All transitive licenses are permissive (MIT, BSD-2-Clause, `MIT OR GPL-3.0-or-la
 
 ## Task Breakdown
 
-- [ ] Add `mammoth` `^1.13.0`, `@joplin/turndown-plugin-gfm` `^1.0.68` and `unpdf` `^1.9.0` to `dependencies` on top of STORY-003-10's `package.json`, and regenerate the lockfile with `npm install` -> R6
-- [ ] QA-Red: write `test/fixtures/read/make-fixtures.ts` (stored-zip DOCX writer, PDF writer with image-only and outlined pages, broken inputs), add the three document routes to `test/read/http-server.ts` and the generator line to `SOURCES.md`, in the QA-Red commit (CR:approach-change, orchestrator 2026-10-17, M3 plan Open decision 1; the Developer may add exports or options but never changes the bytes an existing call returns). The Developer writes the generator's determinism test
-- [ ] Write `src/read/vendor.d.ts` for turndown and the GFM plugin -> R2
-- [ ] Implement `src/read/docx.ts`: mammoth with the image converter, `promoteFirstRows`, `htmlToMarkdown` with the list-item and image rules, wrapper removal, title, image warning, `conversion_failed` -> R2, R5
-- [ ] Implement `src/read/pdf.ts`: pdf.js options, line building, `linesToMarkdown`, `scannedPages` (letters, `NEAR_EMPTY_PAGE_LETTERS`), `formatPageList`, `pdfDate`, metadata, `conversion_failed` -> R3, R5
-- [ ] Replace the bodies of `convertDocx` and `convertPdf` in `src/read/index.ts`; remove STORY-003-10's two stub rows from `test/read/read-command.test.ts` -> R1
-- [ ] Write `test/read/docx.test.ts`, `test/read/pdf.test.ts` and `test/read/read-documents.test.ts` for S1, S2, S3, S5 and the unit tests in §4.1 -> R2, R3, R4
-- [ ] Write `test/e2e/read-documents.test.ts` for S4 (URLs, module trace, packed `package.json`) -> R1, R5, R6
+- [x] Add `mammoth` `^1.13.0`, `@joplin/turndown-plugin-gfm` `^1.0.68` and `unpdf` `^1.9.0` to `dependencies` on top of STORY-003-10's `package.json`, and regenerate the lockfile with `npm install` -> R6
+- [x] QA-Red: write `test/fixtures/read/make-fixtures.ts` (stored-zip DOCX writer, PDF writer with image-only and outlined pages, broken inputs), add the three document routes to `test/read/http-server.ts` and the generator line to `SOURCES.md`, in the QA-Red commit (CR:approach-change, orchestrator 2026-10-17, M3 plan Open decision 1; the Developer may add exports or options but never changes the bytes an existing call returns). The Developer writes the generator's determinism test
+- [x] Write `src/read/vendor.d.ts` for turndown and the GFM plugin -> R2
+- [x] Implement `src/read/docx.ts`: mammoth with the image converter, `promoteFirstRows`, `htmlToMarkdown` with the list-item and image rules, wrapper removal, title, image warning, `conversion_failed` -> R2, R5
+- [x] Implement `src/read/pdf.ts`: pdf.js options, line building, `linesToMarkdown`, `scannedPages` (letters, `NEAR_EMPTY_PAGE_LETTERS`), `formatPageList`, `pdfDate`, metadata, `conversion_failed` -> R3, R5
+- [x] Replace the bodies of `convertDocx` and `convertPdf` in `src/read/index.ts`; remove STORY-003-10's two stub rows from `test/read/read-command.test.ts` -> R1
+- [x] Write `test/read/docx.test.ts`, `test/read/pdf.test.ts` and `test/read/read-documents.test.ts` for S1, S2, S3, S5 and the unit tests in §4.1 -> R2, R3, R4
+- [x] Write `test/e2e/read-documents.test.ts` for S4 (URLs, module trace, packed `package.json`) -> R1, R5, R6
 
 ## 4. Quality Gates
 
