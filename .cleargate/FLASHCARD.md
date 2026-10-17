@@ -6,6 +6,12 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-17 · #templates #vocabulary · wiki-protocol.red checkVocabulary reads every "wikeeper <word>" in WIKI.md prose; "a wikeeper command runs" fails as an unknown command; write "a command".
+2026-10-17 · #templates #kb · SETUP step-3 format spans (<entity> <fields> → …) do not parse; end each item with "Example(s):" so a test can split format from examples.
+2026-10-17 · #shipped-blocks #test-harness · shipped-blocks.test.ts:56 hard-coded "entry 2"; every append broke it; tests of append-only lists use .length, never literal indexes.
+2026-10-17 · #shipped-blocks #ts · The SPRINT-03 pointer block's line 9 has double quotes: escape them in the SHIPPED_BLOCKS literal; the sha256 is of the unescaped text.
+2026-10-17 · #skills #red-test · The wiki-ingest skill must keep the literals "one at a time", "facts file", "Write the brief" and "into its task" (skills-subagents S2, walkthrough-fixes C8).
+2026-10-17 · #test-harness #worktrees · A scratch copy linked to a worktree's node_modules breaks when DevOps tears the worktree down mid-run; link the main checkout's node_modules after its npm ci.
 2026-10-17 · #read #pdf · unpdf 1.9 (pdf.js 6.4.299) throws on a Node Buffer ("provide binary data as Uint8Array") and detaches the array it gets; pass new Uint8Array(bytes).
 2026-10-17 · #read #pdf · pdf.js 6.4 has no PDFDocumentProxy.destroy() and no isEvalSupported option (TS2353); close with pdf.loadingTask.destroy().
 2026-10-17 · #read #docx · turndown drops <img src=""> entirely and the GFM plugin gives a headerless table an empty header row; add an img rule and promote the first row.

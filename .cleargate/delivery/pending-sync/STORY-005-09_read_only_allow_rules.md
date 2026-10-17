@@ -247,7 +247,7 @@ Consumed (frozen): `CLAUDE_ENFORCE`, `CODEX_ENFORCE` and their item identities (
 
 ## Task Breakdown
 
-- [ ] Start the story branch from the sprint branch after STORY-002-09, STORY-003-10, STORY-005-02, STORY-005-05 and STORY-005-06 have merged
+- [ ] Build now from `sprint/S-03` (C6 and every upstream except STORY-005-05 are in); re-sync on `sprint/S-03` after STORY-005-05 merges and before QA-Verify (CR:approach-change, orchestrator 2026-10-17, M4 plan Open decision 4a)
 - [ ] QA-Red: re-scope the §3.1 red-test assertions on the merged tree, only by adding the six rules (§1.4 Q3) -> R1, R2, R4
 - [ ] Export `READ_ONLY_COMMANDS` and append the six rules to `CLAUDE_ENFORCE` in every mode -> R1, R3, R4
 - [ ] Build `READ_ONLY_LINES` in `codex.ts` and append them after `SEARCH_LINES` in every mode -> R2, R3, R4
