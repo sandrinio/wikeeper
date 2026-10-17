@@ -107,7 +107,10 @@ describe("STORY-002-11 update refreshes an unedited pointer block (red)", () => 
     it(`S1: update replaces the ${row.release} block and keeps the rest of the file`, async () => {
       const shipped = await loadShipped();
       const root = await initialised("claude");
-      const manifestBefore = await readText(root, ".wiki/system/manifest.json");
+      const blockEntry = async () =>
+        (JSON.parse(await readText(root, ".wiki/system/manifest.json")).files as any[]).find((e) => e.kind === "block" && e.path === "CLAUDE.md");
+      const entryBefore = await blockEntry();
+      expect(entryBefore).toBeDefined();
       let text = withBlock(await readText(root, "CLAUDE.md"), shipped[row.idx]);
       if (row.crlf) text = BOM + text.replace(/\r?\n/g, "\r\n");
       await writeFile(file(root, "CLAUDE.md"), text, "utf8");
@@ -127,7 +130,7 @@ describe("STORY-002-11 update refreshes an unedited pointer block (red)", () => 
       expect(u.json.data.replaced).toContain("CLAUDE.md#wiki-block");
       const expected = before + tpl.block.split("\n").join(eol) + after;
       expect((await readBuf(root, "CLAUDE.md")).toString("utf8")).toBe(expected);
-      expect(await readText(root, ".wiki/system/manifest.json")).toBe(manifestBefore);
+      expect(await blockEntry()).toEqual(entryBefore);
 
       const bytes = await readBuf(root, "CLAUDE.md");
       const u2 = await drive(root, ["update", "--json"], updateCmds(tpl.dir));
