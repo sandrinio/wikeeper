@@ -24,6 +24,7 @@ export function encodeMissFilters(filters: SearchFilters, entity: string | null)
   if (filters.where.length > 0) out["where"] = filters.where.map((w) => `${w.key}=${w.value}`);
   if (filters.status !== null) out["status"] = filters.status;
   if (filters.since !== null) out["since"] = filters.since;
+  if (filters.mark !== undefined) out["mark"] = filters.mark;
   if (entity !== null) out["entity"] = entity;
   return out;
 }
@@ -42,10 +43,15 @@ export function decodeMissFilters(raw: RawFilters): { filters: SearchFilters; en
       ? { key: item.trim(), value: "" }
       : { key: item.slice(0, i).trim(), value: item.slice(i + 1).trim() };
   });
-  return {
-    filters: { type: scalarOf(raw["type"]), where, status: scalarOf(raw["status"]), since: scalarOf(raw["since"]) },
-    entity: scalarOf(raw["entity"]),
+  const filters: SearchFilters = {
+    type: scalarOf(raw["type"]),
+    where,
+    status: scalarOf(raw["status"]),
+    since: scalarOf(raw["since"]),
   };
+  const mark = raw["mark"];
+  if (mark === "decided" || mark === "tentative") filters.mark = mark;
+  return { filters, entity: scalarOf(raw["entity"]) };
 }
 
 export async function recordMiss(
@@ -92,7 +98,7 @@ export function summarizeMisses(events: readonly StoredLogEvent[]): MissSummary[
     const { filters: f, entity } = decodeMissFilters(filters);
     const nq = query === "" ? null : normalizeName(query);
     const ne = entity === null ? null : normalizeName(entity);
-    const key = JSON.stringify([nq, { type: f.type, where: f.where, status: f.status, since: f.since }, ne]);
+    const key = JSON.stringify([nq, { type: f.type, where: f.where, status: f.status, since: f.since, mark: f.mark ?? null }, ne]);
     const ms = Date.parse(event.at);
     const g = groups.get(key);
     if (g === undefined) {
@@ -131,8 +137,9 @@ export async function listMisses(paths: ResolvedPaths, bound: SinceBound | null)
 export function renderMisses(data: SearchData): string {
   const misses = data.misses ?? [];
   if (data.total === 0) return "no recorded misses";
-  const n = data.total;
-  const lines = [`${n} recorded ${n === 1 ? "miss" : "misses"}`];
+  const m = data.total;
+  const n = data.events ?? misses.reduce((sum, x) => sum + x.count, 0);
+  const lines = [`${n} ${n === 1 ? "miss" : "misses"}, ${m} distinct ${m === 1 ? "query" : "queries"}`];
   for (const m of misses) {
     let line = `${m.count}×`;
     if (m.query !== null) line += ` "${m.query}"`;
