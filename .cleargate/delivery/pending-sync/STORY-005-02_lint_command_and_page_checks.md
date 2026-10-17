@@ -264,9 +264,10 @@ Feature: wikeeper lint — check registry and page checks
 
 | Item | Value |
 |---|---|
-| Primary File | `src/lint/checks.ts` |
-| Related Files | `src/commands/lint.ts`, `src/lint/links.ts`, `src/lint/citations.ts`, `src/ingest/lint-hook.ts`, `src/program.ts`, `test/lint/checks.test.ts`, `test/lint/links.test.ts`, `test/lint/citations.test.ts`, `test/lint/lint-command.test.ts` |
-| New Files Needed | Yes — `src/lint/checks.ts`, `src/lint/links.ts`, `src/lint/citations.ts`, `src/commands/lint.ts`, `test/lint/checks.test.ts`, `test/lint/links.test.ts`, `test/lint/citations.test.ts`, `test/lint/lint-command.test.ts` |
+| Primary File (new) | `src/lint/checks.ts` |
+| Related Files (new) | `src/commands/lint.ts`, `src/lint/links.ts`, `src/lint/citations.ts`, `test/lint/checks.test.ts`, `test/lint/links.test.ts`, `test/lint/citations.test.ts`, `test/lint/lint-command.test.ts` |
+| Related Files | `src/ingest/lint-hook.ts`, `src/program.ts` |
+| New Files Needed | `src/lint/checks.ts`, `src/lint/links.ts`, `src/lint/citations.ts`, `src/commands/lint.ts`, `test/lint/checks.test.ts`, `test/lint/links.test.ts`, `test/lint/citations.test.ts`, `test/lint/lint-command.test.ts` |
 
 ### 3.2 Technical Logic
 - **`src/lint/checks.ts`.** It holds the types, `PAGE_CHECKS = [brokenLinkCheck, uncitedClaimCheck, orphanPageCheck, indexDriftCheck]`, `RULE_CHECKS = []`, `runLint` (R2), `countFindings`, `pagePath`, `findingLine` and `indexDriftCheck` (R8), so the files stay within EPIC-005's `src/lint/` list.

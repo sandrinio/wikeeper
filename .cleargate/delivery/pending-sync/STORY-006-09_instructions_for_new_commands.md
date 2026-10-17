@@ -262,9 +262,12 @@ Feature: Instructions for read, lint, status and rules
 |---|---|
 | Primary File | `templates/system/WIKI.md` |
 | Related Files | `templates/system/SETUP.md`, `templates/skills/wiki-ingest/SKILL.md` |
-| Test Files | `test/templates/sprint-03-commands.red.node.test.ts` (QA-Red) |
+| Test Files (new) | `test/templates/sprint-03-commands.red.node.test.ts` |
 | Re-scoped SPRINT-02 red tests (STORY-006-11 R6 (c), (d), applied by this story's QA-Red) | `test/templates/wiki-protocol.red.node.test.ts`, `test/templates/setup.red.node.test.ts` |
-| New Files Needed | Yes — `test/templates/sprint-03-commands.red.node.test.ts` |
+| New Files Needed | `test/templates/sprint-03-commands.red.node.test.ts` |
+
+- **Notes on the files above:**
+  - Test files: `test/templates/sprint-03-commands.red.node.test.ts` (QA-Red).
 
 ### 3.2 Technical Logic
 - Start from WIKI.md, SETUP.md and the skill as STORY-006-10 and STORY-006-12 leave them. Edit "Register" (R1), "Write phase" step 9 (R5), "Delegation" Link row (R1 (g)), "Proposing rule changes" (R6), add "Lint and status" (R2–R4), then "Log and index" (R7). Then SETUP.md steps 2 and 3 (R8) and the skill (R9).

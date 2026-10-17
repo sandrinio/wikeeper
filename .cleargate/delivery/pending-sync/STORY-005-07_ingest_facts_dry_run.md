@@ -192,9 +192,13 @@ Feature: ingest facts --dry-run
 | Item | Value |
 |---|---|
 | Primary File | `src/commands/ingest-facts.ts` |
-| Related Files | `src/ingest/facts.ts` (adds `diffFacts`, `FactsDiff`), `test/ingest/facts-diff.test.ts`, `test/ingest/ingest-facts-dry-run.test.ts` |
-| Consumed (unchanged) | `src/ingest/facts.ts` (`validateFacts`, `readFacts`), `src/ingest/log.ts` (`readLogEvents`), `src/ingest/registry.ts` (`readMeta`), `src/ingest/permissions.ts` (`evaluatePermission`), `src/ingest/kind-rules.ts` (`findKindRule`) |
-| New Files Needed | Yes — `test/ingest/facts-diff.test.ts`, `test/ingest/ingest-facts-dry-run.test.ts` |
+| Related Files | `src/ingest/facts.ts` |
+| Related Files (new) | `test/ingest/facts-diff.test.ts`, `test/ingest/ingest-facts-dry-run.test.ts` |
+| New Files Needed | `test/ingest/facts-diff.test.ts`, `test/ingest/ingest-facts-dry-run.test.ts` |
+
+- **Notes on the files above:**
+  - Related files: `src/ingest/facts.ts` (adds `diffFacts`, `FactsDiff`); its `validateFacts` and `readFacts` are consumed unchanged.
+- **Read, not edited (consumed, unchanged):** `src/ingest/log.ts` (`readLogEvents`), `src/ingest/registry.ts` (`readMeta`), `src/ingest/permissions.ts` (`evaluatePermission`), `src/ingest/kind-rules.ts` (`findKindRule`).
 
 ### 3.2 Technical Logic
 - **Command branch.** Read `opts.dryRun` (commander's camel case for `--dry-run`). Keep the existing steps and add the branch at three points:

@@ -204,10 +204,12 @@ Feature: wikeeper status
 
 | Item | Value |
 |---|---|
-| Primary File | `src/commands/status.ts` |
-| Related Files | `src/program.ts`, `test/status.test.ts` |
-| Consumed (unchanged) | `src/ingest/lock.ts` (`readLock`, `formatLockAge`, `LockInfo`), `src/ingest/registry.ts` (`listSources`, `SourceMeta`), `src/ingest/log.ts` (`readLogEvents`, `IngestLogEvent`), `src/ingest/facts.ts` (`readFacts`, `factsFilePath`), `src/ingest/kind-rules.ts` (`normalizeKindId`), `src/kb/parse-instructions.ts` (`loadInstructions`, K1, STORY-005-01), `src/kb/rule-decisions.ts` (`listDecisions`, K4, STORY-005-06), `src/core/config.ts`, `src/core/paths.ts` |
-| New Files Needed | Yes — `src/commands/status.ts`, `test/status.test.ts` |
+| Primary File (new) | `src/commands/status.ts` |
+| Related Files | `src/program.ts` |
+| Related Files (new) | `test/status.test.ts` |
+| New Files Needed | `src/commands/status.ts`, `test/status.test.ts` |
+
+- **Read, not edited (consumed, unchanged):** `src/ingest/lock.ts` (`readLock`, `formatLockAge`, `LockInfo`), `src/ingest/registry.ts` (`listSources`, `SourceMeta`), `src/ingest/log.ts` (`readLogEvents`, `IngestLogEvent`), `src/ingest/facts.ts` (`readFacts`, `factsFilePath`), `src/ingest/kind-rules.ts` (`normalizeKindId`), `src/kb/parse-instructions.ts` (`loadInstructions`, K1, STORY-005-01), `src/kb/rule-decisions.ts` (`listDecisions`, K4, STORY-005-06), `src/core/config.ts`, `src/core/paths.ts`.
 
 No red test changes in this story: the rule-list red tests that SPRINT-03's allow rules break are STORY-005-09's (§3.1 there; STORY-006-11 R6 (h)), and none of them concerns the `status` command.
 

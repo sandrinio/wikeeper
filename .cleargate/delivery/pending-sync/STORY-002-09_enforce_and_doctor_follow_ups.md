@@ -226,9 +226,10 @@ Feature: ai-mode prompts and enforce off through update
 |---|---|
 | Primary File | `src/agents/enforce/claude.ts` |
 | Related Files | `src/agents/enforce/codex.ts`, `src/agents/enforce/index.ts`, `templates/system/SETUP.md` |
-| Test Files | `test/agents/enforce.test.ts`, `test/agents/rule-match.ts`, `test/agents/rule-match.test.ts`, `test/templates/structure.ts`, `test/templates.test.ts` |
+| Test Files | `test/agents/enforce.test.ts`, `test/templates/structure.ts`, `test/templates.test.ts` |
+| Test Files (new) | `test/agents/rule-match.ts`, `test/agents/rule-match.test.ts` |
 | Re-scoped red tests (QA-Red) | `test/agents/enforce-ai-rules.red.node.test.ts`, `test/agents/enforce.red.node.test.ts` |
-| New Files Needed | Yes — `test/agents/rule-match.ts`, `test/agents/rule-match.test.ts` |
+| New Files Needed | `test/agents/rule-match.ts`, `test/agents/rule-match.test.ts` |
 
 Re-scoped red-test assertions (lines at `40018c5`, a guide only; QA-Red edits by test name, §1.4 Q5):
 - `test/agents/enforce-ai-rules.red.node.test.ts`:

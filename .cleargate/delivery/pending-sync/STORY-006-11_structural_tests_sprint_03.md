@@ -223,8 +223,9 @@ Feature: Structural template tests for the SPRINT-03 commands
 |---|---|
 | Primary File | `test/templates/structure.ts` |
 | Related Files | `test/templates.test.ts` |
-| Red tests verified here, edited by the R6 owners | `test/templates/wiki-protocol.red.node.test.ts`, `test/templates/setup.red.node.test.ts`, `test/templates/onboarding.red.node.test.ts`, `test/agents/enforce-ai-rules.red.node.test.ts`, `test/agents/enforce.red.node.test.ts`, `test/search/search-misses.red.node.test.ts`, `test/templates.red.node.test.ts` |
 | New Files Needed | No |
+
+- **Read, not edited (red tests verified here, edited by the R6 owners):** `test/templates/wiki-protocol.red.node.test.ts`, `test/templates/setup.red.node.test.ts`, `test/templates/onboarding.red.node.test.ts`, `test/agents/enforce-ai-rules.red.node.test.ts`, `test/agents/enforce.red.node.test.ts`, `test/search/search-misses.red.node.test.ts`, `test/templates.red.node.test.ts`.
 
 ### 3.2 Technical Logic
 - `checkCoverage`: reuse `extractCommandRefs` (`test/templates/structure.ts:121`) over every template file; a form `"<w1> [w2] [--flag]"` is met when a reference has the same words and, if the form has a flag, that flag in `flags`. Templates only: `GUARD_REASON` and enforce entries are not documentation.

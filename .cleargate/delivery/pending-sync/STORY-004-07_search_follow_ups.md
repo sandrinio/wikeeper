@@ -225,10 +225,16 @@ Feature: Search follow-ups
 | Item | Value |
 |---|---|
 | Primary File | `src/commands/search.ts` |
-| Related Files | `src/search/misses.ts`, `src/search/filters.ts`, `src/search/engine.ts` (additive optional type fields only), `src/ingest/log.ts` |
-| Consumed (not modified) | `src/search/since.ts` (`factsSince`, `toFactView`), `src/wiki/parse-page.ts` (`Fact`, `normalizeName`), `src/commands/doctor.ts` (`plural`) |
-| Test Files | `test/search/misses.test.ts`, `test/search/filters.test.ts`, `test/ingest/log.test.ts`, `test/search/search-follow-ups.test.ts`, `test/search/search-follow-ups.red.node.test.ts` (QA-Red), `test/search/search-misses.red.node.test.ts` (QA-Red re-scopes the one assertion at `:86`, authorised by gate1-decisions item 21, §1.4) |
-| New Files Needed | Yes — `test/search/search-follow-ups.test.ts` and QA-Red's `test/search/search-follow-ups.red.node.test.ts` |
+| Related Files | `src/search/misses.ts`, `src/search/filters.ts`, `src/search/engine.ts`, `src/ingest/log.ts` |
+| Test Files | `test/search/misses.test.ts`, `test/search/filters.test.ts`, `test/ingest/log.test.ts`, `test/search/search-misses.red.node.test.ts` |
+| Test Files (new) | `test/search/search-follow-ups.test.ts`, `test/search/search-follow-ups.red.node.test.ts` |
+| New Files Needed | `test/search/search-follow-ups.test.ts`, `test/search/search-follow-ups.red.node.test.ts` |
+
+- **Notes on the files above:**
+  - Related files: `src/search/engine.ts` (additive optional type fields only).
+  - Test files: `test/search/search-follow-ups.red.node.test.ts` (QA-Red), `test/search/search-misses.red.node.test.ts` (QA-Red re-scopes the one assertion at `:86`, authorised by gate1-decisions item 21, §1.4).
+  - New files needed: `test/search/search-follow-ups.test.ts` and QA-Red's `test/search/search-follow-ups.red.node.test.ts`.
+- **Read, not edited (consumed, not modified):** `src/search/since.ts` (`factsSince`, `toFactView`), `src/wiki/parse-page.ts` (`Fact`, `normalizeName`), `src/commands/doctor.ts` (`plural`).
 
 ### 3.2 Technical Logic
 - **`--no-miss`** (R1): `.option("--no-miss", …)` after `--misses`. Commander 15.0.0, checked on 2026-10-17 with a scratch program against `node_modules/commander`: `opts.miss` is `true` by default and `false` with `--no-miss`; `search --help` prints `--no-miss` with no default; `--miss` is an unknown option (exit 2, `usage`). `SearchOptions` gains `miss: boolean`, and the action sets `req.noMiss = opts.miss === false`. In `executeSearch`, the recording step becomes `if (!req.noMiss && shouldRecordMiss(data))`, so no write is attempted and no `miss not logged` warning can appear; `shouldRecordMiss` keeps its frozen signature.
