@@ -242,29 +242,61 @@ describe("BUG-002: no backup for files wikeeper created; recorded backups die wi
   });
 });
 
-describe("CR-001 ai mode allows only ingest and search commands", () => {
-  it("CLAUDE_ENFORCE ai rules are the ingest pair followed by the search pair", () => {
+describe("CR-001 ai mode allows only ingest and search commands, and asks for the destructive flags", () => {
+  it("CLAUDE_ENFORCE ai rules are the ingest pair, the four ask rules, then the search pair", () => {
     const rules = CLAUDE_ENFORCE.items("CMD", "ai").filter((i) => i.kind === "rule");
-    expect(rules.map((i) => i.value)).toEqual([
-      "Bash(npx wikeeper ingest *)",
-      "Bash(wikeeper ingest *)",
-      "Bash(npx wikeeper search *)",
-      "Bash(wikeeper search *)",
-    ]);
     expect(rules.map((i) => i.identity)).toEqual([
       "permissions.allow[Bash(npx wikeeper ingest *)]",
       "permissions.allow[Bash(wikeeper ingest *)]",
+      "permissions.ask[Bash(npx wikeeper ingest *--drop*)]",
+      "permissions.ask[Bash(wikeeper ingest *--drop*)]",
+      "permissions.ask[Bash(npx wikeeper ingest *--force-unlock*)]",
+      "permissions.ask[Bash(wikeeper ingest *--force-unlock*)]",
       "permissions.allow[Bash(npx wikeeper search *)]",
       "permissions.allow[Bash(wikeeper search *)]",
     ]);
+    expect(rules.map((i) => i.value)).toEqual(rules.map((i) => /\[(.*)\]$/.exec(i.identity)![1]));
   });
 
-  it("Codex ai rules are the ingest pair followed by the search pair, npx first", () => {
+  it("Codex ai rules are the ingest pair, the abort prompts, then the search pair, npx first", () => {
     expect(CODEX_ENFORCE[1].items("CMD", "ai").map((i) => i.value)).toEqual([
       'prefix_rule(pattern=["npx","wikeeper","ingest"], decision="allow")',
       'prefix_rule(pattern=["wikeeper","ingest"], decision="allow")',
+      'prefix_rule(pattern=["npx","wikeeper","ingest","abort"], decision="prompt")',
+      'prefix_rule(pattern=["wikeeper","ingest","abort"], decision="prompt")',
       'prefix_rule(pattern=["npx","wikeeper","search"], decision="allow")',
       'prefix_rule(pattern=["wikeeper","search"], decision="allow")',
     ]);
+  });
+});
+
+describe("STORY-002-09: update with enforce off removes the rules; malformed settings stop update", () => {
+  it("enforce false then update restores the user's original settings and drops the files wikeeper made", async () => {
+    await pathWith(true);
+    const original = '{\n  "model": "x",\n  "permissions": {\n    "deny": [\n      "Read(.env)"\n    ]\n  }\n}\n';
+    const root = await repo({ ".wiki/config.yml": "agents: [claude, codex]\ningest:\n  permission: ai\n", ".claude/settings.json": original });
+    expect((await drive(root, ["init", "--json", "--agents", "claude,codex", "--enforce", "--yes"])).code).toBe(0);
+    expect(await read(root, ".claude/settings.json")).toContain("permissions");
+    const cfg = (await read(root, ".wiki/config.yml")).replace(/enforce: true/, "enforce: false");
+    await writeFile(path.join(root, ".wiki", "config.yml"), cfg);
+    expect((await drive(root, ["update", "--json"])).code).toBe(0);
+    expect(await read(root, ".claude/settings.json")).toBe(original);
+    expect(await exists(root, ".claude/settings.json.bak")).toBe(false);
+    expect(await exists(root, ".codex/rules/wikeeper.rules")).toBe(false);
+    expect(await exists(root, ".codex/hooks.json")).toBe(false);
+    expect((await drive(root, ["update", "--json"])).code).toBe(0);
+    expect(await read(root, ".claude/settings.json")).toBe(original);
+    expect(await exists(root, ".codex/rules/wikeeper.rules")).toBe(false);
+  });
+
+  it("a malformed settings file stops update with settings_invalid and stays byte-identical", async () => {
+    await pathWith(true);
+    const root = await repo({ ".wiki/config.yml": "agents: [claude]\ningest:\n  permission: ai\n" });
+    expect((await drive(root, ["init", "--json", "--agents", "claude", "--enforce", "--yes"])).code).toBe(0);
+    await writeFile(path.join(root, ".claude", "settings.json"), "{ not json");
+    const r = await drive(root, ["update", "--json"]);
+    expect(r.code).toBe(1);
+    expect(JSON.stringify(r.json)).toContain("settings_invalid");
+    expect(await read(root, ".claude/settings.json")).toBe("{ not json");
   });
 });

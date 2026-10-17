@@ -22,6 +22,10 @@ export async function packCli(): Promise<{ cli: string; cleanup(): Promise<void>
       [path.join(PKG_ROOT, "node_modules", "typescript", "bin", "tsc"), "-p", "tsconfig.build.json", "--outDir", build],
       { cwd: PKG_ROOT, stdio: "pipe" },
     );
+    execFileSync(process.execPath, [path.join(PKG_ROOT, "scripts", "build-info.mjs"), build], {
+      cwd: PKG_ROOT,
+      stdio: "pipe",
+    });
     const stage = path.join(tmp, "stage");
     await cp(build, path.join(stage, "dist"), { recursive: true });
     await cp(path.join(PKG_ROOT, "templates"), path.join(stage, "templates"), { recursive: true });

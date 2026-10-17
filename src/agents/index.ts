@@ -13,7 +13,7 @@ import { createLineReader } from "./ask-agents.js";
 import { createAskAgents } from "./ask-agents.js";
 import { detectAgentFiles, needsInputError, resolveAgents, resolveTargets } from "./detect.js";
 import type { AgentFile, AgentSource } from "./detect.js";
-import { AGENT_CHECKS, readBlockSignature } from "./doctor-checks.js";
+import { AGENT_CHECKS, blockTargets, readBlockSignature, wiringSummary } from "./doctor-checks.js";
 import type { AgentCheckInput, BlockSignature } from "./doctor-checks.js";
 import { injectIntoFile, stripFromFile } from "./inject.js";
 import { SHARED_AGENT, upsertManifestEntry } from "./skills.js";
@@ -356,7 +356,7 @@ async function doctor(ctx: IntegrationContext): Promise<DoctorCheck[]> {
     out.unshift({
       id: "agent-wiring",
       severity: "ok",
-      message: `agents ${agents.join(", ")}: WIKI block in ${n("block")} files, ${n("skill")} skills, ${n("subagent")} sub-agents`,
+      message: wiringSummary(agents, blockTargets(input), n("skill"), n("subagent")),
     });
   }
   return out;
