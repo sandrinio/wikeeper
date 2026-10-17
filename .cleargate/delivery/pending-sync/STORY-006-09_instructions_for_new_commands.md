@@ -301,12 +301,12 @@ Not applicable — template text. Consumes read-only: `PAGE_CHECKS` and the find
 
 - [ ] QA-Red: apply STORY-006-11 R6 (c) to `test/templates/wiki-protocol.red.node.test.ts` and R6 (d) to `test/templates/setup.red.node.test.ts` -> R11
 - [ ] QA-Red: write `test/templates/sprint-03-commands.red.node.test.ts` from the five scenarios in §2.1 -> R1–R10
-- [ ] Write the `read` bullets, the `read` table and the Delegation Link row -> R1
-- [ ] Write section "Lint and status": status use and fields, lint usage, the finding table, `lint --rules` -> R2, R3, R4
-- [ ] Add the finding pointer to "Write phase" step 9 and the lint step to "Log and index" -> R5, R7
-- [ ] Rewrite the decision and dry-run part of "Proposing rule changes" -> R6
-- [ ] Update SETUP.md steps 2 and 3 and the `wiki-ingest` skill -> R8, R9
-- [ ] Run `npm test` in full; check `test/templates.test.ts` reports no finding -> R10, R11
+- [x] Write the `read` bullets, the `read` table and the Delegation Link row -> R1
+- [x] Write section "Lint and status": status use and fields, lint usage, the finding table, `lint --rules` -> R2, R3, R4
+- [x] Add the finding pointer to "Write phase" step 9 and the lint step to "Log and index" -> R5, R7
+- [x] Rewrite the decision and dry-run part of "Proposing rule changes" -> R6
+- [x] Update SETUP.md steps 2 and 3 and the `wiki-ingest` skill -> R8, R9
+- [x] Run `npm test` in full; check `test/templates.test.ts` reports no finding -> R10, R11
 
 ## 4. Quality Gates
 
