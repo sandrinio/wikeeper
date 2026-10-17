@@ -89,6 +89,8 @@ npm test
 npm run build
 ```
 
+Timing tests run separately: `npm run test:perf`.
+
 ## License
 
 [MIT](LICENSE)
