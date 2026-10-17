@@ -6,6 +6,8 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-17 · #qa #red-test · Red rows that read a CLI form out of template text and run it live need a scratch copy with the planned text applied, to prove them green before the red commit.
+2026-10-17 · #qa #test-harness · structure.ts finding lines are 1-based (i+1): a text line inserted two below a heading reports heading index + 3.
 2026-10-17 · #test-harness #finish · finish refuses a page that does not cite [[<this ingest's id>]] (validation_failed, details.uncited); every page a fixture writer changes must cite the ingest's own id.
 2026-10-17 · #read #output · read's human output prints only warning:/error: messages; codes (likely_scanned, http_error) and details.status are only in --json (data.warnings[].code, error.code).
 2026-10-17 · #templates #structure · A check added to runAllChecks runs in every real-tree caller (templates.test.ts, other stories' red S4); build it on a tree that already has the text it checks.
