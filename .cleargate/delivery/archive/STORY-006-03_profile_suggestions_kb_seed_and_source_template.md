@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-006
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: "Completed"
+status: Completed
 approved: true
 ambiguity: 🟢 Low
 context_source: EPIC-006 (approved 2026-10-16) · SPRINT-02 decomposition contract 13 (human decision 2026-10-16 — no fixed pages; the profile only suggests) and contracts 1, 2, 12 · architecture.md §5.2, §8, D-03, D-27, D-31 · verified src/commands/init.ts, src/core/gitignore.ts, templates/kb_instructions.management.md
@@ -23,7 +23,7 @@ created_at: 2026-10-16T18:45:00Z
 updated_at: 2026-10-16T20:46:34Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
-server_pushed_at_version: 3
+server_pushed_at_version: 4
 cached_gate_result:
   pass: true
   failing_criteria: []
@@ -36,7 +36,7 @@ last_pulled_at: null
 last_remote_update: null
 source: local-authored
 last_synced_status: null
-last_synced_body_sha: d7af579d1889ab374d72ffa42371b3c993a2040997f474d0df267c7b22467a91
+last_synced_body_sha: 6db579a57885ccc03f8b3042b880727620ce8c6aa57333a8cd110d240e33fbd5
 draft_tokens:
   input: 0
   output: 0

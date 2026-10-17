@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-004
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: "Completed"
+status: Completed
 approved: true
 ambiguity: 🟢 Low
 context_source: EPIC-004 (approved 2026-10-16; §2 optional on-disk cache, §3 performance budget) · architecture.md §4.1 (ownership) · SPRINT-02 decomposition brief (contract 10) · verified src/core/gitignore.ts (.wiki/.cache/ ignored), src/commands/remove.ts, src/core/manifest.ts (sha256)
@@ -21,7 +21,7 @@ created_at: 2026-10-16T18:45:00Z
 updated_at: 2026-10-16T22:41:37Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
-server_pushed_at_version: 1
+server_pushed_at_version: 2
 cached_gate_result:
   pass: true
   failing_criteria: []
@@ -34,7 +34,7 @@ last_pulled_at: null
 last_remote_update: null
 source: local-authored
 last_synced_status: null
-last_synced_body_sha: b0433d7977cde32a45d34bf4a3aea213438af5307f5a40812125631f95dd54c8
+last_synced_body_sha: 322ea0433ab9da3e031374259c6e09451e216458fa8c77b24d42391ddf652f89
 stamp_error: no ledger rows for work_item_id STORY-004-06
 draft_tokens:
   input: null

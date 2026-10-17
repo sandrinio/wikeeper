@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-006
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: "Completed"
+status: Completed
 approved: true
 ambiguity: 🟢 Low
 context_source: "EPIC-006 (approved 2026-10-16; CR-002 scope addition) · CR-002 B1–B4 and §0.5 answers (approved 2026-10-16: 14-line cap; me.md read via the block) · SPRINT-02 decomposition contract 13 (me.md, project.md, ONBOARDING.md; human, 2026-10-16) · architecture.md §6.4, §6.5 · verified templates/agent-block.md, src/agents/hook-protocols.ts, src/agents/doctor-checks.ts, src/agents/inject.ts"
@@ -20,7 +20,7 @@ created_at: 2026-10-16T18:45:00Z
 updated_at: 2026-10-16T18:45:00Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
-server_pushed_at_version: 3
+server_pushed_at_version: 4
 cached_gate_result:
   pass: true
   failing_criteria: []
@@ -33,7 +33,7 @@ last_pulled_at: null
 last_remote_update: null
 source: local-authored
 last_synced_status: null
-last_synced_body_sha: 824eddfe1ccea3537e47a3a420afe5be175ff80221a212aeb8ce80268d209fad
+last_synced_body_sha: 508a9659357ffcbf0c2e5e1d812bfab0f50698c4ca23970ac03a9b48cedd221b
 draft_tokens:
   input: 0
   output: 0

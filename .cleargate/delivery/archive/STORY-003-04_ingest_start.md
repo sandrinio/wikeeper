@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-003
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: "Completed"
+status: Completed
 approved: true
 ambiguity: 🟢 Low
 context_source: EPIC-003 §2 (ingest start, exit codes 3/4, --approved, --reingest), §3 (network only in read), §5 (ask-mode scenario) · architecture.md §7.1–7.3, D-04, D-06–D-08, D-20 · CR-001 (ai allow rule covers wikeeper ingest *) · SPRINT-02 decomposition brief contracts 3–6 · verified src/program.ts, src/core/output.ts, src/commands/hook.ts
@@ -23,7 +23,7 @@ created_at: 2026-10-16T18:45:00Z
 updated_at: 2026-10-16T22:39:16Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
-server_pushed_at_version: 4
+server_pushed_at_version: 5
 cached_gate_result:
   pass: true
   failing_criteria: []
@@ -36,7 +36,7 @@ last_pulled_at: null
 last_remote_update: null
 source: local-authored
 last_synced_status: null
-last_synced_body_sha: 642ad46a122cae370a9db6c4ad1f36c6c92721a76ae13304f3675bfbc681055d
+last_synced_body_sha: c73b4467ab140d59029616eb0ddc5cf44c0af15100f517b7c183223ce056112c
 stamp_error: no ledger rows for work_item_id STORY-003-04
 draft_tokens:
   input: null

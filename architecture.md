@@ -318,12 +318,14 @@ wikeeper ingest facts <id> < facts.json
                                 validate against the facts schema; store raw/<id>.facts.json
 
 WRITE — writer agent, one source at a time (§7.4)
-wikeeper ingest apply <id>      take lock, snapshot pages, print facts + brief
+wikeeper ingest apply <id>      take lock, snapshot pages, print the brief's ingest line
+                                + facts (the writer's task carries the rest of the brief)
   … writer updates pages …
 wikeeper ingest finish <id>
   POST-HOOK
   1. diff pages against snapshot → created / updated / deleted
-  2. validate: every changed page cites the source id; no writes outside pages/
+  2. validate: every changed page cites the source id and has valid frontmatter;
+     no writes outside pages/
   3. regenerate index.md; write a log entry (log/<timestamp>-<id>.md)
   4. run user post_ingest hooks (e.g. git commit)
   5. lint

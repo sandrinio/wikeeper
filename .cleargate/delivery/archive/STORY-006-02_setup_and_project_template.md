@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-006
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: "Completed"
+status: Completed
 approved: true
 ambiguity: 🟢 Low
 context_source: EPIC-006 (approved 2026-10-16; CR-002 scope addition) · human decision 2026-10-16 (no fixed pages; me.md, project.md, ONBOARDING.md — decomposition contract 13) · CR-002 B6 and §0.5 decision 3 (approved 2026-10-16) · architecture.md §5.1, §6.6, §7.2, D-30, D-31 · SPRINT-02 decomposition contracts 12, 13 · verified src/commands/init.ts, src/agents/enforce/{claude,codex,antigravity}.ts, src/core/config.ts, src/core/paths.ts, src/commands/remove.ts, test/paths.red.node.test.ts
@@ -20,7 +20,7 @@ created_at: 2026-10-16T18:45:00Z
 updated_at: 2026-10-16T21:18:30Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
-server_pushed_at_version: 3
+server_pushed_at_version: 4
 cached_gate_result:
   pass: true
   failing_criteria: []
@@ -33,7 +33,7 @@ last_pulled_at: null
 last_remote_update: null
 source: local-authored
 last_synced_status: null
-last_synced_body_sha: 5d294ea2a7ece44cf72a2d7d9653df31079b0e61bba37d4d0dcc6962a22421b8
+last_synced_body_sha: e52088abbfebcfe446ff9cacf31975f448dde2f7f986b5bfe186dc97c37c7005
 stamp_error: no ledger rows for work_item_id STORY-006-02
 draft_tokens:
   input: null

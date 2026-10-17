@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-002
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: "Completed"
+status: Completed
 approved: true
 ambiguity: 🟢 Low
 context_source: CR-002 A6, A7 and its Open Question 2 answer (approved 2026-10-16; SPRINT-01 walkthrough steps 1.4d, 1.4g, 2.1a, 2.1c) · EPIC-002 · BUG-002 (fixed in SPRINT-01) · verified src/agents/enforce/index.ts, src/commands/init.ts, src/commands/update.ts, src/core/gitignore.ts, src/core/integrations.ts
@@ -21,7 +21,7 @@ created_at: 2026-10-16T18:40:00Z
 updated_at: 2026-10-16T18:40:00Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
-server_pushed_at_version: 1
+server_pushed_at_version: 2
 cached_gate_result:
   pass: true
   failing_criteria: []
@@ -34,7 +34,7 @@ last_pulled_at: null
 last_remote_update: null
 source: local-authored
 last_synced_status: null
-last_synced_body_sha: eaa99df2697c059b8bb03052380ecc3c1cd99ca722361df223a978a2b05652c8
+last_synced_body_sha: af8a49e877cad9ec06845c1df2b90fdbbb2e751864abe508fd4ca89156b194b5
 stamp_error: no ledger rows for work_item_id STORY-002-08
 draft_tokens:
   input: null

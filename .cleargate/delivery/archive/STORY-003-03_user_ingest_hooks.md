@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-003
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: "Completed"
+status: Completed
 approved: true
 ambiguity: 🟢 Low
 context_source: EPIC-003 §2 (user hooks with {source_id} substitution and a timeout) · architecture.md §7.3 (pre-hook step 5, post-hook step 4), §11 hooks · SPRINT-02 decomposition brief contract 5 · verified src/core/config.ts
@@ -20,7 +20,7 @@ created_at: 2026-10-16T18:45:00Z
 updated_at: 2026-10-16T21:36:30Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
-server_pushed_at_version: 6
+server_pushed_at_version: 7
 cached_gate_result:
   pass: true
   failing_criteria: []
@@ -33,7 +33,7 @@ last_pulled_at: null
 last_remote_update: null
 source: local-authored
 last_synced_status: null
-last_synced_body_sha: a88cf3e94f638f152dee94835ffe5b2d5a45174c4a80b26f536870c9fe751285
+last_synced_body_sha: dc0e9602fbf08a0dd83bb8ef9f40acef283b4f6167d6aa537a4c378c8ae01b63
 stamp_error: no ledger rows for work_item_id STORY-003-03
 draft_tokens:
   input: null

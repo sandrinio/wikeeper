@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-006
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: "Completed"
+status: Completed
 approved: true
 ambiguity: 🟢 Low
 context_source: EPIC-006 (approved 2026-10-16; CR-002 scope addition) · CR-002 B4, B7 (approved 2026-10-16) · architecture.md §7.1–7.6, §8, §9, D-04–D-08, D-16–D-19, D-26, D-28 · SPRINT-02 decomposition brief (commands at end of SPRINT-02; contracts 1, 3, 7, 8, 11, 12, 13 — human decision 2026-10-16, no fixed pages) · verified templates/system/WIKI.md, src/core/config.ts
@@ -23,7 +23,7 @@ created_at: 2026-10-16T18:45:00Z
 updated_at: 2026-10-17T07:30:08Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
-server_pushed_at_version: 3
+server_pushed_at_version: 4
 cached_gate_result:
   pass: true
   failing_criteria: []
@@ -36,7 +36,7 @@ last_pulled_at: null
 last_remote_update: null
 source: local-authored
 last_synced_status: null
-last_synced_body_sha: 127724c34e476e03828d495c602e6cd6d81d40731703b2acc059a7fff85390ab
+last_synced_body_sha: b8391ffa979c94cce6314f1c2bcb2f97a89a92501363a4d425ca6cfc55f56b79
 stamp_error: no ledger rows for work_item_id STORY-006-04
 draft_tokens:
   input: null

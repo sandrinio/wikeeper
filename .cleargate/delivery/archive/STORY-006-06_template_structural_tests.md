@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-006
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: "Completed"
+status: Completed
 approved: true
 ambiguity: 🟢 Low
 context_source: EPIC-006 (approved 2026-10-16; §2 structural tests, §3 formats and caps, §5 Gherkin) · CR-002 §4 'one ingest vocabulary' scenario and the 14-line cap (approved 2026-10-16) · SPRINT-02 decomposition brief (contracts 1, 2, 11, 12, 13 — human decision 2026-10-16, no fixed pages, me.md and project.md) · verified src/program.ts, src/agents/hook-protocols.ts, src/agents/enforce/{claude,codex,antigravity}.ts, src/core/templates.ts
@@ -39,7 +39,7 @@ created_at: 2026-10-16T18:45:00Z
 updated_at: 2026-10-16T23:35:21Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
-server_pushed_at_version: 1
+server_pushed_at_version: 2
 cached_gate_result:
   pass: true
   failing_criteria: []
@@ -52,7 +52,7 @@ last_pulled_at: null
 last_remote_update: null
 source: local-authored
 last_synced_status: null
-last_synced_body_sha: c8cf266fe043d84207b6607e35879837f01d1289563120127338ed4368d1fc5a
+last_synced_body_sha: 65a87e386f5f0d16ffae0c1183be1e370c3f93cc901ad38aea1874074947dbd5
 stamp_error: no ledger rows for work_item_id STORY-006-06
 draft_tokens:
   input: null

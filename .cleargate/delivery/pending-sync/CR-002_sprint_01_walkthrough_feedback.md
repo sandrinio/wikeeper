@@ -12,7 +12,7 @@ created_at: 2026-10-16T17:15:00Z
 updated_at: 2026-10-16T18:30:00Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
-server_pushed_at_version: 3
+server_pushed_at_version: 4
 cached_gate_result:
   pass: true
   failing_criteria: []
@@ -25,7 +25,7 @@ last_pulled_at: null
 last_remote_update: null
 source: local-authored
 last_synced_status: null
-last_synced_body_sha: 981441431e19182db74daf1057bc784727c95b627f281c21812770d3ebd5fb32
+last_synced_body_sha: 8d149eb98063414250a2c9b3a26fab5b49d1395addb5df19fa68c2ad845e496f
 stamp_error: no ledger rows for work_item_id CR-002
 draft_tokens:
   input: null

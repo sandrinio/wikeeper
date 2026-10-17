@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-006
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: "Completed"
+status: Completed
 approved: true
 ambiguity: 🟢 Low
 context_source: EPIC-006 (approved 2026-10-16, amended for contract 13) · human decision 2026-10-16 (close the setup-file gaps with a doctor check, keep update as STORY-002-08 R4 has it) · decomposition contract 13 · verified src/commands/doctor.ts, src/core/integrations.ts, src/core/gitignore.ts, src/core/paths.ts, src/core/config.ts, test/doctor.red.node.test.ts
@@ -22,7 +22,7 @@ created_at: 2026-10-16T23:30:00Z
 updated_at: 2026-10-16T22:01:00Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
-server_pushed_at_version: 1
+server_pushed_at_version: 2
 draft_tokens:
   input: null
   output: null
@@ -42,7 +42,7 @@ last_pulled_at: null
 last_remote_update: null
 source: local-authored
 last_synced_status: null
-last_synced_body_sha: a7ec45674846319c96d21f35832f7fae7003a21b0b3c6df85753f4fac338971f
+last_synced_body_sha: c776c5b17312eae2701e7fdae097391f72cf807c05e92d53142df81f243576d4
 ---
 
 # STORY-006-08: `wikeeper doctor` checks the setup files

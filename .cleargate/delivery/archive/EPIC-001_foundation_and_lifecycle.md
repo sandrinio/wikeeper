@@ -14,7 +14,7 @@ created_at: 2026-10-16T13:15:00Z
 updated_at: 2026-10-16T13:15:00Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
-server_pushed_at_version: 8
+server_pushed_at_version: 9
 cached_gate_result:
   pass: true
   failing_criteria: []
@@ -27,7 +27,7 @@ last_pulled_at: null
 last_remote_update: null
 source: local-authored
 last_synced_status: null
-last_synced_body_sha: 9afb2ca5b59ef400dec392b9d2dddb6f12c46be80e79a24f62e56fb2d3970726
+last_synced_body_sha: b63a46a8279aa79458616ce1460c4923b9bcc610200011903f56a5272829b652
 stamp_error: no ledger rows for work_item_id EPIC-001
 draft_tokens:
   input: null

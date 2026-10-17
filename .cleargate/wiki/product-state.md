@@ -6,8 +6,8 @@
 
 | Type | Total | Active | Shipped |
 |------|-------|--------|---------|
-| Epics | 6 | 0 | 0 |
-| Sprints | 2 | 0 | 1 |
+| Epics | 6 | 0 | 5 |
+| Sprints | 2 | 0 | 2 |
 | Proposals | 0 | 0 | 0 |
 | CRs | 2 | 0 | 1 |
 | Bugs | 2 | 0 | 2 |
@@ -29,8 +29,20 @@ _No active epics._
 
 - [[CR-001]] (crs) — Completed
 
+- [[EPIC-001]] (epics) — Completed
+
+- [[EPIC-002]] (epics) — Completed
+
+- [[EPIC-003]] (epics) — Completed
+
+- [[EPIC-004]] (epics) — Completed
+
+- [[EPIC-006]] (epics) — Completed
+
 - [[INITIATIVE-001]] (initiatives) — Triaged
 
 - [[SPRINT-01]] (sprints) — Completed
+
+- [[SPRINT-02]] (sprints) — Completed
 
 

@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-004
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: "Completed"
+status: Completed
 approved: true
 ambiguity: 🟢 Low
 context_source: EPIC-004 (approved 2026-10-16) · architecture.md §7.4, §8, D-15, D-29 · CR-001 (search allow rule) · SPRINT-02 decomposition brief (contract 10) · verified src/program.ts, src/core/output.ts, src/agents/enforce/claude.ts, src/agents/enforce/codex.ts · minisearch 7.2.0 checked on npm 2026-10-16
@@ -21,7 +21,7 @@ created_at: 2026-10-16T18:45:00Z
 updated_at: 2026-10-16T22:01:00Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
-server_pushed_at_version: 2
+server_pushed_at_version: 3
 cached_gate_result:
   pass: true
   failing_criteria: []
@@ -34,7 +34,7 @@ last_pulled_at: null
 last_remote_update: null
 source: local-authored
 last_synced_status: null
-last_synced_body_sha: 551887af0dab3a4591081490b2f80d744b591d96a6da44ac1b06fa6dff8dbc66
+last_synced_body_sha: 59873b02b1c6ab009bdda59945a72961ffc2bfa3c68ddba8ce55873d0e3527d8
 stamp_error: no ledger rows for work_item_id STORY-004-02
 draft_tokens:
   input: null

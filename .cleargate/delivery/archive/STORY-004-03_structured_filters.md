@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-004
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: "Completed"
+status: Completed
 approved: true
 ambiguity: 🟢 Low
 context_source: EPIC-004 (approved 2026-10-16) · architecture.md §5.2 (entities), §5.3 (risks.md register), §8 (typed links) · SPRINT-02 decomposition brief (contracts 1, 10) · verified src/core/exit-codes.ts
@@ -22,7 +22,7 @@ created_at: 2026-10-16T18:45:00Z
 updated_at: 2026-10-16T18:45:00Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
-server_pushed_at_version: 2
+server_pushed_at_version: 3
 cached_gate_result:
   pass: true
   failing_criteria: []
@@ -35,7 +35,7 @@ last_pulled_at: null
 last_remote_update: null
 source: local-authored
 last_synced_status: null
-last_synced_body_sha: b9e7480a9317fdb99be5888a158f7c313e389dd9483d29c195e1088d2fcd6329
+last_synced_body_sha: f99972e2260c0f2c88c0bbfaa9f1c84256bd89cd56758ceb88feef5dbfb0987d
 stamp_error: no ledger rows for work_item_id STORY-004-03
 draft_tokens:
   input: null

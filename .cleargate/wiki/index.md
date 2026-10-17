@@ -4,19 +4,14 @@
 
 ## Active
 
-- [[EPIC-001]] (epic) — Draft — Foundation and lifecycle
-- [[EPIC-002]] (epic) — Draft — Agent integration
-- [[EPIC-003]] (epic) — Draft — Ingest pipeline
-- [[EPIC-004]] (epic) — Draft — Search (`wiki_search`)
 - [[EPIC-005]] (epic) — Draft — Lint, status and rule evolution
-- [[EPIC-006]] (epic) — Draft — Instructions and Management profile
-- [[SPRINT-02]] (sprint) — Draft — Ingest, search and instructions
 - [[INITIATIVE-001]] (initiative) — Triaged — Wiki CLI — Karpathy-style LLM wiki for AI agents
 - [[CR-002]] (cr) — Draft — SPRINT-01 walkthrough feedback — CLI polish and scope notes for SPRINT-02/03
 
 ## Archive
 
-- Sprints: 1 Completed · [expand](archive/sprints.md)
+- Epics: 5 Completed · [expand](archive/epics.md)
+- Sprints: 2 Completed · [expand](archive/sprints.md)
 - CRs: 1 Completed · [expand](archive/crs.md)
 - Bugs: 2 Completed · [expand](archive/bugs.md)
 

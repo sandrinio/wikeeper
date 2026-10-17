@@ -6,7 +6,7 @@
 [![CI](https://github.com/sandrinio/wikeeper/actions/workflows/ci.yml/badge.svg)](https://github.com/sandrinio/wikeeper/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-> **Status: pre-alpha.** On `main`, the install lifecycle works: `init`, `update`, `remove`, `doctor`, `setup`, the agent wiring for Claude Code, Codex and Antigravity, and the opt-in `--enforce` hooks. It is not yet published to npm (`0.0.1` there only reserves the name). Ingest and search are being built next. The full design is in [`architecture.md`](architecture.md).
+> **Status: pre-alpha.** On `main`, the install lifecycle works: `init`, `update`, `remove`, `doctor`, `setup`, the agent wiring for Claude Code, Codex and Antigravity, and the opt-in `--enforce` hooks. So do `ingest` (start, plan, facts, apply, finish, abort under all three permission modes) and `search`, with the real SETUP.md, ONBOARDING.md and WIKI.md instructions. It is not yet published to npm (`0.0.1` there only reserves the name). `read`, `lint` and `status` are being built next. The full design is in [`architecture.md`](architecture.md).
 
 ---
 
