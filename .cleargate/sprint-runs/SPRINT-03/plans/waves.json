@@ -56,7 +56,10 @@
         "src/lint/citations.ts: uncitedClaimCheck(LintCheck, \"uncited-claim\", error)",
         "src/commands/lint.ts: LintData(interface { scope; findings; counts })",
         "src/commands/lint.ts: createLintCommand(deps?: { now?: () => Date }): CommandModule",
-        "src/commands/lint.ts: lintCommand(CommandModule)"
+        "src/commands/lint.ts: lintCommand(CommandModule)",
+        "src/lint/paths.ts: pagePath(paths: ResolvedPaths, rel: string): string (final body, written once by the skeleton; src/lint/checks.ts re-exports it — M1 Open decision 1)",
+        "src/lint/links.ts: linkResolver(pages) (005-02 §3.3; M1 Open decision 2)",
+        "src/lint/citations.ts: ClaimBlock(type), claimBlocks(page) (005-02 §3.3; M1 Open decision 2)"
       ],
       "consumers": [
         "STORY-005-03",
@@ -66,8 +69,9 @@
         "STORY-006-10",
         "STORY-006-11"
       ],
-      "created_by": "developer skeleton dispatch (one dispatch writes C1, C2, C3 in stack order, one commit and one branch per contract; bodies throw 'contract stub Cn'; constants carry their frozen values; no tests, templates, package.json or package-lock.json); exceptions: the four check objects carry their frozen id, severity and scope (run() throws); PAGE_CHECKS = [brokenLinkCheck, uncitedClaimCheck, orphanPageCheck, indexDriftCheck] followed by one INSERTION POINT comment for STORY-005-03 (unloggedChangeCheck, directly after indexDriftCheck), one unchanged separator line, and one INSERTION POINT comment for STORY-005-08 (staleFactCheck, last); RULE_CHECKS = [] holding one INSERTION POINT comment for STORY-005-04 (...RULES_LINT_CHECKS); the import block holds one INSERTION POINT comment per consumer, separated by unchanged lines; the owner keeps every INSERTION POINT line untouched; createLintCommand registers 'lint' with --rules, --check <id...> and --json and an action that throws; src/ingest/lint-hook.ts gains line?: number on LintFinding; the commit also adds the owner's import + defaultCommands entry for lintCommand in src/program.ts; STORY-005-02 builds from this branch",
-      "create_when": "contract step, after C1"
+      "created_by": "developer skeleton dispatch (one dispatch writes C1, C2, C3 in stack order, one commit and one branch per contract; bodies throw 'contract stub Cn'; constants carry their frozen values; no tests, templates, package.json or package-lock.json); exceptions: the four check objects carry their frozen id, severity and scope (run() throws); PAGE_CHECKS = [brokenLinkCheck, uncitedClaimCheck, orphanPageCheck, indexDriftCheck] followed by one INSERTION POINT comment for STORY-005-03 (unloggedChangeCheck, directly after indexDriftCheck), one unchanged separator line, and one INSERTION POINT comment for STORY-005-08 (staleFactCheck, last); RULE_CHECKS = [] holding one INSERTION POINT comment for STORY-005-04 (...RULES_LINT_CHECKS); the import block holds one INSERTION POINT comment per consumer, separated by unchanged lines; the owner keeps every INSERTION POINT line untouched; createLintCommand registers 'lint' with --rules and --check <id...> (no local --json: the root --json applies, cross-cutting rule 2) and an action that throws; src/ingest/lint-hook.ts gains line?: number on LintFinding; the commit also adds the owner's import + defaultCommands entry for lintCommand in src/program.ts; STORY-005-02 builds from this branch",
+      "create_when": "contract step, after C1",
+      "notes": "M1 plan (orchestrator-accepted 2026-10-17): src/lint/paths.ts holds pagePath so check modules import checks.ts for types only (a value import of the registry from a check module throws a TDZ ReferenceError when the check module loads first). No story edits paths.ts."
     },
     {
       "id": "C3",
@@ -88,7 +92,7 @@
       "consumers": [
         "STORY-005-05"
       ],
-      "created_by": "developer skeleton dispatch (one dispatch writes C1, C2, C3 in stack order, one commit and one branch per contract; bodies throw 'contract stub Cn'; constants carry their frozen values; no tests, templates, package.json or package-lock.json); exceptions: createRulesCommand registers 'rules' with 'record' (--accepted, --rejected, --kind <k>, --summary <text>, --from <source-id>, --json) and 'list' (--json), actions throw; no src/ingest/log.ts edit (the summaryLine change is STORY-005-06's own); the commit also adds the owner's import + defaultCommands entry for rulesCommand in src/program.ts; STORY-005-06 builds from this branch",
+      "created_by": "developer skeleton dispatch (one dispatch writes C1, C2, C3 in stack order, one commit and one branch per contract; bodies throw 'contract stub Cn'; constants carry their frozen values; no tests, templates, package.json or package-lock.json); exceptions: createRulesCommand registers 'rules' with 'record' (--accepted, --rejected, --kind <k>, --summary <text>, --from <source-id>) and 'list' (the root --json applies; no local --json), actions throw; no src/ingest/log.ts edit (the summaryLine change is STORY-005-06's own); the commit also adds the owner's import + defaultCommands entry for rulesCommand in src/program.ts; STORY-005-06 builds from this branch",
       "create_when": "contract step, after C1 (second branch on C1)"
     },
     {
