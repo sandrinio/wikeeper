@@ -7,7 +7,7 @@ carry_over: false
 status: Draft
 approved: false
 ambiguity: 🟡 Medium
-context_source: EPIC-005 (approved 2026-10-16) §2 (`status`), §5 (re-ingest scenario) · CR-003 D5 (row 8.12) · architecture.md §8 (rule versions → re-ingest candidates), §9, D-28 · SPRINT-03 decomposition brief contracts K1, K4, K5 · verified src/ingest/lock.ts, src/ingest/registry.ts, src/ingest/log.ts, src/ingest/facts.ts, src/commands/ingest-abort.ts, src/commands/ingest-finish.ts, src/commands/ingest-start.ts, src/core/config.ts, src/core/paths.ts · real data checked read-only in ~/walkthrough-wiki/.wiki (9 finished ingests, 42 uncovered items, 52 miss events)
+context_source: EPIC-005 (approved 2026-10-16) §2 (`status`), §5 (re-ingest scenario) · CR-003 D5 (row 8.12) · architecture.md §8 (rule versions → re-ingest candidates), §9, D-28 · SPRINT-03 decomposition brief contracts K1, K4, K5, K9 · verified src/ingest/lock.ts, src/ingest/registry.ts, src/ingest/log.ts, src/ingest/facts.ts, src/commands/ingest-abort.ts, src/commands/ingest-finish.ts, src/commands/ingest-start.ts, src/core/config.ts, src/core/paths.ts · real data checked read-only in ~/walkthrough-wiki/.wiki (9 finished ingests, 42 uncovered items, 52 miss events) · SPRINT-03 gate1-decisions.md item 11 (recommended 2026-10-17, pending Gate 1), split 4 (2026-10-17, the read-only allow rules this story carried as R13 moved to STORY-005-09) and the `src/program.ts` merge-order call (revised 2026-10-17) · consistency audit findings 15, 16 (`origin` on re-ingest candidates) · verified src/program.ts at 40018c5
 actor: AI coding agent
 complexity_label: L2
 parallel_eligible: n
@@ -19,14 +19,14 @@ lane: standard
 db_write_set: []
 deferred_verification: []
 created_at: 2026-10-17T08:52:04Z
-updated_at: 2026-10-17T08:52:04Z
+updated_at: 2026-10-17T10:20:18Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
 server_pushed_at_version: null
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-17T08:57:30Z
+  last_gate_check: 2026-10-17T10:22:54Z
   transition: ready-for-execution
 pushed_by: null
 pushed_at: null
@@ -54,7 +54,7 @@ draft_tokens:
 ---
 
 # STORY-005-05: `wikeeper status`, with re-ingest candidates and pending rule suggestions
-**Complexity:** L2 — one new command module (`src/commands/status.ts`) that reads six existing sources of state (lock, registry, log, facts files, kb_instructions.md, config) and one registration line in `src/program.ts`. Consumes K1 `loadInstructions` (STORY-005-01) and K4 `listDecisions` (STORY-005-06); until they merge, build against their frozen signatures.
+**Complexity:** L2 — one new command module (`src/commands/status.ts`) that reads six existing sources of state (lock, registry, log, facts files, kb_instructions.md, config) and one registration line in `src/program.ts`. Consumes K1 `loadInstructions` (STORY-005-01) and K4 `listDecisions` (STORY-005-06); until they merge, build against their frozen signatures. The allow rules for `lint`, `status` and `rules list`, which an earlier revision carried here as R13, are STORY-005-09 (Gate 1 split 4, 2026-10-17).
 
 ## 1. The Spec (The Contract)
 
@@ -63,12 +63,12 @@ As an AI coding agent starting a session in a wiki, I want one read-only command
 
 ### 1.2 Detailed Requirements
 - **R1 — Command (K5).** `wikeeper status [--json]`. On an initialised wiki it exits 0 whatever it finds: it reports, it does not judge. No wiki → exit 1, code `not_initialised`. JSON data (`StatusData`, frozen by K5):
-  `{ open_ingest: LockInfo | null, stale_lock: boolean, unfinished_sources: string[], reingest_candidates: Array<{ source_id, kind, rule_version, current_version }>, pending_rule_suggestions: Array<{ source_id, items: string[] }>, setup: { completed_at: string | null, me: boolean, project: boolean }, misses: number }`. Every list is sorted by source id.
+  `{ open_ingest: LockInfo | null, stale_lock: boolean, unfinished_sources: string[], reingest_candidates: Array<{ source_id, origin, kind, rule_version, current_version }>, pending_rule_suggestions: Array<{ source_id, items: string[] }>, setup: { completed_at: string | null, me: boolean, project: boolean }, misses: number }`. Every list is sorted by source id.
 - **R2 — Read-only.** `status` creates, changes and deletes no file: not `log.md`, not `index.md`, not the search cache, not `.wiki/.lock`.
 - **R3 — Open ingest and stale lock.** From `readLock(paths, now)`: `open_ingest` is `LockState.lock` and `stale_lock` is `LockState.stale`. A lock older than `STALE_LOCK_MS` (2 hours) is stale; an unreadable `.wiki/.lock` gives `open_ingest: null` and `stale_lock: true`, as `readLock` already reports it.
 - **R4 — Unfinished sources.** The ids from `listSources` that no `ingest` log event names. An applied ingest that holds the lock is also unfinished. Abort events are ignored (§1.4 Q1): a source aborted without `--drop` keeps its `raw/` files and can be applied again, and a dropped source has no `raw/<id>.meta.json`, so it is not listed anyway.
 - **R5 — Re-ingest families.** Sources linked by `reingest_of` (`SourceMeta.reingest_of`, set by `ingest start --reingest`) form one family; links are followed in both directions, so all re-ingests of one original are one family even when each names the original. In each family only the finished ingest with the newest log event `at` counts for R6 and R7; the older ones are superseded. A finished ingest whose `raw/<id>.meta.json` is gone is a family of its own.
-- **R6 — Re-ingest candidates (K5).** For each counted ingest event, `current` is the first rule in `kb.kinds` (K1, `loadInstructions`) whose id equals `normalizeKindId(event.kind)`, as `findKindRule` picks it. The source is a candidate when `current` exists and the event's `rule_version` is `null` or lower than `current.version`. Entry: `{ source_id, kind, rule_version /* number | null */, current_version /* number */ }`. A kind with no rule today gives no candidate. When `kb_instructions.md` is missing (`loadInstructions` returns `null`), the list is empty and a warning says `kb_instructions.md is missing: re-ingest candidates were not computed`.
+- **R6 — Re-ingest candidates (K5).** For each counted ingest event, `current` is the first rule in `kb.kinds` (K1, `loadInstructions`) whose id equals `normalizeKindId(event.kind)`, as `findKindRule` picks it. The source is a candidate when `current` exists and the event's `rule_version` is `null` or lower than `current.version`. Entry: `{ source_id, origin, kind, rule_version /* number | null */, current_version /* number */ }`. `origin` (additive to K5, owned here) is the counted ingest event's `origin`, which `finish` copies from the source's meta (`src/commands/ingest-finish.ts:176`), so it is there even when the meta is gone: a repository-relative or absolute POSIX path, a normalised URL, or `stdin` (`src/ingest/registry.ts:25`). It is what the agent passes to `wikeeper ingest start <origin> --reingest` from the repository root (STORY-006-09); a `stdin` source has nothing to point at, and its text must be supplied again. A kind with no rule today gives no candidate. When `kb_instructions.md` is missing (`loadInstructions` returns `null`), the list is empty and a warning says `kb_instructions.md is missing: re-ingest candidates were not computed`.
 - **R7 — Pending rule suggestions (K5, CR-003 D5).** For each counted ingest event: when `readFacts(paths, id)` returns a non-empty `uncovered` and no `RuleDecision` from `listDecisions` (K4) has `source_id === id`, the entry is `{ source_id, items: uncovered }`, items in file order. One recorded decision with `--from <id>` covers all of that source's items (K5). Facts of unfinished sources are not read. A missing facts file, or one that `readFacts` rejects, skips the source with a warning naming `raw/<id>.facts.json`; status still exits 0.
 - **R8 — Setup.** `completed_at` is `config.setup_completed_at`; `me` and `project` are whether `paths.meFile` and `paths.projectFile` exist. Ignore and commit checks stay in `doctor` (`src/core/setup-files.ts`).
 - **R9 — Misses.** `misses` is the number of `miss` events in `log/` (every event, not distinct queries; `search --misses` groups them).
@@ -76,23 +76,23 @@ As an AI coding agent starting a session in a wiki, I want one read-only command
 - **R11 — Human output.** One block per area, in R1 order, each starting with a fixed label and a count:
   - `open ingest: none`, or `open ingest: <id> holds the write lock (acquired <age> ago)` using `formatLockAge`, with `; the lock is stale (older than 2 hours)` when stale; an unreadable lock prints `open ingest: .wiki/.lock is unreadable and counts as stale`.
   - `unfinished sources: none` or `unfinished sources: N`, then one indented id per line.
-  - `re-ingest candidates: none` or `re-ingest candidates: N`, then `  <id> (<kind> v<rule_version>, rule now v<current_version>)`, with `no rule` in place of `v<rule_version>` when it is `null`.
+  - `re-ingest candidates: none` or `re-ingest candidates: N`, then `  <id> (<kind> v<rule_version>, rule now v<current_version>) from <origin>`, with `no rule` in place of `v<rule_version>` when it is `null`.
   - `pending rule suggestions: none` or `pending rule suggestions: <n> source(s), <m> item(s)`, then each id and its items as `    - <item>`, and one hint line: `decide with wikeeper rules record --accepted|--rejected --kind <k> --summary <text> --from <id>`.
   - `setup: completed <completed_at>` or `setup: not completed`, then `· me.md present|missing · project.md present|missing`.
   - `misses: none` or `misses: N recorded (wikeeper search --misses lists them)`.
-- **R12 — Registration.** `src/commands/status.ts` exports `collectStatus`, `createStatusCommand({ now })` and `statusCommand`; `src/program.ts` adds `statusCommand` to `defaultCommands` (one import, one array entry).
+- **R12 — Registration.** `src/commands/status.ts` exports `collectStatus`, `createStatusCommand({ now })` and `statusCommand`. `src/program.ts` appends `statusCommand` at the end of `defaultCommands` as it stands when this story merges, with one import and one array entry (gate1-decisions technical call, revised 2026-10-17: each command story appends its command in merge order). Its predecessor STORY-005-06 (`rulesCommand`) has added its entry by then; STORY-005-02's `lintCommand` and STORY-003-10's `readCommand` may land before or after it.
 
 ### 1.3 Out of Scope
 - Lint findings (`wikeeper lint`, STORY-005-02/03) and kb_instructions.md problems (`lint --rules`, STORY-005-04). `status` does not report `KbIssue`s.
 - Fixing anything it reports: releasing locks, finishing or dropping sources, re-ingesting, recording decisions.
 - Per-item coverage of rule suggestions: a decision covers a whole source (K5).
-- Instruction text that tells the agent when to run `status` (STORY-006-09).
+- Instruction text that tells the agent when to run `status` and how to use a candidate's `origin` (STORY-006-09).
+- Allow rules for `status`, `lint` and `rules list` in the agents' settings, and the SETUP.md step-4 rows that show them: STORY-005-09 (Gate 1 decision 17 and split 4), which depends on this story because the template checker rejects a rule for a command that is not registered.
 
 ### 1.4 Open Questions
 
 - **Question (Q1, contract K5 vs code):** K5 defines `unfinished_sources` as "registered, no ingest or abort event". The code disagrees in two ways. (a) `ingest abort` without `--drop` keeps the source in `raw/` (`src/commands/ingest-abort.ts:82` removes files only with `--drop`), and `finish` tells the user to "run wikeeper ingest abort <id>, then apply again" (`src/commands/ingest-finish.ts:128`), so an aborted source is resumable, not done. (b) A dropped id is reused: `walkthrough-wiki/.wiki/log/` has an `abort` event with `dropped: true` for `src-2026-10-17-acmeworks-roadmap` at 00:23 and an `ingest` event for a new registration with the same id at 07:45 (`captured_at` 07:43). Under K5, a re-registered, unfinished source with a reused id would be hidden by the old abort event.
-- **Recommended:** Unfinished = registered (meta exists) and no `ingest` event names the id; abort events are ignored (R4 as drafted; the `src-2026-10-17-b` row of the fourth scenario follows it). The JSON shape stays `string[]`, so no consumer changes.
-- **Human decision:** {populated during Brief review}
+- **Decision:** A source is unfinished until an `ingest` event for it exists: registered (meta exists) and no `ingest` event names the id, and `abort` events do not finish a source (R4; the `src-2026-10-17-b` row of the fourth scenario); the JSON shape stays `string[]`, so no consumer changes (gate1-decisions item 11) — _recommended 2026-10-17, pending Gate 1_
 
 ### 1.5 Risks
 
@@ -102,6 +102,8 @@ As an AI coding agent starting a session in a wiki, I want one read-only command
 - **Mitigation:** Human output groups items under their source and prints the counts first; the agent reads `--json`. Recording a rejected decision with `--from` dismisses a source's notes.
 - **Risk:** The R5 family rule misses a re-ingest of a changed file, because `ingest start` sets `reingest_of` only for a duplicate (same sha256, or same URL; `src/commands/ingest-start.ts:275`).
 - **Mitigation:** A changed file is a new source, not a re-ingest; its old source stays a candidate until the agent re-ingests the old content or the user decides it is not worth it. Stated here so the behaviour is not a surprise.
+- **Risk:** `src/program.ts` is edited by STORY-001-10, STORY-003-10, STORY-005-02 and STORY-005-06 as well.
+- **Mitigation:** Each command story appends one import and one `defaultCommands` entry in merge order, and STORY-001-10 changes only `VERSION` and the help footer, so a rebase meets at most a one-line conflict at the end of the array. STORY-005-06 is a predecessor. STORY-005-02 is not: `status` uses nothing from `lint` (it does not report findings, §1.3), so the two may build in parallel and the Sprint Design Review orders their merges.
 
 ## 2. The Truth (Executable Tests)
 
@@ -111,8 +113,8 @@ As an AI coding agent starting a session in a wiki, I want one read-only command
 
 | Axis | Cover | Reason |
 |---|---|---|
-| Paths | F | One way through: every run reads every area; the variations are data. |
-| Interfaces | F | CLI only; human and `--json` output come from the same command and are both asserted below. |
+| Paths | F | `status` has one way through: every run reads every area, and the variations are data. |
+| Interfaces | T | CLI human and `--json` output from the same command. |
 | Data | T | Lock states; ingested rule versions against the current rule; unreadable facts files and a missing kb_instructions.md. |
 | Rules | T | Re-ingest rule with superseded sources; pending suggestions until a decision with `--from`; status writes nothing. |
 
@@ -122,18 +124,19 @@ Feature: wikeeper status
   @rules @data
   Scenario Outline: Status lists re-ingest candidates
     Given kb_instructions.md whose only source kind is "meeting-notes (v2) → decision, risk"
-    And a finished ingest of "src-2026-10-10-standup" with kind "<kind>" and rule_version <version>
+    And a finished ingest of "src-2026-10-10-standup" from origin "notes/standup.md" with kind "<kind>" and rule_version <version>
     And <reingest>
     When I run "wikeeper status --json"
     Then data.reingest_candidates is <candidates>
+    And "wikeeper status" prints a line that, trimmed, is "<line>"
 
     Examples:
-      | kind          | version | reingest                                                                                                   | candidates                                                                                              |
-      | meeting-notes | 1       | no other source names it in reingest_of                                                                     | [{ source_id: "src-2026-10-10-standup", kind: "meeting-notes", rule_version: 1, current_version: 2 }]     |
-      | meeting-notes | null    | no other source names it in reingest_of                                                                     | [{ source_id: "src-2026-10-10-standup", kind: "meeting-notes", rule_version: null, current_version: 2 }]  |
-      | meeting-notes | 2       | no other source names it in reingest_of                                                                     | []                                                                                                      |
-      | chat-excerpt  | null    | no other source names it in reingest_of                                                                     | []                                                                                                      |
-      | meeting-notes | 1       | "src-2026-10-12-standup", registered with reingest_of "src-2026-10-10-standup", finished under rule_version 2 | []                                                                                                      |
+      | kind          | version | reingest                                                                                                      | candidates                                                                                                                           | line                                                                              |
+      | meeting-notes | 1       | no other source names it in reingest_of                                                                       | [{ source_id: "src-2026-10-10-standup", origin: "notes/standup.md", kind: "meeting-notes", rule_version: 1, current_version: 2 }]    | src-2026-10-10-standup (meeting-notes v1, rule now v2) from notes/standup.md      |
+      | meeting-notes | null    | no other source names it in reingest_of                                                                       | [{ source_id: "src-2026-10-10-standup", origin: "notes/standup.md", kind: "meeting-notes", rule_version: null, current_version: 2 }] | src-2026-10-10-standup (meeting-notes no rule, rule now v2) from notes/standup.md |
+      | meeting-notes | 2       | no other source names it in reingest_of                                                                       | []                                                                                                                                   | re-ingest candidates: none                                                        |
+      | chat-excerpt  | null    | no other source names it in reingest_of                                                                       | []                                                                                                                                   | re-ingest candidates: none                                                        |
+      | meeting-notes | 1       | "src-2026-10-12-standup", registered with reingest_of "src-2026-10-10-standup", finished under rule_version 2 | []                                                                                                                                   | re-ingest candidates: none                                                        |
 
   @rules
   Scenario: Pending rule suggestions are listed until a decision covers them
@@ -162,7 +165,7 @@ Feature: wikeeper status
       | .wiki/.lock for "src-2026-10-17-a" acquired at 2026-10-17T09:00:00Z | an object with source_id "src-2026-10-17-a" | true  | open ingest: src-2026-10-17-a holds the write lock (acquired 3 hours ago); the lock is stale |
       | .wiki/.lock containing "not json"                                 | null                               | true  | open ingest: .wiki/.lock is unreadable                  |
 
-  @rules
+  @rules @interfaces
   Scenario: Status reports unfinished sources, setup and misses, and writes nothing
     Given an initialised wiki with setup_completed_at null, no .wiki/me.md and a .wiki/project.md
     And registered sources "src-2026-10-17-a" (facts stored), "src-2026-10-17-b" (applied, then aborted without --drop) and "src-2026-10-17-c" (finished)
@@ -206,6 +209,8 @@ Feature: wikeeper status
 | Consumed (unchanged) | `src/ingest/lock.ts` (`readLock`, `formatLockAge`, `LockInfo`), `src/ingest/registry.ts` (`listSources`, `SourceMeta`), `src/ingest/log.ts` (`readLogEvents`, `IngestLogEvent`), `src/ingest/facts.ts` (`readFacts`, `factsFilePath`), `src/ingest/kind-rules.ts` (`normalizeKindId`), `src/kb/parse-instructions.ts` (`loadInstructions`, K1, STORY-005-01), `src/kb/rule-decisions.ts` (`listDecisions`, K4, STORY-005-06), `src/core/config.ts`, `src/core/paths.ts` |
 | New Files Needed | Yes — `src/commands/status.ts`, `test/status.test.ts` |
 
+No red test changes in this story: the rule-list red tests that SPRINT-03's allow rules break are STORY-005-09's (§3.1 there; STORY-006-11 R6 (h)), and none of them concerns the `status` command.
+
 ### 3.2 Technical Logic
 - **Order.** `findRepoRoot(ctx.cwd)` → `loadConfig` → `resolvePaths` → `assertInitialised`, then `collectStatus(paths, config, now)`:
   1. `readLock(paths, now)`.
@@ -217,6 +222,7 @@ Feature: wikeeper status
 - **No writes.** Nothing in the path calls `writeLogEvent`, `writeIndex`, `regenerateLogView` or the search cache loader. The read-only test hashes every file under the temp repo before and after the command.
 - **Time.** `createStatusCommand({ now })` injects the clock for the stale-lock rows, as `createSetupCommand` does (`src/commands/setup.ts:14`).
 - **Fixtures.** Build sources with `registerSource`, ingest events with `writeLogEvent` (`permission` is a string, FLASHCARD 2026-10-17 `#qa #red-test`), facts with `writeFacts`, and the lock file as JSON in `.wiki/.lock`; the decision row runs the real `rules record` command (STORY-005-06).
+- **Registration (R12).** Append the import and `statusCommand` at the end of `defaultCommands` (`src/program.ts:33`) on the tree merged with the predecessors.
 
 ### 3.3 API Contract (if applicable)
 
@@ -235,7 +241,11 @@ export interface StatusData {
   open_ingest: LockInfo | null;
   stale_lock: boolean;
   unfinished_sources: string[];
-  reingest_candidates: Array<{ source_id: string; kind: string; rule_version: number | null; current_version: number }>;
+  reingest_candidates: Array<{
+    source_id: string;
+    origin: string; // additive to K5 (this story): the counted ingest event's origin
+    kind: string; rule_version: number | null; current_version: number;
+  }>;
   pending_rule_suggestions: Array<{ source_id: string; items: string[] }>;
   setup: { completed_at: string | null; me: boolean; project: boolean };
   misses: number;
@@ -251,13 +261,20 @@ export const statusCommand: CommandModule;
 
 Consumed (frozen): `loadInstructions(paths): Promise<{ text; kb: KbInstructions } | null>` with `kb.kinds: SourceKindRule[]` (K1); `listDecisions(paths): Promise<RuleDecision[]>` with `source_id: string | null` (K4); `readLock(paths, now): Promise<LockState>`, `STALE_LOCK_MS`, `formatLockAge` (C8); `listSources`, `SourceMeta.reingest_of` (C3); `readLogEvents` (STORY-003-07); `readFacts` (C7).
 
+## Task Breakdown
+
+- [ ] Implement `collectStatus`: lock, sources, log events, families, candidates with `origin`, pending suggestions, setup, misses and warnings -> R1, R3, R4, R5, R6, R7, R8, R9, R10
+- [ ] Implement the human output, `createStatusCommand({ now })` and `statusCommand` -> R1, R11
+- [ ] Append `statusCommand` to `defaultCommands` in `src/program.ts` on the merged tree -> R12
+- [ ] Write `test/status.test.ts`: the §4.1 unit tests and the five scenarios, the fourth with the repository hash before and after -> R2
+
 ## 4. Quality Gates
 
 ### 4.1 Minimum Test Expectations
 
 | Test Type | Minimum Count | Notes |
 |---|---|---|
-| Unit tests | 5 | family grouping with links in both directions and a missing meta; candidate rule per version row; pending rule with a decision from another source; human output labels and pluralisation ("1 source, 1 item", "2 sources, 3 items"); warning text per broken input |
+| Unit tests | 5 | family grouping with links in both directions and a missing meta; candidate rule per version row, with `origin` taken from the ingest event when the meta is gone; pending rule with a decision from another source; human output labels and pluralisation ("1 source, 1 item", "2 sources, 3 items"); warning text per broken input |
 | Integration tests | 0 | Temp directories only. |
 | E2E / acceptance tests | 5 | One per Gherkin scenario (Outline rows counted once), through `runCli`. |
 
@@ -272,15 +289,16 @@ Consumed (frozen): `loadInstructions(paths): Promise<{ text; kb: KbInstructions 
 
 - **Surface:** `src/ingest/lock.ts:42` — `readLock`, which already returns `held`, `lock`, `stale` and `age_ms` (unreadable lock = held and stale); `src/ingest/lock.ts:57` — `formatLockAge` for the human line.
 - **Surface:** `src/ingest/registry.ts:198` — `listSources`, every registered source sorted by id; `src/ingest/registry.ts:35` — `reingest_of`, the family link.
-- **Surface:** `src/ingest/log.ts:186` — `readLogEvents`; `src/ingest/log.ts:18` — `rule_version` recorded on each `ingest` event (architecture.md §8).
+- **Surface:** `src/ingest/log.ts:186` — `readLogEvents`; `src/ingest/log.ts:18` — `rule_version` recorded on each `ingest` event (architecture.md §8); `src/ingest/log.ts:20` — its `origin`, copied from the meta by `finish` (`src/commands/ingest-finish.ts:176`).
 - **Surface:** `src/ingest/facts.ts:190` — `readFacts`; `src/ingest/facts.ts:35` — `uncovered`, the source of pending suggestions (CR-003 D5).
 - **Surface:** `src/core/config.ts:11` — `setup_completed_at`; `src/core/paths.ts:14` — `meFile` and `projectFile`.
 - **Surface:** `src/commands/index.ts:42` — the warning format for skipped log files that R10 reuses.
-- **Coverage of this requirement:** partial — every input already exists and has a reader; the aggregation and the command are net-new.
+- **Surface:** `src/program.ts:33` — `defaultCommands`, where `statusCommand` is appended.
+- **Coverage of this requirement:** partial — every `status` input already exists and has a reader; the aggregation and the command are net-new.
 
 ## Prior work
 
-- [[EPIC-005]] (parent; the re-ingest scenario comes from its §5). [[CR-003]] D5 (row 8.12) adds pending rule suggestions. Consumes [[STORY-005-01]] (K1 parser, `kinds`) and [[STORY-005-06]] (K4 decisions, `--from`). Reads state written by [[STORY-003-06]] (facts files, `uncovered`), [[STORY-003-07]] (log events), [[STORY-003-08]] (lock) and [[STORY-003-01]] (registry, `reingest_of`). No duplicates found.
+- [[EPIC-005]] (parent; the re-ingest scenario comes from its §5). [[CR-003]] D5 (row 8.12) adds pending rule suggestions. Consumes [[STORY-005-01]] (K1 parser, `kinds`) and [[STORY-005-06]] (K4 decisions, `--from`). Reads state written by [[STORY-003-06]] (facts files, `uncovered`), [[STORY-003-07]] (log events), [[STORY-003-08]] (lock) and [[STORY-003-01]] (registry, `reingest_of`). Shares `src/program.ts` with [[STORY-005-02]] (`lint`), with no order between them. The read-only allow rules an earlier revision carried as R13 are [[STORY-005-09]] (split 2026-10-17), which depends on this story. No duplicates found.
 
 ## Why not simpler?
 
@@ -301,4 +319,4 @@ Requirements to pass to Green (Ready for Execution):
 - [x] Existing Surfaces cites at least one source-tree path or explicitly states "none — net-new."
 - [x] Why not simpler? has both sub-bullets answered (no "TBD" / no "{}").
 
-Status stays 🟡 although every box is checked: §1.4 Q1 (K5's `unfinished_sources` rule against the abort and id-reuse behaviour in the code) needs a human decision before 🟢.
+Status stays 🟡 although every box is checked: the §1.4 Decision line (Q1, K5's `unfinished_sources` rule against the abort and id-reuse behaviour in the code, gate1-decisions item 11) is a recommended answer pending the human's Gate 1 approval.

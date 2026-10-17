@@ -7,7 +7,7 @@ carry_over: false
 status: Draft
 approved: false
 ambiguity: 🟡 Medium
-context_source: CR-003 (approved 2026-10-17) §B1–B3 and Open Question 2 · SPRINT-03 decomposition brief contract K11 and shared files · walkthrough rows 7.2, 7.9, 7.20, 11.26a (walkthrough-wiki, 2026-10-17) · STORY-003-09 R3/R10, STORY-003-04 R6 · verified src/ingest/validate.ts, src/ingest/snapshot.ts, src/wiki/parse-page.ts, src/commands/ingest-finish.ts, src/commands/ingest-start.ts, src/core/output.ts, src/commands/ingest-facts.ts, src/commands/ingest-abort.ts and the SPRINT-02 red tests under test/ingest
+context_source: CR-003 (approved 2026-10-17) §B1–B3 and Open Question 2 · SPRINT-03 decomposition brief contract K11 and shared files · walkthrough rows 7.2, 7.9, 7.20, 11.26a (walkthrough-wiki, 2026-10-17) · STORY-003-09 R3/R10, STORY-003-04 R6 · SPRINT-03 gate1-decisions.md item 9 (recommended, pending Gate 1) and consistency-audit findings 9, 13 · verified src/ingest/validate.ts, src/ingest/snapshot.ts, src/wiki/parse-page.ts, src/commands/ingest-finish.ts, src/commands/ingest-start.ts, src/core/output.ts, src/commands/ingest-facts.ts, src/commands/ingest-abort.ts and the SPRINT-02 red tests under test/ingest
 actor: AI coding agent
 complexity_label: L2
 parallel_eligible: y
@@ -17,14 +17,14 @@ lane: standard
 db_write_set: []
 deferred_verification: []
 created_at: 2026-10-17T09:01:38Z
-updated_at: 2026-10-17T09:01:38Z
+updated_at: 2026-10-17T09:57:40Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
 server_pushed_at_version: null
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-17T09:03:15Z
+  last_gate_check: 2026-10-17T09:58:11Z
   transition: ready-for-execution
 pushed_by: null
 pushed_at: null
@@ -40,7 +40,7 @@ draft_tokens:
   cache_creation: 0
   cache_read: 0
   model: null
-  last_stamp: 2026-10-17T09:03:15Z
+  last_stamp: 2026-10-17T09:58:09Z
   sessions:
     - session: 47c84598-2a59-4cfa-a987-cfe39161376b
       model: ""
@@ -52,7 +52,7 @@ draft_tokens:
 ---
 
 # STORY-003-12: Ingest follow-ups: dropped fact lines refused, `needs_approval` output, help text
-**Complexity:** L2 — one new check in `finish`'s validation (pure, reads the snapshot copy `apply` already made), one output rule for exit 3, and help text on two subcommands. No in-sprint upstream. STORY-005-03 edits `validate.ts` and `ingest-finish.ts` after this story, and STORY-005-07 edits `ingest-facts.ts` after it.
+**Complexity:** L2 — one new check in `finish`'s validation (pure, reads the snapshot copy `apply` already made), one output rule for exit 3, and help text on two subcommands. No in-sprint upstream. STORY-005-03 edits `src/commands/ingest-finish.ts` after this story (it does not edit `validate.ts`), and STORY-005-07 edits `src/commands/ingest-facts.ts` after it; both list this story as a predecessor. STORY-006-12 writes the writer text for the refusal.
 
 ## 1. The Spec (The Contract)
 
@@ -92,7 +92,8 @@ As an AI coding agent that writes wiki pages during an ingest, I want `finish` t
 - An override that lets `finish` accept a dropped line. A wrong fact is corrected by a newer line (WIKI.md "Page format") or by a chat-excerpt ingest (CR-003 E5). A removal made outside an ingest is reported by `lint`'s `unlogged-change` (STORY-005-03).
 - Checking fact lines across pages or on deleted pages (R2).
 - The lint hook and `page_hashes` in `finish` (STORY-005-03), and `ingest facts --dry-run` (STORY-005-07).
-- WIKI.md and writer-prompt text about this refusal (STORY-006-10), and the `ai`-mode prompt for `abort --drop` (STORY-002-09, K9).
+- WIKI.md and writer-prompt text about this refusal (STORY-006-12, the writing text): `finish` refuses dropped fact lines; the writer restores them and reruns `finish`; a correction adds a new line instead of editing the old one.
+- The `ai`-mode prompt for `abort --drop` (STORY-002-09, K9).
 - The `denied` (exit 4) message.
 
 ### 1.4 Open Questions
@@ -101,20 +102,20 @@ As an AI coding agent that writes wiki pages during an ingest, I want `finish` t
 
 - **Question:** Does a fact line whose text was corrected in place (a typo or a date in the text fixed) count as dropped?
 - **Recommended:** Yes. R1 ignores layout only (marker, indentation, spacing, position). Any change of date, status, wording or citation is a drop. WIKI.md "Page format" says a replaced fact stays in the list and the newer line carries the change, and CR-003 E5 routes corrections through a new ingest, so editing an old line in place is the writer error B1 exists to catch.
-- **Human decision:** pending.
+- **Decision:** Yes. `finish` treats a fact line corrected in place as dropped: the writer adds the new line and keeps the old one (R1, R3). — _recommended 2026-10-17, pending Gate 1_
 
 - **Question:** K11 checks each page against its own snapshot copy. Should a line moved to another page, or lost with a deleted page, count as dropped?
 - **Recommended:** Keep K11 as written: per page, updated pages only (R2). A line moved out of a page that still exists is refused; this is rare, and the writer keeps the line where it was. A deleted page stays allowed (STORY-003-09 R3) because the report counts deletions, so that loss is visible, unlike a line silently dropped from an updated page. A whole-tree check would also catch deletions but changes R3 and K11.
-- **Human decision:** pending.
+- **Decision:** Keep K11. The check is per updated page, against its own snapshot copy: a line moved out of a page that still exists counts as dropped from that page, and deleting a whole page stays allowed and reported (R2). — _recommended 2026-10-17, pending Gate 1_
 
 ### 1.5 Risks
 
 > Risks specific to this Story (cross-story risks belong in the milestone plan).
 
-- **Risk:** STORY-005-03 edits `src/ingest/validate.ts` and `src/commands/ingest-finish.ts` next (lint hook, `page_hashes`), and STORY-005-07 edits `src/commands/ingest-facts.ts` next.
-- **Mitigation:** This story lands first (brief, shared files). It adds one field, one message part and one `details` key, and renames nothing.
+- **Risk:** STORY-005-03 edits `src/commands/ingest-finish.ts` next (lint hook, `page_hashes`), and STORY-005-07 edits `src/commands/ingest-facts.ts` next. `src/ingest/validate.ts` is edited by this story only.
+- **Mitigation:** This story lands first (brief, shared files); STORY-005-03 and STORY-005-07 list it as a predecessor. It adds one field, one message part and one `details` key, and renames nothing.
 - **Risk:** The check refuses ingests that SPRINT-02 accepted, such as a page rewrite that also corrects or reformats old lines.
-- **Mitigation:** Layout-only changes are kept (R1). The message names every dropped line and the rule, and the lock is kept, so the writer restores the lines and reruns `finish`. STORY-006-10 puts the rule in the writer instructions.
+- **Mitigation:** Layout-only changes are kept (R1). The message names every dropped line and the rule, and the lock is kept, so the writer restores the lines and reruns `finish`. STORY-006-12 (writing text) puts the rule in WIKI.md and the writer instructions: `finish` refuses dropped fact lines; restore them and rerun; a correction adds a new line instead of editing the old one.
 - **Risk:** Dropping the `error: ` label for exit 3 is a rule in `src/core/output.ts`, which every command uses.
 - **Mitigation:** Only `ingest start` exits 3 today (`ExitCode.NEEDS_APPROVAL` appears only at `src/commands/ingest-start.ts:256`). The JSON envelope is unchanged, and the exit-1 and exit-4 label tests (`test/output.test.ts`, `test/cli-core.red.node.test.ts` S3b) keep passing.
 - **Risk:** Frozen SPRINT-02 red tests pin parts of this output.
@@ -228,7 +229,7 @@ Feature: Ingest follow-ups
 
 ### 3.3 API Contract (if applicable)
 
-Changed export (K11, owned here; additive to STORY-003-09's frozen `IngestValidation`; consumer: STORY-005-03):
+Changed export (K11, owned here; additive to STORY-003-09's frozen `IngestValidation`; consumer: `src/commands/ingest-finish.ts`, in this story. STORY-005-03 edits `ingest-finish.ts` later but neither reads `dropped` nor edits `validate.ts`):
 
 ```ts
 // src/ingest/validate.ts

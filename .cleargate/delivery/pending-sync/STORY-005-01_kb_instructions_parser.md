@@ -7,7 +7,7 @@ carry_over: false
 status: Draft
 approved: false
 ambiguity: 🟡 Medium
-context_source: EPIC-005 (approved 2026-10-16) · CR-003 D1–D3 (approved 2026-10-17) · architecture.md §5.2, §9, D-14, D-31 · SPRINT-03 decomposition brief contract K1 and the orchestrator design call on `note:` and `(dated facts)` · verified src/ingest/kind-rules.ts, src/core/paths.ts, src/commands/ingest-start.ts, templates/kb_instructions.management.md, templates/system/profiles/management.md and ~/walkthrough-wiki/.wiki/kb_instructions.md (2026-10-17)
+context_source: EPIC-005 (approved 2026-10-16) · CR-003 D1–D3 (approved 2026-10-17) · architecture.md §5.2, §9, D-14, D-31 · SPRINT-03 decomposition brief contract K1 and the orchestrator design call on `note:` and `(dated facts)` · verified src/ingest/kind-rules.ts, src/core/paths.ts, src/commands/ingest-start.ts, templates/kb_instructions.management.md, templates/system/profiles/management.md and ~/walkthrough-wiki/.wiki/kb_instructions.md (2026-10-17) · SPRINT-03 gate1-decisions.md items 12 and 15 (recommended 2026-10-17, pending Gate 1)
 actor: AI coding agent
 complexity_label: L2
 parallel_eligible: y
@@ -17,14 +17,14 @@ lane: standard
 db_write_set: []
 deferred_verification: []
 created_at: 2026-10-17T08:57:10Z
-updated_at: 2026-10-17T08:57:10Z
+updated_at: 2026-10-17T09:59:13Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
 server_pushed_at_version: null
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-17T08:58:59Z
+  last_gate_check: 2026-10-17T09:59:41Z
   transition: ready-for-execution
 pushed_by: null
 pushed_at: null
@@ -40,7 +40,7 @@ draft_tokens:
   cache_creation: 0
   cache_read: 0
   model: null
-  last_stamp: 2026-10-17T08:58:59Z
+  last_stamp: 2026-10-17T09:59:39Z
   sessions:
     - session: 47c84598-2a59-4cfa-a987-cfe39161376b
       model: ""
@@ -62,14 +62,14 @@ As an AI coding agent that keeps `kb_instructions.md` for its user, I want one p
 ### 1.2 Detailed Requirements
 - **R1 — Entry points (contract K1).** `parseInstructions(text)` is pure, never throws and returns `KbInstructions` (§3.3). `loadInstructions(paths)` reads `paths.kbInstructions` as UTF-8 and returns `{ text, kb }`, or `null` when the file does not exist (`ENOENT`, `ENOTDIR`). Other read errors (e.g. `EISDIR`) are thrown unchanged. The file is always `.wiki/kb_instructions.md`, whatever `content_dir` is (`src/core/paths.ts:47`).
 - **R2 — Lines and regions.** A leading BOM is ignored; lines split on `\r?\n`; line numbers are 1-based, as in C2. Lines inside fenced code blocks (```` ``` ```` or `~~~`, closed by the same character, as C2 does) are ignored. HTML comments are ignored too: a `<!-- … -->` span is removed from its line, and every line from an unclosed `<!--` up to the line holding `-->` is skipped (text after `-->` is read). A line that is blank after this is skipped.
-- **R3 — Sections.** Each `## ` heading (outside fences) starts a section and adds a `KbSection { heading, key, line }`. `key` comes from the start of the heading text, case-insensitive: `Questions` → `questions`, `Entities` → `entities`, `Capture signals` → `capture-signals`, `Source kinds` → `source-kinds`, `Write policy` → `write-policy`, `Never capture` → `never-capture`, `Rule changelog` → `rule-changelog`; any other heading → `null`. Text after those words is ignored (`## Questions this wiki must answer` is `questions`). `### ` (and deeper) heading lines stay in the current section and are skipped: they are neither rules nor notes.
+- **R3 — Sections.** Each `## ` heading (outside fences) starts a section and adds a `KbSection { heading, key, line }`. `key` comes from the start of the heading text, case-insensitive: `Questions` → `questions`, `Entities` → `entities`, `Capture signals` → `capture-signals`, `Source kinds` → `source-kinds`, `Write policy` → `write-policy`, `Never capture` → `never-capture`, `Rule changelog` → `rule-changelog`; any other heading → `null`. Text after those words is ignored (`## Questions this wiki must answer` is `questions`). `### ` (and deeper) heading lines stay in the current section and are skipped: they are neither rules nor notes. The seven keys are frozen and exported as the runtime list `KB_SECTION_KEYS`, in the order above; `KbSectionKey` is its element type. `KB_PROPOSAL_SECTION_KEYS` is the frozen, exported subset `questions`, `entities`, `capture-signals`, `write-policy`, `never-capture`: the sections a rule proposal names instead of a source kind (`rules record --kind`, STORY-005-06; §1.4).
 - **R4 — Purpose.** The first `purpose: <value>` line before the first `## ` heading sets `purpose`; otherwise `purpose` is `null`.
 - **R5 — Questions.** Under a `questions` section, a line `Q<n>` followed by `.`, `:` or a space and then text (an optional `- ` or `* ` bullet first) is a `KbQuestion`. `id` is `Q` plus the number without leading zeros (`Q04` → `Q4`). A trailing ` (dated facts)`, case-insensitive, sets `datedFacts: true` and is stripped from `text` (orchestrator design call, 2026-10-17). A line that starts `Q<n>` but has no text after the marker is the issue `malformed-question`.
 - **R6 — Entities.** Under an `entities` section, a line `<entity> <comma-separated fields> → <page> <Q refs>` is a `KbEntity`; `->` is accepted for `→`, and an optional bullet is allowed. `name` is the first word, lower-cased. `fields` is the text between the name and the arrow, split on commas, trimmed, empty parts dropped; fields may hold spaces (`target date`) and may be empty. `page` is the first word after the arrow. Every word after the page must be a question ref (`Q<n>`, case-insensitive, separated by spaces or commas); refs are normalised like question ids. A line under `entities` with an arrow (outside inline code) that does not fit this shape is the issue `malformed-entity`.
 - **R7 — Source kinds.** `kinds` is exactly `parseSourceKinds(text)` from `src/ingest/kind-rules.ts` (contract C2, frozen in SPRINT-02, unchanged), so `kinds` is what `ingest start` and `ingest facts` use. Under a `source-kinds` section, a line C2 reads as a rule is a kind line; any other line with an arrow outside inline code is the issue `ambiguous-line`.
 - **R8 — Notes.** A line starting `note:` (case-insensitive, optional bullet) in any section is a `KbNote` with the text after `note:`, trimmed; it is never a question, entity or kind (CR-003 D2). Under `questions`, `entities` and `source-kinds`, any other line that is not a question, entity or kind line and raised no issue is also a `KbNote` (existing files carry such prose, e.g. the routing note under `## Source kinds`). Under `questions`, a prose line with an arrow outside inline code is the issue `ambiguous-line` instead. `section` is the section's `key`, or `""` for a line before the first heading or in a section whose key is `null`.
 - **R9 — Inline code.** Arrows inside backtick code spans do not count: the prose line `` Each line reads `<entity> <fields> → <page> <question refs>`. `` (`templates/system/profiles/management.md:15` and the real file's line 17) is a note, not an entity and not an issue.
-- **R10 — Never capture and changelog.** Under `never-capture`, each bullet line (`- ` or `* `) is one `neverCapture` item, bullet removed and trimmed; other lines are ignored. Under `rule-changelog`, a line `- YYYY-MM-DD: text` is a `KbChangelogEntry`; the bullet and the colon are optional, so the architecture §5.2 form `2026-10-16  meeting-notes v2: …` also parses. Other lines (the seed's "Seeded from the management profile…") are ignored. Capture signals and Write policy are not parsed beyond `note:` lines.
+- **R10 — Never capture and changelog.** Under `never-capture`, each bullet line (`- ` or `* `) is one `neverCapture` item, bullet removed and trimmed; other lines are ignored. Under `rule-changelog`, a line `- YYYY-MM-DD: text` is a `KbChangelogEntry`; the bullet and the colon are optional, so the architecture §5.2 form `2026-10-16  meeting-notes v2: …` also parses. The documented entry form is `- YYYY-MM-DD: <kind> v<N>: <change>` (STORY-006-10 documents it; STORY-005-04 checks the `<kind> v<N>` part), so `text` is `<kind> v<N>: <change>`. Other lines (the seed's "Seeded from the management profile…") are ignored. Capture signals and Write policy are not parsed beyond `note:` lines.
 - **R11 — Issues the parser can see.** After the scan:
   - each entity ref that names no question in the file adds `unknown-question-ref` at the entity's line (the entity is still returned, with that ref);
   - each of the `questions`, `entities` and `source-kinds` sections that is absent adds `missing-section` with `line: 0` (whole file), naming the heading to add.
@@ -86,12 +86,13 @@ As an AI coding agent that keeps `kb_instructions.md` for its user, I want one p
 ### 1.4 Open Questions
 
 - **Question:** K1 says lines inside HTML comments are ignored "as C2 already does", but C2 skips only fenced code blocks (`src/ingest/kind-rules.ts:29`–`36`; FLASHCARD 2026-10-17 `#kind-rules`). A kind line inside a multi-line `<!-- … -->` is therefore still a rule for `ingest start` and `ingest facts`. What should the parser do with it?
-- **Recommended:** Keep `kinds` exactly `parseSourceKinds(text)` (K1; C2 is frozen), so lint and status see the rules ingest uses, and add an `ambiguous-line` issue at each such line ("inside an HTML comment, but ingest still reads it as a source-kind rule; delete it or put it in a code fence"). Questions, entities and notes inside comments are ignored (R2). Drafted this way (R12); the K1 wording is corrected here rather than C2 changed.
-- **Human decision:** {populated during Brief review}
+- **Decision:** `kinds` stays exactly `parseSourceKinds(text)` (K1; C2 is frozen), so lint and status see the rules ingest uses, and the parser adds an `ambiguous-line` issue at each such line ("inside an HTML comment, but ingest still reads it as a source-kind rule; delete it or put it in a code fence"), which `lint --rules` reports (STORY-005-04); questions, entities and notes inside comments stay ignored (R2, R12), and the K1 wording is corrected here rather than C2 changed (gate1-decisions item 15) — _recommended 2026-10-17, pending Gate 1_
+- **Question:** `wikeeper rules record --kind` (STORY-005-06) names a source kind for a source-kind rule; what does it name for a proposal about another section (a new question, entity, capture signal, write-policy line or *Never capture* item)? The kind is part of the fingerprint, so the words must be fixed in one place.
+- **Decision:** One of the section keys this story freezes and exports as `KB_PROPOSAL_SECTION_KEYS` (R3, §3.3): `questions`, `entities`, `capture-signals`, `write-policy`, `never-capture`; `source-kinds` and `rule-changelog` are not proposal targets, since a source-kind proposal names the kind itself (gate1-decisions item 12) — _recommended 2026-10-17, pending Gate 1_
 
 Decisions recorded with their rationale (not open):
 - **`(dated facts)` and `note:`** are the orchestrator's design call (decomposition brief, 2026-10-17); the rest of the format is what real files already use (`Q1 What…`, `initiative purpose, status, plan → initiatives/<name>.md Q1 Q2 Q5`).
-- **`KbSection` is defined here** (`{ heading, key, line }`): K1 names the type without fields. The `key` union and `KB_ISSUE_CODES` are additive exports.
+- **`KbSection` is defined here** (`{ heading, key, line }`): K1 names the type without fields. The `key` union, `KB_SECTION_KEYS`, `KB_PROPOSAL_SECTION_KEYS` and `KB_ISSUE_CODES` are additive exports.
 - **`missing-section` covers only `questions`, `entities` and `source-kinds`**: these are the sections the rules checks read. The seed has all seven headings, so a fresh wiki raises nothing.
 - **A line with an issue is not also a note.** K1 lists "any other non-empty prose line" as a note; a malformed or ambiguous line is reported once, as an issue, so lint does not count it twice.
 - **Lenient changelog form** (bullet and colon optional): the architecture §5.2 example omits both; accepting it costs nothing and loses no entry.
@@ -100,8 +101,8 @@ Decisions recorded with their rationale (not open):
 
 - **Risk:** Real files carry prose the parser misreads, so `doctor` (STORY-005-04) warns on every existing wiki.
 - **Mitigation:** The acceptance fixture is a copy of the acmeworks file (prose with an arrow in inline code, a `Q4 …` sentence under `## Entities`, a routing note under `## Source kinds`, a prose changelog line) and must give 0 issues. The empty seed must too.
-- **Risk:** Five stories build on this contract (005-02 against a stub, 005-04, 005-05, 006-10, 006-11). A renamed field breaks them at merge.
-- **Mitigation:** §3.3 is exactly K1 plus the additive items named in §1.4; a test pins the export names and the issue-code list.
+- **Risk:** Six stories build on this contract (005-02, 005-04, 005-05, 005-06, 006-10, 006-11). A renamed field or section key breaks them at merge.
+- **Mitigation:** §3.3 is exactly K1 plus the additive items named in §1.4; a test pins the export names, the issue-code list and both section-key lists.
 - **Risk:** `kinds` (C2) and the rest of the parser treat HTML comments differently.
 - **Mitigation:** R12 surfaces every kind line where they differ as an issue, so it is visible in `lint --rules` and `doctor`.
 
@@ -129,6 +130,7 @@ Feature: kb_instructions.md parser
     And it returns <questions> questions, <entities> entities, <kinds> kinds, <notes> notes, <changelog> changelog entries and <never> never-capture items
     And issues is empty
     And kinds deep-equals parseSourceKinds of the same text
+    And every section key is listed in KB_SECTION_KEYS, and KB_PROPOSAL_SECTION_KEYS is exactly questions, entities, capture-signals, write-policy and never-capture
 
     Examples:
       | file                                                          | questions | entities | kinds | notes | changelog | never |
@@ -233,16 +235,21 @@ Feature: kb_instructions.md parser
 | `parseInstructions(text)` | Library | None | `string` | `KbInstructions` |
 | `loadInstructions(paths)` | Library | None | `ResolvedPaths` | `Promise<{ text: string; kb: KbInstructions } \| null>` |
 
-Frozen exports (contract K1; consumers: STORY-005-02 builds against a stub of these types until this merges, 005-04, 005-05; 006-10 documents this format; 006-11 may parse the seed):
+Frozen exports (contract K1; consumers: STORY-005-02, 005-04, 005-05, 005-06 (`KB_PROPOSAL_SECTION_KEYS` for `rules record --kind`); 006-10 documents this format; 006-10 R7 documents the proposal section keys; 006-11 may parse the seed):
 
 ```ts
 // src/kb/parse-instructions.ts — contract K1 (owner STORY-005-01). Frozen exports.
 import type { ResolvedPaths } from "../core/paths.js";
 import type { SourceKindRule } from "../ingest/kind-rules.js";
 
-export type KbSectionKey =                          // additive (K1 names KbSection without fields)
-  | "questions" | "entities" | "capture-signals" | "source-kinds"
-  | "write-policy" | "never-capture" | "rule-changelog";
+export const KB_SECTION_KEYS: readonly [           // additive (K1 names KbSection without fields); R3 order
+  "questions", "entities", "capture-signals", "source-kinds",
+  "write-policy", "never-capture", "rule-changelog",
+];
+export type KbSectionKey = (typeof KB_SECTION_KEYS)[number];
+export const KB_PROPOSAL_SECTION_KEYS: readonly [  // additive: rule-proposal targets other than a source kind (STORY-005-06)
+  "questions", "entities", "capture-signals", "write-policy", "never-capture",
+];
 export interface KbSection { heading: string; key: KbSectionKey | null; line: number }   // additive
 export interface KbQuestion { id: string /* "Q4" */; text: string; datedFacts: boolean; line: number }
 export interface KbEntity { name: string; fields: string[]; page: string; questionRefs: string[]; line: number }
@@ -273,7 +280,7 @@ export function loadInstructions(paths: ResolvedPaths): Promise<{ text: string; 
 
 | Test Type | Minimum Count | Notes |
 |---|---|---|
-| Unit tests | 8 | Section key mapping (incl. `###` and unknown headings); question id normalisation (`Q04`, bullet, `:`); `(dated facts)` case and stripping; entity fields with spaces and empty fields; refs with commas; CRLF and BOM; one-line and multi-line comments with text after `-->`; `KbNote.section` before the first heading and in an unknown section; export names and `KB_ISSUE_CODES` pinned. |
+| Unit tests | 8 | Section key mapping (incl. `###` and unknown headings); question id normalisation (`Q04`, bullet, `:`); `(dated facts)` case and stripping; entity fields with spaces and empty fields; refs with commas; CRLF and BOM; one-line and multi-line comments with text after `-->`; `KbNote.section` before the first heading and in an unknown section; export names, `KB_ISSUE_CODES`, `KB_SECTION_KEYS` and `KB_PROPOSAL_SECTION_KEYS` pinned. |
 | Integration tests | 0 | Temp directories only. |
 | E2E / acceptance tests | 5 | One per Gherkin scenario (Outline rows counted once). |
 
@@ -315,4 +322,4 @@ Requirements to pass to Green (Ready for Execution):
 - [x] Existing Surfaces cites at least one source-tree path or explicitly states "none — net-new."
 - [x] Why not simpler? has both sub-bullets answered (no "TBD" / no "{}").
 
-Status stays 🟡 until the human answers the §1.4 question (kind lines inside HTML comments).
+Status stays 🟡 although every box is checked: the two §1.4 Decision lines (gate1-decisions items 15 and 12) are recommended answers pending the human's Gate 1 approval.

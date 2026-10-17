@@ -6,28 +6,27 @@ sprint_cleargate_id: null
 carry_over: false
 status: Draft
 approved: false
-ambiguity: 🟢 Low
-context_source: EPIC-005 (approved 2026-10-16) §2 `lint --rules` · CR-002 C1, lint half (approved 2026-10-16) · CR-003 D3, D4 (approved 2026-10-17) · architecture.md §5.2 (questions are the root), §9 · SPRINT-03 decomposition brief contracts K1, K2 · verified src/ingest/permissions.ts, src/core/config.ts, src/commands/doctor.ts, src/ingest/lint-hook.ts, test/doctor.red.node.test.ts, test/setup-files.red.node.test.ts and ~/walkthrough-wiki/.wiki/kb_instructions.md (2026-10-17)
+ambiguity: 🟡 Medium
+context_source: EPIC-005 (approved 2026-10-16) §2 `lint --rules` · CR-002 C1, lint half (approved 2026-10-16) · CR-003 D3, D4 (approved 2026-10-17) · architecture.md §5.2 (questions are the root), §9 · SPRINT-03 decomposition brief contracts K1, K2 · SPRINT-03 gate1-decisions.md item 15 (recommended 2026-10-17, pending Gate 1) and the repository-relative finding-path call · consistency audit findings 5, 13, 14 · verified src/ingest/permissions.ts, src/core/config.ts, src/commands/doctor.ts, src/ingest/lint-hook.ts, test/doctor.red.node.test.ts, test/setup-files.red.node.test.ts and ~/walkthrough-wiki/.wiki/kb_instructions.md (2026-10-17)
 actor: AI coding agent
 complexity_label: L2
 parallel_eligible: n
 dep_predecessors:
   - STORY-005-01
   - STORY-005-02
-  - STORY-002-09
 expected_bounce_exposure: med
 lane: standard
 db_write_set: []
 deferred_verification: []
 created_at: 2026-10-17T08:59:29Z
-updated_at: 2026-10-17T08:59:29Z
+updated_at: 2026-10-17T10:23:44Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
 server_pushed_at_version: null
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-17T09:01:15Z
+  last_gate_check: 2026-10-17T10:24:24Z
   transition: ready-for-execution
 pushed_by: null
 pushed_at: null
@@ -44,12 +43,12 @@ draft_tokens:
   cache_creation: null
   cache_read: null
   model: null
-  last_stamp: 2026-10-17T09:05:12Z
+  last_stamp: 2026-10-17T10:24:26Z
   sessions: []
 ---
 
 # STORY-005-04: `wikeeper lint --rules`, and `doctor` warns when `kb_instructions.md` does not parse
-**Complexity:** L2 — one module of pure checks over STORY-005-01's parsed file, registered in STORY-005-02's `RULE_CHECKS`, plus one `doctor` check. Depends on STORY-005-01 (K1), STORY-005-02 (K2 registry and command) and STORY-002-09 (lands its `doctor.ts` edits first).
+**Complexity:** L2 — one module of pure checks over STORY-005-01's parsed file, registered in STORY-005-02's `RULE_CHECKS`, plus one `doctor` check. Depends on STORY-005-01 (K1) and STORY-005-02 (K2 registry and command). No other SPRINT-03 story edits `src/commands/doctor.ts`.
 
 ## 1. The Spec (The Contract)
 
@@ -57,7 +56,7 @@ draft_tokens:
 As an AI coding agent that proposes rule changes to my user, I want `wikeeper lint --rules` to find duplicate rules, rules that point at unknown entities, questions no rule serves, rules that serve no question, changelog/version mismatches and whitelist kinds that name no source kind, and `doctor` to tell me when `kb_instructions.md` does not parse, so that the capture rules stay consistent as they grow.
 
 ### 1.2 Detailed Requirements
-- **R1 — Registry.** `src/lint/rules-lint.ts` exports `RULES_LINT_CHECKS`, one `LintCheck` (K2) per id below, all with `scope: "rules"`. `src/lint/checks.ts` appends them to `RULE_CHECKS` with one import and one array entry (`...RULES_LINT_CHECKS`). Each check reads only `ctx.kb`, `ctx.config` and `ctx.paths` and writes nothing (EPIC-005 safety rule). Each finding is a K2 `LintFinding` with the check's id and severity, `path` relative to the repository root in posix form (`.wiki/kb_instructions.md`, `.wiki/config.yml`) and `line` when the problem has one.
+- **R1 — Registry.** `src/lint/rules-lint.ts` exports `RULES_LINT_CHECKS`, one `LintCheck` (K2) per id below, all with `scope: "rules"`. `src/lint/checks.ts` appends them to `RULE_CHECKS` with one import and one array entry (`...RULES_LINT_CHECKS`). Each check reads only `ctx.kb`, `ctx.config` and `ctx.paths` and writes nothing (EPIC-005 safety rule). Each finding is a K2 `LintFinding` with the check's id and severity, `path` relative to the repository root in POSIX form (`.wiki/kb_instructions.md`, `.wiki/config.yml`) and `line` when the problem has one. Every rules finding has a `path`, `missing-file` and `unknown-whitelist-kind` included; both files live under `.wiki/`, so the path does not change with `content_dir`. In human output, STORY-005-02's `findingLine` prints the location as `<path>[:<line>]`: `[error] duplicate-rule .wiki/kb_instructions.md:44: …`, `[warn] unknown-whitelist-kind .wiki/config.yml: …`.
 
   | Check id | Severity | Reports |
   |---|---|---|
@@ -81,7 +80,7 @@ As an AI coding agent that proposes rule changes to my user, I want `wikeeper li
 - **R4 — Targets: `unknown-entity`, `unknown-field`.** A kind rule's `targets` text splits on commas into targets; each is `<entity>` or `<entity>.<field>` (split at the first `.`). Entity names compare lower-cased. Fields compare lower-cased with runs of spaces, `_` and `-` treated as one space (`target_date` = `target date`). A kind line with targets whose entity is not in `## Entities` gives one `unknown-entity` finding at that line, naming every such target. A kind line with `<entity>.<field>` targets whose entity exists but does not list the field gives one `unknown-field` finding, naming those targets.
 - **R5 — `question-without-rule` (CR-003 D3).** A question is served when it is marked `(dated facts)`, or when an entity lists it and some kind rule targets that entity (bare or `<entity>.<field>`). Each unserved question gives one finding at its line, naming the question id. The message says why: "listed by no entity; add it to an entity line or end it with "(dated facts)"", or "listed by <entities>, but no source kind targets them".
 - **R6 — `rule-without-question`.** An entity that lists no question defined in the file gives one finding at its line, naming the entity and the kind rules that target it, if any: those rules capture facts no question asks for. Kind lines get no separate finding, so one unneeded entity is one item to fix.
-- **R7 — `changelog-version-mismatch`.** A changelog entry mentions a kind when its text holds the kind id as a whole word (letters, digits and `-` around it do not count, so `initiative` does not match `initiative-doc`) followed by `v<N>` or `(v<N>)`. For each kind at version N > 1 with no entry mentioning it at vN: one finding at the kind line. For each entry mentioning a kind at a version above the kind's current one: one finding at the entry line. A kind at v1 needs no entry.
+- **R7 — `changelog-version-mismatch`.** The changelog entry form this check expects, and STORY-006-10 documents, is exactly `- YYYY-MM-DD: <kind> v<N>: <change>`; an entry for several kinds changed together lists each, `- YYYY-MM-DD: <kind> v<N>, <kind> v<N>: <change>` (the real file's line 68: `- 2026-10-17: product-state v2, roadmap v2: …`). The check reads STORY-005-01's `KbChangelogEntry.text`, the part after the date. A changelog entry mentions a kind when its text holds the kind id as a whole word (letters, digits and `-` around it do not count, so `initiative` does not match `initiative-doc`) followed by `v<N>` or `(v<N>)`. For each kind at version N > 1 with no entry mentioning it at vN: one finding at the kind line. For each entry mentioning a kind at a version above the kind's current one: one finding at the entry line. A kind at v1 needs no entry.
 - **R8 — `unknown-whitelist-kind` (CR-002 C1).** Each `ingest.whitelist.kinds` entry that matches no kind rule under `matchesKind` (`src/ingest/permissions.ts:86`, version-insensitive) gives one finding on `.wiki/config.yml` with no line, naming the entry and listing the kinds the file defines. It is reported whatever `ingest.permission` is: a later switch to `whitelist` would deny those sources.
 - **R9 — Missing file.** When `ctx.kb` is `null`, `missing-file` gives one finding on `.wiki/kb_instructions.md` saying to run `wikeeper init`, which restores the seed when it is missing (`src/commands/init.ts:199`). Every other rules check returns no finding.
 - **R10 — `doctor` (CR-003 D4).** `checkKbInstructions(paths)` runs `loadInstructions` (K1) and returns:
@@ -100,12 +99,18 @@ As an AI coding agent that proposes rule changes to my user, I want `wikeeper li
 
 ### 1.4 Open Questions
 
-- None. Decisions recorded with their rationale:
+- **Question:** A source-kind line inside a multi-line HTML comment is still a rule for ingest, because C2 skips only fenced code (`src/ingest/kind-rules.ts:29`–`36`). How do the rules checks treat it?
+- **Decision:** The kinds list stays exactly what C2 returns (STORY-005-01's `kb.kinds`), so `duplicate-rule`, `unknown-entity`, `unknown-field`, `changelog-version-mismatch`, `unknown-whitelist-kind` and the served-question checks count the commented-out line as a rule, as ingest does, and STORY-005-01's `ambiguous-line` issue for it becomes one `ambiguous-line` warning at that line (R2; the commented-kind row of the first scenario) (gate1-decisions item 15) — _recommended 2026-10-17, pending Gate 1_
+
+- **Decision:** Every lint finding's `path`, page and rules findings alike, is relative to the repository root in POSIX form (`.wiki/pages/people.md`, `.wiki/kb_instructions.md`, `.wiki/config.yml`; content_dir-aware), human output prints `<path>[:<line>]`, and `LintContext.only` stays relative to `pages/` and is input only (R1; orchestrator technical call, gate1-decisions.md) — _recommended 2026-10-17, pending Gate 1_
+
+Decisions recorded with their rationale (not open):
   - **Severities (R1):** error means ingest or lint would act on something other than what the user approved (an unread line, an unknown target, a second definition); warning means the file still works but has a gap or bloat. On the real acmeworks file this gives exit 0 with one warning (Q4), so `lint --rules` is usable on existing wikis.
   - **"Served" goes through entities (R5).** Kind rules name entities, and entities name questions (architecture §5.2), so EPIC-005's "question Q4 that no source-kind rule references" means no kind targets an entity that lists Q4.
   - **One finding per kind line (R4)**, naming all its bad targets, so one wrong line is one item to fix.
   - **`doctor` shows no row when the file is missing (R10).** `test/doctor.red.node.test.ts:84` (SPRINT-01) pins doctor's exact check ids on a fixture with no `kb_instructions.md` and 0 warnings; a row there would break that immutable red test. `ingest start` already warns about a missing file (`src/commands/ingest-start.ts:199`) and `lint --rules` reports it as an error (R9). On a wiki from `init`, the seed exists, so the row is always shown.
-  - **Finding paths are repository-relative (R1).** The two files are not under `pages/`; K2 does not fix the base for `path`, and STORY-005-02's sort by path keeps rules findings grouped per file.
+  - **The changelog entry form (R7)** is fixed here so STORY-006-10 can document it: `- YYYY-MM-DD: <kind> v<N>: <change>`, the form the real file's line 68 already uses.
+  - **No dependency on STORY-002-09.** That story only imports `plural` from `src/commands/doctor.ts`; it does not edit the file.
 
 ### 1.5 Risks
 
@@ -113,8 +118,8 @@ As an AI coding agent that proposes rule changes to my user, I want `wikeeper li
 - **Mitigation:** The acceptance base is STORY-005-01's copy of the acmeworks file, which must give exactly one warning (Q4) and none once Q4 is marked `(dated facts)`; each check's row changes one line of that file.
 - **Risk:** A new `doctor` row breaks SPRINT-01/02 doctor red tests that pin check ids or count warnings.
 - **Mitigation:** No row without the file (R10); with the seed the row is `ok`. `test/setup-files.red.node.test.ts:91`–`93` only requires `ids[5]` not to be `setup-files`, and the seed must parse with 0 issues (STORY-005-01). DoD runs the three doctor red files unchanged.
-- **Risk:** STORY-005-02 filters findings by `ctx.only` or by a `pages/`-relative path and drops rules findings.
-- **Mitigation:** R1 states the path base and §3.2 that rules checks ignore `ctx.only`; the Sprint Design Review confirms both with STORY-005-02's K2 implementation.
+- **Risk:** STORY-005-02 filters findings by `ctx.only` or prints rules findings under the pages directory, and drops or mislabels them.
+- **Mitigation:** R1 states the repository-relative path and the `<path>[:<line>]` human form, and §3.2 that rules checks ignore `ctx.only` (`finish` never runs `RULE_CHECKS`); the @paths scenario asserts a human line, and the Sprint Design Review confirms both with STORY-005-02's K2 implementation.
 - **Risk:** Changelog entries are free text, so mention matching misses or over-matches.
 - **Mitigation:** Whole-word id plus `vN`, with a unit test for `initiative` vs `initiative-doc`; the check is a warning only.
 
@@ -153,6 +158,7 @@ Feature: Rules lint and the doctor parse warning
       | the clean file | line 40 starting "roadmap (v1)" instead of "(v2)"                                      | changelog-version-mismatch | warning  | .wiki/kb_instructions.md | 68   | roadmap v2        | 0    |
       | the clean file | .wiki/config.yml setting ingest.whitelist.kinds to [meeting-notes, standup]            | unknown-whitelist-kind     | warning  | .wiki/config.yml         | none | standup           | 0    |
       | the clean file | line 44 replaced by "Use roadmap → milestone for sprints"                              | ambiguous-line             | warning  | .wiki/kb_instructions.md | 44   | note:             | 0    |
+      | the clean file | lines 44, 45 and 46 replaced by "<!--", "standup (v1) → decision" and "-->"            | ambiguous-line             | warning  | .wiki/kb_instructions.md | 45   | ingest            | 0    |
       | the clean file | line 25 replaced by "vendor name →"                                                    | malformed-entity           | error    | .wiki/kb_instructions.md | 25   | <page>            | 1    |
       | the clean file | line 23 replaced by "risk owner, impact → risks.md Q6 Q9"                              | unknown-question-ref       | error    | .wiki/kb_instructions.md | 23   | Q9                | 1    |
       | the clean file | line 14 replaced by "Q8"                                                               | malformed-question         | error    | .wiki/kb_instructions.md | 14   | Q8                | 1    |
@@ -179,7 +185,8 @@ Feature: Rules lint and the doctor parse warning
     And no file under .wiki/ changed
     When line 22 of .wiki/kb_instructions.md is replaced by "status-report (v1) → project.status" and line 24 by "Use roadmap → milestone"
     And I run "wikeeper lint --rules --check unknown-entity --json"
-    Then data.findings holds only the "unknown-entity" finding at line 22
+    Then data.findings holds only the "unknown-entity" finding, with path ".wiki/kb_instructions.md" and line 22
+    And "wikeeper lint --rules --check unknown-entity" prints a line starting "[error] unknown-entity .wiki/kb_instructions.md:22: "
     And "wikeeper lint --json" lists no finding with a rules check id
 
   @interfaces
@@ -228,7 +235,7 @@ Feature: Rules lint and the doctor parse warning
 - Changelog mention: for kind id `k`, `new RegExp("(?<![a-z0-9-])" + escape(k) + "(?![a-z0-9-])\\s*\\(?v(\\d+)\\)?", "gi")` over each entry's `text`. The search runs only for the file's own kind ids, so an entry about a kind that was removed matches nothing.
 - Rules checks ignore `ctx.only`: it lists changed pages for `finish`'s page checks (K2, K3), and `finish` never runs `RULE_CHECKS`.
 - Finding paths: `toPosixRelative(ctx.paths.root, ctx.paths.kbInstructions)` and `toPosixRelative(ctx.paths.root, ctx.paths.configFile)`.
-- `doctor.ts`: one line right after the `setup-files` guard (`src/commands/doctor.ts:211` today; STORY-002-09 edits the file first, so place it by that anchor): `if (manifest !== null) await guard(KB_INSTRUCTIONS_CHECK_ID, () => checkKbInstructions(paths));`. `paths` is the one re-resolved after the config loads; `kbInstructions` does not depend on `content_dir`.
+- `doctor.ts`: one line right after the `setup-files` guard (`src/commands/doctor.ts:211`): `if (manifest !== null) await guard(KB_INSTRUCTIONS_CHECK_ID, () => checkKbInstructions(paths));`. `paths` is the one re-resolved after the config loads; `kbInstructions` does not depend on `content_dir`.
 - Message examples (wording not frozen, ids and severities are): `source kind "roadmap" is defined again; line 40 defines it first and ingest uses that one`; `source kind "status-report" targets project, vendor, which are not entities in "## Entities"`; `entity "vendor" lists no question; source kinds that target it: contract`; `source kind "initiative-doc" is at v2, but no "## Rule changelog" entry mentions initiative-doc v2`; `ingest.whitelist.kinds entry "standup" names no source kind in .wiki/kb_instructions.md (kinds: …)`; `.wiki/kb_instructions.md is missing; run wikeeper init to restore the seed`.
 - `checkKbInstructions` does not import from `src/commands/doctor.ts` (that file imports it); it pluralises `issue`/`issues` itself. `loadInstructions` throwing (e.g. the path is a directory) is caught by doctor's `guard` as an error row, the existing behaviour for every check.
 - Command-level tests drive `runCli` with the default program (init needs `.git`, FLASHCARD 2026-10-17 `#qa #test-harness`) and parse the JSON envelope from stdout with `--json`.
@@ -299,7 +306,7 @@ Consumed (frozen elsewhere): K1 `loadInstructions`, `KbInstructions`, `KbIssue` 
 ---
 
 ## ClearGate Ambiguity Gate (🟢 / 🟡 / 🔴)
-**Current Status: 🟢 Low Ambiguity**
+**Current Status: 🟡 Medium Ambiguity**
 
 *Evaluate each criterion against its literal text. If you substituted an interpretation, leave the box unchecked and surface the substitution in the Brief.*
 
@@ -309,3 +316,5 @@ Requirements to pass to Green (Ready for Execution):
 - [x] No "TBDs" exist anywhere in the specification or technical logic.
 - [x] Existing Surfaces cites at least one source-tree path or explicitly states "none — net-new."
 - [x] Why not simpler? has both sub-bullets answered (no "TBD" / no "{}").
+
+Status stays 🟡 although every box is checked: the §1.4 Decision lines (commented-out kind lines, gate1-decisions item 15; repository-relative finding paths, orchestrator technical call) are recommended answers pending the human's Gate 1 approval.

@@ -7,7 +7,7 @@ carry_over: false
 status: Draft
 approved: false
 ambiguity: 🟡 Medium
-context_source: CR-003 (approved 2026-10-17) §A1–A5 and Open Questions 1 and 4 · SPRINT-03 decomposition brief contract K8, K4 (log.ts order) and shared files · walkthrough rows 7.8, 8.6, 8.10, 8.13, 10.4, 11.6 (walkthrough-wiki, 2026-10-17) · STORY-004-02…05 · verified src/commands/search.ts, src/search/misses.ts, src/search/filters.ts, src/search/since.ts, src/search/engine.ts, src/ingest/log.ts, commander 15.0.0 `--no-` option behaviour, and the SPRINT-02 red tests under test/search
+context_source: CR-003 (approved 2026-10-17) §A1–A5 and Open Questions 1 and 4 · SPRINT-03 decomposition brief contract K8, K4 (log.ts order) and shared files · walkthrough rows 7.8, 8.6, 8.10, 8.13, 10.4, 11.6 (walkthrough-wiki, 2026-10-17) · STORY-004-02…05 · SPRINT-03 gate1-decisions.md items 4, 14, 21 (recommended, pending Gate 1) and consistency-audit findings 13, 17 · verified src/commands/search.ts, src/search/misses.ts, src/search/filters.ts, src/search/since.ts, src/search/engine.ts, src/ingest/log.ts, commander 15.0.0 `--no-` option behaviour, and the SPRINT-02 red tests under test/search
 actor: AI coding agent
 complexity_label: L2
 parallel_eligible: y
@@ -17,14 +17,14 @@ lane: standard
 db_write_set: []
 deferred_verification: []
 created_at: 2026-10-17T09:03:22Z
-updated_at: 2026-10-17T09:03:22Z
+updated_at: 2026-10-17T09:58:22Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
 server_pushed_at_version: null
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-17T09:05:21Z
+  last_gate_check: 2026-10-17T09:58:46Z
   transition: ready-for-execution
 pushed_by: null
 pushed_at: null
@@ -41,12 +41,12 @@ draft_tokens:
   cache_creation: null
   cache_read: null
   model: null
-  last_stamp: 2026-10-17T09:07:48Z
+  last_stamp: 2026-10-17T10:00:19Z
   sessions: []
 ---
 
 # STORY-004-07: Search follow-ups: `--no-miss`, `--mark`, misses count, filter-only miss text, limit note
-**Complexity:** L2 — two options and four output changes on the existing `search` command, plus the miss text in the log writer. No in-sprint upstream. It edits `src/ingest/log.ts` before STORY-005-03 and STORY-005-06 (contract K4), and freezes the flag names STORY-006-10 writes into the instructions (K8).
+**Complexity:** L2 — two options and four output changes on the existing `search` command, plus the miss text in the log writer. No in-sprint upstream. It lands before STORY-005-03 and STORY-005-06, which edit `src/ingest/log.ts` after it and list it as a predecessor (K4, consistency-audit finding 13), and it freezes the flag names and combinations STORY-006-10 writes into the search instructions (K8).
 
 ## 1. The Spec (The Contract)
 
@@ -91,15 +91,15 @@ As an AI coding agent that searches the wiki at triage and to answer questions, 
 
 - **Question:** The SPRINT-02 red test `test/search/search-misses.red.node.test.ts:86` (QA-Red, immutable) asserts that the first line of `search --misses` is exactly `1 recorded miss`. K8's header makes it `1 miss, 1 distinct query`. May this story re-scope that one assertion?
 - **Recommended:** Yes. Re-scope only that `expect(lines[0])` assertion to the K8 header, anchored by its content rather than its line number (flashcard `#qa #red-test`), with your authorisation recorded here, as STORY-006-11 does for `wiki-protocol.red.node.test.ts`. CR-003 A2 already approved the new header. The alternative keeps `N recorded misses` as line 1 and prints `M distinct queries` as a second line, which avoids touching the red test but is not K8's wording. The Developer tests in `test/search/misses.test.ts` (lines 105 and 107) are not immutable and are updated in this story.
-- **Human decision:** pending.
+- **Decision:** Yes. Re-scoping the SPRINT-01/02 red tests that SPRINT-03 makes obsolete is authorised as recommended (gate1-decisions item 21): this story's QA-Red step re-scopes only the `expect(lines[0])` assertion at `test/search/search-misses.red.node.test.ts:86` to the K8 header `1 miss, 1 distinct query`, anchored by content; STORY-006-11 R6 lists it in the full table. — _recommended 2026-10-17, pending Gate 1_
 
 - **Question:** Should `--mark` combine with a text query (`wikeeper search vendor --mark tentative`)?
 - **Recommended:** No, for now (R7 refuses it). CR-003 names `--type`, `--entity` and `--since` only, and a query ranks sections, not fact lines, so there is no clear rule for which fact lines a ranked hit should yield. `--mark tentative --type risk` or `--entity <name> --mark tentative` answer the walkthrough's question. A later story can allow it once a rule is chosen.
-- **Human decision:** pending.
+- **Decision:** No. `--mark` refuses a text query (exit 2, `usage`; R7) and combines with `--type`, `--entity` and `--since` (R5). — _recommended 2026-10-17, pending Gate 1_
 
 - **Question:** CR-003 A5 says "`--status` with no results hints at `--mark`". Should the hint fire for every `--status` value, or only for `decided` and `tentative`?
 - **Recommended:** Only for `decided` and `tentative` (R6). Those are the values a user confuses with fact marks (row 11.6a); a hint on `--status open` with no results would be noise. This narrows the CR's literal wording, so it needs your confirmation.
-- **Human decision:** pending.
+- **Decision:** Only for `decided` and `tentative` (R6). This narrows CR-003 A5 ("`--status` with no results hints at `--mark`"), and the human was told (flagged for Gate 1). — _recommended 2026-10-17, pending Gate 1_
 
 ### 1.5 Risks
 
@@ -108,13 +108,13 @@ As an AI coding agent that searches the wiki at triage and to answer questions, 
 - **Risk:** `src/search/engine.ts` holds STORY-004-02's frozen C10 types, and SPRINT-02 red tests pin their JSON. `test/search/search.red.node.test.ts:103` and `test/search/filters.red.node.test.ts:101` compare `data.filters` with `toEqual`; four test files build `SearchRequest` literals without new fields (`test/search/search-perf.red.node.test.ts:19`, among others).
 - **Mitigation:** Only additive optional fields (§3.3). `mark` is absent, not `null`, when unset, so the `toEqual` checks pass; `noMiss` is optional, so the literals still typecheck. `hasFilters` keeps its meaning (type, where, status), so `--entity` stays combinable with `--mark` and `--since`.
 - **Risk:** `src/ingest/log.ts` is shared with STORY-005-03 (`page_hashes`) and STORY-005-06 (the rule-proposal summary).
-- **Mitigation:** This story lands first (K4). It changes only the `miss` cases of `summaryLine` and `renderLogView`, through one private label helper, and leaves the other event types alone.
+- **Mitigation:** This story lands first (K4); STORY-005-03 and STORY-005-06 list it as a predecessor. It changes only the `miss` cases of `summaryLine` and `renderLogView`, through one private label helper, and leaves the other event types alone.
 - **Risk:** `plural()` (`src/commands/doctor.ts:35`) only appends `s`, which gives "misss" and "distinct querys".
 - **Mitigation:** The misses header spells both forms out (§3.2), and the unit tests cover N = 1 and M = 1.
 - **Risk:** The search performance test is already flaky under load (flashcards `#test-harness #perf`, 532–630 ms in full runs).
 - **Mitigation:** This story adds no work to the measured path (corpus load and query). The `--mark` scan runs over the already-loaded corpus only when `--mark` is given, so there is no new perf test (§4.1), and `test/search/search-perf.red.node.test.ts` must keep passing.
 - **Risk:** Five small items in one story make it easy to miss one.
-- **Mitigation:** One requirement per item (R1–R6, plus R7 for errors), each mapped to a Gherkin scenario and a Task Breakdown row.
+- **Mitigation:** One requirement per item (R1–R6, plus R7 for errors), each mapped to a Gherkin scenario and a Task Breakdown row. The story stays whole (gate1-decisions item 4).
 
 ## 2. The Truth (Executable Tests)
 
@@ -227,7 +227,7 @@ Feature: Search follow-ups
 | Primary File | `src/commands/search.ts` |
 | Related Files | `src/search/misses.ts`, `src/search/filters.ts`, `src/search/engine.ts` (additive optional type fields only), `src/ingest/log.ts` |
 | Consumed (not modified) | `src/search/since.ts` (`factsSince`, `toFactView`), `src/wiki/parse-page.ts` (`Fact`, `normalizeName`), `src/commands/doctor.ts` (`plural`) |
-| Test Files | `test/search/misses.test.ts`, `test/search/filters.test.ts`, `test/ingest/log.test.ts`, `test/search/search-follow-ups.test.ts`, `test/search/search-follow-ups.red.node.test.ts` (QA-Red), `test/search/search-misses.red.node.test.ts` (one re-scoped assertion, only with the authorisation asked for in §1.4) |
+| Test Files | `test/search/misses.test.ts`, `test/search/filters.test.ts`, `test/ingest/log.test.ts`, `test/search/search-follow-ups.test.ts`, `test/search/search-follow-ups.red.node.test.ts` (QA-Red), `test/search/search-misses.red.node.test.ts` (QA-Red re-scopes the one assertion at `:86`, authorised by gate1-decisions item 21, §1.4) |
 | New Files Needed | Yes — `test/search/search-follow-ups.test.ts` and QA-Red's `test/search/search-follow-ups.red.node.test.ts` |
 
 ### 3.2 Technical Logic
@@ -269,7 +269,7 @@ export function markHits(entities: readonly Entity[], pages: readonly Page[], ma
 | `wikeeper search [query...]` | CLI | None | adds `--no-miss`, `--mark <decided\|tentative>` | `SearchData` with the additive fields above; human output adds the limit note and the `--status` hint |
 | `wikeeper search --misses` | CLI | None | unchanged | adds `data.events`; header `N misses, M distinct queries` |
 
-Frozen for consumers: the flag names `--no-miss` and `--mark`, and the values `decided` and `tentative` (STORY-006-10 writes them into WIKI.md and the sub-agent prompts).
+Frozen for consumers: the flag names `--no-miss` and `--mark`, the values `decided` and `tentative`, and the combinations: `--mark` refuses a text query and combines with `--type`, `--where`, `--status`, `--entity` and `--since`, including `--entity` with `--since` (STORY-006-10 writes them into WIKI.md and the sub-agent prompts).
 
 ## Task Breakdown
 
@@ -280,7 +280,7 @@ Frozen for consumers: the flag names `--no-miss` and `--mark`, and the values `d
 - [ ] `search.ts`: `facts_total` and `pages_total`, the totals header, and the limit note -> R4
 - [ ] `filters.ts`: `parseMark`, `markHits`, `describeFilters`; `search.ts`: the `--mark` branches and errors -> R5, R7
 - [ ] `search.ts`: the `--status` hint -> R6
-- [ ] Re-scope `test/search/search-misses.red.node.test.ts`'s header assertion, only if §1.4 Question 1 is approved; update `test/search/misses.test.ts` -> R2
+- [ ] QA-Red re-scopes the header assertion at `test/search/search-misses.red.node.test.ts:86` (§1.4 Decision 1, gate1-decisions item 21); the Developer updates `test/search/misses.test.ts:105,107` -> R2
 - [ ] Developer unit tests per §4.1 -> §2.1
 
 ## 4. Quality Gates
