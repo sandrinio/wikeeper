@@ -6,18 +6,18 @@ carry_over: false
 lifecycle_init_mode: warn
 remote_id: null
 source_tool: null
-status: Draft
-start_date: null
+status: Active
+start_date: 2026-10-17
 end_date: null
 synced_at: null
 created_at: 2026-10-17T08:27:39Z
-updated_at: 2026-10-17T09:54:36Z
+updated_at: 2026-10-17T12:27:35Z
 created_at_version: strategy-phase-pre-init
-updated_at_version: strategy-phase-pre-init
+updated_at_version: 3221758-dirty
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-17T09:54:56Z
+  last_gate_check: 2026-10-17T12:27:36Z
   transition: ready-for-execution
 epics:
   - EPIC-001
@@ -27,7 +27,7 @@ epics:
   - EPIC-005
   - EPIC-006
 proposals: []
-context_source: "Carries EPIC-005 (approved 2026-10-16; SPRINT-01 and SPRINT-02 plans name it for SPRINT-03), the `read` story of EPIC-003 (moved from SPRINT-02 by the human, 2026-10-16), CR-002 C1 (lint half), C2 and D1, and CR-003 (SPRINT-02 walkthrough feedback, approved 2026-10-17). EPIC-001…004 and 006 are archived; they carry new SPRINT-03 stories for the CR-002/CR-003 follow-ups. Decomposed into 21 stories (Gate 1 approved 2026-10-17, decisions 1-26 in plans/gate1-decisions.md); Sprint Design Review done (§2, plans/waves.json)."
+context_source: Carries EPIC-005 (approved 2026-10-16; SPRINT-01 and SPRINT-02 plans name it for SPRINT-03), the `read` story of EPIC-003 (moved from SPRINT-02 by the human, 2026-10-16), CR-002 C1 (lint half), C2 and D1, and CR-003 (SPRINT-02 walkthrough feedback, approved 2026-10-17). EPIC-001…004 and 006 are archived; they carry new SPRINT-03 stories for the CR-002/CR-003 follow-ups. Decomposed into 21 stories (Gate 1 approved 2026-10-17, decisions 1-26 in plans/gate1-decisions.md); Sprint Design Review done (§2, plans/waves.json).
 stamp_error: no ledger rows for work_item_id SPRINT-03
 draft_tokens:
   input: null
@@ -41,7 +41,7 @@ draft_tokens:
 
 # SPRINT-03: Lint, status and read
 
-> **Planned, waiting for Gate 2.** The 21 stories are approved (Gate 1) and the Sprint Design Review is done (§2, `plans/waves.json`). Execution starts after the human confirms this plan, the sprint goal and the Goal Acceptance Check.
+> **Active since 2026-10-17.** The 21 stories are approved (Gate 1); the human confirmed this plan, the sprint goal and the Goal Acceptance Check (Gate 2) and started the sprint.
 
 ## Human decisions (2026-10-17)
 
@@ -52,6 +52,7 @@ draft_tokens:
 - **CR-003:** approved with all five recommended answers (`--no-miss`, dropped fact lines refused at `finish`, `ai` mode prompts for `abort --drop` and `apply --force-unlock`, `search --mark`, `--version` build stamp).
 - **Gate 1 (stories):** all 20 stories approved as revised, with every decision in `.cleargate/sprint-runs/SPRINT-03/plans/gate1-decisions.md` (human, 2026-10-17). Decisions 14 (`search --mark`, the `--status` hint narrowed) and 16 (Codex prompts for every `abort`; `apply --force-unlock` stays allowed) change CR-003 as approved.
 - **Real-user review (2026-10-17):** an outside review of the plan from a real user's side was checked against the code; the human approved four additions (Gate 1 decisions 22–26: pointer-block lines for answering, drafting and capture offers; `update` refreshes an unedited block, new STORY-002-11; re-ingest from a copy of the stored original; the `whitelist` chat-capture rule; `.csv` / `.tsv` in `read`) and deferral of the rest.
+- **Gate 2 (sprint plan):** confirmed by the human on 2026-10-17 with the sprint goal and the Goal Acceptance Check below ("confirmed. start the sprint").
 
 ## 0. Stakeholder Brief
 
@@ -64,7 +65,7 @@ draft_tokens:
 
 An agent keeps the wiki healthy and complete and uses it without being told: `wikeeper lint` and `lint --rules` find page and rule problems, `wikeeper status` shows open work, re-ingest candidates and pending rule suggestions, rule decisions are remembered, `wikeeper read` turns web pages, DOCX, PDF and CSV files into text the agent can ingest, and in a fresh session the agent searches the wiki before answering and offers to capture new decisions.
 
-**Goal Acceptance Check (proposed; written to `sprint-context.md` at kickoff):**
+**Goal Acceptance Check (confirmed by the human, 2026-10-17; copied into `sprint-context.md`):**
 1. *Mechanical*, on the merged `sprint/S-03` tree: `npm run typecheck`, `npm test` (`test/e2e` included) and `npm run test:perf` pass; `wikeeper --version` prints `0.3.0` with the build stamp; STORY-006-11's coverage check passes, so every EPIC-005 lint check id has a fixture that triggers it and one that passes; the `read` tests convert the HTML, DOCX, PDF and CSV fixtures.
 2. *Behavioural*: walkthrough part 3 (real user, `walkthrough-wiki`, a fresh session per task, plain requests that never name wikeeper) ends with no ❌ in `wikeeper-test-notes-sprint-03.md`. It must show the agent, unprompted: searching the wiki before answering a project question or drafting material; offering to capture a decision or date mentioned in passing; reading a web page, a DOCX and a PDF with `read` and ingesting them; checking `status` / `lint` and acting on what they report; and handling a declined permission prompt without leaving a half-finished ingest.
 
@@ -75,8 +76,8 @@ Items selected for this sprint. Each is decomposed into stories at planning time
 | Item | Type | Title | Decomposed? | Notes |
 |---|---|---|---|---|
 | `EPIC-005` | Epic | Lint, status and rule evolution | yes (005-01…09) | Includes CR-002 D1 (`unlogged-change` as the backstop for shell writes) and C1's `lint --rules` half (whitelist kinds name existing kinds), and CR-003 D1–D5. |
-| `EPIC-003` | Epic | Ingest pipeline: `read` | yes (003-10…12) | Archived after SPRINT-02 without `read`. `read` keeps the next EPIC-003 ids (decided at SPRINT-02 planning), with CR-002 C2 (its `ai`-mode allow rule). |
-| `CR-003` | CR | SPRINT-02 walkthrough feedback | yes (stories under EPIC-001…006) | Items A–F go into stories under EPIC-001…006. Approved 2026-10-17. |
+| `EPIC-003` | Epic | Ingest pipeline: `read` | yes (003-10…12) | Archived after sprint S-02 without `read`. `read` keeps the next EPIC-003 ids (decided at the S-02 planning), with CR-002 C2 (its `ai`-mode allow rule). |
+| `CR-003` | CR | Sprint S-02 walkthrough feedback | yes (stories under EPIC-001…006) | Items A–F go into stories under EPIC-001…006. Approved 2026-10-17. |
 
 **Story set (21; Gate 1 approved 2026-10-17; STORY-002-11 added after the real-user review):**
 
@@ -106,7 +107,8 @@ Items selected for this sprint. Each is decomposed into stories at planning time
 | STORY-006-11 | Structural template tests for the SPRINT-03 commands | EPIC-006 |
 <!-- /cleargate:ignore-ids -->
 
-**Not in this sprint:**
+### Not in this sprint
+
 - Knowledge-base quality evaluation: after INITIATIVE-001 (its §5).
 - Publishing to npm: a separate step the human approves after Gate 4.
 - From the real-user review, deferred to a CR after walkthrough part 3 (`plans/gate1-decisions.md`): retracting a wrong or sensitive fact line; dismissing re-ingest candidates; dismissing pending rule suggestions per item; DOCX author and date.
@@ -348,6 +350,11 @@ ADR source: `architecture.md` §1–§13 (decision log D-01–D-36), plus `gate1
 | wave6 | STORY-006-12 | No | integration layer 5: upstream 006-10, 002-11; builds from C10 (006-10's text via C8, plus 002-11's shipped-blocks list and pins, appended to) |
 | wave7 | STORY-006-09 | No | integration layer 6: upstream 006-12 and every command story; builds from C9 (stacked on C10) |
 | wave8 | STORY-006-11 | No | integration layer 7: upstream all 20; builds from C2; verified on the final tree; merges last |
+
+## 4. Execution Log
+
+- 2026-10-17 · Gate 2: the human confirmed the sprint plan, the SDR (8 waves, 10 contracts), the single sprint goal and the Goal Acceptance Check ("confirmed. start the sprint"). The synth's open call (002-11 builds in parallel with 002-10 and re-syncs on its merge) stays as planned.
+- 2026-10-17 · Kickoff: preflight 5/5 pass after refreshing INITIATIVE-001's cached gate result; devops reachable; `sprint/S-03` cut from main at 3221758; `cleargate sprint init SPRINT-03 --stories <21>` → state.json with 21 stories, all standard, `.active` = SPRINT-03 (the decomposition gate first refused two non-selected IDs cited in §1: SPRINT-02 in two table notes and INITIATIVE-001 under "Not in this sprint", now a `###` subsection); Goal Acceptance Check copied into sprint-context.md; status Active.
 
 ## Risks & Dependencies
 
