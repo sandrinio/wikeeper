@@ -193,9 +193,10 @@ Feature: Allow rules for the read-only commands
 | Primary File | `src/agents/enforce/claude.ts` |
 | Related Files | `src/agents/enforce/codex.ts`, `templates/system/SETUP.md` |
 | Test Files | `test/agents/enforce.test.ts`, `test/agents/rule-match.test.ts`, `test/templates.test.ts` |
-| Re-scoped red tests (QA-Red) | `test/agents/enforce-ai-rules.red.node.test.ts`, `test/agents/enforce.red.node.test.ts`, `test/templates/setup.red.node.test.ts` |
+| Re-scoped red tests (QA-Red) | `test/agents/enforce-ai-rules.red.node.test.ts`, `test/agents/enforce.red.node.test.ts`, `test/templates/setup.red.node.test.ts`, `test/agents/enforce-prompts.red.node.test.ts` |
 | New Files Needed | No |
 
+- **`test/agents/enforce-prompts.red.node.test.ts`** (CR:spec-clarification, orchestrator 2026-10-17, M2 plan Open decision 1): STORY-002-09's SPRINT-03 red file pins the exact `ai` rule lists (`:156`, `:158`, `:166`, `:247`, `:251`, and the `ask` / `whitelist` lists at `:273-282`). QA-Red inserts only this story's rules at their rule-order position; nothing else in the file changes (sprint-execution §C.0.2 step 6; STORY-006-11 R6).
 - **Notes on the files above:**
   - Related files: `templates/system/SETUP.md` (the three step-4 rows only).
 - **Read, not edited (consumed, unchanged):** `src/agents/enforce/index.ts` (identity diff, `IDENTITY_RE`, the line append at `:232`, `removeEnforce` as STORY-002-09 routes `update` to it), `test/agents/rule-match.ts` (STORY-002-09), `test/templates/structure.ts` (`checkCommands`, `enforceSources`), `src/program.ts` (`lintCommand`, `statusCommand`, `rulesCommand`, registered by STORY-005-02, STORY-005-05 and STORY-005-06).
