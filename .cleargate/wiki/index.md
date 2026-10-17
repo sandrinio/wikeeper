@@ -16,6 +16,7 @@
 - Sprints: 2 Completed · [expand](archive/sprints.md)
 - CRs: 1 Completed · [expand](archive/crs.md)
 - Bugs: 2 Completed · [expand](archive/bugs.md)
+- Spikes: 2 Completed · [expand](archive/spikes.md)
 
 ## Contradictions
 

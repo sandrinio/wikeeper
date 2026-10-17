@@ -11,7 +11,7 @@
 | Proposals | 0 | 0 | 0 |
 | CRs | 3 | 0 | 1 |
 | Bugs | 2 | 0 | 2 |
-| Spikes | 0 | 0 | 0 |
+| Spikes | 2 | 0 | 0 |
 
 ## Active Epics
 
