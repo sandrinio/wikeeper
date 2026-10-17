@@ -50,6 +50,15 @@ describe("output helpers", () => {
     expect(err.join("")).toBe("error: x\n");
   });
 
+  it("emitError writes exit 3 without the error label and keeps it for exits 1 and 4", () => {
+    const a = ctx(false);
+    expect(emitError(a.c, new WikeeperError(ExitCode.NEEDS_APPROVAL, "needs_approval", "q?"))).toBe(3);
+    expect(a.err.join("")).toBe("q?\n");
+    const b = ctx(false);
+    expect(emitError(b.c, new WikeeperError(ExitCode.DENIED, "denied", "no"))).toBe(4);
+    expect(b.err.join("")).toBe("error: no\n");
+  });
+
   it("emitError maps CommanderError to usage (2) and help to 0", () => {
     const a = ctx(true);
     expect(emitError(a.c, new CommanderError(1, "commander.unknownOption", "error: unknown option"))).toBe(2);
