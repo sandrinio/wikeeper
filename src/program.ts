@@ -19,6 +19,8 @@ import { hookCommand } from "./commands/hook.js";
 import { searchCommand } from "./commands/search.js";
 import { indexCommand } from "./commands/index.js";
 import { ingestCommand } from "./commands/ingest.js";
+import { lintCommand } from "./commands/lint.js";
+import { rulesCommand } from "./commands/rules.js";
 import { readCommand } from "./commands/read.js";
 import { ensureAgentsIntegration } from "./agents/index.js";
 
@@ -42,6 +44,8 @@ export const defaultCommands: CommandModule[] = [
   searchCommand,
   indexCommand,
   ingestCommand,
+  lintCommand,
+  rulesCommand,
   readCommand,
 ];
 
