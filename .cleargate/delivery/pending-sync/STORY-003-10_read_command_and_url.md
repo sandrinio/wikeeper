@@ -7,7 +7,7 @@ carry_over: false
 status: Draft
 approved: true
 ambiguity: 🟢 Low
-context_source: EPIC-003 (approved 2026-10-16; §0 `read` objective, §2 `read` and CR-002 C2 bullets, §3 Network and Dependencies rows, §1 `read` metric) · architecture.md §7.6, §7.7, §10, D-20 · CR-002 C2 · CR-001 · SPRINT-03 decomposition brief (human decisions 2026-10-17, `--out` design call, contracts K7 and K9) · verified src/program.ts, src/commands/ingest-start.ts, src/agents/enforce/claude.ts, src/agents/enforce/codex.ts, src/core/output.ts, src/core/exit-codes.ts, src/core/paths.ts, src/search/engine.ts, templates/system/SETUP.md, ./package.json, test/e2e/pack.ts · linkedom 0.18.13, defuddle 0.19.5, turndown 7.2.4 checked on npm 2026-10-17 · SPRINT-03 gate1-decisions.md 2026-10-17 (decisions 5, 6, 8, 21; decision 17 as revised 2026-10-17 and split 4, which put the read-only allow rules in STORY-005-09; technical calls on rule order, package.json order and src/program.ts merge order) · SPRINT-03 consistency-audit.md 2026-10-17 (findings 9, 10, 12, 13) · SPIKE-001 (real pages, install size, Node versions, import cost) · verified test/agents/enforce-ai-rules.red.node.test.ts, test/agents/enforce.red.node.test.ts, test/agents/enforce.test.ts, test/templates/setup.red.node.test.ts at 40018c5
+context_source: EPIC-003 (approved 2026-10-16; §0 `read` objective, §2 `read` and CR-002 C2 bullets, §3 Network and Dependencies rows, §1 `read` metric) · architecture.md §7.6, §7.7, §10, D-20 · CR-002 C2 · CR-001 · SPRINT-03 decomposition brief (human decisions 2026-10-17, `--out` design call, contracts K7 and K9) · verified src/program.ts, src/commands/ingest-start.ts, src/agents/enforce/claude.ts, src/agents/enforce/codex.ts, src/core/output.ts, src/core/exit-codes.ts, src/core/paths.ts, src/search/engine.ts, templates/system/SETUP.md, ./package.json, test/e2e/pack.ts · linkedom 0.18.13, defuddle 0.19.5, turndown 7.2.4 checked on npm 2026-10-17 · SPRINT-03 gate1-decisions.md 2026-10-17 (decisions 5, 6, 8, 21, 26; decision 17 as revised 2026-10-17 and split 4, which put the read-only allow rules in STORY-005-09; technical calls on rule order, package.json order and src/program.ts merge order) · SPRINT-03 consistency-audit.md 2026-10-17 (findings 9, 10, 12, 13) · SPIKE-001 (real pages, install size, Node versions, import cost) · verified test/agents/enforce-ai-rules.red.node.test.ts, test/agents/enforce.red.node.test.ts, test/agents/enforce.test.ts, test/templates/setup.red.node.test.ts at 40018c5
 actor: AI coding agent
 complexity_label: L3
 parallel_eligible: y
@@ -74,24 +74,24 @@ As an AI coding agent given a link or a document I can't read well myself, I wan
     |---|---|
     | `text/html`, `application/xhtml+xml` | html |
     | `text/markdown` | markdown |
-    | `text/plain` | text |
+    | `text/plain`, `text/csv`, `text/tab-separated-values` | text |
     | `application/pdf` | pdf |
     | `application/vnd.openxmlformats-officedocument.wordprocessingml.document` | docx |
 
-    Any other or missing type falls back to the extension of the final URL's path. If that is unknown too, the read fails with the `unsupported` error (exit 2).
+    Any other or missing type falls back to the extension of the final URL's path. If that is unknown too, the read fails with the `unsupported` error (exit 2). The CSV and TSV types map to text, as the `.csv` and `.tsv` extensions do (orchestrator consistency call for Gate 1 decision 26, 2026-10-17): a sheet's CSV export link, such as Google Sheets' `…/export?format=csv`, has no extension in its path, so only the content type identifies it.
   - **File format.** It comes from the extension, case-insensitive:
 
     | Extension | Format |
     |---|---|
     | `.html`, `.htm` | html, read locally with no network |
     | `.md`, `.markdown` | markdown |
-    | `.txt` | text |
+    | `.txt`, `.csv`, `.tsv` | text |
     | `.docx` | docx |
     | `.pdf` | pdf |
   - **Unsupported.** `.doc`, `.pptx` and `.xlsx` fail with the `unsupported` error (exit 2) and a hint (`UNSUPPORTED_HINTS`):
     - `.doc`: "`.doc` (Word 97–2003) is not supported: save it as .docx"
     - `.pptx`: "`.pptx` is not supported: export it to PDF and read the PDF"
-    - `.xlsx`: "`.xlsx` is not supported: export the sheet as CSV and read that file yourself"
+    - `.xlsx`: "`.xlsx` is not supported: export the sheet as CSV and read the CSV"
 
     Any other extension, or none, fails with the `unsupported` error (exit 2) and a message naming the supported formats.
   - **Missing file or directory.** A missing file exits 2 with `not_found`; a directory exits 2 with `usage`.
@@ -100,6 +100,7 @@ As an AI coding agent given a link or a document I can't read well myself, I wan
   - Bytes are decoded as UTF-8, or as UTF-16 LE/BE when the file starts with that byte-order mark. A UTF-8 BOM is dropped.
   - CRLF and lone CR become LF, and trailing whitespace at the end is removed. The content is otherwise unchanged.
   - `title`, `author` and `date` are `null`, and no header is added.
+  - A `.csv` or `.tsv` file, or a CSV or TSV response, is text like `.txt` (Gate 1 decision 26): its rows pass through as they are and are not turned into a markdown table.
 - **R4 — HTML** (`src/read/html.ts`).
   - **Decoding.** The charset comes from `Content-Type`, else from a `<meta charset>` or `http-equiv` charset in the first 1024 bytes, else UTF-8. An unknown label falls back to UTF-8.
   - **Conversion.** `parseHTML` from `linkedom`, then `Defuddle(document, url, { markdown: true, useAsync: false })` from `defuddle/node`. `url` is the final URL after redirects, or the file's `file://` URL. `useAsync: false` stops defuddle's site extractors from making their own requests (R6). [[SPIKE-001]] round 5 ran this path on real pages (en.wikipedia.org, a GitHub README, ka.wikipedia.org): main text, headings and tables kept, Georgian text intact.
@@ -136,7 +137,7 @@ As an AI coding agent given a link or a document I can't read well myself, I wan
   - the path relative to the working directory has a segment that starts with `.`, other than `..`. That covers hidden directories such as `.wiki/`, `.claude/`, `.codex/`, `.agents/`, `.git/` and `~/.ssh/`. A `..` step is not a name, so a path into the system temp directory, such as `/tmp/page.md`, whose relative form starts with `..` steps, is accepted;
   - the path is inside the wiki's content directory: `content_dir` from `.wiki/config.yml` when the repository has one (`findRepoRoot` and `isInside`, `src/core/paths.ts:26`, `:69`).
 
-  The checks run before the source is read. The file is created with the `wx` flag, so a file that appears in between is not overwritten.
+  The checks run before the source is read. The file is created with the `wx` flag, so a file that appears in between is not overwritten. The extension rule is the same for every format: the text of a CSV or TSV source is written to a `.md` or `.txt` file, and `--out` takes no `.csv` or `.tsv` name (orchestrator consistency call, 2026-10-17: decision 26 adds input formats, not output names).
 - **R9 — Lazy loading and the network rule.** `linkedom`, `defuddle` and `turndown` load only through `await import()` inside the HTML branch (the pattern at `src/search/engine.ts:175`). `wikeeper --help` and every other command load none of them. The first import of defuddle and linkedom takes about 580 ms, so only an HTML read pays it ([[SPIKE-001]] round 6). The read modules hold the only network code, so `read` remains the only command that uses the network.
 - **R10 — `ai`-mode allow rule** (CR-002 C2, CR-001). After STORY-002-09 merges, the rules are added in `ai` mode only. They are appended after STORY-002-09's `ai`-mode ingest rules, not inserted next to the ingest allow rules (consistency audit finding 12).
   - **Order.** Each agent's settings hold the rules in this order (gate1-decisions technical call):
@@ -164,7 +165,7 @@ As an AI coding agent given a link or a document I can't read well myself, I wan
   - **A fresh `--out` name for every read.** `read` never overwrites; an existing name exits 2 with `usage` (R8).
   - **The temp directory, named.** Write to the system temp directory: `$TMPDIR` or `/tmp` on macOS and Linux, `$env:TEMP` on Windows. For example, `wikeeper read <url> --out /tmp/wikeeper-read-1.md`. Never write inside `.wiki/`, a hidden folder or the wiki's content directory, and only to `.md` or `.txt` (R8).
   - **Read only what the user gave.** That means a link or file the user named. Never `read` a URL found inside a page, a document or another source: in `ai` mode `read` runs without a prompt (R10).
-  - **When to use `read`.** For every URL, every DOCX and every local `.html` / `.htm` file (R2 reads it locally, with no network). For a PDF, run `read` first, and read the PDF yourself only when it warns `likely_scanned` (Gate 1 decision 8).
+  - **When to use `read`.** For every URL, every DOCX, every local `.html` / `.htm` file (R2 reads it locally, with no network) and every `.csv` / `.tsv` file (read as text, Gate 1 decision 26). For a PDF, run `read` first, and read the PDF yourself only when it warns `likely_scanned` (Gate 1 decision 8).
   - **Per warning** (exit 0, `data.warnings`):
     - `needs_browser`: open the page in your own browser, or ask the user to paste it, then pass the text with `--text-file`.
     - `likely_scanned`: read the PDF yourself and pass the text with `--text-file`; if you cannot, tell the user.
@@ -172,7 +173,7 @@ As an AI coding agent given a link or a document I can't read well myself, I wan
   - **Per error** (`error.code`):
     - `usage` (exit 2): fix the command. For a refused `--out`, pick a new `.md` or `.txt` name in the temp directory.
     - `not_found` (exit 2): check the path with the user.
-    - the `unsupported` error (exit 2): follow the hint. For `.doc`, ask for a .docx. For `.pptx`, ask for a PDF export. For `.xlsx`, ask for a CSV and read it yourself. For any other format, ask for a PDF, DOCX, HTML, markdown or text version.
+    - the `unsupported` error (exit 2): follow the hint. For `.doc`, ask for a .docx. For `.pptx`, ask for a PDF export. For `.xlsx`, ask for a CSV export of the sheet and register the CSV like a text file (`read` also accepts it). For any other format, ask for a PDF, DOCX, HTML, markdown, text or CSV version.
     - `timeout` or `fetch_failed` (exit 1): try once more. If it fails again, tell the user and ask for the file or the text.
     - `too_large` (exit 1): the response is over 10 MB. Ask for a smaller export or the text.
     - `http_error` (exit 1): read `details.status`. A 401 or 403 means a login, so ask the user to paste the page. A 404 means a wrong link, so check it with the user. For any other status, tell the user.
@@ -202,6 +203,10 @@ As an AI coding agent given a link or a document I can't read well myself, I wan
 - **Question (Q3):** May this story's QA-Red step re-scope the SPRINT-01/02 red-test assertions that pin the exact `ai`-mode rule lists (§3.1, "Re-scoped red tests")? They were written before `read` existed and fail once the read rules are added, and a red test changes only with the human's authorisation.
 - **Recommended:** Yes. Edit by test name, only to add the read pair at its R10 position, on the tree merged with STORY-002-09, and change no other assertion. The alternative, leaving them failing, blocks the sprint; dropping them loses CR-001's guard that `ai` mode allows no broad rule.
 - **Decision:** Re-scoping is authorised as recommended: this story's QA-Red edits exactly the assertions listed in §3.1, only to add the read rules, and STORY-006-11 R6 lists them, including `test/templates/setup.red.node.test.ts:353` (Gate 1 decision 21) — _approved (human, 2026-10-17, Gate 1)_
+
+- **Question (Q4):** Should `read` take spreadsheets? `.xlsx` stays unsupported (EPIC-003 §2), and its hint sent the agent to read an exported CSV by itself.
+- **Recommended:** `read` treats `.csv` and `.tsv` as text, like `.txt`, and the `.xlsx` hint says to export the sheet as CSV and read the CSV (R2, R3).
+- **Decision:** `read` treats `.csv` and `.tsv` as text, like `.txt`; the `.xlsx` hint becomes "export the sheet as CSV and read the CSV" (Gate 1 decision 26) — _approved (human, 2026-10-17, Gate 1)_
 
 Already decided; cited, not reopened:
 - The dependencies, "only `read` uses the network", the 20 s timeout, the 10 MB cap and "tests never use the internet" (human, 2026-10-17, decomposition brief).
@@ -266,6 +271,8 @@ Feature: wikeeper read — command, URL reading and limits
       | notes-bom.md                      | markdown | null        | []                | equals notes.md without its final newline (notes-bom.md = BOM + notes.md) |
       | notes-crlf.txt                    | text     | null        | []                | has the lines of notes-crlf.txt and no "\r"                           |
       | notes-utf16.txt                   | text     | null        | []                | equals the text of the UTF-16LE file                                  |
+      | table.csv                         | text     | null        | []                | equals table.csv without its final newline                            |
+      | http://127.0.0.1:<port>/export    | text     | null        | []                | equals data.markdown of the table.csv row (served as text/csv)        |
 
   @interfaces
   Scenario: The article keeps its structure on stdout, in --out and in --json
@@ -363,14 +370,15 @@ Feature: wikeeper read — command, URL reading and limits
 | Modified Files | `src/program.ts`, `src/agents/enforce/claude.ts`, `src/agents/enforce/codex.ts`, `templates/system/SETUP.md`, `./package.json`, `./package-lock.json` |
 | Test Files (new) | `test/read/read-command.test.ts`, `test/read/url.test.ts`, `test/read/html.test.ts`, `test/read/http-server.ts`, `test/e2e/read.test.ts`, `test/e2e/module-trace.ts` |
 | Test Files | `test/agents/enforce.test.ts` |
-| Fixtures (new) | `test/fixtures/read/article.html`, `test/fixtures/read/app-shell.html`, `test/fixtures/read/notes.md`, `test/fixtures/read/SOURCES.md` |
+| Fixtures (new) | `test/fixtures/read/article.html`, `test/fixtures/read/app-shell.html`, `test/fixtures/read/notes.md`, `test/fixtures/read/table.csv`, `test/fixtures/read/SOURCES.md` |
 | Re-scoped red tests (QA-Red) | `test/agents/enforce-ai-rules.red.node.test.ts`, `test/agents/enforce.red.node.test.ts`, `test/templates/setup.red.node.test.ts` |
-| New Files Needed | `src/commands/read.ts`, `src/read/index.ts`, `src/read/url.ts`, `src/read/html.ts`, `test/read/read-command.test.ts`, `test/read/url.test.ts`, `test/read/html.test.ts`, `test/read/http-server.ts`, `test/e2e/read.test.ts`, `test/e2e/module-trace.ts`, `test/fixtures/read/article.html`, `test/fixtures/read/app-shell.html`, `test/fixtures/read/notes.md`, `test/fixtures/read/SOURCES.md` |
+| New Files Needed | `src/commands/read.ts`, `src/read/index.ts`, `src/read/url.ts`, `src/read/html.ts`, `test/read/read-command.test.ts`, `test/read/url.test.ts`, `test/read/html.test.ts`, `test/read/http-server.ts`, `test/e2e/read.test.ts`, `test/e2e/module-trace.ts`, `test/fixtures/read/article.html`, `test/fixtures/read/app-shell.html`, `test/fixtures/read/notes.md`, `test/fixtures/read/table.csv`, `test/fixtures/read/SOURCES.md` |
 
 - **Notes on the files above:**
   - Modified files: `src/program.ts` (after STORY-001-10), `src/agents/enforce/codex.ts` (after STORY-002-09), `templates/system/SETUP.md` (the step-4 `ai` row only, after STORY-002-09), `./package-lock.json` (after STORY-001-10).
   - Re-scoped red tests (QA-Red): `test/agents/enforce-ai-rules.red.node.test.ts` (lines 127, 139, 181, 184, 234, 235), `test/agents/enforce.red.node.test.ts` (lines 260, 520–526, 544–548), `test/templates/setup.red.node.test.ts` (line 353). These are the exact `ai` rule lists, at `40018c5`; the line numbers are a guide, and QA-Red edits by test name. STORY-002-09 edits `:139`, `:184`, `:234`, `:235` (enforce-ai-rules) and `:260`, `:520–526`, `:544–548` (enforce) first, so QA-Red re-scopes those on the merged tree; `:127`, `:181` (Claude `permissions.allow`) and `:353` are first edited here, because STORY-002-09 does not change the `ai`-mode allow list. Each edit only adds the read pair at its R10 position, as §1.4 Q3 (Gate 1 decision 21) authorises. STORY-005-09 later adds the read-only rules to all of these and to the `ask` and `whitelist` assertions, which this story does not touch; STORY-006-11 R6 lists every SPRINT-03 red-test edit.
-  - New files needed: `src/commands/read.ts`, `src/read/index.ts`, `src/read/url.ts`, `src/read/html.ts`, every test file above except `test/agents/enforce.test.ts`, and the four fixtures.
+  - New files needed: `src/commands/read.ts`, `src/read/index.ts`, `src/read/url.ts`, `src/read/html.ts`, every test file above except `test/agents/enforce.test.ts`, and the five fixtures.
+  - Fixtures (new): `test/fixtures/read/table.csv` is the CSV fixture for decision 26 (S1, the `table.csv` and `/export` rows).
 
 ### 3.2 Technical Logic
 - **Command.** Use the factory pattern of `src/commands/search.ts:266`: `createReadCommand(deps?: ReadDeps)` returns a `CommandModule`, and `readCommand` is the default instance. The action does the following, in order:
@@ -419,6 +427,7 @@ Feature: wikeeper read — command, URL reading and limits
   | `/cafe` | windows-1252 bytes built in the test, with `charset=windows-1252` |
   | `/app` | `app-shell.html` |
   | `/notes.txt` | `text/plain` |
+  | `/export` | `table.csv` as `text/csv`, with no extension in the path |
   | `/slow` | never answers |
   | `/big` | `Content-Length` larger than the cap |
   | `/stream` | chunked |
@@ -426,7 +435,7 @@ Feature: wikeeper read — command, URL reading and limits
   | `/logo` | `image/png` |
 
   Every request is logged as `METHOD /path`. STORY-003-11 adds routes for PDF and DOCX.
-- **Fixtures.** `article.html`, `app-shell.html` and `notes.md` are UTF-8 with LF and committed. The encoded variants are written by the tests into temp directories, because `.gitattributes` (`* text=auto eol=lf`) would normalise a committed CRLF file and may treat a UTF-16 file as binary:
+- **Fixtures.** `article.html`, `app-shell.html`, `notes.md` and `table.csv` are UTF-8 with LF and committed. `table.csv` has a header row and two data rows, one with a quoted field that holds a comma. The encoded variants are written by the tests into temp directories, because `.gitattributes` (`* text=auto eol=lf`) would normalise a committed CRLF file and may treat a UTF-16 file as binary:
   - `notes-bom.md` (a UTF-8 BOM followed by `notes.md`);
   - `notes-crlf.txt`;
   - `notes-utf16.txt` (UTF-16LE with BOM);
@@ -530,7 +539,7 @@ All transitive licenses are permissive (MIT, ISC, BSD-2-Clause, `MIT OR GPL-3.0-
 
 | Test Type | Minimum Count | Notes |
 |---|---|---|
-| Unit tests | 10 | `withHeader` (title already the first heading; title not present; author or date only; nothing known); `decodeHtml` (header charset, meta charset, unknown label); `countWords`; `data:` image replacement; `formatFromContentType` with parameters and case; `formatFromExtension`; each `--out` refusal reason, and an absolute path under `os.tmpdir()` and a `../` path both accepted; the `ai`-mode writer order of R10 for Claude and Codex; `DEFAULT_TIMEOUT_MS === 20_000` and `DEFAULT_MAX_BYTES === 10 * 1024 * 1024` and the command's default instance uses them. |
+| Unit tests | 10 | `withHeader` (title already the first heading; title not present; author or date only; nothing known); `decodeHtml` (header charset, meta charset, unknown label); `countWords`; `data:` image replacement; `formatFromContentType` with parameters and case, including `text/csv` and `text/tab-separated-values`; `formatFromExtension`, including `.csv` and `.tsv`; the three `UNSUPPORTED_HINTS` texts; each `--out` refusal reason, and an absolute path under `os.tmpdir()` and a `../` path both accepted; the `ai`-mode writer order of R10 for Claude and Codex; `DEFAULT_TIMEOUT_MS === 20_000` and `DEFAULT_MAX_BYTES === 10 * 1024 * 1024` and the command's default instance uses them. |
 | Integration tests | 0 | A local `node:http` server on 127.0.0.1 and temp directories only; no test opens a connection anywhere else. |
 | E2E / acceptance tests | 5 | One per Gherkin scenario (Outline rows counted once). S3 runs the packed CLI; the others run in-process through `runCli`. |
 

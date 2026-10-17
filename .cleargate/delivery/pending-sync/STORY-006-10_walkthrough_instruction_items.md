@@ -7,7 +7,7 @@ carry_over: false
 status: Draft
 approved: true
 ambiguity: 🟢 Low
-context_source: "CR-003 C1 (text), C2, C3, D1–D3, A1 and A5, with its five Open Question answers (approved 2026-10-17) · SPRINT-03 Gate 1 decisions 3, 12, 14, 16, 21 (plans/gate1-decisions.md; approved at Gate 1, 2026-10-17) and consistency-audit findings 9, 14, 17, 18 · SPRINT-03 decomposition brief (contracts K1, K8, K9, K11; shared files: 006-10 → 006-12 → 006-09 on WIKI.md and SETUP.md, 006-11 last; SETUP.md after the step-4 table edits 002-09 → 003-10 → 005-09, gate1-decisions technical call) · STORY-002-09 R1–R2 (the `ai`-mode ask and prompt rules) · SPRINT-02 walkthrough notes, walkthrough-wiki (rows 0.9c, 3.2, 4.2, 7.3, 7.8, 7.14, 8.6, 8.13, 11.6, 11.10, 11.27d) · architecture.md §5.2, §7.2 · verified templates/system/{WIKI,SETUP}.md, templates/system/profiles/management.md, templates/kb_instructions.management.md, templates/skills/wiki-search/SKILL.md, templates/agents/*/wiki-{extractor,writer}.*, src/ingest/permissions.ts, src/ingest/registry.ts, src/ingest/kind-rules.ts, src/commands/search.ts, src/agents/enforce/{claude,codex}.ts, test/templates/*.red.node.test.ts, test/templates/structure.ts"
+context_source: "CR-003 C1 (text), C2, C3, D1–D3, A1 and A5, with its five Open Question answers (approved 2026-10-17) · SPRINT-03 Gate 1 decisions 3, 12, 14, 16, 21 and real-user review decision 25 (plans/gate1-decisions.md; approved at Gate 1, 2026-10-17) and consistency-audit findings 9, 14, 17, 18 · SPRINT-03 decomposition brief (contracts K1, K8, K9, K11; shared files: 006-10 → 006-12 → 006-09 on WIKI.md and SETUP.md, 006-11 last; SETUP.md after the step-4 table edits 002-09 → 003-10 → 005-09, gate1-decisions technical call) · STORY-002-09 R1–R2 (the `ai`-mode ask and prompt rules) · SPRINT-02 walkthrough notes, walkthrough-wiki (rows 0.9c, 3.2, 4.2, 7.3, 7.8, 7.14, 8.6, 8.13, 11.6, 11.10, 11.27d) · architecture.md §5.2, §7.2 · verified templates/system/{WIKI,SETUP}.md, templates/system/profiles/management.md, templates/kb_instructions.management.md, templates/skills/wiki-search/SKILL.md, templates/agents/*/wiki-{extractor,writer}.*, src/ingest/permissions.ts, src/ingest/registry.ts, src/ingest/kind-rules.ts, src/commands/ingest-start.ts, src/commands/ingest-facts.ts, src/commands/search.ts, src/agents/enforce/{claude,codex}.ts, test/templates/*.red.node.test.ts, test/templates/structure.ts"
 actor: AI coding agent (main agent or sub-agent) operating the wiki
 complexity_label: L2
 parallel_eligible: n
@@ -42,15 +42,21 @@ last_remote_update: null
 source: local-authored
 last_synced_status: null
 last_synced_body_sha: null
-stamp_error: no ledger rows for work_item_id STORY-006-10
 draft_tokens:
-  input: null
-  output: null
-  cache_creation: null
-  cache_read: null
-  model: null
-  last_stamp: 2026-10-17T10:06:19Z
-  sessions: []
+  input: 0
+  output: 0
+  cache_creation: 0
+  cache_read: 0
+  model: claude-opus-5-5
+  last_stamp: 2026-10-17T11:44:31Z
+  sessions:
+    - session: 47c84598-2a59-4cfa-a987-cfe39161376b
+      model: claude-opus-5-5
+      input: 0
+      output: 0
+      cache_read: 0
+      cache_creation: 0
+      ts: 2026-10-17T11:01:54Z
 ---
 
 # STORY-006-10: CR-003 rules, permissions and search text
@@ -63,9 +69,13 @@ As an AI coding agent running a wikeeper wiki (for this human: product managemen
 
 ### 1.2 Detailed Requirements
 
-- **R1 — C2, whitelist format (row 4.2a).** This paragraph is added verbatim to WIKI.md section "Register" (after its bullet list) and to SETUP.md step 4 (right after the sentence "For `whitelist`, agree `ingest.whitelist.kinds` and `ingest.whitelist.origins` with the user.", `templates/system/SETUP.md:55`). The two copies are identical after whitespace is normalised. Every claim in it is what `matchesOrigin` (`src/ingest/permissions.ts:61`), `isPathEntry` (`:57`), `compileGlob` (`:28`), `matchesKind` (`:86`) and `fileOrigin` (`src/ingest/registry.ts:58`) implement:
+- **R1 — C2, whitelist format (row 4.2a).** This paragraph is added verbatim to WIKI.md section "Register" (after its bullet list) and to SETUP.md step 4 (right after the sentence "For `whitelist`, agree `ingest.whitelist.kinds` and `ingest.whitelist.origins` with the user.", `templates/system/SETUP.md:55`). The two copies are identical after whitespace is normalised. Every claim in it is what `matchesOrigin` (`src/ingest/permissions.ts:61`), `isPathEntry` (`:57`), `compileGlob` (`:28`), `matchesKind` (`:86`), `evaluatePermission` (`:94`), the kind check at `ingest facts` (`src/commands/ingest-facts.ts:110`) and `fileOrigin` (`src/ingest/registry.ts:58`) implement:
 
-  > In `whitelist` mode a source runs without asking when its origin matches an entry of `ingest.whitelist.origins` or its kind is listed in `ingest.whitelist.kinds`; any other source is denied (exit code 4), even with `--approved`. A kind entry is a source-kind id and matches every version of that kind (`meeting-notes`); a source started without `--kind` passes while kind entries exist, and `wikeeper ingest facts` then checks its kind. An origin entry that contains `/`, or starts with `.` or `~`, is a path glob and matches only files. It is matched against the whole path: a file inside the repository by its path from the repository root (`docs/meetings/**`, never `./docs/meetings/**`), any other file by its absolute path (`~/Documents/notes/*.md`, where `~/` is the home folder). `*` matches within one folder, `**` across folders and `?` one character. Any other entry is a host name, without scheme, port or path, and matches only URLs, ignoring case: `docs.example.com` matches that host only, and `*.example.com` matches its subdomains but not `example.com` itself. Never start a host with `.`: that makes it a path. Text on stdin (`-`) never matches an origin.
+  > In `whitelist` mode a source runs without asking when its origin matches an entry of `ingest.whitelist.origins` or its kind is listed in `ingest.whitelist.kinds`; any other source is denied (exit code 4), even with `--approved`. A kind entry is a source-kind id and matches every version of that kind (`meeting-notes`); a source started without `--kind` passes while kind entries exist, and `wikeeper ingest facts` then checks its kind. An origin entry that contains `/`, or starts with `.` or `~`, is a path glob and matches only files. It is matched against the whole path: a file inside the repository by its path from the repository root (`docs/meetings/**`, never `./docs/meetings/**`), any other file by its absolute path (`~/Documents/notes/*.md`, where `~/` is the home folder). `*` matches within one folder, `**` across folders and `?` one character. Any other entry is a host name, without scheme, port or path, and matches only URLs, ignoring case: `docs.example.com` matches that host only, and `*.example.com` matches its subdomains but not `example.com` itself. Never start a host with `.`: that makes it a path. Text on stdin (`-`) never matches an origin, so a chat capture (`wikeeper ingest start -`) runs only when its kind is in `ingest.whitelist.kinds`. With no kind entries, a chat capture is denied at `wikeeper ingest start`.
+
+  The chat-capture sentences (Gate 1 decision 25) follow the code. A chat capture's origin is `stdin` (`src/commands/ingest-start.ts:121`). Started without `--kind`, it passes `ingest start` with `kind_pending` while kind entries exist (`src/ingest/permissions.ts:136`); `ingest facts` then re-runs `evaluatePermission` with the facts' kind and, on a denial, removes the source and exits 4 (`src/commands/ingest-facts.ts:110–135`). Started with a `--kind` that is not listed, or with no kind entries at all, it is denied at `ingest start` (`src/ingest/permissions.ts:144`).
+
+  SETUP.md step 4 also gains, right after the paragraph, this sentence (SETUP.md only, so it is not part of the identical text): "Agree with the user which source kinds chat captures use, such as `chat-excerpt` when step 3 kept that profile suggestion, and list them in `ingest.whitelist.kinds`." `chat-excerpt` is the management profile's chat kind (`templates/system/profiles/management.md:31`); the kb seed drafts no kinds (`templates/kb_instructions.management.md:23`), and WIKI.md section "Ambient offers" runs `wikeeper ingest start -` with no `--kind` (`templates/system/WIKI.md:185`).
 
   SETUP.md step 4's mode list (`templates/system/SETUP.md:43`) says that in `whitelist` mode "everything else asks", but the CLI denies it (architecture.md §7.2 and D-07; `src/ingest/permissions.ts:144`), and `--approved` does not override the denial. That line becomes "everything else is denied (exit code 4)".
 - **R2 — C3, one approval covers the rerun (rows 7.3, 7.14).** In WIKI.md section "Register", the exit code 3 bullet (`templates/system/WIKI.md:25`) says: show the user what `wikeeper ingest start` returned (origin, size, kind and rule, as STORY-003-12 R4 prints them) and ask in chat; rerun with `--approved` only after the user agrees; one chat approval of this exact source (same path and size) covers the `--approved` rerun, so do not ask again. The directory bullet (`:27`) says to run `wikeeper ingest start <file> --approved` for each approved new file, because the plan approval covers them (row 7.14). The terms "exit code 3", "--approved" and "exit code 4" stay (`test/templates/wiki-protocol.red.node.test.ts:154`).
@@ -124,6 +134,10 @@ CR-003's five decisions and the brief's design calls are settled and not reopene
 - **Recommended:** Yes; this story is the first whose text needs them (audit finding 18).
 - **Decision:** Authorised as recommended: the QA-Red step of the story that first needs a re-scope makes it and lists it; this story applies R6 (a) and (b), and STORY-006-11 R6 holds the full table and verifies it — _approved (human, 2026-10-17, Gate 1)_
 
+- **Question:** Q6. A chat capture (`wikeeper ingest start -`) has no origin to match. What does the whitelist text say about it (real-user review)?
+- **Recommended:** It runs only when its kind is in `ingest.whitelist.kinds`, and setup agrees those kinds with the user (R1).
+- **Decision:** Gate 1 decision 25: the R1 paragraph says a chat capture runs only when its kind is in `ingest.whitelist.kinds` and is denied at `ingest start` with no kind entries; SETUP.md step 4 tells setup to agree the chat-capture kinds with the user and list them — _approved (human, 2026-10-17, Gate 1)_
+
 ### 1.5 Risks
 
 - **Risk:** The text states CLI behaviour other stories ship: the ask and prompt rules (002-09), the `needs_approval` line (003-12), `--mark` combinations and its refusal of a query (004-07), the section keys (005-01), `lint --rules` not reporting a `(dated facts)` question and the changelog check (005-04).
@@ -174,7 +188,7 @@ Feature: CR-003 rules, permissions and search text
   Scenario Outline: The whitelist format is stated once, identically, and holds under matchesOrigin
     Given the whitelist paragraph in WIKI.md section "Register" and in SETUP.md step 4
     Then the two paragraphs are identical after whitespace is normalised
-    And the paragraph and SETUP.md's mode list say that any other source is denied, even with "--approved"
+    And the paragraph and SETUP.md's mode list say that any other source is denied, even with "--approved"; the paragraph says a chat capture ("wikeeper ingest start -") runs only when its kind is in "ingest.whitelist.kinds" and is denied at "wikeeper ingest start" with no kind entries, as evaluatePermission gives for a stdin source with no kind (kind_pending true with the kinds ["chat-excerpt"], "denied" with none); and SETUP.md step 4, after the paragraph, names "chat captures", "`chat-excerpt`" and "`ingest.whitelist.kinds`"
     And the paragraph names "<entry>"
     And matchesOrigin("<entry>", "<origin>", "<type>", { homeDir: "/home/user" }) is <result>
 
@@ -216,7 +230,7 @@ Feature: CR-003 rules, permissions and search text
 ```
 
 ### 2.2 Verification Steps (Manual)
-- [ ] Part-3 walkthrough in `~/walkthrough-wiki`: with `ingest.permission: whitelist` and an origin `~/product_repo/.cleargate/wiki/**`, run `wikeeper ingest plan` on that folder; check the entries are allowed without approval, and a file outside it is denied (R1).
+- [ ] Part-3 walkthrough in `~/walkthrough-wiki`: with `ingest.permission: whitelist` and an origin `~/product_repo/.cleargate/wiki/**`, run `wikeeper ingest plan` on that folder; check the entries are allowed without approval, and a file outside it is denied (R1). Then ask the agent to capture a decision said in chat; check it is denied unless `chat-excerpt` is in `ingest.whitelist.kinds` (R1, decision 25).
 - [ ] In `ai` mode with `enforce` on, in a trusted Claude Code folder (SPIKE-002: an untrusted folder ignores project settings), ask the agent to drop an unfinished source; check it asks in chat first and does not ask again after the harness prompt (R3).
 - [ ] Ask "which facts are still tentative?"; check the agent runs `wikeeper search --mark tentative` and not `--status tentative` (R9).
 - [ ] Approve a rule change in an ingest; check the changelog line has the R7 form and `wikeeper lint --rules` reports no changelog finding.
@@ -252,7 +266,7 @@ Not applicable — template text. Consumes read-only: `matchesOrigin` (C2, froze
 
 - [ ] QA-Red: apply STORY-006-11 R6 (a) and (b) to `test/templates/wiki-protocol.red.node.test.ts` -> R10
 - [ ] QA-Red: write `test/templates/rules-and-search-text.red.node.test.ts` from the five scenarios in §2.1 -> R1–R9
-- [ ] Write the whitelist paragraph, the approval bullets and the permission-prompts bullet in WIKI.md "Register"; copy the paragraph into SETUP.md step 4 and fix the `ai` and `whitelist` mode lines -> R1, R2, R3
+- [ ] Write the whitelist paragraph, the approval bullets and the permission-prompts bullet in WIKI.md "Register"; copy the paragraph into SETUP.md step 4, add the chat-capture kinds sentence after it, and fix the `ai` and `whitelist` mode lines -> R1, R2, R3
 - [ ] Write the kb line formats, examples and `note:` item in SETUP.md step 3; update the profile and the seed comments -> R4, R5, R6
 - [ ] Write "Triage and extract" steps 1–2, the Search options and the "Answering questions" miss sentence -> R5, R6, R8, R9
 - [ ] Write the dated-facts rule, the proposal kinds and the changelog form in "Proposing rule changes" -> R6, R7
@@ -283,7 +297,7 @@ Not applicable — template text. Consumes read-only: `matchesOrigin` (C2, froze
 - **Surface:** `templates/system/profiles/management.md:5` — Questions; `:15` — the entity-line format; `:24` — Source kinds.
 - **Surface:** `templates/kb_instructions.management.md:7` — the three drafted-section comments (`:7`, `:11`, `:23`).
 - **Surface:** `templates/agents/claude/wiki-extractor.md:12` and `templates/agents/claude/wiki-writer.md:19` — the search steps (same text in the Antigravity and Codex files).
-- **Surface:** `src/ingest/permissions.ts:61` — `matchesOrigin`, the behaviour R1 documents; `src/ingest/registry.ts:58` — `fileOrigin`, how a file origin is recorded; `src/ingest/kind-rules.ts:10` — the kind-line pattern no `<!--` line can match.
+- **Surface:** `src/ingest/permissions.ts:61` — `matchesOrigin`, the behaviour R1 documents; `:136` and `:144` — a source with no kind passes with `kind_pending` while kind entries exist, and is denied with none; `src/commands/ingest-facts.ts:110` — the pending kind check; `templates/system/profiles/management.md:31` — `chat-excerpt`, the chat kind R1's SETUP.md sentence names; `src/ingest/registry.ts:58` — `fileOrigin`, how a file origin is recorded; `src/ingest/kind-rules.ts:10` — the kind-line pattern no `<!--` line can match.
 - **Surface:** `src/commands/search.ts:38` — `--entity` refuses a query, `--type`, `--where` and `--status`, and allows `--since` (R9).
 - **Surface:** `src/agents/enforce/claude.ts:30` and `src/agents/enforce/codex.ts:3` — the `ai`-mode rules that STORY-002-09 extends with the ask and prompt rules R3 describes.
 - **Surface:** `test/templates/wiki-protocol.red.node.test.ts:26` — `COMMANDS`; `:242` — S5, re-scoped by this story's QA-Red.

@@ -51,13 +51,14 @@ draft_tokens:
 - **Walkthrough part 3 (Goal check):** headless, in `~/walkthrough-wiki`, after execution and before Gate 4. Run as a real user, not as a test (human, 2026-10-17): no walkthrough framing and no logging request in the prompts; plain product-management requests in the human's voice that never name a wikeeper command or WIKI.md; facts mentioned in passing, to see whether the agent records them unprompted; a fresh session per task; some permission prompts declined. The orchestrator keeps the notes table (`wikeeper-test-notes-sprint-03.md`) from the transcripts, the wiki log and the files. Any PDF on the machine may be used for `read`. The real knowledge base comes from the `~/product_repo` ClearGate wiki; the human will use wikeeper for product management, so the walkthrough also asks questions of that kind.
 - **CR-003:** approved with all five recommended answers (`--no-miss`, dropped fact lines refused at `finish`, `ai` mode prompts for `abort --drop` and `apply --force-unlock`, `search --mark`, `--version` build stamp).
 - **Gate 1 (stories):** all 20 stories approved as revised, with every decision in `.cleargate/sprint-runs/SPRINT-03/plans/gate1-decisions.md` (human, 2026-10-17). Decisions 14 (`search --mark`, the `--status` hint narrowed) and 16 (Codex prompts for every `abort`; `apply --force-unlock` stays allowed) change CR-003 as approved.
+- **Real-user review (2026-10-17):** an outside review of the plan from a real user's side was checked against the code; the human approved four additions (Gate 1 decisions 22–26: pointer-block lines for answering, drafting and capture offers; `update` refreshes an unedited block, new STORY-002-11; re-ingest from a copy of the stored original; the `whitelist` chat-capture rule; `.csv` / `.tsv` in `read`) and deferral of the rest.
 
 ## 0. Stakeholder Brief
 
 - **Sprint Goal (draft, to confirm at planning):** An agent keeps the wiki healthy and complete: `wikeeper lint` and `lint --rules` find page and rule problems, `wikeeper status` shows open work, re-ingest candidates and pending rule suggestions, rule decisions are remembered, and `wikeeper read` turns web pages, DOCX and PDF files into markdown the agent can ingest.
 - **Business Outcome:** the CLI that INITIATIVE-001 describes is complete. After SPRINT-02 the wiki fills up and answers questions; after SPRINT-03 it also says when it is decaying (broken links, uncited claims, edits made outside an ingest, stale facts, drifting rules), and documents the agent cannot open itself can be ingested.
-- **Risks (top 3):** `read` brings the first network access and five new runtime dependencies; lint, `status` and `rules` all depend on one `kb_instructions.md` parser whose line format does not exist yet; 20 stories across six epics, with WIKI.md and the structural test touched by several.
-- **Metrics:** every EPIC-005 lint check has a fixture that triggers it and one that passes (EPIC-005 metric); a rejected rule proposal is reported as "previously rejected" when proposed again (EPIC-005 metric); `read` converts the DOCX, PDF and HTML fixtures with headings, lists and tables kept (EPIC-003 metric); every INITIATIVE-001 success criterion can be checked on `main`; the part-3 real-user walkthrough in walkthrough-wiki finds no ❌.
+- **Risks (top 3):** `read` brings the first network access and five new runtime dependencies; lint, `status` and `rules` all depend on one `kb_instructions.md` parser whose line format does not exist yet; 21 stories across six epics, with WIKI.md and the structural test touched by several.
+- **Metrics:** every EPIC-005 lint check has a fixture that triggers it and one that passes (EPIC-005 metric); a rejected rule proposal is reported as "previously rejected" when proposed again (EPIC-005 metric); `read` converts the DOCX, PDF and HTML fixtures with headings and lists kept, and tables kept for DOCX and HTML (EPIC-003 metric; PDF table rows become lines, Gate 1 decision 7); every INITIATIVE-001 success criterion can be checked on `main`; the part-3 real-user walkthrough in walkthrough-wiki finds no ❌.
 
 ## Sprint Goal
 
@@ -73,7 +74,7 @@ Items selected for this sprint. Each is decomposed into stories at planning time
 | `EPIC-003` | Epic | Ingest pipeline: `read` | no | Archived after SPRINT-02 without `read`. `read` keeps the next EPIC-003 ids (decided at SPRINT-02 planning), with CR-002 C2 (its `ai`-mode allow rule). |
 | `CR-003` | CR | SPRINT-02 walkthrough feedback | n/a | Items A–F go into stories under EPIC-001…006. Approved 2026-10-17. |
 
-**Story set (20; Gate 1 approved 2026-10-17):**
+**Story set (21; Gate 1 approved 2026-10-17; STORY-002-11 added after the real-user review):**
 
 <!-- cleargate:ignore-ids -->
 | Proposed story | Title | Source |
@@ -93,6 +94,7 @@ Items selected for this sprint. Each is decomposed into stories at planning time
 | STORY-004-07 | Search follow-ups: `--no-miss`, `--mark`, misses count, filter-only miss text, limit note | CR-003 A1–A5 |
 | STORY-002-09 | `ai`-mode prompts for `--drop` and `--force-unlock`, and `update` with `enforce: false` removes the rules | CR-003 C1 |
 | STORY-002-10 | Doctor messages: wiring line, setup-files sub-checks | CR-003 F3, F4 |
+| STORY-002-11 | `wikeeper update` refreshes an unedited pointer block | Real-user review, Gate 1 decision 23 |
 | STORY-001-10 | `--version` build stamp; `--help` footer | CR-003 F1, F2 |
 | STORY-006-09 | Instructions for `read`, `lint`, `status` and `rules` (WIKI.md, SETUP.md, skills) | EPIC-006 |
 | STORY-006-10 | CR-003 rules, permissions and search text | CR-003 A1, A5, C1–C3, D1–D3 text |
@@ -103,6 +105,7 @@ Items selected for this sprint. Each is decomposed into stories at planning time
 **Not in this sprint:**
 - Knowledge-base quality evaluation: after INITIATIVE-001 (its §5).
 - Publishing to npm: a separate step the human approves after Gate 4.
+- From the real-user review, deferred to a CR after walkthrough part 3 (`plans/gate1-decisions.md`): retracting a wrong or sensitive fact line; dismissing re-ingest candidates; dismissing pending rule suggestions per item; DOCX author and date.
 
 ## 2. Execution Strategy
 
