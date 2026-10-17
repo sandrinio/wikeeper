@@ -1,6 +1,6 @@
 # SPRINT-03 — Gate 1 decisions (story revision basis)
 
-Status: **recommended answers, used as the drafting basis; the human's explicit Gate 1 approval is still pending.** The human asked the orchestrator to fix the consistency-audit findings (2026-10-17) without answering each question; until Gate 1 approval every story keeps `approved: false`, and each §1.4 question records "Recommended (orchestrator, 2026-10-17); pending Gate 1".
+Status: **approved by the human at Gate 1, 2026-10-17 ("approved", covering every item below, revised item 12 included).** The human asked the orchestrator to fix the consistency-audit findings (2026-10-17); the answers below were drafted as recommendations and then approved as written. Every story carries them as `- **Decision:** … — _approved (human, 2026-10-17, Gate 1)_` lines.
 
 Story set after the splits: 20 stories. Split-off stories take new ids; no story is renumbered.
 

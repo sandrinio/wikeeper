@@ -5,7 +5,7 @@ parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
 status: Draft
-approved: false
+approved: true
 ambiguity: 🟢 Low
 context_source: CR-003 F1, F2 and Open Question 5 (approved 2026-10-17; walkthrough rows 0.6, 11.1) · SPRINT-03 decomposition contract K10 and the human decision on version 0.3.0 · EPIC-001 · SPRINT-03 gate1-decisions.md technical calls (`package.json` and `src/program.ts` order; the build stamp never reaches the npx guard) and consistency-audit finding 13 · verified src/program.ts, src/core/templates.ts, src/core/manifest.ts, src/commands/init.ts, src/commands/update.ts, src/agents/enforce/guard-command.ts, package.json, package-lock.json, tsconfig.build.json, test/e2e/pack.ts, test/program.test.ts, .github/workflows/ci.yml
 actor: AI coding agent

@@ -5,9 +5,9 @@ parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
 status: Draft
-approved: false
-ambiguity: 🟡 Medium
-context_source: "CR-003 C1 (text), C2, C3, D1–D3, A1 and A5, with its five Open Question answers (approved 2026-10-17) · SPRINT-03 Gate 1 decisions 3, 12, 14, 16, 21 (plans/gate1-decisions.md; recommended 2026-10-17, pending Gate 1) and consistency-audit findings 9, 14, 17, 18 · SPRINT-03 decomposition brief (contracts K1, K8, K9, K11; shared files: 006-10 → 006-12 → 006-09 on WIKI.md and SETUP.md, 006-11 last; SETUP.md after the step-4 table edits 002-09 → 003-10 → 005-09, gate1-decisions technical call) · STORY-002-09 R1–R2 (the `ai`-mode ask and prompt rules) · SPRINT-02 walkthrough notes, formapass_management (rows 0.9c, 3.2, 4.2, 7.3, 7.8, 7.14, 8.6, 8.13, 11.6, 11.10, 11.27d) · architecture.md §5.2, §7.2 · verified templates/system/{WIKI,SETUP}.md, templates/system/profiles/management.md, templates/kb_instructions.management.md, templates/skills/wiki-search/SKILL.md, templates/agents/*/wiki-{extractor,writer}.*, src/ingest/permissions.ts, src/ingest/registry.ts, src/ingest/kind-rules.ts, src/commands/search.ts, src/agents/enforce/{claude,codex}.ts, test/templates/*.red.node.test.ts, test/templates/structure.ts"
+approved: true
+ambiguity: 🟢 Low
+context_source: "CR-003 C1 (text), C2, C3, D1–D3, A1 and A5, with its five Open Question answers (approved 2026-10-17) · SPRINT-03 Gate 1 decisions 3, 12, 14, 16, 21 (plans/gate1-decisions.md; approved at Gate 1, 2026-10-17) and consistency-audit findings 9, 14, 17, 18 · SPRINT-03 decomposition brief (contracts K1, K8, K9, K11; shared files: 006-10 → 006-12 → 006-09 on WIKI.md and SETUP.md, 006-11 last; SETUP.md after the step-4 table edits 002-09 → 003-10 → 005-09, gate1-decisions technical call) · STORY-002-09 R1–R2 (the `ai`-mode ask and prompt rules) · SPRINT-02 walkthrough notes, formapass_management (rows 0.9c, 3.2, 4.2, 7.3, 7.8, 7.14, 8.6, 8.13, 11.6, 11.10, 11.27d) · architecture.md §5.2, §7.2 · verified templates/system/{WIKI,SETUP}.md, templates/system/profiles/management.md, templates/kb_instructions.management.md, templates/skills/wiki-search/SKILL.md, templates/agents/*/wiki-{extractor,writer}.*, src/ingest/permissions.ts, src/ingest/registry.ts, src/ingest/kind-rules.ts, src/commands/search.ts, src/agents/enforce/{claude,codex}.ts, test/templates/*.red.node.test.ts, test/templates/structure.ts"
 actor: AI coding agent (main agent or sub-agent) operating the wiki
 complexity_label: L2
 parallel_eligible: n
@@ -106,23 +106,23 @@ CR-003's five decisions and the brief's design calls are settled and not reopene
 
 - **Question:** Q1. The Granularity Rubric's first too-big signal tripped on the first draft: it joined unrelated goals (whitelist format, kb format, page naming, onboarding nits). Split?
 - **Recommended:** Split by section owner: this story keeps the rules, permissions and search text; STORY-006-12 takes the writing, answering and onboarding text; STORY-006-11 keeps its id and runs last. Order 006-10 → 006-12 → 006-09 → 006-11.
-- **Decision:** Split as recommended: STORY-006-10 (CR-003 C1 text, C2, C3, D1–D3 text, A1 and A5 text, the changelog line format) and STORY-006-12 (CR-003 E1–E10 and the writer text from STORY-003-12), with STORY-006-11 last — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** Split as recommended: STORY-006-10 (CR-003 C1 text, C2, C3, D1–D3 text, A1 and A5 text, the changelog line format) and STORY-006-12 (CR-003 E1–E10 and the writer text from STORY-003-12), with STORY-006-11 last — _approved (human, 2026-10-17, Gate 1)_
 
 - **Question:** Q2. Codex prefix rules cannot see `--force-unlock` after `<id>`. What does the `ai`-mode text say for Codex?
 - **Recommended:** What STORY-002-09 R2 installs: Codex asks before every `abort` and leaves `apply` allowed; Claude Code asks for both flags (R3).
-- **Decision:** Codex in `ai` mode prompts for every `wikeeper ingest abort` and keeps `apply` allowed, because the CLI refuses to take a live lock (`lock_not_stale`); Claude Code prompts for both `--drop` and `--force-unlock` (SPIKE-002). This changes CR-003's decision for Codex only and is flagged to the human — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** Codex in `ai` mode prompts for every `wikeeper ingest abort` and keeps `apply` allowed, because the CLI refuses to take a live lock (`lock_not_stale`); Claude Code prompts for both `--drop` and `--force-unlock` (SPIKE-002). This changes CR-003's decision for Codex only and is flagged to the human — _approved (human, 2026-10-17, Gate 1)_
 
 - **Question:** Q3. What kind does a proposal carry when it changes no source kind (a new question, entity or Never-capture line)? STORY-006-09's `rules record --kind` and the changelog line both need the word, and the kind is part of the decision's fingerprint.
 - **Recommended:** The section key the parser freezes (R7).
-- **Decision:** A source-kind id, or one of the section keys STORY-005-01 freezes: `questions`, `entities`, `capture-signals`, `write-policy`, `never-capture` — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** A source-kind id, or one of the section keys STORY-005-01 freezes: `questions`, `entities`, `capture-signals`, `write-policy`, `never-capture` — _approved (human, 2026-10-17, Gate 1)_
 
 - **Question:** Q4. Which filters does `--mark` combine with, and when does the `--status` result hint fire?
 - **Recommended:** As STORY-004-07 R5–R7 build it (R9).
-- **Decision:** `search --mark` refuses a text query (exit 2) and combines with `--type`, `--where`, `--status`, `--entity` and `--since`; the `--status` no-result hint fires only for `decided` / `tentative`, which narrows CR-003 A5 and is flagged to the human — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** `search --mark` refuses a text query (exit 2) and combines with `--type`, `--where`, `--status`, `--entity` and `--since`; the `--status` no-result hint fires only for `decided` / `tentative`, which narrows CR-003 A5 and is flagged to the human — _approved (human, 2026-10-17, Gate 1)_
 
 - **Question:** Q5. This story's text names `wikeeper lint`, which `test/templates/wiki-protocol.red.node.test.ts` S2 and S5 treat as unknown. May this story's QA-Red apply STORY-006-11 R6 (a) and (b)?
 - **Recommended:** Yes; this story is the first whose text needs them (audit finding 18).
-- **Decision:** Authorised as recommended: the QA-Red step of the story that first needs a re-scope makes it and lists it; this story applies R6 (a) and (b), and STORY-006-11 R6 holds the full table and verifies it — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** Authorised as recommended: the QA-Red step of the story that first needs a re-scope makes it and lists it; this story applies R6 (a) and (b), and STORY-006-11 R6 holds the full table and verifies it — _approved (human, 2026-10-17, Gate 1)_
 
 ### 1.5 Risks
 
@@ -298,13 +298,13 @@ Not applicable — template text. Consumes read-only: `matchesOrigin` (C2, froze
 ---
 
 ## ClearGate Ambiguity Gate (🟢 / 🟡 / 🔴)
-**Current Status: 🟡 Medium Ambiguity**
+**Current Status: 🟢 Low Ambiguity**
 
 *Evaluate each criterion against its literal text. If you substituted an interpretation, leave the box unchecked and surface the substitution in the Brief.*
 
 Requirements to pass to Green (Ready for Execution):
 - [x] Gherkin scenarios completely cover all detailed requirements in §1.2.
 - [x] Implementation Guide (§3) maps to specific, verified file paths from the approved Epic and verified codebase grounding.
-- [x] No "TBDs" exist anywhere in the specification or technical logic. (None; the §1.4 decisions are recommended answers awaiting Gate 1, which is why the status stays 🟡.)
+- [x] No "TBDs" exist anywhere in the specification or technical logic. (None; the §1.4 decisions were approved at Gate 1 on 2026-10-17.)
 - [x] Existing Surfaces cites at least one source-tree path or explicitly states "none — net-new."
 - [x] Why not simpler? has both sub-bullets answered (no "TBD" / no "{}").

@@ -5,9 +5,9 @@ parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
 status: Draft
-approved: false
-ambiguity: 🟡 Medium
-context_source: EPIC-005 (approved 2026-10-16) §2 (`status`), §5 (re-ingest scenario) · CR-003 D5 (row 8.12) · architecture.md §8 (rule versions → re-ingest candidates), §9, D-28 · SPRINT-03 decomposition brief contracts K1, K4, K5, K9 · verified src/ingest/lock.ts, src/ingest/registry.ts, src/ingest/log.ts, src/ingest/facts.ts, src/commands/ingest-abort.ts, src/commands/ingest-finish.ts, src/commands/ingest-start.ts, src/core/config.ts, src/core/paths.ts · real data checked read-only in ~/Documents/Dev/formapass_management/.wiki (9 finished ingests, 42 uncovered items, 52 miss events) · SPRINT-03 gate1-decisions.md item 11 (recommended 2026-10-17, pending Gate 1), split 4 (2026-10-17, the read-only allow rules this story carried as R13 moved to STORY-005-09) and the `src/program.ts` merge-order call (revised 2026-10-17) · consistency audit findings 15, 16 (`origin` on re-ingest candidates) · verified src/program.ts at 40018c5
+approved: true
+ambiguity: 🟢 Low
+context_source: EPIC-005 (approved 2026-10-16) §2 (`status`), §5 (re-ingest scenario) · CR-003 D5 (row 8.12) · architecture.md §8 (rule versions → re-ingest candidates), §9, D-28 · SPRINT-03 decomposition brief contracts K1, K4, K5, K9 · verified src/ingest/lock.ts, src/ingest/registry.ts, src/ingest/log.ts, src/ingest/facts.ts, src/commands/ingest-abort.ts, src/commands/ingest-finish.ts, src/commands/ingest-start.ts, src/core/config.ts, src/core/paths.ts · real data checked read-only in ~/Documents/Dev/formapass_management/.wiki (9 finished ingests, 42 uncovered items, 52 miss events) · SPRINT-03 gate1-decisions.md item 11 (approved at Gate 1, 2026-10-17), split 4 (2026-10-17, the read-only allow rules this story carried as R13 moved to STORY-005-09) and the `src/program.ts` merge-order call (revised 2026-10-17) · consistency audit findings 15, 16 (`origin` on re-ingest candidates) · verified src/program.ts at 40018c5
 actor: AI coding agent
 complexity_label: L2
 parallel_eligible: n
@@ -92,7 +92,7 @@ As an AI coding agent starting a session in a wiki, I want one read-only command
 ### 1.4 Open Questions
 
 - **Question (Q1, contract K5 vs code):** K5 defines `unfinished_sources` as "registered, no ingest or abort event". The code disagrees in two ways. (a) `ingest abort` without `--drop` keeps the source in `raw/` (`src/commands/ingest-abort.ts:82` removes files only with `--drop`), and `finish` tells the user to "run wikeeper ingest abort <id>, then apply again" (`src/commands/ingest-finish.ts:128`), so an aborted source is resumable, not done. (b) A dropped id is reused: `formapass_management/.wiki/log/` has an `abort` event with `dropped: true` for `src-2026-10-17-formapass-roadmap` at 00:23 and an `ingest` event for a new registration with the same id at 07:45 (`captured_at` 07:43). Under K5, a re-registered, unfinished source with a reused id would be hidden by the old abort event.
-- **Decision:** A source is unfinished until an `ingest` event for it exists: registered (meta exists) and no `ingest` event names the id, and `abort` events do not finish a source (R4; the `src-2026-10-17-b` row of the fourth scenario); the JSON shape stays `string[]`, so no consumer changes (gate1-decisions item 11) — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** A source is unfinished until an `ingest` event for it exists: registered (meta exists) and no `ingest` event names the id, and `abort` events do not finish a source (R4; the `src-2026-10-17-b` row of the fourth scenario); the JSON shape stays `string[]`, so no consumer changes (gate1-decisions item 11) — _approved (human, 2026-10-17, Gate 1)_
 
 ### 1.5 Risks
 
@@ -308,7 +308,7 @@ Consumed (frozen): `loadInstructions(paths): Promise<{ text; kb: KbInstructions 
 ---
 
 ## ClearGate Ambiguity Gate (🟢 / 🟡 / 🔴)
-**Current Status: 🟡 Medium Ambiguity**
+**Current Status: 🟢 Low Ambiguity**
 
 *Evaluate each criterion against its literal text. If you substituted an interpretation, leave the box unchecked and surface the substitution in the Brief.*
 
@@ -319,4 +319,4 @@ Requirements to pass to Green (Ready for Execution):
 - [x] Existing Surfaces cites at least one source-tree path or explicitly states "none — net-new."
 - [x] Why not simpler? has both sub-bullets answered (no "TBD" / no "{}").
 
-Status stays 🟡 although every box is checked: the §1.4 Decision line (Q1, K5's `unfinished_sources` rule against the abort and id-reuse behaviour in the code, gate1-decisions item 11) is a recommended answer pending the human's Gate 1 approval.
+Gate 1 approved by the human on 2026-10-17: every §1.4 Decision line is approved as recommended.

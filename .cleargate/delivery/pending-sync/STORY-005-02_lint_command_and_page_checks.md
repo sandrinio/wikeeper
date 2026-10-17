@@ -5,9 +5,9 @@ parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
 status: Draft
-approved: false
-ambiguity: 🟡 Medium
-context_source: EPIC-005 (approved 2026-10-16) §0 rules, §2, §3, §5 · architecture.md §8 (citations, frontmatter-built index), §10, D-28 · SPRINT-03 decomposition brief (K1 types, K2 owner) · SPRINT-03 gate1-decisions.md (orchestrator technical call — finding paths; recommended 2026-10-17, pending Gate 1) · SPRINT-03 consistency-audit.md findings 2, 5, 6 · CR-003 E2 · verified src/wiki/parse-page.ts, src/search/aliases.ts, src/ingest/index-builder.ts, src/ingest/lint-hook.ts, src/ingest/log.ts, src/ingest/validate.ts, src/core/paths.ts, src/commands/doctor.ts, src/commands/init.ts, src/core/output.ts, src/program.ts · probed read-only against ~/Documents/Dev/formapass_management/.wiki (20 pages, 242 fact lines) on 2026-10-17
+approved: true
+ambiguity: 🟢 Low
+context_source: EPIC-005 (approved 2026-10-16) §0 rules, §2, §3, §5 · architecture.md §8 (citations, frontmatter-built index), §10, D-28 · SPRINT-03 decomposition brief (K1 types, K2 owner) · SPRINT-03 gate1-decisions.md (orchestrator technical call — finding paths; approved at Gate 1, 2026-10-17) · SPRINT-03 consistency-audit.md findings 2, 5, 6 · CR-003 E2 · verified src/wiki/parse-page.ts, src/search/aliases.ts, src/ingest/index-builder.ts, src/ingest/lint-hook.ts, src/ingest/log.ts, src/ingest/validate.ts, src/core/paths.ts, src/commands/doctor.ts, src/commands/init.ts, src/core/output.ts, src/program.ts · probed read-only against ~/Documents/Dev/formapass_management/.wiki (20 pages, 242 fact lines) on 2026-10-17
 actor: AI coding agent
 complexity_label: L3
 parallel_eligible: n
@@ -149,7 +149,7 @@ As a user whose agent keeps the wiki, I want one read-only command that lists br
 
 - **Question:** What base does a finding's `path` use? The code keeps page paths relative to `pages/` (`Page.path`, the ingest log's lists), but rules findings point at `.wiki/kb_instructions.md` and `.wiki/config.yml`, which are not under `pages/` (STORY-005-04), and the first draft used both bases.
 - **Recommended:** One base for every finding: the repository root, POSIX, following `content_dir` (R3). Human output then prints a path the user can open as printed. `LintContext.only` stays relative to `pages/`, the form its only producer, `finish`, already has.
-- **Decision:** Every finding's `path` is relative to the repository root, POSIX, and follows `content_dir` (`.wiki/pages/team.md`, `.wiki/index.md`, `.wiki/kb_instructions.md`, `.wiki/config.yml`); `LintContext.only` stays relative to `pages/` (input only); human output prints `<path>[:<line>]` (R3, R9). — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** Every finding's `path` is relative to the repository root, POSIX, and follows `content_dir` (`.wiki/pages/team.md`, `.wiki/index.md`, `.wiki/kb_instructions.md`, `.wiki/config.yml`); `LintContext.only` stays relative to `pages/` (input only); human output prints `<path>[:<line>]` (R3, R9). — _approved (human, 2026-10-17, Gate 1)_
 
 Decided while drafting (not open), against the code and the formapass wiki:
 - Severities are as in R1. `broken-link` is an error (EPIC-005 §5). `uncited-claim` is an error, because WIKI.md says "End every claim with the citation". `orphan-page` and `index-drift` are warnings: nothing in them is false, and `index rebuild` repairs the index.
@@ -382,7 +382,7 @@ Consumed (frozen): `loadPages`, `pageEntities`, `normalizeName`, `linkTarget`, `
 ---
 
 ## ClearGate Ambiguity Gate (🟢 / 🟡 / 🔴)
-**Current Status: 🟡 Medium Ambiguity**
+**Current Status: 🟢 Low Ambiguity**
 
 *Evaluate each criterion against its literal text. If you substituted an interpretation, leave the box unchecked and surface the substitution in the Brief.*
 
@@ -393,4 +393,4 @@ Requirements to pass to Green (Ready for Execution):
 - [x] Existing Surfaces cites at least one source-tree path or explicitly states "none — net-new."
 - [x] Why not simpler? has both sub-bullets answered (no "TBD" / no "{}").
 
-The §1.4 decision is recommended, not yet approved: this story stays at 🟡 until the human's Gate 1 approval.
+Gate 1 approved by the human on 2026-10-17: every §1.4 Decision line is approved as recommended.

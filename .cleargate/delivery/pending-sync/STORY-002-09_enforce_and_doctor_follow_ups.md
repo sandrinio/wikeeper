@@ -5,8 +5,8 @@ parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
 status: Draft
-approved: false
-ambiguity: 🟡 Medium
+approved: true
+ambiguity: 🟢 Low
 context_source: CR-003 C1 and Open Question 3 (approved 2026-10-17; walkthrough rows 0.9c, 4.2d) · SPRINT-03 decomposition contract K9 · SPRINT-03 gate1-decisions.md 2026-10-17 (split 1; decisions 16, 18, 21; decision 17 as revised 2026-10-17, which moves the read-only allow rules to STORY-005-09 (split 4); technical call on rule order) · SPRINT-03 consistency-audit.md 2026-10-17 (findings 1, 3, 7, 8, 12, 13) · SPIKE-002 (Claude Code ask rules, concluded 2026-10-17) · EPIC-002 · CR-001 · verified src/agents/enforce/claude.ts, src/agents/enforce/codex.ts, src/agents/enforce/index.ts, src/agents/enforce/json-merge.ts, src/agents/index.ts, src/commands/doctor.ts, src/commands/ingest-apply.ts, src/commands/ingest-abort.ts, src/ingest/lock.ts, templates/system/SETUP.md, test/templates/structure.ts, test/templates.test.ts, test/templates.red.node.test.ts, test/templates/setup.red.node.test.ts, test/agents/enforce.test.ts, test/agents/enforce-ai-rules.red.node.test.ts, test/agents/enforce.red.node.test.ts at 40018c5 · Claude Code permissions docs (code.claude.com/docs/en/permissions, re-fetched 2026-10-17) and Codex rules docs, fetched 2026-10-17
 actor: AI coding agent
 complexity_label: L2
@@ -104,27 +104,27 @@ As an AI coding agent working in a wiki with `enforce` on, I want my harness to 
 
 - **Question (Q1):** Codex cannot match `--force-unlock` after `<id>`. Should Codex prompt for every `apply` (literal CR-003 C1), or leave `apply` allowed so that `apply --force-unlock` runs without a prompt in Codex?
 - **Recommended:** Leave `apply` allowed in Codex. Every ingest runs `apply`, so prompting for it would add a prompt to every `ai`-mode ingest in Codex, which is what `ai` mode exists to avoid. `--force-unlock` only takes over a lock the CLI judges stale and refuses a live one (`lock_not_stale`, `src/ingest/lock.ts:113`), while `--drop` deletes the stored source. SETUP.md's `ai` row shows the difference between the agents. **This changes the CR-003 decision for Codex only:** CR-003 Open Question 3 (approved 2026-10-17) said both forms prompt through "a Codex `prompt` prefix rule", and here Codex `apply --force-unlock` runs without a prompt. Flagged to the human at Gate 1.
-- **Decision:** In Codex `ai` mode, `apply` stays allowed and every `abort` prompts; Claude Code prompts for both `--drop` and `--force-unlock` (SPIKE-002). This changes CR-003's decision for Codex only and is flagged to the human (Gate 1 decision 16) — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** In Codex `ai` mode, `apply` stays allowed and every `abort` prompts; Claude Code prompts for both `--drop` and `--force-unlock` (SPIKE-002). This changes CR-003's decision for Codex only and is flagged to the human (Gate 1 decision 16) — _approved (human, 2026-10-17, Gate 1)_
 
 - **Question (Q2):** The first draft joined two goals: `ai`-mode prompts and doctor wording (CR-003 F3, F4). They share no file and no test. Split it?
 - **Recommended:** Split. This story keeps the enforce work; the doctor messages move to STORY-002-10, which owns `src/agents/index.ts`, `src/agents/doctor-checks.ts` and `src/core/setup-files.ts`.
-- **Decision:** Split: STORY-002-09 keeps the `ai`-mode prompts and the `enforce: false` cleanup; STORY-002-10 takes the agent-wiring line and the setup-files sub-checks (Gate 1 split 1) — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** Split: STORY-002-09 keeps the `ai`-mode prompts and the `enforce: false` cleanup; STORY-002-10 takes the agent-wiring line and the setup-files sub-checks (Gate 1 split 1) — _approved (human, 2026-10-17, Gate 1)_
 
 - **Question (Q3):** Gate 1 decision 17 gives `lint`, `status` and `rules list` allow rules in every mode. The previous revision of this story carried them, but the template checker reports a rule for an unregistered command as `unknown command "wikeeper lint"` (`test/templates/structure.ts:157-160`), for the writer items and for the SETUP.md rows, so this story would have had to wait for STORY-005-02, STORY-005-05 and STORY-005-06. Which story adds them?
 - **Recommended:** STORY-005-09, which lands after the three command stories (it depends on STORY-005-02, STORY-005-05 and STORY-005-06). This story then depends on no EPIC-005 story and can run early, and STORY-003-10, which needs this story, no longer waits for EPIC-005 either. Weakening the checker instead would let a rule for a missing command pass.
-- **Decision:** The read-only allow rules (`lint`, `status`, `rules list`, every permission mode, from one exported list; none for `rules record`) moved from this story to STORY-005-09, and STORY-002-09 depends on no EPIC-005 story (Gate 1 decision 17, revised 2026-10-17) — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** The read-only allow rules (`lint`, `status`, `rules list`, every permission mode, from one exported list; none for `rules record`) moved from this story to STORY-005-09, and STORY-002-09 depends on no EPIC-005 story (Gate 1 decision 17, revised 2026-10-17) — _approved (human, 2026-10-17, Gate 1)_
 
 - **Question (Q4):** STORY-006-12 R12 (CR-003 E10b; STORY-006-10 R10 in the first draft) documents turning `enforce` off, but `update` keeps wikeeper's hook and rules when `enforce` is false (`src/agents/enforce/index.ts:199`, consistency audit finding 3). How should `update` turn it off?
 - **Recommended:** With `enforce` not `true`, the enforce `update` hook calls `removeEnforce`, the `remove` path, instead of `applyEnforce(…, false)` (R5). Dropping the `:199` condition alone would also remove the entries, but it would leave every user-owned file's `.bak` in place, so `doctor` would report `backup-stale` after every switch-off. `removeEnforce` restores the original bytes and deletes the `.bak`, and its byte-for-byte restore is already tested for `remove`.
-- **Decision:** `update` with `enforce: false` removes wikeeper's hook and rules from each agent's settings through `removeEnforce` in `src/agents/enforce/index.ts`; `init` is unchanged (Gate 1 decision 18) — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** `update` with `enforce: false` removes wikeeper's hook and rules from each agent's settings through `removeEnforce` in `src/agents/enforce/index.ts`; `init` is unchanged (Gate 1 decision 18) — _approved (human, 2026-10-17, Gate 1)_
 
 - **Question (Q5):** The new rules fail SPRINT-01/02 red tests that pin the exact `ai`-mode rule lists (§3.1, "Re-scoped red tests"). A red test changes only with the human's authorisation. May this story's QA-Red step re-scope them?
 - **Recommended:** Yes. Edit by test name, only so that each assertion expects this story's `ai`-mode rules at their R3 positions, and change no other assertion. Leaving them failing blocks the sprint; dropping them loses CR-001's guard that no mode allows a broad rule. The list is the consistency audit's red-test table for this story; `test/templates/setup.red.node.test.ts` is not in it, because this story leaves the `ai` row's `permissions.allow` list, which S5 (`:353`) pins, unchanged.
-- **Decision:** Re-scoping is authorised as recommended: this story's QA-Red edits exactly the assertions listed in §3.1, only so that they expect this story's rules at their R3 positions, and STORY-006-11 R6 lists them (Gate 1 decision 21) — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** Re-scoping is authorised as recommended: this story's QA-Red edits exactly the assertions listed in §3.1, only so that they expect this story's rules at their R3 positions, and STORY-006-11 R6 lists them (Gate 1 decision 21) — _approved (human, 2026-10-17, Gate 1)_
 
 - **Question (Q6):** In what order do the new rules go, given that STORY-003-10 adds `read` rules and STORY-005-09 adds the read-only command rules to the same arrays after this story (consistency audit finding 12)?
 - **Recommended:** R3: ingest allow rules, then the ingest ask/prompt rules, then (STORY-003-10) the `read` rules, then search, then (STORY-005-09) the read-only command rules. In the Codex `ai` list the prompt lines therefore sit before the search lines, so exact-order assertions are rewritten to the R3 order rather than appended to.
-- **Decision:** Rule order in each agent's settings: ingest allow rules, ingest ask/prompt rules (this story), the `read` allow rules (STORY-003-10), `search` allow, the read-only command allow rules (STORY-005-09) (orchestrator technical call, gate1-decisions.md) — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** Rule order in each agent's settings: ingest allow rules, ingest ask/prompt rules (this story), the `read` allow rules (STORY-003-10), `search` allow, the read-only command allow rules (STORY-005-09) (orchestrator technical call, gate1-decisions.md) — _approved (human, 2026-10-17, Gate 1)_
 
 ### 1.5 Risks
 
@@ -327,7 +327,7 @@ No new command or option. The written rules are the R1 and R2 tables in the R3 o
 ---
 
 ## ClearGate Ambiguity Gate (🟢 / 🟡 / 🔴)
-**Current Status: 🟡 Medium Ambiguity**
+**Current Status: 🟢 Low Ambiguity**
 
 *Evaluate each criterion against its literal text. If you substituted an interpretation, leave the box unchecked and surface the substitution in the Brief.*
 
@@ -338,4 +338,4 @@ Requirements to pass to Green (Ready for Execution):
 - [x] Existing Surfaces cites at least one source-tree path or explicitly states "none — net-new."
 - [x] Why not simpler? has both sub-bullets answered (no "TBD" / no "{}").
 
-Every §1.4 question carries a recommended decision, pending the human's Gate 1 approval. Q1 (Codex, changes CR-003) and Q3 (the read-only rules moved to STORY-005-09, decision 17 as revised) need the human's explicit answer, so the status stays 🟡.
+Gate 1 approved by the human on 2026-10-17: every §1.4 Decision line is approved as recommended.

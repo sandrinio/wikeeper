@@ -5,8 +5,8 @@ parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
 status: Draft
-approved: false
-ambiguity: 🟡 Medium
+approved: true
+ambiguity: 🟢 Low
 context_source: CR-003 F3 and F4 (approved 2026-10-17; walkthrough rows 1.6, 6.2) · split out of STORY-002-09 (SPRINT-03 gate1-decisions.md 2026-10-17, split 1) · SPRINT-03 consistency-audit.md 2026-10-17 (shared-files table, finding 13) · EPIC-002 · verified src/agents/index.ts, src/agents/doctor-checks.ts, src/agents/detect.ts, src/core/setup-files.ts, src/core/git.ts, src/core/gitignore.ts, src/commands/doctor.ts, src/ingest/lock.ts, test/setup-files.red.node.test.ts, test/setup-files.test.ts, test/agents/doctor-checks.test.ts, test/agents/integration.test.ts at 40018c5
 actor: AI coding agent
 complexity_label: L2
@@ -77,11 +77,11 @@ As an AI coding agent following SETUP.md steps 5 and 6, I want `wikeeper doctor`
 
 - **Question (Q1):** The first STORY-002-09 draft joined this doctor wording with the `ai`-mode prompts. They share no file and no test. Should it be a separate story?
 - **Recommended:** Yes. This story owns `src/agents/index.ts`, `src/agents/doctor-checks.ts` and `src/core/setup-files.ts`, no other SPRINT-03 story edits them (consistency audit, shared-files table), and it has no in-sprint predecessor.
-- **Decision:** Split: STORY-002-10 takes the agent-wiring line and the setup-files sub-checks (CR-003 F3, F4); STORY-002-09 keeps the enforce work (Gate 1 split 1) — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** Split: STORY-002-10 takes the agent-wiring line and the setup-files sub-checks (CR-003 F3, F4); STORY-002-09 keeps the enforce work (Gate 1 split 1) — _approved (human, 2026-10-17, Gate 1)_
 
 - **Question (Q2):** Where does the `ok` message get the file list, so that it cannot drift from the files the check actually reads?
 - **Recommended:** Move the target list of `checkAgentBlocks` (`src/agents/doctor-checks.ts:44-52`) into an exported `blockTargets(input)` that both the check and the summary call. Then a file in the summary is always a file the check found healthy.
-- **Decision:** `blockTargets(input: AgentCheckInput): string[]` is exported from `src/agents/doctor-checks.ts` and used by `checkAgentBlocks` (behaviour unchanged) and by the `agent-wiring` summary — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** `blockTargets(input: AgentCheckInput): string[]` is exported from `src/agents/doctor-checks.ts` and used by `checkAgentBlocks` (behaviour unchanged) and by the `agent-wiring` summary — _approved (human, 2026-10-17, Gate 1)_
 
 ### 1.5 Risks
 
@@ -224,7 +224,7 @@ No new command, option or JSON field. The two messages are R1 and R2; `doctor --
 ---
 
 ## ClearGate Ambiguity Gate (🟢 / 🟡 / 🔴)
-**Current Status: 🟡 Medium Ambiguity**
+**Current Status: 🟢 Low Ambiguity**
 
 *Evaluate each criterion against its literal text. If you substituted an interpretation, leave the box unchecked and surface the substitution in the Brief.*
 
@@ -235,4 +235,4 @@ Requirements to pass to Green (Ready for Execution):
 - [x] Existing Surfaces cites at least one source-tree path or explicitly states "none — net-new."
 - [x] Why not simpler? has both sub-bullets answered (no "TBD" / no "{}").
 
-Both §1.4 questions carry a recommended decision, pending the human's Gate 1 approval, so the status stays 🟡.
+Gate 1 approved by the human on 2026-10-17: every §1.4 Decision line is approved as recommended.

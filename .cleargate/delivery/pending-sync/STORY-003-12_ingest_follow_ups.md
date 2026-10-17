@@ -5,9 +5,9 @@ parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
 status: Draft
-approved: false
-ambiguity: 🟡 Medium
-context_source: CR-003 (approved 2026-10-17) §B1–B3 and Open Question 2 · SPRINT-03 decomposition brief contract K11 and shared files · walkthrough rows 7.2, 7.9, 7.20, 11.26a (formapass_management, 2026-10-17) · STORY-003-09 R3/R10, STORY-003-04 R6 · SPRINT-03 gate1-decisions.md item 9 (recommended, pending Gate 1) and consistency-audit findings 9, 13 · verified src/ingest/validate.ts, src/ingest/snapshot.ts, src/wiki/parse-page.ts, src/commands/ingest-finish.ts, src/commands/ingest-start.ts, src/core/output.ts, src/commands/ingest-facts.ts, src/commands/ingest-abort.ts and the SPRINT-02 red tests under test/ingest
+approved: true
+ambiguity: 🟢 Low
+context_source: CR-003 (approved 2026-10-17) §B1–B3 and Open Question 2 · SPRINT-03 decomposition brief contract K11 and shared files · walkthrough rows 7.2, 7.9, 7.20, 11.26a (formapass_management, 2026-10-17) · STORY-003-09 R3/R10, STORY-003-04 R6 · SPRINT-03 gate1-decisions.md item 9 (approved at Gate 1, 2026-10-17) and consistency-audit findings 9, 13 · verified src/ingest/validate.ts, src/ingest/snapshot.ts, src/wiki/parse-page.ts, src/commands/ingest-finish.ts, src/commands/ingest-start.ts, src/core/output.ts, src/commands/ingest-facts.ts, src/commands/ingest-abort.ts and the SPRINT-02 red tests under test/ingest
 actor: AI coding agent
 complexity_label: L2
 parallel_eligible: y
@@ -102,11 +102,11 @@ As an AI coding agent that writes wiki pages during an ingest, I want `finish` t
 
 - **Question:** Does a fact line whose text was corrected in place (a typo or a date in the text fixed) count as dropped?
 - **Recommended:** Yes. R1 ignores layout only (marker, indentation, spacing, position). Any change of date, status, wording or citation is a drop. WIKI.md "Page format" says a replaced fact stays in the list and the newer line carries the change, and CR-003 E5 routes corrections through a new ingest, so editing an old line in place is the writer error B1 exists to catch.
-- **Decision:** Yes. `finish` treats a fact line corrected in place as dropped: the writer adds the new line and keeps the old one (R1, R3). — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** Yes. `finish` treats a fact line corrected in place as dropped: the writer adds the new line and keeps the old one (R1, R3). — _approved (human, 2026-10-17, Gate 1)_
 
 - **Question:** K11 checks each page against its own snapshot copy. Should a line moved to another page, or lost with a deleted page, count as dropped?
 - **Recommended:** Keep K11 as written: per page, updated pages only (R2). A line moved out of a page that still exists is refused; this is rare, and the writer keeps the line where it was. A deleted page stays allowed (STORY-003-09 R3) because the report counts deletions, so that loss is visible, unlike a line silently dropped from an updated page. A whole-tree check would also catch deletions but changes R3 and K11.
-- **Decision:** Keep K11. The check is per updated page, against its own snapshot copy: a line moved out of a page that still exists counts as dropped from that page, and deleting a whole page stays allowed and reported (R2). — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** Keep K11. The check is per updated page, against its own snapshot copy: a line moved out of a page that still exists counts as dropped from that page, and deleting a whole page stays allowed and reported (R2). — _approved (human, 2026-10-17, Gate 1)_
 
 ### 1.5 Risks
 
@@ -300,7 +300,7 @@ export function validateIngest(                        // signature unchanged
 ---
 
 ## ClearGate Ambiguity Gate (🟢 / 🟡 / 🔴)
-**Current Status: 🟡 Medium Ambiguity**
+**Current Status: 🟢 Low Ambiguity**
 
 *Evaluate each criterion against its literal text. If you substituted an interpretation, leave the box unchecked and surface the substitution in the Brief.*
 

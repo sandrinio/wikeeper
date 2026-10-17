@@ -5,9 +5,9 @@ parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
 status: Draft
-approved: false
-ambiguity: 🟡 Medium
-context_source: "EPIC-006 (archived; instruction content for every command) · EPIC-005 §2 (lint, lint --rules, status, rules record/list, ingest facts --dry-run; CR-002 D1 and CR-003 D4–D5 scope additions) · CR-002 D1 (approved 2026-10-16) · SPRINT-03 Gate 1 decisions 5, 8 (local `.html` / `.htm` files added 2026-10-17), 10, 11, 12, 13, 15, 17 (owner STORY-005-09), 20, 21 (plans/gate1-decisions.md; recommended 2026-10-17, pending Gate 1) and consistency-audit findings 9, 10, 11, 12, 14, 16 · the instruction text handed to this story by STORY-003-10 §1.3, STORY-005-03 §1.3, STORY-005-05 R6–R7, STORY-005-07 §1.5 · SPRINT-03 decomposition brief (contracts K2–K7; shared files: 006-10 → 006-12 → 006-09 on WIKI.md and SETUP.md, 006-11 last) · SPIKE-001 (the human's deck is an outlined-text PDF: `read` warns likely_scanned) · architecture.md §7.7 (read), §9 (rule evolution), §10 · SPRINT-02 walkthrough notes, formapass_management (rows 8.12, 11.4, 11.27c) · verified templates/system/{WIKI,SETUP}.md, templates/skills/*/SKILL.md, templates/agents/*/wiki-writer.*, templates/agent-block.md, src/ingest/registry.ts, src/commands/ingest-facts.ts, src/core/config.ts, test/templates/*.red.node.test.ts, test/templates/structure.ts"
+approved: true
+ambiguity: 🟢 Low
+context_source: "EPIC-006 (archived; instruction content for every command) · EPIC-005 §2 (lint, lint --rules, status, rules record/list, ingest facts --dry-run; CR-002 D1 and CR-003 D4–D5 scope additions) · CR-002 D1 (approved 2026-10-16) · SPRINT-03 Gate 1 decisions 5, 8 (local `.html` / `.htm` files added 2026-10-17), 10, 11, 12, 13, 15, 17 (owner STORY-005-09), 20, 21 (plans/gate1-decisions.md; approved at Gate 1, 2026-10-17) and consistency-audit findings 9, 10, 11, 12, 14, 16 · the instruction text handed to this story by STORY-003-10 §1.3, STORY-005-03 §1.3, STORY-005-05 R6–R7, STORY-005-07 §1.5 · SPRINT-03 decomposition brief (contracts K2–K7; shared files: 006-10 → 006-12 → 006-09 on WIKI.md and SETUP.md, 006-11 last) · SPIKE-001 (the human's deck is an outlined-text PDF: `read` warns likely_scanned) · architecture.md §7.7 (read), §9 (rule evolution), §10 · SPRINT-02 walkthrough notes, formapass_management (rows 8.12, 11.4, 11.27c) · verified templates/system/{WIKI,SETUP}.md, templates/skills/*/SKILL.md, templates/agents/*/wiki-writer.*, templates/agent-block.md, src/ingest/registry.ts, src/commands/ingest-facts.ts, src/core/config.ts, test/templates/*.red.node.test.ts, test/templates/structure.ts"
 actor: AI coding agent (main agent or sub-agent) operating the wiki
 complexity_label: L2
 parallel_eligible: n
@@ -128,35 +128,35 @@ The brief's design calls (`read --out`, page-hash baseline, the K1 format) are s
 
 - **Question:** Q1. The brief says `status` runs at session start. The only always-loaded text is the pointer block (12 of 14 lines). Should the block gain a line "run `wikeeper status` at session start"?
 - **Recommended:** No. WIKI.md section "Lint and status" says to run it once per session before the first ingest; the agent reads WIKI.md before any wiki work, and the `wiki-ingest` skill lists the section.
-- **Decision:** No `status` line in the pointer block (14-line cap); WIKI.md says to run `status` once per session before the first ingest — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** No `status` line in the pointer block (14-line cap); WIKI.md says to run `status` once per session before the first ingest — _approved (human, 2026-10-17, Gate 1)_
 
 - **Question:** Q2. `wikeeper rules record` requires `--kind` (contract K4), but some proposals change no source kind: a new question from onboarding, a new entity, a Never-capture line from a user's correction. What does the agent pass?
 - **Recommended:** The proposal's kind as STORY-006-10 R7 defines it (R6 (d)).
-- **Decision:** A source-kind id, or one of the section keys STORY-005-01 freezes for non-kind proposals: `questions`, `entities`, `capture-signals`, `write-policy`, `never-capture` — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** A source-kind id, or one of the section keys STORY-005-01 freezes for non-kind proposals: `questions`, `entities`, `capture-signals`, `write-policy`, `never-capture` — _approved (human, 2026-10-17, Gate 1)_
 
 - **Question:** Q3. The brief says `read` is for a URL, DOCX or PDF "it can't read itself". Claude Code can open PDFs and fetch pages. Should the agent use `read` anyway?
 - **Recommended:** Yes, as architecture.md §7.7 argues: an agent's web tool may return a summary instead of the page, and `--out` gives `--text-file` the file as it is (R1 (b)).
-- **Decision:** The agent uses `read` for every URL, every DOCX and every local `.html` / `.htm` file; for a PDF it runs `read` first and reads the PDF itself when `read` warns `likely_scanned` (Gate 1 decision 8) — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** The agent uses `read` for every URL, every DOCX and every local `.html` / `.htm` file; for a PDF it runs `read` first and reads the PDF itself when `read` warns `likely_scanned` (Gate 1 decision 8) — _approved (human, 2026-10-17, Gate 1)_
 
 - **Question:** Q4. After a git merge combines two ingests' edits to one page, the page matches neither recorded hash. What does WIKI.md tell the agent?
 - **Recommended:** That such pages are reported until their next ingest, and are not restored (R3, R7).
-- **Decision:** `lint` reports `unlogged-change` (error) on such a page until the next ingest updates it; WIKI.md explains it — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** `lint` reports `unlogged-change` (error) on such a page until the next ingest updates it; WIKI.md explains it — _approved (human, 2026-10-17, Gate 1)_
 
 - **Question:** Q5. Is an aborted source still "unfinished" in `wikeeper status`, so the text must offer `--drop` for it?
 - **Recommended:** Yes (R2).
-- **Decision:** A source is unfinished until an `ingest` event for it exists; `abort` events do not finish a source — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** A source is unfinished until an `ingest` event for it exists; `abort` events do not finish a source — _approved (human, 2026-10-17, Gate 1)_
 
 - **Question:** Q6. Can the dry run preview a rule change on a source whose ingest is finished? Today `ingest facts` refuses a finished ingest (`src/commands/ingest-facts.ts:84`).
 - **Recommended:** Yes; R6 (c) relies on it.
-- **Decision:** `ingest facts --dry-run` works on finished sources; it stores nothing and removes nothing (STORY-005-07) — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** `ingest facts --dry-run` works on finished sources; it stores nothing and removes nothing (STORY-005-07) — _approved (human, 2026-10-17, Gate 1)_
 
 - **Question:** Q7. Do `status`, `lint` and `rules list` prompt for permission in Claude Code and Codex?
 - **Recommended:** No, once their allow rules exist; R2 says so.
-- **Decision:** The read-only `lint`, `status` and `rules list` get allow rules in every permission mode, like `search`; `rules record` gets none (owner STORY-005-09, a predecessor of this story; Gate 1 decision 17) — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** The read-only `lint`, `status` and `rules list` get allow rules in every permission mode, like `search`; `rules record` gets none (owner STORY-005-09, a predecessor of this story; Gate 1 decision 17) — _approved (human, 2026-10-17, Gate 1)_
 
 - **Question:** Q8. The new section and the new SETUP.md commands break two SPRINT-02 red tests (the WIKI.md section list, the SETUP.md command list). May this story's QA-Red apply STORY-006-11 R6 (c) and (d)?
 - **Recommended:** Yes; this story is the one whose text needs them.
-- **Decision:** Authorised as recommended: the QA-Red step of the story that first needs a re-scope makes it; this story applies R6 (c) and (d), and STORY-006-11 verifies them — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** Authorised as recommended: the QA-Red step of the story that first needs a re-scope makes it; this story applies R6 (c) and (d), and STORY-006-11 verifies them — _approved (human, 2026-10-17, Gate 1)_
 
 ### 1.5 Risks
 
@@ -329,13 +329,13 @@ Not applicable — template text. Consumes read-only: `PAGE_CHECKS` and the find
 ---
 
 ## ClearGate Ambiguity Gate (🟢 / 🟡 / 🔴)
-**Current Status: 🟡 Medium Ambiguity**
+**Current Status: 🟢 Low Ambiguity**
 
 *Evaluate each criterion against its literal text. If you substituted an interpretation, leave the box unchecked and surface the substitution in the Brief.*
 
 Requirements to pass to Green (Ready for Execution):
 - [x] Gherkin scenarios completely cover all detailed requirements in §1.2.
 - [x] Implementation Guide (§3) maps to specific, verified file paths from the approved Epic and verified codebase grounding.
-- [x] No "TBDs" exist anywhere in the specification or technical logic. (None; the §1.4 decisions are recommended answers awaiting Gate 1, which is why the status stays 🟡.)
+- [x] No "TBDs" exist anywhere in the specification or technical logic. (None; the §1.4 decisions were approved at Gate 1 on 2026-10-17.)
 - [x] Existing Surfaces cites at least one source-tree path or explicitly states "none — net-new."
 - [x] Why not simpler? has both sub-bullets answered (no "TBD" / no "{}").

@@ -11,7 +11,7 @@
 | Proposals | 0 | 0 | 0 |
 | CRs | 3 | 0 | 1 |
 | Bugs | 2 | 0 | 2 |
-| Spikes | 2 | 0 | 0 |
+| Spikes | 2 | 0 | 2 |
 
 ## Active Epics
 
@@ -40,6 +40,10 @@ _No active epics._
 - [[EPIC-006]] (epics) — Completed
 
 - [[INITIATIVE-001]] (initiatives) — Triaged
+
+- [[SPIKE-001]] (spikes) — Completed
+
+- [[SPIKE-002]] (spikes) — Completed
 
 - [[SPRINT-01]] (sprints) — Completed
 

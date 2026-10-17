@@ -5,9 +5,9 @@ parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
 status: Draft
-approved: false
-ambiguity: 🟡 Medium
-context_source: EPIC-005 (approved 2026-10-16) §0 objective ("a facts dry-run diff for previewing rule changes on old sources"), §2, §4 · architecture.md §7.3, §7.4 (facts file), §8 (re-ingest when a rule changes) · SPRINT-03 decomposition brief contract K6 · SPRINT-03 gate1-decisions.md items 4 and 13 (recommended 2026-10-17, pending Gate 1) · verified src/ingest/facts.ts, src/commands/ingest-facts.ts, src/ingest/registry.ts, src/ingest/permissions.ts · real facts files checked read-only in ~/Documents/Dev/formapass_management/.wiki/raw (9 files, 7–87 facts each, no duplicate entity+field+anchor keys)
+approved: true
+ambiguity: 🟢 Low
+context_source: EPIC-005 (approved 2026-10-16) §0 objective ("a facts dry-run diff for previewing rule changes on old sources"), §2, §4 · architecture.md §7.3, §7.4 (facts file), §8 (re-ingest when a rule changes) · SPRINT-03 decomposition brief contract K6 · SPRINT-03 gate1-decisions.md items 4 and 13 (approved at Gate 1, 2026-10-17) · verified src/ingest/facts.ts, src/commands/ingest-facts.ts, src/ingest/registry.ts, src/ingest/permissions.ts · real facts files checked read-only in ~/Documents/Dev/formapass_management/.wiki/raw (9 files, 7–87 facts each, no duplicate entity+field+anchor keys)
 actor: AI coding agent
 complexity_label: L2
 parallel_eligible: y
@@ -84,9 +84,9 @@ As an AI coding agent that changed a capture rule, I want to submit a re-extract
 ### 1.4 Open Questions
 
 - **Question:** K6 fixes the diff key, the return shape and "stores nothing, exits 0, validation errors keep their exit code", but not two points where a real submission differs: it refuses a finished source (`ingest_finished`, `src/commands/ingest-facts.ts:85`) and removes a source whose kind the whitelist denies (`:120`). Does a dry run do the same?
-- **Decision:** No: a dry run works on finished sources, so a rule change can be previewed on an old source (EPIC-005 §0), and it stores nothing and removes nothing; on a denial it exits 4 with `removed: []` and `dry_run: true` (R3, R4) (gate1-decisions item 13) — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** No: a dry run works on finished sources, so a rule change can be previewed on an old source (EPIC-005 §0), and it stores nothing and removes nothing; on a denial it exits 4 with `removed: []` and `dry_run: true` (R3, R4) (gate1-decisions item 13) — _approved (human, 2026-10-17, Gate 1)_
 - **Question:** The granularity rubric's too-small signal "a parameter addition" trips literally: the story adds one option to an existing command. Should it be folded into another story or filed as a CR?
-- **Decision:** Keep it as its own L2 story, as drafted: the option needs its own branch at two checks, a new pure diff function and its own scenarios, and no other SPRINT-03 story owns `ingest facts` behaviour (STORY-003-12 edits only the command's help text and stays the predecessor for `src/commands/ingest-facts.ts`) (gate1-decisions item 4) — _recommended 2026-10-17, pending Gate 1_
+- **Decision:** Keep it as its own L2 story, as drafted: the option needs its own branch at two checks, a new pure diff function and its own scenarios, and no other SPRINT-03 story owns `ingest facts` behaviour (STORY-003-12 edits only the command's help text and stays the predecessor for `src/commands/ingest-facts.ts`) (gate1-decisions item 4) — _approved (human, 2026-10-17, Gate 1)_
 
 ### 1.5 Risks
 
@@ -259,7 +259,7 @@ Consumed (frozen in STORY-003-06 §3.3): `validateFacts`, `readFacts`, `Fact`, `
 ---
 
 ## ClearGate Ambiguity Gate (🟢 / 🟡 / 🔴)
-**Current Status: 🟡 Medium Ambiguity**
+**Current Status: 🟢 Low Ambiguity**
 
 *Evaluate each criterion against its literal text. If you substituted an interpretation, leave the box unchecked and surface the substitution in the Brief.*
 
@@ -270,4 +270,4 @@ Requirements to pass to Green (Ready for Execution):
 - [x] Existing Surfaces cites at least one source-tree path or explicitly states "none — net-new."
 - [x] Why not simpler? has both sub-bullets answered (no "TBD" / no "{}").
 
-Status stays 🟡 although every box is checked: the two §1.4 Decision lines (dry run on finished sources, gate1-decisions item 13; the story kept as it is, item 4) are recommended answers pending the human's Gate 1 approval.
+Gate 1 approved by the human on 2026-10-17: every §1.4 Decision line is approved as recommended.
