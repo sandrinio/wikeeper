@@ -1,0 +1,465 @@
+{
+  "schema_version": 2,
+  "sprint": "SPRINT-03",
+  "generated_at": "2026-10-17T11:19:38Z",
+  "contracts": [
+    {
+      "id": "C1",
+      "branch": "contract/S-03-kb-parser",
+      "base": "sprint/S-03",
+      "owner_story": "STORY-005-01",
+      "frozen_exports": [
+        "src/kb/parse-instructions.ts: KB_SECTION_KEYS(readonly [\"questions\", \"entities\", \"capture-signals\", \"source-kinds\", \"write-policy\", \"never-capture\", \"rule-changelog\"])",
+        "src/kb/parse-instructions.ts: KbSectionKey(type, element of KB_SECTION_KEYS)",
+        "src/kb/parse-instructions.ts: KB_PROPOSAL_SECTION_KEYS(readonly [\"questions\", \"entities\", \"capture-signals\", \"write-policy\", \"never-capture\"])",
+        "src/kb/parse-instructions.ts: KbSection(interface { heading: string; key: KbSectionKey | null; line: number })",
+        "src/kb/parse-instructions.ts: KbQuestion(interface { id: string; text: string; datedFacts: boolean; line: number })",
+        "src/kb/parse-instructions.ts: KbEntity(interface { name: string; fields: string[]; page: string; questionRefs: string[]; line: number })",
+        "src/kb/parse-instructions.ts: KbNote(interface { section: string; text: string; line: number })",
+        "src/kb/parse-instructions.ts: KbChangelogEntry(interface { date: string; text: string; line: number })",
+        "src/kb/parse-instructions.ts: KbIssue(interface { line: number; code: string; message: string })",
+        "src/kb/parse-instructions.ts: KB_ISSUE_CODES(readonly [\"unknown-question-ref\", \"malformed-question\", \"malformed-entity\", \"ambiguous-line\", \"missing-section\"])",
+        "src/kb/parse-instructions.ts: KbInstructions(interface { purpose: string | null; sections: KbSection[]; questions: KbQuestion[]; entities: KbEntity[]; kinds: SourceKindRule[]; notes: KbNote[]; neverCapture: string[]; changelog: KbChangelogEntry[]; issues: KbIssue[] })",
+        "src/kb/parse-instructions.ts: parseInstructions(text: string): KbInstructions",
+        "src/kb/parse-instructions.ts: loadInstructions(paths: ResolvedPaths): Promise<{ text: string; kb: KbInstructions } | null>"
+      ],
+      "consumers": [
+        "STORY-005-02",
+        "STORY-005-04",
+        "STORY-005-05",
+        "STORY-005-06",
+        "STORY-006-10",
+        "STORY-006-11"
+      ],
+      "created_by": "developer skeleton dispatch (one dispatch writes C1, C2, C3 in stack order, one commit and one branch per contract; bodies throw 'contract stub Cn'; constants carry their frozen values; no tests, templates, package.json or package-lock.json); src/kb/parse-instructions.ts only; STORY-005-01 builds from this branch",
+      "create_when": "contract step, first (root of the EPIC-005 stack)"
+    },
+    {
+      "id": "C2",
+      "branch": "contract/S-03-lint",
+      "base": "contract/S-03-kb-parser",
+      "owner_story": "STORY-005-02",
+      "frozen_exports": [
+        "src/ingest/lint-hook.ts: LintFinding(interface { id; severity; message; path?; line?: number }) (adds line?, additive)",
+        "src/lint/checks.ts: LintScope(type \"pages\" | \"rules\")",
+        "src/lint/checks.ts: LintContext(interface { paths; config; pages; kb; log; now; only? })",
+        "src/lint/checks.ts: LintCheck(interface { id; severity; scope; run(ctx) })",
+        "src/lint/checks.ts: PAGE_CHECKS(LintCheck[])",
+        "src/lint/checks.ts: RULE_CHECKS(LintCheck[])",
+        "src/lint/checks.ts: runLint(ctx: LintContext, opts: { scope: LintScope; checks?: string[] }): Promise<LintFinding[]>",
+        "src/lint/checks.ts: countFindings(findings: readonly LintFinding[]): { error: number; warning: number; info: number }",
+        "src/lint/checks.ts: pagePath(paths: ResolvedPaths, rel: string): string",
+        "src/lint/checks.ts: findingLine(f: LintFinding): string",
+        "src/lint/checks.ts: indexDriftCheck(LintCheck, \"index-drift\", warning)",
+        "src/lint/links.ts: brokenLinkCheck(LintCheck, \"broken-link\", error)",
+        "src/lint/links.ts: orphanPageCheck(LintCheck, \"orphan-page\", warning)",
+        "src/lint/citations.ts: uncitedClaimCheck(LintCheck, \"uncited-claim\", error)",
+        "src/commands/lint.ts: LintData(interface { scope; findings; counts })",
+        "src/commands/lint.ts: createLintCommand(deps?: { now?: () => Date }): CommandModule",
+        "src/commands/lint.ts: lintCommand(CommandModule)"
+      ],
+      "consumers": [
+        "STORY-005-03",
+        "STORY-005-04",
+        "STORY-005-08",
+        "STORY-006-09",
+        "STORY-006-10",
+        "STORY-006-11"
+      ],
+      "created_by": "developer skeleton dispatch (one dispatch writes C1, C2, C3 in stack order, one commit and one branch per contract; bodies throw 'contract stub Cn'; constants carry their frozen values; no tests, templates, package.json or package-lock.json); exceptions: the four check objects carry their frozen id, severity and scope (run() throws); PAGE_CHECKS = [brokenLinkCheck, uncitedClaimCheck, orphanPageCheck, indexDriftCheck] followed by one INSERTION POINT comment for STORY-005-03 (unloggedChangeCheck, directly after indexDriftCheck), one unchanged separator line, and one INSERTION POINT comment for STORY-005-08 (staleFactCheck, last); RULE_CHECKS = [] holding one INSERTION POINT comment for STORY-005-04 (...RULES_LINT_CHECKS); the import block holds one INSERTION POINT comment per consumer, separated by unchanged lines; the owner keeps every INSERTION POINT line untouched; createLintCommand registers 'lint' with --rules, --check <id...> and --json and an action that throws; src/ingest/lint-hook.ts gains line?: number on LintFinding; the commit also adds the owner's import + defaultCommands entry for lintCommand in src/program.ts; STORY-005-02 builds from this branch",
+      "create_when": "contract step, after C1"
+    },
+    {
+      "id": "C3",
+      "branch": "contract/S-03-rule-decisions",
+      "base": "contract/S-03-kb-parser",
+      "owner_story": "STORY-005-06",
+      "frozen_exports": [
+        "src/kb/rule-decisions.ts: RuleDecisionKind(type \"accepted\" | \"rejected\")",
+        "src/kb/rule-decisions.ts: RuleDecision(interface { kind: string; summary: string; fingerprint: string; decision: RuleDecisionKind; at: string; source_id: string | null; previously_rejected: boolean; file: string })",
+        "src/kb/rule-decisions.ts: normalizeSummary(summary: string): string",
+        "src/kb/rule-decisions.ts: fingerprint(kind: string, summary: string): string",
+        "src/kb/rule-decisions.ts: recordDecision(paths: ResolvedPaths, input: { kind: string; summary: string; decision: RuleDecisionKind; sourceId?: string; at: string }): Promise<{ file: string; fingerprint: string; previouslyRejected: boolean }>",
+        "src/kb/rule-decisions.ts: readDecisions(paths: ResolvedPaths): Promise<{ decisions: RuleDecision[]; skipped: Array<{ file: string; reason: string }> }>",
+        "src/kb/rule-decisions.ts: listDecisions(paths: ResolvedPaths): Promise<RuleDecision[]>",
+        "src/commands/rules.ts: createRulesCommand(deps?: { now?: () => Date }): CommandModule",
+        "src/commands/rules.ts: rulesCommand(CommandModule)"
+      ],
+      "consumers": [
+        "STORY-005-05"
+      ],
+      "created_by": "developer skeleton dispatch (one dispatch writes C1, C2, C3 in stack order, one commit and one branch per contract; bodies throw 'contract stub Cn'; constants carry their frozen values; no tests, templates, package.json or package-lock.json); exceptions: createRulesCommand registers 'rules' with 'record' (--accepted, --rejected, --kind <k>, --summary <text>, --from <source-id>, --json) and 'list' (--json), actions throw; no src/ingest/log.ts edit (the summaryLine change is STORY-005-06's own); the commit also adds the owner's import + defaultCommands entry for rulesCommand in src/program.ts; STORY-005-06 builds from this branch",
+      "create_when": "contract step, after C1 (second branch on C1)"
+    },
+    {
+      "id": "C4",
+      "branch": "contract/S-03-version",
+      "base": "sprint/S-03",
+      "owner_story": "STORY-001-10",
+      "frozen_exports": [
+        "src/core/version.ts: buildCommit(file?: URL): string | null",
+        "src/core/version.ts: versionString(pkg: string, commit: string | null): string",
+        "src/core/version.ts: fullVersion(): string",
+        "src/core/version.ts: npmVersion(v: string): string"
+      ],
+      "consumers": [
+        "STORY-003-10"
+      ],
+      "created_by": "STORY-001-10's own Developer commit (not a skeleton): cut from story/STORY-001-10 at the Developer commit; carries package.json (version 0.3.0), package-lock.json, scripts/build-info.mjs and test/e2e/pack.ts, so STORY-003-10 adds its dependencies on top of the lockfile (lockfile, single writer)",
+      "create_when": "when STORY-001-10's Developer reports done, before its QA-Verify"
+    },
+    {
+      "id": "C5",
+      "branch": "contract/S-03-enforce",
+      "base": "contract/S-03-version",
+      "owner_story": "STORY-002-09",
+      "frozen_exports": [
+        "test/agents/rule-match.ts: claudeDecision(perms, command)",
+        "test/agents/rule-match.ts: codexDecision(lines, argv)",
+        "src/agents/enforce/claude.ts: CLAUDE_ENFORCE (rule order: ingest allow rules, then STORY-002-09's ingest ask rules; STORY-003-10 appends directly after them)",
+        "src/agents/enforce/codex.ts: CODEX_ENFORCE (same order; prompt rules)"
+      ],
+      "consumers": [
+        "STORY-003-10"
+      ],
+      "created_by": "STORY-002-09's own Developer commit (not a skeleton): branch cut from contract/S-03-version, then story/STORY-002-09 merged in at its Developer commit (STORY-002-09 and STORY-001-10 share no file, so the merge is clean); carries the enforce rule arrays, the SETUP.md step-4 'ai' row, the re-scoped enforce red tests, test/agents/enforce.test.ts and test/agents/rule-match.ts / rule-match.test.ts",
+      "create_when": "when both STORY-001-10's and STORY-002-09's Developers report done"
+    },
+    {
+      "id": "C6",
+      "branch": "contract/S-03-read",
+      "base": "contract/S-03-enforce",
+      "owner_story": "STORY-003-10",
+      "frozen_exports": [
+        "src/read/index.ts: ReadFormat(type \"html\" | \"docx\" | \"pdf\" | \"markdown\" | \"text\")",
+        "src/read/index.ts: ReadWarning(interface { code: \"likely_scanned\" | \"needs_browser\" | \"unsupported\"; message: string })",
+        "src/read/index.ts: ReadResult(interface { markdown: string; title: string | null; author: string | null; date: string | null; format: ReadFormat; warnings: ReadWarning[] })",
+        "src/read/index.ts: Converted(interface { body: string; title: string | null; author: string | null; date: string | null; warnings: ReadWarning[] })",
+        "src/read/index.ts: readSource(input: string, opts: ReadOptions): Promise<ReadResult>",
+        "src/read/index.ts: convertDocx(bytes: Uint8Array): Promise<Converted> (stub branch STORY-003-11 replaces)",
+        "src/read/index.ts: convertPdf(bytes: Uint8Array): Promise<Converted> (stub branch STORY-003-11 replaces)",
+        "src/agents/enforce/claude.ts: CLAUDE_ENFORCE (adds the read allow rule after STORY-002-09's rules; STORY-005-09 appends after the search allow)",
+        "src/agents/enforce/codex.ts: CODEX_ENFORCE (same order)"
+      ],
+      "consumers": [
+        "STORY-003-11",
+        "STORY-005-09"
+      ],
+      "created_by": "STORY-003-10's own Developer commit (not a skeleton): cut from story/STORY-003-10 (itself cut from contract/S-03-enforce) at the Developer commit; carries src/read/*, test/read/*, test/fixtures/read/*, package.json / package-lock.json and the enforce, SETUP.md and red-test edits on top of STORY-002-09's",
+      "create_when": "when STORY-003-10's Developer reports done, before its QA-Verify"
+    },
+    {
+      "id": "C7",
+      "branch": "contract/S-03-lint-impl",
+      "base": "contract/S-03-lint",
+      "owner_story": "STORY-005-02",
+      "frozen_exports": [
+        "src/lint/checks.ts: PAGE_CHECKS(LintCheck[])",
+        "src/lint/checks.ts: runLint(ctx: LintContext, opts: { scope: LintScope; checks?: string[] }): Promise<LintFinding[]>",
+        "src/lint/checks.ts: LintCheck(interface)",
+        "src/lint/checks.ts: LintContext(interface)",
+        "src/lint/checks.ts: pagePath(paths: ResolvedPaths, rel: string): string",
+        "src/lint/checks.ts: findingLine(f: LintFinding): string"
+      ],
+      "consumers": [
+        "STORY-005-03"
+      ],
+      "created_by": "STORY-005-02's own Developer commit (not a skeleton): cut from story/STORY-005-02 (itself cut from contract/S-03-lint) at the Developer commit; carries test/lint/lint-command.test.ts (the fixture helper) and test/lint/checks.test.ts, which STORY-005-03 extends",
+      "create_when": "when STORY-005-02's Developer reports done, before its QA-Verify"
+    },
+    {
+      "id": "C8",
+      "branch": "contract/S-03-text-rules",
+      "base": "contract/S-03-lint",
+      "owner_story": "STORY-006-10",
+      "frozen_exports": [],
+      "consumers": [
+        "STORY-006-12"
+      ],
+      "created_by": "STORY-006-10's own Developer commit (not a skeleton): cut from story/STORY-006-10 (itself cut from contract/S-03-lint) at the Developer commit; carries WIKI.md, SETUP.md, the profile, the kb seed, the six sub-agent prompts and the shared red-test re-scopes (R6(a)/(b)) that STORY-006-12 builds on",
+      "create_when": "when STORY-006-10's Developer reports done, before its QA-Verify",
+      "notes": "Text-only contract: it carries ordered bytes (template text and red-test edits), not code exports. The changelog line format '- YYYY-MM-DD: <kind> v<N>: <change>' stated by STORY-006-10 is fixed for STORY-006-12 and STORY-006-09."
+    },
+    {
+      "id": "C9",
+      "branch": "contract/S-03-text-writing",
+      "base": "contract/S-03-text-rules",
+      "owner_story": "STORY-006-12",
+      "frozen_exports": [],
+      "consumers": [
+        "STORY-006-09"
+      ],
+      "created_by": "STORY-006-12's own Developer commit (not a skeleton): cut from story/STORY-006-12 (itself cut from contract/S-03-text-rules) at the Developer commit; carries WIKI.md, SETUP.md and the wiki-ingest SKILL.md after STORY-006-10 and STORY-006-12",
+      "create_when": "when STORY-006-12's Developer reports done, before its QA-Verify",
+      "notes": "Text-only contract (ordered bytes), as C8."
+    }
+  ],
+  "stories": {
+    "STORY-001-10": {
+      "base": "sprint/S-03",
+      "upstream": []
+    },
+    "STORY-002-09": {
+      "base": "sprint/S-03",
+      "upstream": []
+    },
+    "STORY-002-10": {
+      "base": "sprint/S-03",
+      "upstream": []
+    },
+    "STORY-003-10": {
+      "base": "contract/S-03-enforce",
+      "upstream": [
+        "STORY-001-10",
+        "STORY-002-09"
+      ]
+    },
+    "STORY-003-11": {
+      "base": "contract/S-03-read",
+      "upstream": [
+        "STORY-001-10",
+        "STORY-002-09",
+        "STORY-003-10"
+      ]
+    },
+    "STORY-003-12": {
+      "base": "sprint/S-03",
+      "upstream": []
+    },
+    "STORY-004-07": {
+      "base": "sprint/S-03",
+      "upstream": []
+    },
+    "STORY-005-01": {
+      "base": "contract/S-03-kb-parser",
+      "upstream": []
+    },
+    "STORY-005-02": {
+      "base": "contract/S-03-lint",
+      "upstream": [
+        "STORY-005-01"
+      ]
+    },
+    "STORY-005-03": {
+      "base": "contract/S-03-lint-impl",
+      "upstream": [
+        "STORY-003-12",
+        "STORY-004-07",
+        "STORY-005-01",
+        "STORY-005-02"
+      ]
+    },
+    "STORY-005-04": {
+      "base": "contract/S-03-lint",
+      "upstream": [
+        "STORY-005-01",
+        "STORY-005-02"
+      ]
+    },
+    "STORY-005-05": {
+      "base": "contract/S-03-rule-decisions",
+      "upstream": [
+        "STORY-005-01",
+        "STORY-005-06"
+      ]
+    },
+    "STORY-005-06": {
+      "base": "contract/S-03-rule-decisions",
+      "upstream": [
+        "STORY-004-07",
+        "STORY-005-01"
+      ]
+    },
+    "STORY-005-07": {
+      "base": "sprint/S-03",
+      "upstream": [
+        "STORY-003-12"
+      ]
+    },
+    "STORY-005-08": {
+      "base": "contract/S-03-lint",
+      "upstream": [
+        "STORY-005-01",
+        "STORY-005-02"
+      ]
+    },
+    "STORY-005-09": {
+      "base": "contract/S-03-read",
+      "upstream": [
+        "STORY-001-10",
+        "STORY-002-09",
+        "STORY-003-10",
+        "STORY-005-02",
+        "STORY-005-05",
+        "STORY-005-06"
+      ]
+    },
+    "STORY-006-09": {
+      "base": "contract/S-03-text-writing",
+      "upstream": [
+        "STORY-003-10",
+        "STORY-003-11",
+        "STORY-005-01",
+        "STORY-005-02",
+        "STORY-005-03",
+        "STORY-005-04",
+        "STORY-005-05",
+        "STORY-005-06",
+        "STORY-005-07",
+        "STORY-005-08",
+        "STORY-005-09",
+        "STORY-006-10",
+        "STORY-006-12"
+      ]
+    },
+    "STORY-006-10": {
+      "base": "contract/S-03-lint",
+      "upstream": [
+        "STORY-002-09",
+        "STORY-003-10",
+        "STORY-003-12",
+        "STORY-004-07",
+        "STORY-005-01",
+        "STORY-005-02",
+        "STORY-005-04",
+        "STORY-005-09"
+      ]
+    },
+    "STORY-006-11": {
+      "base": "contract/S-03-lint",
+      "upstream": [
+        "STORY-001-10",
+        "STORY-002-09",
+        "STORY-002-10",
+        "STORY-003-10",
+        "STORY-003-11",
+        "STORY-003-12",
+        "STORY-004-07",
+        "STORY-005-01",
+        "STORY-005-02",
+        "STORY-005-03",
+        "STORY-005-04",
+        "STORY-005-05",
+        "STORY-005-06",
+        "STORY-005-07",
+        "STORY-005-08",
+        "STORY-005-09",
+        "STORY-006-09",
+        "STORY-006-10",
+        "STORY-006-12"
+      ]
+    },
+    "STORY-006-12": {
+      "base": "contract/S-03-text-rules",
+      "upstream": [
+        "STORY-002-09",
+        "STORY-003-12",
+        "STORY-005-01",
+        "STORY-005-02",
+        "STORY-005-03",
+        "STORY-005-09",
+        "STORY-006-10"
+      ]
+    }
+  },
+  "waves": [
+    {
+      "wave": "wave1",
+      "stories": [
+        "STORY-001-10",
+        "STORY-002-09",
+        "STORY-002-10",
+        "STORY-003-12",
+        "STORY-004-07",
+        "STORY-005-01"
+      ],
+      "parallel": true,
+      "rationale": "integration layer 0: no upstream; no real collision among the six (no shared path); 005-01 builds from its own C1, the rest from sprint/S-03; the Developer commits of 001-10 and 002-09 seed C4/C5 for 003-10"
+    },
+    {
+      "wave": "wave2",
+      "stories": [
+        "STORY-003-10",
+        "STORY-005-02",
+        "STORY-005-06",
+        "STORY-005-07"
+      ],
+      "parallel": true,
+      "rationale": "integration layer 1: 003-10 (upstream 001-10, 002-09; real collisions on the package files and the enforce/SETUP.md/red-test lines, so it builds from C5); 005-02 (upstream 005-01; builds from its own C2); 005-06 (upstream 004-07, 005-01; builds from its own C3); 005-07 (upstream 003-12; builds from sprint/S-03). No real collision among them: src/program.ts gets one import + one defaultCommands entry each from 003-10, 005-02 and 005-06 (insert-only, keep every line). parallel_eligible n on 005-02 is a hint; the predicate finds no collision in this layer"
+    },
+    {
+      "wave": "wave3",
+      "stories": [
+        "STORY-003-11",
+        "STORY-005-03",
+        "STORY-005-04",
+        "STORY-005-05",
+        "STORY-005-08"
+      ],
+      "parallel": true,
+      "rationale": "integration layer 2: 003-11 builds from C6 (on top of 003-10's src/read/index.ts, read tests, SOURCES.md and lockfile); 005-03 builds from C7 (extends 005-02's lint tests); 005-04 and 005-08 build from C2; 005-05 builds from C3. src/lint/checks.ts: 005-03, 005-04 and 005-08 insert at their own C2 insertion points (insert-only, no real collision); 005-05 is this layer's only program.ts editor. The unreachable_surface paths of 003-11, 005-03, 005-04 and 005-08 are created by an upstream and carried in C6, C7 and C2, so they are ordering edges, not refusals"
+    },
+    {
+      "wave": "wave4",
+      "stories": [
+        "STORY-005-09"
+      ],
+      "parallel": false,
+      "rationale": "integration layer 3: upstream 005-05 (L2), 005-02, 005-06, 003-10, 002-09 (+ 001-10 via the C6 stack); builds from C6 (rule arrays, SETUP.md rows, enforce/setup red tests and rule-match.test.ts on top of 003-10 and 002-09; real collisions, ordered edits); re-syncs on sprint/S-03 after 005-02/005-05/005-06 merge so the real-tree template test sees lint, status and rules registered (decision 17)"
+    },
+    {
+      "wave": "wave5",
+      "stories": [
+        "STORY-006-10"
+      ],
+      "parallel": false,
+      "rationale": "integration layer 4: upstream 005-09 (L3), 005-04 (L2) and the rest; builds from C2 (consumes RULE_CHECKS, parseInstructions); its SETUP.md prose (step 3, step-4 bullets) and 005-09's step-4 table rows are separate hunks; re-syncs before QA-Verify"
+    },
+    {
+      "wave": "wave6",
+      "stories": [
+        "STORY-006-12"
+      ],
+      "parallel": false,
+      "rationale": "integration layer 5: upstream 006-10 (L4); builds from C8 (on top of 006-10's WIKI.md, SETUP.md and sub-agent prompt text and its shared red-test re-scopes; real collision, ordered edits)"
+    },
+    {
+      "wave": "wave7",
+      "stories": [
+        "STORY-006-09"
+      ],
+      "parallel": false,
+      "rationale": "integration layer 6: upstream 006-12 (L5), 006-10, 005-09 and every command story; builds from C9 (WIKI.md, SETUP.md, wiki-ingest SKILL.md, and wiki-protocol.red lines next to 006-10's, all on top; real collision, ordered edits); its two setup.red.node.test.ts lines are re-applied at integration on top of 003-10/005-09"
+    },
+    {
+      "wave": "wave8",
+      "stories": [
+        "STORY-006-11"
+      ],
+      "parallel": false,
+      "rationale": "integration layer 7: upstream every other story; builds from C2 (consumes PAGE_CHECKS, RULE_CHECKS, parseInstructions); adds new checks to test/templates/structure.ts and rows to test/templates.test.ts (insert-only against 002-09 and 005-09); verified after re-sync on the final tree; merges last"
+    }
+  ],
+  "lane_assignments": {
+    "STORY-001-10": "standard",
+    "STORY-002-09": "standard",
+    "STORY-002-10": "standard",
+    "STORY-003-10": "standard",
+    "STORY-003-11": "standard",
+    "STORY-003-12": "standard",
+    "STORY-004-07": "standard",
+    "STORY-005-01": "standard",
+    "STORY-005-02": "standard",
+    "STORY-005-03": "standard",
+    "STORY-005-04": "standard",
+    "STORY-005-05": "standard",
+    "STORY-005-06": "standard",
+    "STORY-005-07": "standard",
+    "STORY-005-08": "standard",
+    "STORY-005-09": "standard",
+    "STORY-006-09": "standard",
+    "STORY-006-10": "standard",
+    "STORY-006-11": "standard",
+    "STORY-006-12": "standard"
+  }
+}

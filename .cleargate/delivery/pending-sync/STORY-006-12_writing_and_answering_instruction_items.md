@@ -7,12 +7,13 @@ carry_over: false
 status: Draft
 approved: true
 ambiguity: 🟢 Low
-context_source: CR-003 E1–E10 and Open Question 2 (approved 2026-10-17) · STORY-003-12 R1–R3 and §1.3 (dropped fact lines; the WIKI.md and writer text it hands to this story) · SPRINT-03 Gate 1 decisions 3, 9, 18, 19, 21 (plans/gate1-decisions.md; approved at Gate 1, 2026-10-17) and consistency-audit findings 3, 9, 18 · CR-002 D1 (lint is the shell-write backstop) · split from the first draft of STORY-006-10 (its Group B) · gate1-decisions technical call on the SETUP.md order (002-09 → 003-10 → 005-09 → 006-10 / 006-12) · SPRINT-02 walkthrough notes, formapass_management (rows 0.9a, 0.9b, 1.2, 2.4, 7.1, 7.15, 7.17, 8.9, 10.3, 11.4, 11.20, 11.26, 11.27a–c) · verified templates/system/{WIKI,SETUP,ONBOARDING}.md, templates/system/templates/me.md, templates/skills/wiki-ingest/SKILL.md, templates/agents/*/wiki-{extractor,writer}.*, src/agents/enforce/index.ts, src/wiki/parse-page.ts, src/ingest/validate.ts, test/templates/*.red.node.test.ts, test/templates/structure.ts
+context_source: CR-003 E1–E10 and Open Question 2 (approved 2026-10-17) · STORY-003-12 R1–R3 and §1.3 (dropped fact lines; the WIKI.md and writer text it hands to this story) · SPRINT-03 Gate 1 decisions 3, 9, 18, 19, 20, 21 (plans/gate1-decisions.md; approved at Gate 1, 2026-10-17) and consistency-audit findings 3, 9, 18 · Gate 1 decisions 22 (pointer-block lines) and 25 (chat captures in `whitelist` mode; the `--kind` line, added by the orchestrator 2026-10-17), real-user review additions approved by the human 2026-10-17 · STORY-002-11 (`update` refreshes an unedited block; `SHIPPED_BLOCKS` and its pin test) · STORY-006-10 R1 (the `whitelist` and chat-capture paragraph in WIKI.md "Register") · CR-002 D1 (lint is the shell-write backstop) · split from the first draft of STORY-006-10 (its Group B) · gate1-decisions technical call on the SETUP.md order (002-09 → 003-10 → 005-09 → 006-10 / 006-12) · SPRINT-02 walkthrough notes, formapass_management (rows 0.9a, 0.9b, 1.2, 2.4, 7.1, 7.15, 7.17, 8.9, 10.3, 11.4, 11.20, 11.26, 11.27a–c) · verified templates/system/{WIKI,SETUP,ONBOARDING}.md, templates/system/templates/me.md, templates/skills/wiki-ingest/SKILL.md, templates/agents/*/wiki-{extractor,writer}.*, templates/agent-block.md, templates/system/profiles/management.md, src/agents/enforce/index.ts, src/agents/doctor-checks.ts, src/ingest/permissions.ts, src/commands/ingest-start.ts, src/commands/ingest-facts.ts, src/wiki/parse-page.ts, src/ingest/validate.ts, test/templates/*.red.node.test.ts, test/templates/structure.ts, test/agents/pointer-block.red.node.test.ts, test/agents/inject.red.node.test.ts at 31d363a · the R14 block and the R15 sentence run through `runAllChecks` and pointer-block S1/S3 on a scratch copy of the templates, 2026-10-17, with no finding
 actor: AI coding agent (main agent or sub-agent) operating the wiki
 complexity_label: L2
 parallel_eligible: n
 dep_predecessors:
   - STORY-002-09
+  - STORY-002-11
   - STORY-003-12
   - STORY-005-02
   - STORY-005-03
@@ -23,14 +24,14 @@ lane: standard
 db_write_set: []
 deferred_verification: []
 created_at: 2026-10-17T10:07:15Z
-updated_at: 2026-10-17T10:07:15Z
+updated_at: 2026-10-17T11:55:41Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
 server_pushed_at_version: null
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-17T10:09:29Z
+  last_gate_check: 2026-10-17T11:58:52Z
   transition: ready-for-execution
 pushed_by: null
 pushed_at: null
@@ -40,19 +41,25 @@ last_remote_update: null
 source: local-authored
 last_synced_status: null
 last_synced_body_sha: null
-stamp_error: no ledger rows for work_item_id STORY-006-12
 draft_tokens:
-  input: null
-  output: null
-  cache_creation: null
-  cache_read: null
-  model: null
-  last_stamp: 2026-10-17T10:09:08Z
-  sessions: []
+  input: 0
+  output: 0
+  cache_creation: 0
+  cache_read: 0
+  model: claude-opus-5-5
+  last_stamp: 2026-10-17T11:55:49Z
+  sessions:
+    - session: 47c84598-2a59-4cfa-a987-cfe39161376b
+      model: claude-opus-5-5
+      input: 0
+      output: 0
+      cache_read: 0
+      cache_creation: 0
+      ts: 2026-10-17T11:02:08Z
 ---
 
 # STORY-006-12: CR-003 writing, answering and onboarding text
-**Complexity:** L2 — about a dozen text changes in WIKI.md (sections "Triage and extract", "Write phase", "Page format", "Answering questions"), SETUP.md step 4, ONBOARDING.md, the `me.md` template, the `wiki-ingest` skill and the six sub-agent files, plus one content test and one authorised red-test edit. No code. Split from the first draft of STORY-006-10 (Gate 1 decision 3); it lands after STORY-006-10 and before STORY-006-09.
+**Complexity:** L2 — about a dozen text changes in WIKI.md (sections "Triage and extract", "Write phase", "Page format", "Ambient offers", "Answering questions"), SETUP.md step 4, ONBOARDING.md, the `me.md` template, the `wiki-ingest` skill and the six sub-agent files. It adds two lines to the pointer block (Gate 1 decision 22), plus one content test and one authorised red-test edit. No behaviour code: the new block text is appended as one entry to STORY-002-11's `SHIPPED_BLOCKS` list, with its pin. Split from the first draft of STORY-006-10 (Gate 1 decision 3); it lands after STORY-006-10 and STORY-002-11, and before STORY-006-09.
 
 ## 1. The Spec (The Contract)
 
@@ -76,7 +83,46 @@ As an AI coding agent running a wikeeper wiki (for this human: Formapass product
 - **R10 — E9a, extra preferences in `me.md` (row 1.2; Gate 1 decision 19).** The `me.md` template (`templates/system/templates/me.md:4`) states in a single-line HTML comment that extra preferences the user gives go under a final `## Other` heading, one `key: value` line each; ONBOARDING.md step 4 (`templates/system/ONBOARDING.md:32`) says the same. The template itself carries no `## Other` line and stays at most 15 lines, so `checkMeSchema` (`test/templates/onboarding.red.node.test.ts:47`) passes unchanged.
 - **R11 — E10a, the ONBOARDING code span (row 0.9a).** ONBOARDING.md step 2 (`:19`) reads `` `.wiki/system/WIKI.md`, section "Proposing rule changes" ``: the code span names only the file, as SETUP.md step 7 does. `checkSections` (`test/templates/structure.ts:261`) already resolves this form. It needs STORY-006-11 R6 (e), the re-scope of `test/templates/onboarding.red.node.test.ts:145`, which this story's QA-Red applies.
 - **R12 — E10b, turning `enforce` off (row 0.9b; Gate 1 decision 18; audit finding 3).** SETUP.md step 4 (`templates/system/SETUP.md:57`) keeps "Do not turn `enforce` on here" and adds: to turn it off, set `enforce: false` in `.wiki/config.yml` and run `wikeeper update`, which removes wikeeper's hook and rules from each agent's settings. Today `update` keeps them (`src/agents/enforce/index.ts:199`); STORY-002-09 makes `update` remove them, so this text lands after it.
-- **R13 — Invariants.** (a) Every command, flag and section the text names exists when this story merges, so `test/templates.test.ts:113` stays clean; no `##` section is added to WIKI.md. (b) SETUP.md names, in code spans outside the step-4 table, only `wikeeper` commands of the SPRINT-02 list (`test/templates/setup.red.node.test.ts:196`). (c) Each sub-agent's instruction text stays identical across Claude, Antigravity and Codex (STORY-006-05 R6), with no `\`, `"""` or `{{model}}` in it, and the writer keeps "After wikeeper ingest finish exits 0, change nothing under .wiki/pages" (`walkthrough-fixes.red.node.test.ts` C3). (d) `templates/agent-block.md` is not touched; its 14-line cap (CR-002) holds. (e) WIKI.md stays at most 400 lines. (f) Every SPRINT-02 red test stays green, except STORY-006-11 R6 (e). (g) Plain, direct English: one rule per sentence, no new jargon.
+- **R13 — Invariants.** (a) Every command, flag and section the text names exists when this story merges, so `test/templates.test.ts:113` stays clean; no `##` section is added to WIKI.md. (b) SETUP.md names, in code spans outside the step-4 table, only `wikeeper` commands of the SPRINT-02 list (`test/templates/setup.red.node.test.ts:196`). (c) Each sub-agent's instruction text stays identical across Claude, Antigravity and Codex (STORY-006-05 R6), with no `\`, `"""` or `{{model}}` in it, and the writer keeps "After wikeeper ingest finish exits 0, change nothing under .wiki/pages" (`walkthrough-fixes.red.node.test.ts` C3). (d) `templates/agent-block.md` changes only as R14 says; its 14-line cap (CR-002) holds. (e) WIKI.md stays at most 400 lines. (f) Every SPRINT-02 red test stays green, except STORY-006-11 R6 (e). (g) Plain, direct English: one rule per sentence, no new jargon.
+- **R14 — The pointer block searches first and offers captures (Gate 1 decision 22).** `templates/agent-block.md` gains exactly two lines, inserted after line 7 (the "At the start of every session" line):
+  - "Before you answer a question about the project or draft material for it, search the wiki with `wikeeper search`, even when the user does not mention the wiki."
+  - "When a decision, a date, an owner or a commitment comes up in conversation and is not in the wiki, offer to capture it (`.wiki/system/WIKI.md`, section "Ambient offers")."
+
+  Every other line stays as it is. The block becomes this, 14 lines:
+
+  ```md
+  <!-- WIKI:START v1 — managed by wikeeper -->
+  ## Project Wiki
+  Managed by wikeeper — edit outside this block only.
+  This repo has a knowledge wiki in `.wiki/`; its content folder is set by `content_dir` in `.wiki/config.yml`.
+  If `.wiki/config.yml` has no `setup_completed_at`, follow `.wiki/system/SETUP.md` first.
+  Otherwise read `.wiki/system/WIKI.md` before ingesting, searching or editing anything in the wiki (skills: `wiki-ingest`, `wiki-search`).
+  At the start of every session read `.wiki/me.md` and `.wiki/project.md`; if `.wiki/me.md` is missing, first onboard the user with `.wiki/system/ONBOARDING.md`.
+  Before you answer a question about the project or draft material for it, search the wiki with `wikeeper search`, even when the user does not mention the wiki.
+  When a decision, a date, an owner or a commitment comes up in conversation and is not in the wiki, offer to capture it (`.wiki/system/WIKI.md`, section "Ambient offers").
+  Wiki pages change only in an ingest's write phase, between `wikeeper ingest apply <id>` and `wikeeper ingest finish <id>`.
+  If `wikeeper ingest` is unavailable, do not write pages; tell the user.
+  You may edit, with the user's approval: `.wiki/config.yml`, `.wiki/kb_instructions.md`, `.wiki/me.md`, `.wiki/project.md`.
+  Package-owned, never edit: `.wiki/system/`, the wiki skills, the wiki sub-agents and wikeeper's entries in agent settings files.
+  <!-- WIKI:END -->
+  ```
+
+  Constraints the text meets:
+  - **Size.** 14 lines, the cap (`test/templates/structure.ts:388`; `test/agents/pointer-block.red.node.test.ts:53`). The longest line has 170 characters, under the 200 limit (`:54`). LF line endings and a final newline (`test/agents/inject.red.node.test.ts:287`).
+  - **Doctor's signature.** The first and last lines are unchanged: the `v1` marker stays (STORY-002-11 R7). The `## Project Wiki` heading and the `.wiki/system/WIKI.md` reference stay, which doctor's markers-deleted check matches (`readBlockSignature`, `src/agents/doctor-checks.ts:34`; `REFERENCE`, `:31`).
+  - **Doctor messages.** STORY-002-10's messages name the files that hold the block and quote none of its text, so they need no change.
+  - **No `status` line** (decision 20).
+  - **Names that must exist.** The lines name only `wikeeper search` and WIKI.md section "Ambient offers", both of which exist. They name no `wikeeper ingest <verb>` (pointer-block S3, `:87`). The lines checked by S2 (`:61`) are kept.
+  - **Shipped list.** The new text is appended as the third entry of `SHIPPED_BLOCKS` (`src/agents/shipped-blocks.ts`, STORY-002-11 R1). Its sha256, `c6fc17d0ef7079d7cf7e6f88f6e5c28e8152cdb74880118167bb29eaf333e168` for the text above, is appended to `SHIPPED_BLOCK_SHA256` (`test/agents/shipped-blocks.test.ts`, STORY-002-11 R6). Both earlier entries and pins stay. `wikeeper update` then gives every unedited SPRINT-01 or SPRINT-02 block this text (STORY-002-11 R3).
+- **R15 — Chat captures carry their kind (Gate 1 decision 25, added by the orchestrator 2026-10-17).** WIKI.md section "Ambient offers" (`templates/system/WIKI.md:185`) keeps "On approval, run `wikeeper ingest start -` with the excerpt on stdin, then continue with triage and the write phase." It adds this sentence right after it:
+  - "When `.wiki/kb_instructions.md` lists a source kind for chat captures, pass its id, without the version, with `--kind` (`wikeeper ingest start - --kind <kind>`), so that in `whitelist` mode the capture is allowed or denied at `ingest start`, before any extraction (section "Register")."
+
+  The sentence names no fixed kind; the management profile's is `chat-excerpt (v1)` (`templates/system/profiles/management.md:31`). It matches the code:
+  - With a `--kind`, `evaluatePermission` decides at `ingest start` (`src/ingest/permissions.ts:125-151`).
+  - Without one, a stdin source passes `start` as `kind_pending` (`:136`) and is denied only at `ingest facts`, after the extraction (`src/commands/ingest-facts.ts:110-135`).
+  - `--kind` takes the id with no version (`isValidKindId`, `src/commands/ingest-start.ts:184`).
+
+  The `whitelist` rule itself is STORY-006-10 R1's paragraph in section "Register", which this sentence points to and does not repeat. `test/templates/wiki-protocol.red.node.test.ts:120` still finds "wikeeper ingest start -" and "ingest.ambient_offers" in the section.
 
 ### 1.3 Out of Scope
 - The rules, permissions and search text (whitelist format, approvals, `ai`-mode prompts, kb line format, `--no-miss`, `--mark`, the proposal kind and changelog form): STORY-006-10, which lands first.
@@ -84,6 +130,8 @@ As an AI coding agent running a wikeeper wiki (for this human: Formapass product
 - The CLI behaviour these texts describe: the dropped-fact refusal (STORY-003-12), `unlogged-change` (STORY-005-03), `update` with `enforce: false` (STORY-002-09).
 - Walkthrough rows CR-003 does not carry: 3.2d, 7.7, the `as_of` fallback for undated sources (11.10, 11.11).
 - The structural-test extensions: STORY-006-11.
+- How `update` brings an existing block to R14's text, and the shipped-block pin test: STORY-002-11. This story only appends its text and pin.
+- The `whitelist` and chat-capture paragraph in WIKI.md section "Register" and SETUP.md step 4: STORY-006-10 R1. R15 only points to it.
 
 ### 1.4 Open Questions
 
@@ -105,6 +153,14 @@ CR-003's five decisions and the brief's design calls are settled and not reopene
 - **Recommended:** Yes; this story is the one whose text needs it.
 - **Decision:** Authorised as recommended: the QA-Red step of the story that first needs a re-scope makes it; this story applies R6 (e), and STORY-006-11 verifies it — _approved (human, 2026-10-17, Gate 1)_
 
+- **Question:** Q5. Gate 1 decision 22 adds at most two lines to the pointer block: search the wiki before answering or drafting, and offer to capture decisions, dates, owners and commitments. What exactly do they say, and how does an install made before this story get them?
+- **Recommended:** The two R14 lines, after the session-start line. The block is then 14 lines, at its cap, keeps the doctor signature and adds no `status` line. Existing installs get the text through `wikeeper update` (STORY-002-11), so this story appends it to `SHIPPED_BLOCKS` with its pin. "Even when the user does not mention the wiki" is there for the real-user case: a plain question that never names wikeeper.
+- **Decision:** The pointer block gains the two R14 lines after its session-start line; the marker stays `v1`; the new text and its sha256 are appended to `SHIPPED_BLOCKS` and `SHIPPED_BLOCK_SHA256` (Gate 1 decision 22) — _approved (human, 2026-10-17, Gate 1)_
+
+- **Question:** Q6. In `whitelist` mode a chat capture started without `--kind` passes `ingest start` as `kind_pending` and is denied only at `ingest facts`, after the extraction work, so the user hears late. What does "Ambient offers" tell the agent?
+- **Recommended:** R15: pass the kind `.wiki/kb_instructions.md` gives chat captures, by id. Name no fixed kind, since kinds come from each wiki's rules. Point to section "Register" for the rule instead of repeating STORY-006-10 R1.
+- **Decision:** WIKI.md "Ambient offers" adds the R15 sentence: when `.wiki/kb_instructions.md` lists a source kind for chat captures, the agent passes its id with `--kind` on `wikeeper ingest start -` (Gate 1 decision 25) — _approved (human, 2026-10-17, Gate 1)_
+
 ### 1.5 Risks
 
 - **Risk:** The text states CLI behaviour other stories ship: the dropped-fact refusal and its message (003-12), the `unlogged-change` id (005-03), `update` removing the enforce entries (002-09).
@@ -113,6 +169,12 @@ CR-003's five decisions and the brief's design calls are settled and not reopene
 - **Mitigation:** §1.2 names every pinned phrase and test line it must keep; the only intended break is STORY-006-11 R6 (e), applied by this story's QA-Red; `npm test` runs in full before commit.
 - **Risk:** Reordering the example facts (R6) or the new writer rule (R4) could be read as permission to move fact lines between pages.
 - **Mitigation:** R4 says moving a line within the page is fine and moving it to another page is not, matching STORY-003-12 R2.
+- **Risk:** The pointer block is now at its 14-line cap, so the next line someone wants to add has no room.
+- **Mitigation:** Intended: the cap keeps the per-session read short (CR-002). A new line replaces one, and the detail goes in WIKI.md.
+- **Risk:** The search line makes the agent run `wikeeper search` for questions that are not about the project.
+- **Mitigation:** The line says "a question about the project or … material for it", and with `enforce` on, `search` has an allow rule in every mode (STORY-004-02), so an extra search costs no prompt. The §2.2 walkthrough checks the behaviour on a plain question.
+- **Risk:** The block text changes, and STORY-002-11's pin test fails the commit.
+- **Mitigation:** Intended. R14 gives the entry and the sha256 to append, and §3.1 lists both files.
 
 ## 2. The Truth (Executable Tests)
 
@@ -123,7 +185,7 @@ CR-003's five decisions and the brief's design calls are settled and not reopene
 | Axis | Cover | Reason |
 |---|---|---|
 | Paths | F | Text only. The one CLI flow it exercises (refused, restored, finished) is STORY-003-12's, checked here as a rule. |
-| Interfaces | T | The delegation and fact-line rules reach the agent through WIKI.md, the `wiki-ingest` skill and the sub-agent prompts of three agents; the `enforce` text through SETUP.md and `wikeeper update`. |
+| Interfaces | T | The delegation and fact-line rules reach the agent through WIKI.md, the `wiki-ingest` skill and the sub-agent prompts of three agents; the `enforce` text through SETUP.md and `wikeeper update`; the R14 lines through the pointer block, which `init` writes and `wikeeper update` refreshes. |
 | Data | T | One row per item and file part. |
 | Rules | T | Fact lines are kept and corrected by a new line, as `finish` enforces; the example facts are in date order; `me.md` keeps its schema. |
 
@@ -149,6 +211,9 @@ Feature: CR-003 writing, answering and onboarding text
       | E9a (R10)  | templates/system/ONBOARDING.md   | step 4                        | "## Other"                                                                  |
       | E10a (R11) | templates/system/ONBOARDING.md   | step 2                        | "`.wiki/system/WIKI.md`, section \"Proposing rule changes\""                |
       | E10b (R12) | templates/system/SETUP.md        | step 4                        | "enforce: false", "wikeeper update"                                         |
+      | D22 (R14)  | templates/agent-block.md         | its line 8                    | "search the wiki with `wikeeper search`", "even when the user does not mention the wiki" |
+      | D22 (R14)  | templates/agent-block.md         | its line 9                    | "offer to capture it", "`.wiki/system/WIKI.md`, section \"Ambient offers\"" |
+      | D25 (R15)  | templates/system/WIKI.md         | section "Ambient offers"      | "wikeeper ingest start - --kind <kind>", "`.wiki/kb_instructions.md`", "chat captures", "section \"Register\"" |
 
   @rules
   Scenario: The fact-line rules are what finish enforces
@@ -161,7 +226,7 @@ Feature: CR-003 writing, answering and onboarding text
     Then it exits 0
 
   @interfaces
-  Scenario: The skill, the sub-agents and SETUP.md agree with WIKI.md and the CLI
+  Scenario: The skill, the sub-agents, SETUP.md and the pointer block agree with WIKI.md and the CLI
     Given the wiki-ingest skill, WIKI.md section "Delegation", and the wiki-extractor and wiki-writer prompts of claude, antigravity and codex
     Then for each row of the "Delegation" table the skill names the same actors for that case, and it no longer says "Every write phase"
     And every extractor's return line names a source that only points to another file
@@ -169,6 +234,9 @@ Feature: CR-003 writing, answering and onboarding text
     Given a temp wiki made with "wikeeper init --yes --enforce --agents claude,codex" and then set to ingest.permission ai with "wikeeper update"
     When I set "enforce: false" in .wiki/config.yml and run "wikeeper update", as SETUP.md step 4 says
     Then the install manifest records no hook or rule entry, "wikeeper doctor" prints "enforce: off", and no agent settings file that still exists holds a wikeeper hook or rule
+    Given a temp wiki made with "wikeeper init --yes --agents claude" whose AGENTS.md block is then replaced with the SPRINT-02 entry of SHIPPED_BLOCKS
+    When I run "wikeeper update --json"
+    Then data.replaced contains "AGENTS.md#wiki-block" and the block in AGENTS.md is templates/agent-block.md, as STORY-002-11 R3 gives
 
   @rules
   Scenario: Examples and templates keep their shape
@@ -176,8 +244,10 @@ Feature: CR-003 writing, answering and onboarding text
     Then the facts of WIKI.md's single-entity example are in date order, oldest first, and the example still parses with decided, tentative and contradiction facts
     And templates/system/templates/me.md has at most 15 lines, passes checkMeSchema and has "## Other" only inside its comment
     And the structural checks of test/templates/structure.ts report no finding, so ONBOARDING.md step 2's section reference resolves
-    And WIKI.md has at most 400 lines and no new "##" heading, and templates/agent-block.md is unchanged
-    And every SPRINT-02 red test under test/templates/ passes, with only the edit of STORY-006-11 R6 (e)
+    And WIKI.md has at most 400 lines and no new "##" heading
+    And templates/agent-block.md is exactly the 14 lines of R14: no line over 200 characters, the v1 START line first and the WIKI:END line last, "## Project Wiki" and ".wiki/system/WIKI.md" kept, and no "wikeeper status"
+    And the last entry of SHIPPED_BLOCKS is that text, the two earlier entries are unchanged, and test/agents/shipped-blocks.test.ts passes with the R14 sha256 as its third pin
+    And every SPRINT-02 red test under test/templates/, and test/agents/pointer-block.red.node.test.ts, passes, with only the edit of STORY-006-11 R6 (e)
 
   Scenario: Error — example facts out of date order are caught
     Given a copy of WIKI.md whose single-entity example lists its fact lines in the SPRINT-02 order (2026-10-15, 2026-09-30, 2026-10-14)
@@ -191,6 +261,8 @@ Feature: CR-003 writing, answering and onboarding text
 - [ ] After a finished ingest, tell the agent one Formapass fact was wrong; check it runs a chat-excerpt ingest, adds the corrected line, keeps the old one, and `finish` passes (R4, R5).
 - [ ] Ask a positioning question that only `.wiki/project.md` answers; check the answer is labelled as uncited context from the project brief (R1).
 - [ ] In a scratch clone with `enforce` on, follow SETUP.md step 4 to turn it off; check `wikeeper doctor` no longer reports enforce entries (R12).
+- [ ] In `~/Documents/Dev/formapass_management`, after `wikeeper update` has brought its block to R14's text, open a fresh agent session. Ask a plain question about Formapass that does not mention the wiki (for example, "What is our pricing for the pilot?"), and check that the agent runs `wikeeper search` before it answers. In the same session, mention a decision in passing ("we moved the launch to 3 November"), and check that the reply ends with an offer to capture it (R14).
+- [ ] With `ingest.permission: whitelist` and the chat kind listed in `ingest.whitelist.kinds`, accept a capture offer, and check that the agent runs `wikeeper ingest start - --kind <kind>` with the chat kind from `.wiki/kb_instructions.md` (R15).
 
 ## 3. The Implementation Guide
 
@@ -199,13 +271,22 @@ Feature: CR-003 writing, answering and onboarding text
 | Item | Value |
 |---|---|
 | Primary File | `templates/system/WIKI.md` |
-| Related Files | `templates/system/SETUP.md`, `templates/system/ONBOARDING.md`, `templates/system/templates/me.md`, `templates/skills/wiki-ingest/SKILL.md`, `templates/agents/claude/wiki-extractor.md`, `templates/agents/claude/wiki-writer.md`, `templates/agents/antigravity/wiki-extractor.md`, `templates/agents/antigravity/wiki-writer.md`, `templates/agents/codex/wiki-extractor.toml`, `templates/agents/codex/wiki-writer.toml` |
+| Related Files | `templates/agent-block.md`, `templates/system/SETUP.md`, `templates/system/ONBOARDING.md`, `templates/system/templates/me.md`, `templates/skills/wiki-ingest/SKILL.md`, `templates/agents/claude/wiki-extractor.md`, `templates/agents/claude/wiki-writer.md`, `templates/agents/antigravity/wiki-extractor.md`, `templates/agents/antigravity/wiki-writer.md`, `templates/agents/codex/wiki-extractor.toml`, `templates/agents/codex/wiki-writer.toml` |
+| Shipped-block list (new files created by STORY-002-11, a predecessor; appended here) | `src/agents/shipped-blocks.ts`, `test/agents/shipped-blocks.test.ts` |
 | Test Files (new) | `test/templates/writing-and-answering-text.red.node.test.ts` |
 | Re-scoped SPRINT-02 red test (STORY-006-11 R6 (e), applied by this story's QA-Red) | `test/templates/onboarding.red.node.test.ts` |
 | New Files Needed | `test/templates/writing-and-answering-text.red.node.test.ts` |
 
 - **Notes on the files above:**
   - Test files: `test/templates/writing-and-answering-text.red.node.test.ts` (QA-Red).
+  - Related files: `templates/agent-block.md`, the two R14 lines only.
+  - Shipped-block list: append-only. One entry in `src/agents/shipped-blocks.ts` (the R14 text) and one pin in `test/agents/shipped-blocks.test.ts` (its sha256). Nothing else in either file changes (STORY-002-11 R6).
+- **Read, not edited (consumed, unchanged):**
+  - `src/agents/doctor-checks.ts` (block signature, `:31`, `:34`).
+  - `src/agents/inject.ts` (the `v1` marker).
+  - `src/ingest/permissions.ts`, `src/commands/ingest-start.ts` and `src/commands/ingest-facts.ts` (R15).
+  - `test/agents/pointer-block.red.node.test.ts` and `test/agents/inject.red.node.test.ts:287`, which pass unchanged on the R14 block.
+  - `test/templates/wiki-protocol.red.node.test.ts:120` (R15).
 
 ### 3.2 Technical Logic
 - Start from WIKI.md, SETUP.md and the sub-agent files as STORY-006-10 leaves them. Edit in WIKI.md order: "Triage and extract" steps 3 and the pointer rule (R8, R9), "Write phase" steps 2, 5, 6, 8 and the closing paragraph (R2–R5), "Page format" (R6), "Answering questions" (R1). Then SETUP.md step 4 (R12), ONBOARDING.md steps 2 and 4 and the `me.md` comment (R10, R11), the skill (R7), and the six sub-agent files (R4, R9).
@@ -213,22 +294,29 @@ Feature: CR-003 writing, answering and onboarding text
 - Sub-agents: change the Claude file first, then copy the instruction text verbatim into the Antigravity body and the Codex `developer_instructions` block (flashcard 2026-10-17 `#codex #toml #templates`: no `\`, no `"""`, no `{{model}}`; flashcard `#templates #subagents`: the writer text stays identical in all three).
 - The QA-Red test splits sections as `test/templates/wiki-protocol.red.node.test.ts:43` and SETUP steps as `test/templates/setup.red.node.test.ts:40` do. The date-order check reads the first `md` fence of "Page format" with `parsePage` (`src/wiki/parse-page.ts:203`, arguments `(text, relPath)`, flashcard `#qa #templates`) and compares consecutive fact dates. The two live scenarios run in-process with `runCli` in a temp git repo (as `doctorCheckIds`, `test/templates/structure.ts:202`, does); the `finish` one writes pages with `writeFile`, as STORY-003-12's tests do.
 - QA-Red applies STORY-006-11 R6 (e) exactly and lists it in its commit message.
-- No code changes.
+- **Pointer block (R14).**
+  - Insert the two lines after line 7 of `templates/agent-block.md`, byte for byte as R14 gives them.
+  - Append the whole new block to `SHIPPED_BLOCKS`, as an array of its 14 lines joined with `"\n"` and with no final newline. Append its sha256 to `SHIPPED_BLOCK_SHA256`. If the final text differs from R14 by even one byte, compute the hash again: the hash is of the normalised text (STORY-002-11 R2).
+  - The `update` scenario step drives `runCli(["update", "--json"])` on a temp repository whose AGENTS.md block was overwritten with `SHIPPED_BLOCKS[1]`.
+- **Ambient offers (R15).** One sentence after the "On approval" sentence of `templates/system/WIKI.md:185`. The paragraph's line count does not change, so the other line references in this story stay valid.
+- No behaviour code changes. The only `src/` edit is the R14 data entry.
 
 ### 3.3 API Contract (if applicable)
 
-Not applicable — template text. Consumes read-only: the `finish` refusal and `details.dropped` (K11, STORY-003-12), the `unlogged-change` id (K3, STORY-005-03), `update` with `enforce: false` (STORY-002-09), `parsePage` (frozen in SPRINT-02).
+Not applicable — template text. Consumes read-only: the `finish` refusal and `details.dropped` (K11, STORY-003-12), the `unlogged-change` id (K3, STORY-005-03), `update` with `enforce: false` (STORY-002-09), `parsePage` (frozen in SPRINT-02), `update`'s block refresh (STORY-002-11 R3), `evaluatePermission`'s `kind_pending` (R15). It appends to `SHIPPED_BLOCKS` and `SHIPPED_BLOCK_SHA256` (STORY-002-11 R1, R6).
 
 ## Task Breakdown
 
 - [ ] QA-Red: apply STORY-006-11 R6 (e) to `test/templates/onboarding.red.node.test.ts` -> R13
-- [ ] QA-Red: write `test/templates/writing-and-answering-text.red.node.test.ts` from the five scenarios in §2.1 -> R1–R12
+- [ ] QA-Red: write `test/templates/writing-and-answering-text.red.node.test.ts` from the five scenarios in §2.1 -> R1–R15
 - [ ] Write "Triage and extract" step 3 and the pointer-source rule -> R8, R9
 - [ ] Write the "Write phase" changes (steps 2, 5, 6, 8 and the closing paragraph) -> R2, R3, R4, R5
 - [ ] Reorder the example facts and add the order rule in "Page format"; write the "Answering questions" paragraph -> R1, R6
 - [ ] Update the three writers and three extractors with identical text -> R4, R9
 - [ ] Rewrite the skill's "Who does what" -> R7
 - [ ] Update ONBOARDING.md steps 2 and 4, the `me.md` comment and SETUP.md step 4 -> R10, R11, R12
+- [ ] Add the two pointer-block lines; append the block to `SHIPPED_BLOCKS` and its sha256 to `SHIPPED_BLOCK_SHA256` -> R14
+- [ ] Add the `--kind` sentence to "Ambient offers" -> R15
 - [ ] Run `npm test` in full; check `test/templates.test.ts` reports no finding -> R13
 
 ## 4. Quality Gates
@@ -238,8 +326,8 @@ Not applicable — template text. Consumes read-only: the `finish` refusal and `
 | Test Type | Minimum Count | Notes |
 |---|---|---|
 | Unit tests | 1 | The date-order check on a page's fact lines (passing and failing input) |
-| Integration tests | 2 | The `finish` refusal and recovery, and `update` with `enforce: false`, each run in-process against a temp git repo |
-| E2E / acceptance tests | 16 | 1 per Gherkin scenario in §2.1, Scenario Outline rows counted separately (12 + 1 + 1 + 1 + 1) |
+| Integration tests | 3 | The `finish` refusal and recovery, `update` with `enforce: false`, and `update` bringing a SPRINT-02 block to the R14 text, each run in-process against a temp git repo |
+| E2E / acceptance tests | 19 | 1 per Gherkin scenario in §2.1, Scenario Outline rows counted separately (15 + 1 + 1 + 1 + 1) |
 
 ### 4.2 Definition of Done (The Gate)
 - [ ] Minimum test expectations (§4.1) met.
@@ -258,16 +346,19 @@ Not applicable — template text. Consumes read-only: the `finish` refusal and `
 - **Surface:** `src/ingest/validate.ts:35` — `validateIngest`, where STORY-003-12 adds the dropped-fact check this text describes.
 - **Surface:** `src/agents/enforce/index.ts:199` — `update` keeps enforce entries when `enforce` is false today (R12).
 - **Surface:** `test/templates/onboarding.red.node.test.ts:145` — the exact step-2 string; `:47` — `checkMeSchema`.
+- **Surface:** `templates/agent-block.md:7` — the session-start line the R14 lines follow; `test/templates/structure.ts:388` — the 14-line cap; `test/agents/pointer-block.red.node.test.ts:47` — S1 (cap, 200 characters, markers, heading) and `:87` S3 (ingest verbs); `src/agents/doctor-checks.ts:34` — `readBlockSignature`.
+- **Surface:** `templates/system/WIKI.md:185` — "Ambient offers", `wikeeper ingest start -` with no `--kind`; `src/ingest/permissions.ts:136` — `kind_pending` for a source with no kind; `src/commands/ingest-facts.ts:110` — the late kind check.
+- **Surface:** the shipped-block list and its pin test (§3.1): STORY-002-11, a predecessor, creates both. This story appends one entry and one pin.
 - **Coverage of this requirement:** partial — every file exists and holds the SPRINT-02 text; the items add or correct sentences in place.
 
 ## Prior work
 
-- [[CR-003]] (E1–E10, Open Question 2), [[CR-002]] (D1 shell-write backstop, 14-line cap), [[EPIC-006]] (parent, archived), [[STORY-006-10]] (the other half of the split; lands first), [[STORY-003-12]] (the dropped-fact refusal and its text hand-off), [[STORY-002-09]] (`update` with `enforce: false`), [[STORY-005-09]] (the last step-4 table edit before this story's SETUP.md text), [[STORY-005-03]] (`unlogged-change`), [[STORY-006-04]] (WIKI.md and its red tests), [[STORY-006-05]] (skills and sub-agents, shared writer text), [[STORY-006-07]] (ONBOARDING.md, `me.md` schema check), [[STORY-006-02]] (SETUP.md). Wiki index and `.cleargate/FLASHCARD.md` checked 2026-10-17: no existing story carries these items.
+- [[CR-003]] (E1–E10, Open Question 2), [[CR-002]] (D1 shell-write backstop, 14-line cap), [[EPIC-006]] (parent, archived), [[STORY-006-10]] (the other half of the split; lands first), [[STORY-003-12]] (the dropped-fact refusal and its text hand-off), [[STORY-002-09]] (`update` with `enforce: false`), [[STORY-005-09]] (the last step-4 table edit before this story's SETUP.md text), [[STORY-005-03]] (`unlogged-change`), [[STORY-006-04]] (WIKI.md and its red tests), [[STORY-006-05]] (skills and sub-agents, shared writer text), [[STORY-006-07]] (ONBOARDING.md, `me.md` schema check), [[STORY-006-02]] (SETUP.md), [[STORY-006-01]] (the SPRINT-02 pointer block and its red tests), [[STORY-002-11]] (`update` refreshes an unedited block; `SHIPPED_BLOCKS` and its pin), [[STORY-002-10]] (doctor names the block files, quotes no block text). Wiki index and `.cleargate/FLASHCARD.md` checked 2026-10-17: no existing story carries these items.
 
 ## Why not simpler?
 
-- **Smallest existing surface that could carry this:** the existing sentences in the eleven templates listed in §3.1; every item edits or adds a sentence in place.
-- **Why isn't extension / parameterization / config sufficient?** The gaps are in what the instructions say, not in what the CLI does, so only text closes them. The two claims that depend on new CLI behaviour (what `finish` refuses, what `update` removes with `enforce: false`) are run against the CLI in §2.1, so they cannot drift.
+- **Smallest existing surface that could carry this:** the existing sentences in the twelve templates listed in §3.1; every item edits or adds a sentence or a block line in place.
+- **Why isn't extension / parameterization / config sufficient?** The gaps are in what the instructions say, not in what the CLI does, so only text closes them. The block lines reach existing installs only through STORY-002-11's refresh, so the one data entry this story adds is what lets that refresh deliver them. The three claims that depend on new CLI behaviour (what `finish` refuses, what `update` removes with `enforce: false`, and that `update` gives an old block the new text) are run against the CLI in §2.1, so they cannot drift.
 
 ---
 

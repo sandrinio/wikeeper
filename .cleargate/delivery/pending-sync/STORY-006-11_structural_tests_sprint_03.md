@@ -7,7 +7,7 @@ carry_over: false
 status: Draft
 approved: true
 ambiguity: 🟢 Low
-context_source: "EPIC-006 §1 success metric (every command the content mentions exists in wikeeper --help) and §5 · STORY-006-06 (structural checks R1–R9, test/templates/structure.ts) · SPRINT-03 Gate 1 decisions 3, 17 (owner STORY-005-09, split 4), 21 (plans/gate1-decisions.md; approved at Gate 1, 2026-10-17) and consistency-audit findings 1, 12, 18 and its red-test table · STORY-002-09 R7 (the `*` wildcard rule in structure.ts) · SPRINT-03 decomposition brief (commands and flags at the end of SPRINT-03; contracts K1, K2, K4–K9; shared files: 006-11 last) · CR-002 (14-line cap) · flashcard 2026-10-17 #enforce #qa (the story that breaks a red test re-scopes it in its QA-Red) · verified test/templates/structure.ts, test/templates.test.ts, test/templates.red.node.test.ts, test/templates/{wiki-protocol,setup,onboarding,profile}.red.node.test.ts, test/agents/enforce-ai-rules.red.node.test.ts, test/agents/enforce.red.node.test.ts, test/search/search-misses.red.node.test.ts, src/program.ts, src/agents/enforce/{claude,codex}.ts at 40018c5"
+context_source: "EPIC-006 §1 success metric (every command the content mentions exists in wikeeper --help) and §5 · STORY-006-06 (structural checks R1–R9, test/templates/structure.ts) · SPRINT-03 Gate 1 decisions 3, 17 (owner STORY-005-09, split 4), 21 (plans/gate1-decisions.md; approved at Gate 1, 2026-10-17) and consistency-audit findings 1, 12, 18 and its red-test table · STORY-002-09 R7 (the `*` wildcard rule in structure.ts) · SPRINT-03 decomposition brief (commands and flags at the end of SPRINT-03; contracts K1, K2, K4–K9; shared files: 006-11 last) · CR-002 (14-line cap) · Gate 1 decisions 22 and 23 (the pointer-block lines, STORY-006-12 R14; `update` refreshes an unedited block, STORY-002-11), approved by the human 2026-10-17 · flashcard 2026-10-17 #enforce #qa (the story that breaks a red test re-scopes it in its QA-Red) · verified test/templates/structure.ts, test/templates.test.ts, test/templates.red.node.test.ts, test/templates/{wiki-protocol,setup,onboarding,profile}.red.node.test.ts, test/agents/enforce-ai-rules.red.node.test.ts, test/agents/enforce.red.node.test.ts, test/search/search-misses.red.node.test.ts, src/program.ts, src/agents/enforce/{claude,codex}.ts at 40018c5"
 actor: Maintainer changing wikeeper's templates or commands
 complexity_label: L2
 parallel_eligible: n
@@ -15,6 +15,7 @@ dep_predecessors:
   - STORY-001-10
   - STORY-002-09
   - STORY-002-10
+  - STORY-002-11
   - STORY-003-10
   - STORY-003-11
   - STORY-003-12
@@ -36,14 +37,14 @@ lane: standard
 db_write_set: []
 deferred_verification: []
 created_at: 2026-10-17T09:05:51Z
-updated_at: 2026-10-17T10:14:58Z
+updated_at: 2026-10-17T12:05:00Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
 server_pushed_at_version: null
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-17T10:16:42Z
+  last_gate_check: 2026-10-17T12:01:07Z
   transition: ready-for-execution
 pushed_by: null
 pushed_at: null
@@ -53,15 +54,21 @@ last_remote_update: null
 source: local-authored
 last_synced_status: null
 last_synced_body_sha: null
-stamp_error: no ledger rows for work_item_id STORY-006-11
 draft_tokens:
-  input: null
-  output: null
-  cache_creation: null
-  cache_read: null
-  model: null
-  last_stamp: 2026-10-17T10:16:42Z
-  sessions: []
+  input: 0
+  output: 0
+  cache_creation: 0
+  cache_read: 0
+  model: claude-opus-5-5
+  last_stamp: 2026-10-17T11:59:40Z
+  sessions:
+    - session: 47c84598-2a59-4cfa-a987-cfe39161376b
+      model: claude-opus-5-5
+      input: 0
+      output: 0
+      cache_read: 0
+      cache_creation: 0
+      ts: 2026-10-17T11:01:48Z
 ---
 
 # STORY-006-11: Structural template tests for the SPRINT-03 commands
@@ -97,7 +104,14 @@ As a maintainer, I want the structural template tests to know the SPRINT-03 comm
   | (j) | `test/templates.red.node.test.ts:53` (S1) | none expected: STORY-002-09 R7 keeps S1 green; an edit only if that rule cannot | STORY-002-09 |
 
   Rows (a)–(e) and (i) follow the audit's table. Rows (f) and (g) are its enforce rows, split by the rules each story adds. Row (h) is added because decision 17 puts allow rules in the `ask` and `whitelist` modes too, which the audit's table did not list.
-- **R7 — Nothing else in SPRINT-02 tests changes.** `test/templates/profile.red.node.test.ts`, `skills-subagents.red.node.test.ts`, `walkthrough-fixes.red.node.test.ts` and the rest of the files in R6 pass unchanged on the merged tree.
+
+  STORY-002-11 and STORY-006-12's pointer-block change (its R14, decision 22) add no row. Each test below was checked at `31d363a` against both stories' requirements, and the R14 block was run through `runAllChecks` and pointer-block S1 and S3 on a scratch copy of the templates:
+  - `test/agents/integration.red.node.test.ts` S2 "update refreshes skills but leaves an edited block alone" (`:111`). Its CLAUDE.md block is edited, so `update` leaves it unchanged, now with a warning that S2 does not read. Its AGENTS.md block is current.
+  - `test/settings-reports.red.node.test.ts` S5 "update never recreates a deleted block" (`:195`). It is about the `.gitignore` managed block, which neither story touches.
+  - `test/update.red.node.test.ts` "is a no-op when nothing changed" (`:174`). No agent is configured, so `update` returns before the refresh.
+  - `test/agents/pointer-block.red.node.test.ts` S1–S3 (`:47`, `:61`, `:87`) and `test/agents/inject.red.node.test.ts:287`. The 14-line block keeps the cap, the 200-character limit, the `v1` marker, `## Project Wiki`, the S2 phrases and the ingest verbs.
+  - Neither story edits any red test. STORY-002-11's own invariant (`test/agents/shipped-blocks.test.ts`) is a new plain test, not a red-test re-scope.
+- **R7 — Nothing else in SPRINT-01 and SPRINT-02 tests changes.** `test/templates/profile.red.node.test.ts`, `skills-subagents.red.node.test.ts`, `walkthrough-fixes.red.node.test.ts`, the tests R6 lists as needing no row, and the rest of the files in R6 pass unchanged on the merged tree.
 
 ### 1.3 Out of Scope
 - Content checks the text stories own: STORY-006-10's whitelist, kb-format and prompt checks, STORY-006-12's fact-line and template-shape checks, STORY-006-09's section, `read`, status and decision checks. The finding table's comparison with the registry is this story's (R3 (b)).
@@ -195,7 +209,7 @@ Feature: Structural template tests for the SPRINT-03 commands
     And setup.red.node.test.ts accepts "read" and "lint" outside the preview table, and its S5 names the merged ai allow rules
     And onboarding.red.node.test.ts accepts the code span "`.wiki/system/WIKI.md`" before section "Proposing rule changes"
     And the enforce red tests pin the merged rule lists of every mode, and search-misses.red.node.test.ts pins the new misses header
-    And every file of R6, plus profile.red.node.test.ts, skills-subagents.red.node.test.ts and walkthrough-fixes.red.node.test.ts, passes on the merged tree, and no assertion of R6's files was deleted
+    And every file of R6, plus profile.red.node.test.ts, skills-subagents.red.node.test.ts, walkthrough-fixes.red.node.test.ts, pointer-block.red.node.test.ts, inject.red.node.test.ts, integration.red.node.test.ts, settings-reports.red.node.test.ts and update.red.node.test.ts, passes on the merged tree, and no assertion of R6's files was deleted
 
   Scenario Outline: Error — a broken SPRINT-03 reference fails naming the template
     Given a copy of the templates directory where templates/system/SETUP.md contains <reference>
@@ -278,7 +292,7 @@ Not applicable — test code only. New exports of `test/templates/structure.ts`:
 
 ## Prior work
 
-- [[STORY-006-06]] (the structural checks this story extends), [[EPIC-006]] (parent, archived; success metric), [[STORY-006-04]] (the WIKI.md red tests, S5), [[STORY-006-02]] (SETUP.md red tests; precedent of a QA-Red re-scope), [[STORY-006-07]] (ONBOARDING.md red tests), [[STORY-002-09]] (the `*` wildcard rule, the ask rules), [[STORY-003-10]] (the `read` rules), [[STORY-005-05]] (`status`), [[STORY-005-09]] (the read-only allow rules, split from STORY-005-05), [[STORY-006-09]], [[STORY-006-10]], [[STORY-006-12]] (the text this story checks), [[CR-002]] (14-line cap, one vocabulary), [[CR-003]], [[EPIC-005]] (lint registry, K1 parser). Wiki index and `.cleargate/FLASHCARD.md` checked 2026-10-17: no other story extends these checks.
+- [[STORY-006-06]] (the structural checks this story extends), [[EPIC-006]] (parent, archived; success metric), [[STORY-006-04]] (the WIKI.md red tests, S5), [[STORY-006-02]] (SETUP.md red tests; precedent of a QA-Red re-scope), [[STORY-006-07]] (ONBOARDING.md red tests), [[STORY-002-09]] (the `*` wildcard rule, the ask rules), [[STORY-003-10]] (the `read` rules), [[STORY-005-05]] (`status`), [[STORY-005-09]] (the read-only allow rules, split from STORY-005-05), [[STORY-006-09]], [[STORY-006-10]], [[STORY-006-12]] (the text this story checks), [[STORY-002-11]] (block refresh; adds no R6 row), [[CR-002]] (14-line cap, one vocabulary), [[CR-003]], [[EPIC-005]] (lint registry, K1 parser). Wiki index and `.cleargate/FLASHCARD.md` checked 2026-10-17: no other story extends these checks.
 
 ## Why not simpler?
 
