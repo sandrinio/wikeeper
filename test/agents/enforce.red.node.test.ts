@@ -41,6 +41,16 @@ const SEARCH_CODEX = [
   'prefix_rule(pattern=["npx","wikeeper","search"], decision="allow")',
   'prefix_rule(pattern=["wikeeper","search"], decision="allow")',
 ];
+const ASK_CLAUDE = [
+  "Bash(npx wikeeper ingest *--drop*)",
+  "Bash(wikeeper ingest *--drop*)",
+  "Bash(npx wikeeper ingest *--force-unlock*)",
+  "Bash(wikeeper ingest *--force-unlock*)",
+];
+const PROMPT_CODEX = [
+  'prefix_rule(pattern=["npx","wikeeper","ingest","abort"], decision="prompt")',
+  'prefix_rule(pattern=["wikeeper","ingest","abort"], decision="prompt")',
+];
 const sorted = (xs: readonly string[]): string[] => [...xs].sort();
 
 beforeEach(async () => {
@@ -256,8 +266,8 @@ describe("STORY-002-06 R2/R3 outline: permission mode decides the rules (red)", 
     const root = await run("ai");
     const s = await readJson(root, ".claude/settings.json");
     expect(s.permissions.allow).toEqual(expect.arrayContaining(["Bash(npx wikeeper ingest *)", "Bash(wikeeper ingest *)"]));
-    expect(s.permissions.ask).toBeUndefined();
-    expect(sorted(await lines(root))).toEqual(sorted([...AI_RULES, ...SEARCH_CODEX]));
+    expect(s.permissions.ask).toEqual(ASK_CLAUDE);
+    expect(sorted(await lines(root))).toEqual(sorted([...AI_RULES, ...PROMPT_CODEX, ...SEARCH_CODEX]));
   });
 
   it("ask: ask rules", async () => {
@@ -521,6 +531,10 @@ describe("STORY-002-06 writer specs and resolveEnforce units (red)", () => {
       "hooks.PreToolUse[guard:claude]",
       "permissions.allow[Bash(npx wikeeper ingest *)]",
       "permissions.allow[Bash(wikeeper ingest *)]",
+      "permissions.ask[Bash(npx wikeeper ingest *--drop*)]",
+      "permissions.ask[Bash(wikeeper ingest *--drop*)]",
+      "permissions.ask[Bash(npx wikeeper ingest *--force-unlock*)]",
+      "permissions.ask[Bash(wikeeper ingest *--force-unlock*)]",
       "permissions.allow[Bash(npx wikeeper search *)]",
       "permissions.allow[Bash(wikeeper search *)]",
     ]);
@@ -544,6 +558,7 @@ describe("STORY-002-06 writer specs and resolveEnforce units (red)", () => {
     expect(CODEX_ENFORCE[1].items("CMD", "ai").map((i: any) => i.value)).toEqual([
       'prefix_rule(pattern=["npx","wikeeper","ingest"], decision="allow")',
       'prefix_rule(pattern=["wikeeper","ingest"], decision="allow")',
+      ...PROMPT_CODEX,
       ...SEARCH_CODEX,
     ]);
     expect(ANTIGRAVITY_ENFORCE.file).toBe(".agents/hooks.json");

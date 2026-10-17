@@ -279,15 +279,15 @@ Frozen for consumers: the flag names `--no-miss` and `--mark`, the values `decid
 
 ## Task Breakdown
 
-- [ ] `engine.ts`: the additive optional fields -> R1, R2, R4, R5
-- [ ] `search.ts`: `--no-miss` option and the recording guard -> R1
-- [ ] `misses.ts`: `data.events`, the header, and `mark` in encode, decode and grouping -> R2, R5
-- [ ] `log.ts`: `missLabel` for the miss body line and the `log.md` miss line -> R3
-- [ ] `search.ts`: `facts_total` and `pages_total`, the totals header, and the limit note -> R4
-- [ ] `filters.ts`: `parseMark`, `markHits`, `describeFilters`; `search.ts`: the `--mark` branches and errors -> R5, R7
-- [ ] `search.ts`: the `--status` hint -> R6
-- [ ] QA-Red re-scopes the header assertion at `test/search/search-misses.red.node.test.ts:86` (§1.4 Decision 1, gate1-decisions item 21); the Developer updates `test/search/misses.test.ts:105,107` -> R2
-- [ ] Developer unit tests per §4.1 -> §2.1
+- [x] `engine.ts`: the additive optional fields -> R1, R2, R4, R5
+- [x] `search.ts`: `--no-miss` option and the recording guard -> R1
+- [x] `misses.ts`: `data.events`, the header, and `mark` in encode, decode and grouping -> R2, R5
+- [x] `log.ts`: `missLabel` for the miss body line and the `log.md` miss line -> R3
+- [x] `search.ts`: `facts_total` and `pages_total`, the totals header, and the limit note -> R4
+- [x] `filters.ts`: `parseMark`, `markHits`, `describeFilters`; `search.ts`: the `--mark` branches and errors -> R5, R7
+- [x] `search.ts`: the `--status` hint -> R6
+- [x] QA-Red re-scopes the header assertion at `test/search/search-misses.red.node.test.ts:86` (§1.4 Decision 1, gate1-decisions item 21); the Developer updates `test/search/misses.test.ts:105,107` -> R2
+- [x] Developer unit tests per §4.1 -> §2.1
 
 ## 4. Quality Gates
 
