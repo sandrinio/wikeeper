@@ -225,3 +225,46 @@ export async function writeFacts(
   }
   return { file: toPosixRelative(paths.root, target), replaced, sha256: hashText(text).sha256 };
 }
+
+export interface FactsDiff {
+  added: Fact[];
+  removed: Fact[];
+  changed: Array<{ before: Fact; after: Fact }>;
+}
+
+export const FACT_DIFF_FIELDS: readonly ["value", "status", "as_of", "page", "exists"] = [
+  "value",
+  "status",
+  "as_of",
+  "page",
+  "exists",
+];
+
+function factKey(f: Fact): string {
+  return JSON.stringify([f.entity, f.field, f.anchor]);
+}
+
+/** Pairs facts by entity + field + anchor in file order; pure. */
+export function diffFacts(stored: FactsFile, next: FactsFile): FactsDiff {
+  const pool = new Map<string, Fact[]>();
+  for (const f of stored.facts) {
+    const k = factKey(f);
+    const list = pool.get(k);
+    if (list === undefined) pool.set(k, [f]);
+    else list.push(f);
+  }
+  const added: Fact[] = [];
+  const changed: Array<{ before: Fact; after: Fact }> = [];
+  const paired = new Set<Fact>();
+  for (const n of next.facts) {
+    const before = pool.get(factKey(n))?.shift();
+    if (before === undefined) {
+      added.push(n);
+      continue;
+    }
+    paired.add(before);
+    if (FACT_DIFF_FIELDS.some((k) => before[k] !== n[k])) changed.push({ before, after: n });
+  }
+  const removed = stored.facts.filter((f) => !paired.has(f));
+  return { added, removed, changed };
+}
