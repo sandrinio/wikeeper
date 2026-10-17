@@ -6,6 +6,12 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-17 · #test-harness #init · init seeds .gitkeep in .wiki/raw and .wiki/log; an "empty dir" assertion on an initialised wiki must ignore dotfiles or compare with a before-listing.
+2026-10-17 · #red-test #manifest · update always rewrites manifest.package_version; assert the one manifest entry under test, never the whole manifest, after update.
+2026-10-17 · #update #manifest · pruneDeconfigured treated a deleted agent file as deconfigured: it warned "already gone" and dropped the manifest block entry.
+2026-10-17 · #qa #red-test #encoding · A BOM is not part of any line: strip it before START_RE (^ with the m flag) or the block is not found in a BOM+CRLF file.
+2026-10-17 · #test-harness #fs · hashTree-style walks must hash only dirent.isFile() entries; a symlink or dir entry makes readFile throw EISDIR.
+2026-10-17 · #test-harness #ingest · ingest start --json puts the source id at data.id, not data.source_id; non-TTY stdin via Readable.from is unreliable, use --file.
 2026-10-17 · #log #test-harness · writeLogEvent's "-2" suffix sorts before the base name ("-" < "."): equal-at events read back in reverse; give each test event its own now.
 2026-10-17 · #read #defuddle · defuddle/node Defuddle() returns a Promise, drops the h1 that repeats the title, drops tiny data: images and keeps big ones as ![alt](data:…).
 2026-10-17 · #read #fixtures · defuddle resolves relative links against the page URL; an HTML fixture read over http and from a file needs absolute links only.
