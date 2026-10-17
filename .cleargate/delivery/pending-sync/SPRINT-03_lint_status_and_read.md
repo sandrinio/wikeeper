@@ -11,13 +11,13 @@ start_date: null
 end_date: null
 synced_at: null
 created_at: 2026-10-17T08:27:39Z
-updated_at: 2026-10-17T08:30:13Z
+updated_at: 2026-10-17T08:40:53Z
 created_at_version: strategy-phase-pre-init
 updated_at_version: strategy-phase-pre-init
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-17T08:30:34Z
+  last_gate_check: 2026-10-17T08:41:14Z
   transition: ready-for-execution
 epics:
   - EPIC-001
@@ -43,6 +43,14 @@ draft_tokens:
 
 > **Draft, not planned.** This file records the selected scope and a proposed story set. Stories are drafted after the open questions are answered; the Sprint Design Review, wave plan and milestones come after that, before Gate 2.
 
+## Human decisions (2026-10-17)
+
+- **Scope:** all of EPIC-005, `read` (EPIC-003) and CR-003 in this sprint, as proposed below.
+- **`read` dependencies:** approved: `linkedom`, `defuddle`, `mammoth`, `turndown` and `unpdf`, each loaded only when its format is read; first network command (20 s timeout, 10 MB cap); tests never use the internet.
+- **Release:** the sprint sets the package version to `0.3.0`; publishing to npm is a separate step the human approves after Gate 4.
+- **Walkthrough part 3 (Goal check):** headless, in `~/walkthrough-wiki`, same method as SPRINT-02. Any PDF on the machine may be used for `read`. The real knowledge base comes from the `~/product_repo` ClearGate wiki; the human will use wikeeper for product management, so the walkthrough also asks questions of that kind.
+- **CR-003:** approved with all five recommended answers (`--no-miss`, dropped fact lines refused at `finish`, `ai` mode prompts for `abort --drop` and `apply --force-unlock`, `search --mark`, `--version` build stamp).
+
 ## 0. Stakeholder Brief
 
 - **Sprint Goal (draft, to confirm at planning):** An agent keeps the wiki healthy and complete: `wikeeper lint` and `lint --rules` find page and rule problems, `wikeeper status` shows open work, re-ingest candidates and pending rule suggestions, rule decisions are remembered, and `wikeeper read` turns web pages, DOCX and PDF files into markdown the agent can ingest.
@@ -62,7 +70,7 @@ Items selected for this sprint. Each is decomposed into stories at planning time
 |---|---|---|---|---|
 | `EPIC-005` | Epic | Lint, status and rule evolution | no | Includes CR-002 D1 (`unlogged-change` as the backstop for shell writes) and C1's `lint --rules` half (whitelist kinds name existing kinds), and CR-003 D1–D5. |
 | `EPIC-003` | Epic | Ingest pipeline: `read` | no | Archived after SPRINT-02 without `read`. `read` keeps the next EPIC-003 ids (decided at SPRINT-02 planning), with CR-002 C2 (its `ai`-mode allow rule). |
-| `CR-003` | CR | SPRINT-02 walkthrough feedback | n/a | Items A–F go into stories under EPIC-001…006. **Approval pending.** |
+| `CR-003` | CR | SPRINT-02 walkthrough feedback | n/a | Items A–F go into stories under EPIC-001…006. Approved 2026-10-17. |
 
 **Proposed story set (to confirm before drafting):**
 
@@ -89,7 +97,7 @@ Items selected for this sprint. Each is decomposed into stories at planning time
 
 **Not in this sprint:**
 - Knowledge-base quality evaluation: after INITIATIVE-001 (its §5).
-- Publishing to npm: a separate step after Gate 4 (see Open Questions in the planning Brief).
+- Publishing to npm: a separate step the human approves after Gate 4.
 
 ## 2. Execution Strategy
 
