@@ -6,6 +6,7 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-17 · #qa #red-test #enforce · The `read` allow pair exists only in ai mode, while the lint/status/rules-list allow rules are in every mode; a per-mode assertion must not demand `read` in ask or whitelist.
 2026-10-17 · #qa #red-test · Red rows that read a CLI form out of template text and run it live need a scratch copy with the planned text applied, to prove them green before the red commit.
 2026-10-17 · #qa #test-harness · structure.ts finding lines are 1-based (i+1): a text line inserted two below a heading reports heading index + 3.
 2026-10-17 · #test-harness #finish · finish refuses a page that does not cite [[<this ingest's id>]] (validation_failed, details.uncited); every page a fixture writer changes must cite the ingest's own id.
