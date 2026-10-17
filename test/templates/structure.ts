@@ -12,6 +12,8 @@ import { CODEX_ENFORCE } from "../../src/agents/enforce/codex.js";
 import { GUARD_REASON } from "../../src/agents/hook-protocols.js";
 import { listTemplateFiles } from "../../src/core/templates.js";
 import { parseSourceKinds } from "../../src/ingest/kind-rules.js";
+import { parseInstructions } from "../../src/kb/parse-instructions.js";
+import { PAGE_CHECKS, RULE_CHECKS } from "../../src/lint/checks.js";
 import { createProgram, runCli } from "../../src/program.js";
 import { parsePage } from "../../src/wiki/parse-page.js";
 
@@ -459,6 +461,127 @@ export async function checkPlaceholders(dir: string): Promise<Finding[]> {
   return out;
 }
 
+// ---------- SPRINT-03: coverage, lint ids, kb seeds (STORY-006-11) ----------
+
+/** Command forms the templates must name at least once: "<words> [--flag]". Later sprints append to the list. */
+export const DOCUMENTED_FORMS: readonly string[] = [
+  "read --out",
+  "lint",
+  "lint --rules",
+  "lint --check",
+  "status",
+  "rules list",
+  "rules record --accepted",
+  "rules record --rejected",
+  "rules record --kind",
+  "rules record --summary",
+  "rules record --from",
+  "ingest facts --dry-run",
+  "search --no-miss",
+  "search --mark",
+];
+
+export async function checkCoverage(dir: string): Promise<Finding[]> {
+  const refs: CommandRef[] = [];
+  for (const file of await files(dir)) refs.push(...extractCommandRefs(file, await read(dir, file)));
+  const out: Finding[] = [];
+  for (const form of DOCUMENTED_FORMS) {
+    const tokens = form.split(/\s+/);
+    const words = tokens.filter((t) => !t.startsWith("--"));
+    const flag = tokens.find((t) => t.startsWith("--"));
+    const met = refs.some(
+      (r) =>
+        r.words.length === words.length &&
+        r.words.every((w, i) => w === words[i]) &&
+        (flag === undefined || r.flags.includes(flag)),
+    );
+    if (!met) out.push({ file: "templates/", line: 0, message: `"wikeeper ${form}" is named by no template` });
+  }
+  return out;
+}
+
+/** The first table under WIKI.md "## Lint and status": one row per page check, the id in a code span in the first cell. */
+function findingTableFindings(file: string, text: string): Finding[] {
+  const pageIds = PAGE_CHECKS.map((c) => c.id);
+  const lines = norm(text).split("\n");
+  let fence: string | null = null;
+  let inSection = false;
+  let header = -1;
+  for (let i = 0; i < lines.length; i++) {
+    const l = lines[i]!;
+    const f = /^\s*(```+|~~~+)/.exec(l);
+    if (f) {
+      const marker = f[1]!.charAt(0);
+      if (fence === null) fence = marker;
+      else if (fence === marker) fence = null;
+      continue;
+    }
+    if (fence !== null) continue;
+    const h = /^##\s+(.+?)\s*#*\s*$/.exec(l);
+    if (h) {
+      if (inSection) break;
+      inSection = h[1] === "Lint and status";
+      continue;
+    }
+    if (inSection && l.startsWith("|")) {
+      header = i;
+      break;
+    }
+  }
+  const out: Finding[] = [];
+  const seen = new Set<string>();
+  if (header >= 0) {
+    for (let i = header + 2; i < lines.length && lines[i]!.startsWith("|"); i++) {
+      const cell = (lines[i]!.split("|")[1] ?? "").trim();
+      const id = /^`([^`]*)`$/.exec(cell)?.[1] ?? cell;
+      if (!pageIds.includes(id)) out.push({ file, line: i + 1, message: `finding table: "${id}" is not a page check` });
+      else if (seen.has(id)) out.push({ file, line: i + 1, message: `finding table: "${id}" has more than one row` });
+      seen.add(id);
+    }
+  }
+  for (const id of pageIds) {
+    if (!seen.has(id)) out.push({ file, line: header >= 0 ? header + 1 : 0, message: `finding table: no row for "${id}"` });
+  }
+  return out;
+}
+
+export async function checkLintIds(dir: string, doctorIds: readonly string[]): Promise<Finding[]> {
+  const lintIds = new Set([...PAGE_CHECKS, ...RULE_CHECKS].map((c) => c.id));
+  const out: Finding[] = [];
+  const unregistered = (file: string, line: number, id: string): void => {
+    out.push({ file, line, message: `check "${id}" is not registered in lint or doctor` });
+  };
+  const all = await files(dir);
+  for (const file of all) {
+    const text = await read(dir, file);
+    for (const { line, unit } of commandUnits(file, text)) {
+      for (const m of unit.matchAll(/\blint(?:\s+--rules)?\s+--check\s+([a-z][a-z0-9-]*)/g)) {
+        if (!lintIds.has(m[1]!)) unregistered(file, line, m[1]!);
+      }
+    }
+    if (!/\.(md|toml|json)$/.test(file)) continue;
+    text.split("\n").forEach((l, i) => {
+      for (const m of l.matchAll(/`([a-z][a-z0-9-]*)` finding/g)) {
+        if (!lintIds.has(m[1]!) && !doctorIds.includes(m[1]!)) unregistered(file, i + 1, m[1]!);
+      }
+    });
+  }
+  const wiki = "system/WIKI.md";
+  out.push(...findingTableFindings(wiki, all.includes(wiki) ? await read(dir, wiki) : ""));
+  return out;
+}
+
+export async function checkKbSeeds(dir: string): Promise<Finding[]> {
+  const out: Finding[] = [];
+  for (const file of await files(dir)) {
+    if (!/^kb_instructions\.[a-z0-9-]+\.md$/.test(file)) continue;
+    for (const issue of parseInstructions(await read(dir, file)).issues) {
+      out.push({ file, line: issue.line, message: `${issue.code}: ${issue.message}` });
+    }
+  }
+  return out;
+}
+
 export async function runAllChecks(dir: string, doctorIds: readonly string[]): Promise<Finding[]> {
   return [
     ...(await checkCommands(dir)),
@@ -469,6 +592,9 @@ export async function runAllChecks(dir: string, doctorIds: readonly string[]): P
     ...(await checkCaps(dir)),
     ...(await checkParsers(dir)),
     ...(await checkPlaceholders(dir)),
+    ...(await checkCoverage(dir)),
+    ...(await checkLintIds(dir, doctorIds)),
+    ...(await checkKbSeeds(dir)),
   ];
 }
 
