@@ -6,6 +6,7 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-17 · #test-harness #ingest · isSourceId rejects ids like src-open; lock and snapshot unit tests need src-YYYY-MM-DD-slug ids, or readLock reports the lock unreadable.
 2026-10-17 · #git #worktree · git stash is shared by every worktree of a repo: a parallel Developer's pop can swap another story's edits into yours; never stash, use a patch file or a temp commit.
 2026-10-17 · #qa #test-harness · runCli takes cwd from io.cwd; a top-level cwd option is ignored and init runs in the worktree itself; copy lint-command.test.ts run().
 2026-10-17 · #test-harness #finish · finish warnings are in the envelope's top-level json.warnings, not json.data.warnings; IngestReport has no warnings field.
