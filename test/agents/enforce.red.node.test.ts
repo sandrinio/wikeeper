@@ -41,6 +41,11 @@ const SEARCH_CODEX = [
   'prefix_rule(pattern=["npx","wikeeper","search"], decision="allow")',
   'prefix_rule(pattern=["wikeeper","search"], decision="allow")',
 ];
+const READ_CLAUDE = ["Bash(npx wikeeper read *)", "Bash(wikeeper read *)"];
+const READ_CODEX = [
+  'prefix_rule(pattern=["npx","wikeeper","read"], decision="allow")',
+  'prefix_rule(pattern=["wikeeper","read"], decision="allow")',
+];
 const ASK_CLAUDE = [
   "Bash(npx wikeeper ingest *--drop*)",
   "Bash(wikeeper ingest *--drop*)",
@@ -267,7 +272,7 @@ describe("STORY-002-06 R2/R3 outline: permission mode decides the rules (red)", 
     const s = await readJson(root, ".claude/settings.json");
     expect(s.permissions.allow).toEqual(expect.arrayContaining(["Bash(npx wikeeper ingest *)", "Bash(wikeeper ingest *)"]));
     expect(s.permissions.ask).toEqual(ASK_CLAUDE);
-    expect(sorted(await lines(root))).toEqual(sorted([...AI_RULES, ...PROMPT_CODEX, ...SEARCH_CODEX]));
+    expect(sorted(await lines(root))).toEqual(sorted([...AI_RULES, ...PROMPT_CODEX, ...READ_CODEX, ...SEARCH_CODEX]));
   });
 
   it("ask: ask rules", async () => {
@@ -535,6 +540,8 @@ describe("STORY-002-06 writer specs and resolveEnforce units (red)", () => {
       "permissions.ask[Bash(wikeeper ingest *--drop*)]",
       "permissions.ask[Bash(npx wikeeper ingest *--force-unlock*)]",
       "permissions.ask[Bash(wikeeper ingest *--force-unlock*)]",
+      "permissions.allow[Bash(npx wikeeper read *)]",
+      "permissions.allow[Bash(wikeeper read *)]",
       "permissions.allow[Bash(npx wikeeper search *)]",
       "permissions.allow[Bash(wikeeper search *)]",
     ]);
@@ -559,6 +566,7 @@ describe("STORY-002-06 writer specs and resolveEnforce units (red)", () => {
       'prefix_rule(pattern=["npx","wikeeper","ingest"], decision="allow")',
       'prefix_rule(pattern=["wikeeper","ingest"], decision="allow")',
       ...PROMPT_CODEX,
+      ...READ_CODEX,
       ...SEARCH_CODEX,
     ]);
     expect(ANTIGRAVITY_ENFORCE.file).toBe(".agents/hooks.json");

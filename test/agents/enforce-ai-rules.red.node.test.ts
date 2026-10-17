@@ -42,6 +42,11 @@ const SEARCH_CODEX = [
   'prefix_rule(pattern=["npx","wikeeper","search"], decision="allow")',
   'prefix_rule(pattern=["wikeeper","search"], decision="allow")',
 ];
+const READ_CLAUDE = ["Bash(npx wikeeper read *)", "Bash(wikeeper read *)"];
+const READ_CODEX = [
+  'prefix_rule(pattern=["npx","wikeeper","read"], decision="allow")',
+  'prefix_rule(pattern=["wikeeper","read"], decision="allow")',
+];
 const ASK_CLAUDE = [
   "Bash(npx wikeeper ingest *--drop*)",
   "Bash(wikeeper ingest *--drop*)",
@@ -134,7 +139,7 @@ describe("CR-001 outline: init --enforce with permission ai writes only ingest a
     const r = await drive(root, ["init", "--json", "--agents", "claude", "--enforce", "--yes"]);
     expect(r.code).toBe(0);
     const s = await readJson(root, ".claude/settings.json");
-    expect(sorted(s.permissions.allow)).toEqual(sorted([...NARROW_CLAUDE, ...SEARCH_CLAUDE]));
+    expect(sorted(s.permissions.allow)).toEqual(sorted([...NARROW_CLAUDE, ...READ_CLAUDE, ...SEARCH_CLAUDE]));
     for (const cmd of REMOVE_CMDS) {
       for (const rule of s.permissions.allow as string[]) expect(claudeMatches(rule, cmd)).toBe(false);
     }
@@ -146,7 +151,7 @@ describe("CR-001 outline: init --enforce with permission ai writes only ingest a
     const r = await drive(root, ["init", "--json", "--agents", "codex", "--enforce", "--yes"]);
     expect(r.code).toBe(0);
     const lines = await ruleLines(root);
-    expect(sorted(lines)).toEqual(sorted([...NARROW_CODEX, ...PROMPT_CODEX, ...SEARCH_CODEX]));
+    expect(sorted(lines)).toEqual(sorted([...NARROW_CODEX, ...PROMPT_CODEX, ...READ_CODEX, ...SEARCH_CODEX]));
     for (const line of lines) {
       const pat = codexPattern(line);
       expect(isPrefix(pat, ["wikeeper", "remove"])).toBe(false);
@@ -188,10 +193,10 @@ describe("CR-001: update replaces old broad rules with the narrow ones (red)", (
     const u = await drive(root, ["update", "--json"]);
     expect(u.code).toBe(0);
     const after = await readJson(root, ".claude/settings.json");
-    expect(sorted(after.permissions.allow)).toEqual(sorted([...NARROW_CLAUDE, ...SEARCH_CLAUDE]));
+    expect(sorted(after.permissions.allow)).toEqual(sorted([...NARROW_CLAUDE, ...READ_CLAUDE, ...SEARCH_CLAUDE]));
     expect(after.model).toBe("opus");
     expect(after.permissions.deny).toEqual(["Read(./.env)"]);
-    expect(sorted(await ruleLines(root))).toEqual(sorted([...NARROW_CODEX, ...PROMPT_CODEX, ...SEARCH_CODEX]));
+    expect(sorted(await ruleLines(root))).toEqual(sorted([...NARROW_CODEX, ...PROMPT_CODEX, ...READ_CODEX, ...SEARCH_CODEX]));
     const identities = (await readJson(root, mpath)).files.map((f: any) => String(f.identity ?? ""));
     expect(identities.some((i: string) => i.includes("wikeeper *]"))).toBe(false);
     for (const line of OLD_CODEX) expect(identities).not.toContain(line);
@@ -241,7 +246,7 @@ describe("CR-001: obsolete wildcard allow rules are gone from the writer specs (
     const { CLAUDE_ENFORCE } = await loadClaude();
     const { CODEX_ENFORCE } = await loadCodex();
     const claudeAllow = CLAUDE_ENFORCE.items("CMD", "ai").filter((i: any) => i.kind === "rule").map((i: any) => i.value);
-    expect(claudeAllow).toEqual([...NARROW_CLAUDE, ...ASK_CLAUDE, ...SEARCH_CLAUDE]);
-    expect(CODEX_ENFORCE[1].items("CMD", "ai").map((i: any) => i.value)).toEqual([...NARROW_CODEX, ...PROMPT_CODEX, ...SEARCH_CODEX]);
+    expect(claudeAllow).toEqual([...NARROW_CLAUDE, ...ASK_CLAUDE, ...READ_CLAUDE, ...SEARCH_CLAUDE]);
+    expect(CODEX_ENFORCE[1].items("CMD", "ai").map((i: any) => i.value)).toEqual([...NARROW_CODEX, ...PROMPT_CODEX, ...READ_CODEX, ...SEARCH_CODEX]);
   });
 });
