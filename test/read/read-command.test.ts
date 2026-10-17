@@ -26,18 +26,6 @@ async function drive(cwd: string, args: string[]) {
 }
 
 describe("STORY-003-10: stub formats and --out acceptance", () => {
-  it.each([
-    ["report.docx"],
-    ["report.pdf"],
-  ])("%s answers the unsupported error until STORY-003-11", async (file) => {
-    const cwd = await mkdtemp(path.join(os.tmpdir(), "wk-read-cmd-"));
-    dirs.push(cwd);
-    await writeFile(path.join(cwd, file), "x");
-    const r = await drive(cwd, ["read", file, "--json"]);
-    expect(r.code).toBe(2);
-    expect(r.json.error.code).toBe("unsupported");
-  });
-
   it.each([[".doc"], [".pptx"], [".xlsx"]])("%s fails with its hint", async (ext) => {
     const cwd = await mkdtemp(path.join(os.tmpdir(), "wk-read-cmd-"));
     dirs.push(cwd);

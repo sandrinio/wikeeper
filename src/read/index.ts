@@ -79,11 +79,11 @@ export function formatFromContentType(contentType: string | null): ReadFormat | 
 }
 
 export async function convertDocx(_bytes: Uint8Array): Promise<Converted> {
-  throw new WikeeperError(ExitCode.USAGE, "unsupported", "reading .docx files is not available yet");
+  return (await import("./docx.js")).readDocx(_bytes);
 }
 
 export async function convertPdf(_bytes: Uint8Array): Promise<Converted> {
-  throw new WikeeperError(ExitCode.USAGE, "unsupported", "reading .pdf files is not available yet");
+  return (await import("./pdf.js")).readPdf(_bytes);
 }
 
 export function withHeader(c: Converted): string {
