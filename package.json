@@ -1,6 +1,6 @@
 {
   "name": "wikeeper",
-  "version": "0.0.1",
+  "version": "0.3.0",
   "description": "A Karpathy-style LLM wiki that your AI coding agent keeps: gated ingest, cited facts, search. Works with Claude Code, Codex and Antigravity.",
   "keywords": [
     "llm",
@@ -35,7 +35,7 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && node scripts/build-info.mjs dist",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --exclude \"**/*-perf.red.node.test.ts\"",
     "test:perf": "vitest run --no-file-parallelism --exclude \"**/.worktrees/**\" test/search/search-perf.red.node.test.ts test/search/cache-perf.red.node.test.ts",

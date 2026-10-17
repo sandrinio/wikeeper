@@ -195,12 +195,12 @@ Feature: --version tells builds apart; --help names the version and the docs
 
 ## Task Breakdown
 
-- [ ] Set `package.json` and `package-lock.json` to `0.3.0` and add the stamp step to the `build` script -> R1, R2
-- [ ] Write `scripts/build-info.mjs` and `test/build-info.test.ts` -> R2
-- [ ] Add `src/core/version.ts` and use it for `VERSION` and the help footer in `src/program.ts`; update `test/program.test.ts` -> R3, R6
-- [ ] Default `init` and `update` to `fullVersion()`; pin the npx guard with `npmVersion` -> R4, R5
-- [ ] Run the stamp step in `test/e2e/pack.ts` and add the packed `--version` and manifest test to `test/e2e/goal.test.ts` -> R7
-- [ ] Write `test/version.test.ts` for scenarios 3–5 -> R3, R4, R5
+- [x] Set `package.json` and `package-lock.json` to `0.3.0` and add the stamp step to the `build` script -> R1, R2
+- [x] Write `scripts/build-info.mjs` and `test/build-info.test.ts` -> R2
+- [x] Add `src/core/version.ts` and use it for `VERSION` and the help footer in `src/program.ts`; update `test/program.test.ts` -> R3, R6
+- [x] Default `init` and `update` to `fullVersion()`; pin the npx guard with `npmVersion` -> R4, R5
+- [x] Run the stamp step in `test/e2e/pack.ts` and add the packed `--version` and manifest test to `test/e2e/goal.test.ts` -> R7
+- [x] Write `test/version.test.ts` for scenarios 3–5 -> R3, R4, R5
 
 ## 4. Quality Gates
 
