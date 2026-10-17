@@ -223,11 +223,11 @@ Consumed (frozen): `LintCheck`, `LintContext`, `PAGE_CHECKS`, `pagePath`, `creat
 
 ## Task Breakdown
 
-- [ ] `src/lint/staleness.ts`: status lookup (last `status::` link, frontmatter fallback), newest fact date, `FINAL_STATUSES`, age -> R2, R3, R5
-- [ ] `src/lint/staleness.ts`: planned dates (tentative, newest, wikilinks removed, first calendar date) -> R4
-- [ ] `src/lint/staleness.ts`: finding paths, lines and messages -> R3, R4, R6
-- [ ] `src/lint/checks.ts`: append `staleFactCheck` to `PAGE_CHECKS` -> R1
-- [ ] `test/lint/staleness.test.ts`: unit tests, and CLI tests per Gherkin scenario with an injected `now` -> §2.1
+- [x] `src/lint/staleness.ts`: status lookup (last `status::` link, frontmatter fallback), newest fact date, `FINAL_STATUSES`, age -> R2, R3, R5
+- [x] `src/lint/staleness.ts`: planned dates (tentative, newest, wikilinks removed, first calendar date) -> R4
+- [x] `src/lint/staleness.ts`: finding paths, lines and messages -> R3, R4, R6
+- [x] `src/lint/checks.ts`: append `staleFactCheck` to `PAGE_CHECKS` -> R1
+- [x] `test/lint/staleness.test.ts`: unit tests, and CLI tests per Gherkin scenario with an injected `now` -> §2.1
 
 ## 4. Quality Gates
 
