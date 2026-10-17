@@ -6,6 +6,8 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-17 · #qa #dod · A Developer commit that only turns the red tests green leaves the §4.1 unit-test minimum unmet; red tests alone do not satisfy DoD.
+2026-10-17 · #contract #test-harness · A contract that fixes the layout of a QA-Red test helper binds QA-Red, not the Developer (who may not restructure red files); check it at TPV.
 2026-10-17 · #qa #test-harness · While several worktree suites run, full `npm test` at default workers times out 3-5 git-spawning tests at 5 s; re-run with --maxWorkers=4 before judging.
 2026-10-17 · #qa #red-test · A red row that asserts an empty findings list passes vacuously when the stub errors; assert json.ok first.
 2026-10-17 · #test-harness #init · init seeds .gitkeep in .wiki/raw and .wiki/log; an "empty dir" assertion on an initialised wiki must ignore dotfiles or compare with a before-listing.
