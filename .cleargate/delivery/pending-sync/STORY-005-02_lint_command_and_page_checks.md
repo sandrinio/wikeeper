@@ -336,13 +336,13 @@ Consumed (frozen): `loadPages`, `pageEntities`, `normalizeName`, `linkTarget`, `
 
 ## Task Breakdown
 
-- [ ] Add `line?: number` to `LintFinding` in `src/ingest/lint-hook.ts` -> R3
-- [ ] `src/lint/checks.ts`: types, registries, `runLint` (selection, unknown-id usage error, `only` filter through `pagePath`, sort), `countFindings`, `pagePath`, `findingLine` -> R1, R2, R3
-- [ ] `src/lint/links.ts`: `linkResolver`, `broken-link`, `orphan-page` -> R4, R5, R6
-- [ ] `src/lint/citations.ts`: `claimBlocks`, `uncited-claim` -> R7
-- [ ] `indexDriftCheck` in `src/lint/checks.ts`: normalised compare, entry-line diff, messages, the `index.md` path -> R8
-- [ ] `src/commands/lint.ts`: context build, JSON and human output, exit codes; register in `src/program.ts` -> R9
-- [ ] Unit tests per module, and CLI tests per Gherkin scenario in `test/lint/lint-command.test.ts` through one fixture helper, including the `content_dir` copy and the repository-hash read-only test -> §2.1, R10
+- [x] Add `line?: number` to `LintFinding` in `src/ingest/lint-hook.ts` -> R3
+- [x] `src/lint/checks.ts`: types, registries, `runLint` (selection, unknown-id usage error, `only` filter through `pagePath`, sort), `countFindings`, `pagePath`, `findingLine` -> R1, R2, R3
+- [x] `src/lint/links.ts`: `linkResolver`, `broken-link`, `orphan-page` -> R4, R5, R6
+- [x] `src/lint/citations.ts`: `claimBlocks`, `uncited-claim` -> R7
+- [x] `indexDriftCheck` in `src/lint/checks.ts`: normalised compare, entry-line diff, messages, the `index.md` path -> R8
+- [x] `src/commands/lint.ts`: context build, JSON and human output, exit codes; register in `src/program.ts` -> R9
+- [x] Unit tests per module, and CLI tests per Gherkin scenario in `test/lint/lint-command.test.ts` through one fixture helper, including the `content_dir` copy and the repository-hash read-only test -> §2.1, R10
 
 ## 4. Quality Gates
 
