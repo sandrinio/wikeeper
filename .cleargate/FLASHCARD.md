@@ -6,6 +6,18 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-17 · #log #test-harness · writeLogEvent's "-2" suffix sorts before the base name ("-" < "."): equal-at events read back in reverse; give each test event its own now.
+2026-10-17 · #read #defuddle · defuddle/node Defuddle() returns a Promise, drops the h1 that repeats the title, drops tiny data: images and keeps big ones as ![alt](data:…).
+2026-10-17 · #read #fixtures · defuddle resolves relative links against the page URL; an HTML fixture read over http and from a file needs absolute links only.
+2026-10-17 · #lint #red-test · A registry story's red file must filter findings to its own check ids (or pass --check): later checks add findings and red files are immutable.
+2026-10-17 · #red-test #contract · Rows a later story's body replaces (stub branches, list lengths) belong in Developer tests, never in an immutable red file.
+2026-10-17 · #test-harness #http · A local test server with a never-answering route must closeAllConnections() before close(), or afterAll hangs.
+2026-10-17 · #enforce #red-test · A SPRINT-03 red file that pins exact rule lists (enforce-prompts.red) breaks for every later rule story; list it in the re-scope table.
+2026-10-17 · #test-harness #perf · test/setup-files.red.node.test.ts S1 times out at 5 s when several worktree suites run at once; it passes alone. Re-run it alone before blaming a story.
+2026-10-17 · #qa #test-harness · macOS sed -i needs '' and cited line numbers go stale; match rows by pattern, not by line number.
+2026-10-17 · #qa #red-test #contract · A red test asserted claudeDecision === "prompt" but contract C5's type is "ask"; check red expectations against the frozen contract type.
+2026-10-17 · #qa #red-test · A red Outline that shares one init across rows needs its temp dirs cleaned in afterAll; afterEach deletes them after row 1.
+2026-10-17 · #test-harness #red-test · init seeds .wiki/raw/.gitkeep; assert raw/ holds no source files, never that raw/ does not exist.
 2026-10-17 · #esm #contract #lint · A check module that value-imports its registry (checks.ts ↔ links.ts) throws "Cannot access X before initialization" when loaded first; registry-only value imports.
 2026-10-17 · #cli #commander #qa · Commander wraps command and option descriptions at 80 columns in --help (addHelpText is not wrapped); match help with whitespace collapsed.
 2026-10-17 · #cli #commander · A variadic option (--check <id...>) also concatenates repeated uses (--check a --check b → ["a","b"]); no collector needed.

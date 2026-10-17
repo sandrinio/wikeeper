@@ -13,13 +13,17 @@ import { readSnapshot, removeSnapshot, restoreSnapshot, snapshotDir } from "../i
 import { plural } from "./doctor.js";
 import type { IngestSubcommand } from "./ingest.js";
 
+const ABORT_HELP =
+  "After apply, abort restores pages/ from the snapshot and releases the lock. Before apply nothing is locked: abort records the abort in log/. --drop deletes raw/<id>.* (original, text, meta and facts), so the same source can be registered again. A finished ingest cannot be aborted.";
+
 export const ingestAbortCommand: IngestSubcommand = {
   register(group: Command): void {
     group
       .command("abort")
-      .description("roll back an ingest's write phase: restore pages/ and release the lock")
+      .description("stop an ingest that is not finished, before or after apply")
+      .addHelpText("after", "\n" + ABORT_HELP)
       .argument("<id>", "source id")
-      .option("--drop", "also delete the registered source from raw/")
+      .option("--drop", "also delete the registered source's files from raw/")
       .action(async (id: string, opts: { drop?: boolean }, command: Command) => {
         const ctx = getOutputContext(command);
         const root = findRepoRoot(ctx.cwd);
