@@ -3,6 +3,7 @@ import http from "node:http";
 import type { AddressInfo } from "node:net";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { makeReportDocx, makeReportPdf } from "../fixtures/read/make-fixtures.js";
 
 const FIXTURES = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "fixtures", "read");
 
@@ -81,6 +82,18 @@ export async function startFixtureServer(): Promise<FixtureServer> {
       case "/logo":
         res.writeHead(200, { "content-type": "image/png" });
         res.end(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+        return;
+      case "/report.pdf":
+        res.writeHead(200, { "content-type": "application/pdf" });
+        res.end(Buffer.from(makeReportPdf()));
+        return;
+      case "/files/report.pdf":
+        res.writeHead(200, { "content-type": "application/octet-stream" });
+        res.end(Buffer.from(makeReportPdf()));
+        return;
+      case "/report":
+        res.writeHead(200, { "content-type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+        res.end(Buffer.from(makeReportDocx()));
         return;
       default:
         res.writeHead(404, { "content-type": "text/plain" });

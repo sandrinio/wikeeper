@@ -6,6 +6,14 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-17 · #git #worktree · git stash is shared by every worktree of a repo: a parallel Developer's pop can swap another story's edits into yours; never stash, use a patch file or a temp commit.
+2026-10-17 · #qa #test-harness · runCli takes cwd from io.cwd; a top-level cwd option is ignored and init runs in the worktree itself; copy lint-command.test.ts run().
+2026-10-17 · #test-harness #finish · finish warnings are in the envelope's top-level json.warnings, not json.data.warnings; IngestReport has no warnings field.
+2026-10-17 · #pre-gate #incidents · run_script.sh inside a story worktree writes incidents to <worktree>/.cleargate/sprint-runs/_off-sprint/.script-incidents (no .active there), not the sprint dir.
+2026-10-17 · #e2e #read · A packed-run "clean stdout" row needs stdout === --json data.markdown + "\n"; startsWith(title) misses trailing library output.
+2026-10-17 · #qa #red-test · A red scenario mixing text asserts with a live CLI run: put the text asserts first and prove the live half fails on a scratch copy without them, or it never runs at baseline.
+2026-10-17 · #qa #red-test · A red text test that mirrors a Developer-owned paragraph needs one canary assertion on the new text, or a green-at-baseline row hides a no-op Developer.
+2026-10-17 · #test-harness #enforce · After a mode change, update appends the new rule lines at the end of the settings file; assert containment, not tail position.
 2026-10-17 · #templates #vocabulary · wiki-protocol.red checkVocabulary reads every "wikeeper <word>" in WIKI.md prose; "a wikeeper command runs" fails as an unknown command; write "a command".
 2026-10-17 · #templates #kb · SETUP step-3 format spans (<entity> <fields> → …) do not parse; end each item with "Example(s):" so a test can split format from examples.
 2026-10-17 · #shipped-blocks #test-harness · shipped-blocks.test.ts:56 hard-coded "entry 2"; every append broke it; tests of append-only lists use .length, never literal indexes.
