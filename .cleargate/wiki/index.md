@@ -4,17 +4,13 @@
 
 ## Active
 
-- [[EPIC-005]] (epic) — Draft — Lint, status and rule evolution
-- [[SPRINT-03]] (sprint) — Active — Lint, status and read
 - [[INITIATIVE-001]] (initiative) — Triaged — Wiki CLI — Karpathy-style LLM wiki for AI agents
-- [[CR-002]] (cr) — Draft — SPRINT-01 walkthrough feedback — CLI polish and scope notes for SPRINT-02/03
-- [[CR-003]] (cr) — Draft — SPRINT-02 walkthrough feedback — ingest, search and instruction follow-ups for SPRINT-03
 
 ## Archive
 
-- Epics: 5 Completed · [expand](archive/epics.md)
-- Sprints: 2 Completed · [expand](archive/sprints.md)
-- CRs: 1 Completed · [expand](archive/crs.md)
+- Epics: 6 Completed · [expand](archive/epics.md)
+- Sprints: 3 Completed · [expand](archive/sprints.md)
+- CRs: 3 Completed · [expand](archive/crs.md)
 - Bugs: 2 Completed · [expand](archive/bugs.md)
 - Spikes: 2 Completed · [expand](archive/spikes.md)
 

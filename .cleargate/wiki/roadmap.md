@@ -20,7 +20,7 @@ Sprints not yet started (`activated_at` not set).
 
 - [[SPRINT-02]] — status: Completed
 
-- [[SPRINT-03]] — status: Active
+- [[SPRINT-03]] — status: Completed
 
 
 
@@ -43,8 +43,8 @@ _No active epics._
 ## Planned Epics
 
 
-- [[EPIC-005]] — status: Draft
 
+_No planned epics._
 
 
 ## Shipped Epics
@@ -57,6 +57,8 @@ _No active epics._
 - [[EPIC-003]] — status: Completed
 
 - [[EPIC-004]] — status: Completed
+
+- [[EPIC-005]] — status: Completed
 
 - [[EPIC-006]] — status: Completed
 
