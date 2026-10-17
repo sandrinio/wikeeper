@@ -68,9 +68,10 @@ As an AI coding agent handed a Word document or a PDF, I want `wikeeper read` to
   - **Metadata.** `title` is the text of the first `#` heading, else `null`. `author` and `date` are `null`: a DOCX keeps them in `docProps/core.xml`, which mammoth's API does not expose. Mammoth's `messages` (for example, unrecognised styles) are not reported.
   - **Failure.** A file mammoth cannot open (not a zip, or no main document part) exits 1 with `conversion_failed` and the message "the file is not a readable DOCX: <reason>".
 - **R3 — PDF** (`src/read/pdf.ts`).
-  - **Loading.** `getDocumentProxy(bytes, { verbosity: 0, isEvalSupported: false, useSystemFonts: false, disableFontFace: true })`, then `extractTextItems` and `getMeta` from `unpdf`. The document is destroyed after use.
+  - **Loading.** `getDocumentProxy(new Uint8Array(bytes), { verbosity: 0, useSystemFonts: false, disableFontFace: true })`, then `extractTextItems` and `getMeta` from `unpdf`. The document is destroyed after use with `pdf.loadingTask.destroy()`.
     - `verbosity: 0` is required: pdf.js prints warnings with `console.log`, which would land on stdout and corrupt the markdown or the JSON line.
-    - `isEvalSupported: false` stops pdf.js from compiling font code taken from an untrusted file.
+    - The bytes are copied into a plain `Uint8Array`: pdf.js rejects a Node `Buffer` and detaches the array it is given.
+    - CR:spec-clarification (orchestrator 2026-10-17, M3 plan Open decision 2): the `isEvalSupported` option is dropped. unpdf 1.9.0 bundles pdf.js 6.4.299, whose `DocumentInitParameters` has no such option (TS2353) and whose bundle contains no `eval(` or `new Function`, so font code from a file cannot be compiled. pdf.js 6.4 also has no `PDFDocumentProxy.destroy()`; `loadingTask.destroy()` closes the document.
   - **Lines.** A page's items form lines: a line ends at an item with `hasEOL`. Items in a line are joined in order. A space is inserted when the gap between two items is wider than 0.15 × the font size and neither side already has whitespace there. A line's font size is the largest `fontSize` among its non-blank items.
   - **Body size.** The font size that covers the most characters in the document, rounded to 0.5 pt.
   - **Headings.** A line of at most 120 characters whose size is at least 1.15 × the body size is a heading. The distinct heading sizes, largest first, become `#`, `##` and `###`; smaller ones also get `###`. Consecutive heading lines of the same size join into one heading, so a title wrapped over two lines stays one heading.
@@ -127,7 +128,7 @@ Already decided; cited, not reopened:
 - **Risk:** pdf.js writes warnings to stdout with `console.log`, which would corrupt the markdown and the `--json` line.
 - **Mitigation:** `verbosity: 0` (R3). S2 checks that a human-mode run's stdout is exactly the markdown and that stderr has no `Warning:` line.
 - **Risk:** Untrusted documents. A PDF font program could try to run code; a DOCX can link to local files; a zip bomb can expand without limit (local files have no cap).
-- **Mitigation:** `isEvalSupported: false`, and mammoth's `externalFileAccess` stays off. The 10 MB URL cap bounds the compressed size of fetched files. A decompression limit is out of scope; the user hands `read` its local files.
+- **Mitigation:** the bundled pdf.js 6.4 has no code-evaluation path (no `eval` or `new Function`; CR:spec-clarification, R3), and mammoth's `externalFileAccess` stays off. The 10 MB URL cap bounds the compressed size of fetched files. A decompression limit is out of scope; the user hands `read` its local files.
 - **Risk:** Importing unpdf replaces some browser globals (`stubBrowserGlobals`) and inlines the pdf.js worker.
 - **Mitigation:** It happens only in the PDF branch of a one-shot `read` process, and no other command loads unpdf (S4 module trace).
 - **Risk:** Font-size headings misfire: PDFs that mark headings by weight only lose them, and large pull quotes become headings.
@@ -268,7 +269,7 @@ Feature: wikeeper read — DOCX and PDF
   - `htmlToMarkdown` does `const { default: TurndownService } = await import("turndown")` and `const { gfm } = await import("@joplin/turndown-plugin-gfm")`. The plugin is CommonJS with `exports.gfm`, which Node's ESM import exposes as a named export. It builds the service once per call with the R2 settings, `use(gfm)`, and adds the `listItem` and `img` rules.
   - `promoteFirstRows` is a string pass over mammoth's regular HTML. For each `<table>` that does not open with `<thead>` and whose first `<tr>` has no `<th>`, it rewrites that row's `<td>`/`</td>` to `<th>`/`</th>`. Nested tables are left alone (the plugin keeps them as HTML).
 - **PDF.**
-  - `readPdf(bytes)` does `const { getDocumentProxy, extractTextItems, getMeta } = await import("unpdf")`. It calls `getDocumentProxy(bytes, options)`, then `extractTextItems(pdf)`, which gives per page `{ str, x, y, width, height, fontSize, hasEOL }`. It then calls `getMeta(pdf)` and finally `pdf.destroy()`.
+  - `readPdf(bytes)` does `const { getDocumentProxy, extractTextItems, getMeta } = await import("unpdf")`. It calls `getDocumentProxy(bytes, options)`, then `extractTextItems(pdf)`, which gives per page `{ str, x, y, width, height, fontSize, hasEOL }`. It then calls `getMeta(pdf)` and finally `pdf.loadingTask.destroy()`. `bytes` is passed as `new Uint8Array(bytes)` (R3).
   - Items become `PdfLine[][]`. `linesToMarkdown` and `scannedPages` are pure functions over those lines, so the layout rules are unit-tested without pdf.js.
   - `scannedPages` counts the matches of `/\p{L}/gu` in each page's line texts and returns the pages below `NEAR_EMPTY_PAGE_LETTERS`. The `likely_scanned` warning fires when that list holds at least half of the pages (R3).
   - A load error from pdf.js (`InvalidPDFException`, `PasswordException`, an empty file) becomes `conversion_failed`.
@@ -337,12 +338,11 @@ All transitive licenses are permissive (MIT, BSD-2-Clause, `MIT OR GPL-3.0-or-la
 ## Task Breakdown
 
 - [ ] Add `mammoth` `^1.13.0`, `@joplin/turndown-plugin-gfm` `^1.0.68` and `unpdf` `^1.9.0` to `dependencies` on top of STORY-003-10's `package.json`, and regenerate the lockfile with `npm install` -> R6
-- [ ] Write `test/fixtures/read/make-fixtures.ts` (stored-zip DOCX writer, PDF writer with image-only and outlined pages, broken inputs) and its determinism test; add the generator line to `SOURCES.md`
+- [ ] QA-Red: write `test/fixtures/read/make-fixtures.ts` (stored-zip DOCX writer, PDF writer with image-only and outlined pages, broken inputs), add the three document routes to `test/read/http-server.ts` and the generator line to `SOURCES.md`, in the QA-Red commit (CR:approach-change, orchestrator 2026-10-17, M3 plan Open decision 1; the Developer may add exports or options but never changes the bytes an existing call returns). The Developer writes the generator's determinism test
 - [ ] Write `src/read/vendor.d.ts` for turndown and the GFM plugin -> R2
 - [ ] Implement `src/read/docx.ts`: mammoth with the image converter, `promoteFirstRows`, `htmlToMarkdown` with the list-item and image rules, wrapper removal, title, image warning, `conversion_failed` -> R2, R5
 - [ ] Implement `src/read/pdf.ts`: pdf.js options, line building, `linesToMarkdown`, `scannedPages` (letters, `NEAR_EMPTY_PAGE_LETTERS`), `formatPageList`, `pdfDate`, metadata, `conversion_failed` -> R3, R5
 - [ ] Replace the bodies of `convertDocx` and `convertPdf` in `src/read/index.ts`; remove STORY-003-10's two stub rows from `test/read/read-command.test.ts` -> R1
-- [ ] Add the three document routes to `test/read/http-server.ts` -> R1
 - [ ] Write `test/read/docx.test.ts`, `test/read/pdf.test.ts` and `test/read/read-documents.test.ts` for S1, S2, S3, S5 and the unit tests in §4.1 -> R2, R3, R4
 - [ ] Write `test/e2e/read-documents.test.ts` for S4 (URLs, module trace, packed `package.json`) -> R1, R5, R6
 

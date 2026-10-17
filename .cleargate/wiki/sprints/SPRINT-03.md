@@ -6,8 +6,8 @@ children: []
 status: "Active"
 remote_id: ""
 raw_path: ".cleargate/delivery/pending-sync/SPRINT-03_lint_status_and_read.md"
-last_ingest: "2026-10-17T14:10:29.923Z"
-last_ingest_commit: "ef8cfe5e4125f7cf138fd837f719c790e28ec13f"
+last_ingest: "2026-10-17T14:17:12.073Z"
+last_ingest_commit: "bfe5961b8b4c0e23084b9f1344476193dc716083"
 repo: "planning"
 ---
 
@@ -22,7 +22,7 @@ repo: "planning"
 - **Release:** the sprint sets the package version to `0.3.0`; publishing to npm is a separate step the human approves after Gate 4.
 - **Walkthrough part 3 (Goal check):** headless, in `~/walkthrough-wiki`, after execution and before Gate 4. Run as a real user, not as a test (human, 2026-10-17): no walkthrough framing and no logging request in the prompts; plain product-management requests in the human's voice that never name a wikeeper command or WIKI.md; facts mentioned in passing, to see whether the agent records them unprompted; a fresh session per task; some permission prompts declined.
 
-[+46,346 bytes not shown — read .cleargate/delivery/pending-sync/SPRINT-03_lint_status_and_read.md]
+[+47,709 bytes not shown — read .cleargate/delivery/pending-sync/SPRINT-03_lint_status_and_read.md]
 
 ## Blast radius
 Affects: no parent/child refs declared in frontmatter

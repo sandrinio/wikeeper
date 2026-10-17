@@ -6,6 +6,13 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-17 · #read #pdf · unpdf 1.9 (pdf.js 6.4.299) throws on a Node Buffer ("provide binary data as Uint8Array") and detaches the array it gets; pass new Uint8Array(bytes).
+2026-10-17 · #read #pdf · pdf.js 6.4 has no PDFDocumentProxy.destroy() and no isEvalSupported option (TS2353); close with pdf.loadingTask.destroy().
+2026-10-17 · #read #docx · turndown drops <img src=""> entirely and the GFM plugin gives a headerless table an empty header row; add an img rule and promote the first row.
+2026-10-17 · #lint #test-harness · finish registers its lint hook at module load; one setLintHook(null) leaves the rest of that file without it: set the hook in beforeEach.
+2026-10-17 · #lint #fixtures · A [[src-…]] citation with no pages/sources/<id>.md is a broken-link error; an exit-0 lint fixture needs the source page or headings-only pages.
+2026-10-17 · #red-test #lint · A "no <id> finding" row passes before <id> is registered; run --check <id> and assert json.ok before asserting absence.
+2026-10-17 · #shell #zsh · In zsh "$T:src/x" applies the :s modifier and set -- $v does not split; write "${T}:src/x" and run loops under bash -c.
 2026-10-17 · #qa #dod · A Developer commit that only turns the red tests green leaves the §4.1 unit-test minimum unmet; red tests alone do not satisfy DoD.
 2026-10-17 · #contract #test-harness · A contract that fixes the layout of a QA-Red test helper binds QA-Red, not the Developer (who may not restructure red files); check it at TPV.
 2026-10-17 · #qa #test-harness · While several worktree suites run, full `npm test` at default workers times out 3-5 git-spawning tests at 5 s; re-run with --maxWorkers=4 before judging.
