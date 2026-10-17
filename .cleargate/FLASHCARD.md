@@ -6,6 +6,9 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-17 · #qa #red-test #contract · A red test asserted claudeDecision === "prompt" but contract C5's type is "ask"; check red expectations against the frozen contract type.
+2026-10-17 · #qa #red-test · A red Outline that shares one init across rows needs its temp dirs cleaned in afterAll; afterEach deletes them after row 1.
+2026-10-17 · #test-harness #red-test · init seeds .wiki/raw/.gitkeep; assert raw/ holds no source files, never that raw/ does not exist.
 2026-10-17 · #esm #contract #lint · A check module that value-imports its registry (checks.ts ↔ links.ts) throws "Cannot access X before initialization" when loaded first; registry-only value imports.
 2026-10-17 · #cli #commander #qa · Commander wraps command and option descriptions at 80 columns in --help (addHelpText is not wrapped); match help with whitespace collapsed.
 2026-10-17 · #cli #commander · A variadic option (--check <id...>) also concatenates repeated uses (--check a --check b → ["a","b"]); no collector needed.
