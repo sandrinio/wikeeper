@@ -14,7 +14,7 @@ Done when `.wiki/me.md` exists and the user has confirmed it.
 
 Write `.wiki/project.md` from the template `.wiki/system/templates/project.md`.
 
-1. Ask what the project is, or draft the file from a document the user names (a README, a product summary).
+1. Ask what the project is, or draft the file from a document the user names (a README, a product summary). Read a URL, a DOCX or a local `.html` or `.htm` file with `wikeeper read <file|url> --out <file>` first, and a PDF too; when `read` warns `likely_scanned`, read the PDF yourself (`.wiki/system/WIKI.md`, section "Register").
 2. Fill the four sections and keep only stable facts: what it is, its scope, where things live and the core terms. Status, dates, decisions, people and the roadmap go into pages through ingests, never into this file.
 3. Show the draft and wait for the user's approval before writing it.
 
@@ -32,6 +32,7 @@ Adapt the seeded `.wiki/kb_instructions.md` to this project.
 4. Write routing notes and exclusions under `## Source kinds` on `note:` lines. The CLI never reads a `note:` line as a rule. Example: `note: an epic is not an initiative; bugs are not captured.`
 5. Draft the Never-capture list.
 6. Show the result and let the user approve or change it, then write it to `.wiki/kb_instructions.md`.
+7. After the user approves and the file is written, run `wikeeper lint --rules`, go through its findings with the user, and fix the file with their approval before step 4.
 
 No page is created in this step.
 
