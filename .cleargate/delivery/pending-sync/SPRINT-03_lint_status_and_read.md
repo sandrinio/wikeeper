@@ -82,7 +82,7 @@ Items selected for this sprint. Each is decomposed into stories at planning time
 **Story set (21; Gate 1 approved 2026-10-17; STORY-002-11 added after the real-user review):**
 
 <!-- cleargate:ignore-ids -->
-| Proposed story | Title | Source |
+| Story ID | Title | Source |
 |---|---|---|
 | STORY-005-01 | `kb_instructions.md` parser and line format (questions, entities, kinds, notes) | EPIC-005, CR-003 D1–D3 |
 | STORY-005-02 | `wikeeper lint`: check registry, `broken-link`, `orphan-page`, `uncited-claim`, `index-drift` | EPIC-005 |
