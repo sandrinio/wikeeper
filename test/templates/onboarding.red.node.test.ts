@@ -142,7 +142,7 @@ describe("STORY-006-07 S1: onboarding asks, writes me.md, checks it loads", () =
 describe("STORY-006-07 S2: questions are proposed, never written into the shared rules", () => {
   it("step 2 references Proposing rule changes, setup_completed_at, forbids direct edit, defers to SETUP step 3", async () => {
     const b = steps(await read(ONBOARDING)).steps.find((x) => x.n === 2)?.body ?? "";
-    expect(b).toContain('.wiki/system/WIKI.md, section "Proposing rule changes"');
+    expect(b).toMatch(/\.wiki\/system\/WIKI\.md`?, section "Proposing rule changes"/);
     expect(b).toContain("setup_completed_at");
     expect(b).toMatch(/not (to )?edit[^\n]*\.wiki\/kb_instructions\.md|never edit[^\n]*\.wiki\/kb_instructions\.md/i);
     expect(b).toMatch(/SETUP\.md step 3/);

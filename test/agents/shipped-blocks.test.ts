@@ -8,6 +8,7 @@ import { SHIPPED_BLOCKS } from "../../src/agents/shipped-blocks.js";
 const SHIPPED_BLOCK_SHA256: readonly string[] = [
   "4f32351f65f803b265a2bbca697724e6f06738c71680622e8267efc23078fb1b",
   "9bc080837857cacb59c42db9907fad82a148e1c000973d5f08792a7d62295d66",
+  "c6fc17d0ef7079d7cf7e6f88f6e5c28e8152cdb74880118167bb29eaf333e168",
 ];
 
 const sha = (s: string): string => createHash("sha256").update(s, "utf8").digest("hex");
@@ -52,7 +53,7 @@ describe("shipped pointer blocks (R6)", () => {
   });
   it("an appended entry without a pin is named", () => {
     const m = checkShippedBlocks(longer, [...SHIPPED_BLOCKS, longer], SHIPPED_BLOCK_SHA256);
-    expect(m).toEqual([`SHIPPED_BLOCKS entry 2 (sha256 ${sha(longer)}) is not pinned in SHIPPED_BLOCK_SHA256`]);
+    expect(m).toEqual([`SHIPPED_BLOCKS entry ${SHIPPED_BLOCKS.length} (sha256 ${sha(longer)}) is not pinned in SHIPPED_BLOCK_SHA256`]);
   });
   it("a replaced SPRINT-02 entry is named as missing or changed", () => {
     const shipped = [SHIPPED_BLOCKS[0] as string, longer];
