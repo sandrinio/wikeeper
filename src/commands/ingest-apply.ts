@@ -1,5 +1,5 @@
 // src/commands/ingest-apply.ts
-// `wikeeper ingest apply <id>`: open the write phase — take the lock, snapshot pages/, print the facts and the brief.
+// `wikeeper ingest apply <id>`: open the write phase — take the lock, snapshot pages/, print the brief's ingest line and the facts.
 import { stat } from "node:fs/promises";
 import type { Command } from "commander";
 import { loadConfig } from "../core/config.js";
@@ -22,12 +22,7 @@ function ageText(ms: number): string {
 }
 
 export function buildBrief(id: string): string {
-  return [
-    `ingest:    ${id}   facts: raw/${id}.facts.json`,
-    "user said: <what the user said about this source>",
-    'resolved:  <aliases resolved, e.g. "PL" = [[Product Lead]]>',
-    "focus:     <what to concentrate on or ignore>",
-  ].join("\n");
+  return `ingest:    ${id}   facts: raw/${id}.facts.json`;
 }
 
 export interface ApplyData {
@@ -44,7 +39,7 @@ export const ingestApplyCommand: IngestSubcommand = {
   register(group: Command): void {
     group
       .command("apply")
-      .description("open the write phase for a source: take the lock, snapshot pages/, print the facts and the brief")
+      .description("open the write phase for a source: take the lock, snapshot pages/, print the facts")
       .argument("<id>", "source id from wikeeper ingest start")
       .option("--force-unlock", "take over a stale lock held by another ingest")
       .action(async (id: string, opts: { forceUnlock?: boolean }, command: Command) => {
