@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-002
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: Draft
+status: "Completed"
 approved: true
 ambiguity: 🟢 Low
 context_source: CR-003 F3 and F4 (approved 2026-10-17; walkthrough rows 1.6, 6.2) · split out of STORY-002-09 (SPRINT-03 gate1-decisions.md 2026-10-17, split 1) · SPRINT-03 consistency-audit.md 2026-10-17 (shared-files table, finding 13) · EPIC-002 · verified src/agents/index.ts, src/agents/doctor-checks.ts, src/agents/detect.ts, src/core/setup-files.ts, src/core/git.ts, src/core/gitignore.ts, src/commands/doctor.ts, src/ingest/lock.ts, test/setup-files.red.node.test.ts, test/setup-files.test.ts, test/agents/doctor-checks.test.ts, test/agents/integration.test.ts at 40018c5

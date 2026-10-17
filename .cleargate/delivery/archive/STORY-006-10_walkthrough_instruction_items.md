@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-006
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: Draft
+status: "Completed"
 approved: true
 ambiguity: 🟢 Low
 context_source: "CR-003 C1 (text), C2, C3, D1–D3, A1 and A5, with its five Open Question answers (approved 2026-10-17) · SPRINT-03 Gate 1 decisions 3, 12, 14, 16, 21 and real-user review decision 25 (plans/gate1-decisions.md; approved at Gate 1, 2026-10-17) and consistency-audit findings 9, 14, 17, 18 · SPRINT-03 decomposition brief (contracts K1, K8, K9, K11; shared files: 006-10 → 006-12 → 006-09 on WIKI.md and SETUP.md, 006-11 last; SETUP.md after the step-4 table edits 002-09 → 003-10 → 005-09, gate1-decisions technical call) · STORY-002-09 R1–R2 (the `ai`-mode ask and prompt rules) · SPRINT-02 walkthrough notes, walkthrough-wiki (rows 0.9c, 3.2, 4.2, 7.3, 7.8, 7.14, 8.6, 8.13, 11.6, 11.10, 11.27d) · architecture.md §5.2, §7.2 · verified templates/system/{WIKI,SETUP}.md, templates/system/profiles/management.md, templates/kb_instructions.management.md, templates/skills/wiki-search/SKILL.md, templates/agents/*/wiki-{extractor,writer}.*, src/ingest/permissions.ts, src/ingest/registry.ts, src/ingest/kind-rules.ts, src/commands/ingest-start.ts, src/commands/ingest-facts.ts, src/commands/search.ts, src/agents/enforce/{claude,codex}.ts, test/templates/*.red.node.test.ts, test/templates/structure.ts"

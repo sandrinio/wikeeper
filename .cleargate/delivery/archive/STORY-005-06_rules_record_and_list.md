@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-005
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: Draft
+status: "Completed"
 approved: true
 ambiguity: 🟢 Low
 context_source: EPIC-005 (approved 2026-10-16) §2, §4 (rule-proposal events), §5 (rejected-proposal scenario) · architecture.md §9 (rejected → logged so it isn't offered again), D-14, D-28 · SPRINT-03 decomposition brief contract K4 (and K5, the consumer) · verified src/ingest/log.ts, src/ingest/kind-rules.ts, src/ingest/registry.ts, src/ingest/source-id.ts, src/ingest/diff.ts, src/program.ts, test/ingest/log.test.ts · SPRINT-03 gate1-decisions.md item 12 (approved at Gate 1, 2026-10-17), item 17 (owner STORY-005-09) and the `src/program.ts` merge-order call (revised 2026-10-17)

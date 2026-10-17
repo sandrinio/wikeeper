@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-006
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: Draft
+status: "Completed"
 approved: true
 ambiguity: 🟢 Low
 context_source: "EPIC-006 §1 success metric (every command the content mentions exists in wikeeper --help) and §5 · STORY-006-06 (structural checks R1–R9, test/templates/structure.ts) · SPRINT-03 Gate 1 decisions 3, 17 (owner STORY-005-09, split 4), 21 (plans/gate1-decisions.md; approved at Gate 1, 2026-10-17) and consistency-audit findings 1, 12, 18 and its red-test table · STORY-002-09 R7 (the `*` wildcard rule in structure.ts) · SPRINT-03 decomposition brief (commands and flags at the end of SPRINT-03; contracts K1, K2, K4–K9; shared files: 006-11 last) · CR-002 (14-line cap) · Gate 1 decisions 22 and 23 (the pointer-block lines, STORY-006-12 R14; `update` refreshes an unedited block, STORY-002-11), approved by the human 2026-10-17 · flashcard 2026-10-17 #enforce #qa (the story that breaks a red test re-scopes it in its QA-Red) · verified test/templates/structure.ts, test/templates.test.ts, test/templates.red.node.test.ts, test/templates/{wiki-protocol,setup,onboarding,profile}.red.node.test.ts, test/agents/enforce-ai-rules.red.node.test.ts, test/agents/enforce.red.node.test.ts, test/search/search-misses.red.node.test.ts, src/program.ts, src/agents/enforce/{claude,codex}.ts at 40018c5"

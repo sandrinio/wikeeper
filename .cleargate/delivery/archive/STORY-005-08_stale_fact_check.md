@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-005
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: Draft
+status: "Completed"
 approved: true
 ambiguity: 🟢 Low
 context_source: EPIC-005 (approved 2026-10-16) §2 (volatile facts older than a configurable age), §4 (lint.stale_after_days) · SPRINT-03 gate1-decisions.md item 2 (split of STORY-005-03; approved at Gate 1, 2026-10-17) and technical call (finding paths) · first drafted as STORY-005-03 R6 (commit 40018c5) · STORY-001-02 R1, R2 (lint.stale_after_days, positive integer, default 30) · verified src/wiki/parse-page.ts, src/search/filters.ts, src/core/config.ts, src/core/dates.ts, src/core/paths.ts · probed read-only against ~/walkthrough-wiki/.wiki (20 pages and their non-final statuses) on 2026-10-17

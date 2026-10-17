@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-005
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: Draft
+status: "Completed"
 approved: true
 ambiguity: 🟢 Low
 context_source: EPIC-005 (approved 2026-10-16) §0 objective ("a facts dry-run diff for previewing rule changes on old sources"), §2, §4 · architecture.md §7.3, §7.4 (facts file), §8 (re-ingest when a rule changes) · SPRINT-03 decomposition brief contract K6 · SPRINT-03 gate1-decisions.md items 4 and 13 (approved at Gate 1, 2026-10-17) · verified src/ingest/facts.ts, src/commands/ingest-facts.ts, src/ingest/registry.ts, src/ingest/permissions.ts · real facts files checked read-only in ~/walkthrough-wiki/.wiki/raw (9 files, 7–87 facts each, no duplicate entity+field+anchor keys)

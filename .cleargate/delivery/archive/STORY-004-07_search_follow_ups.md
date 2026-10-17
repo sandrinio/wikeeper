@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-004
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: Draft
+status: "Completed"
 approved: true
 ambiguity: 🟢 Low
 context_source: CR-003 (approved 2026-10-17) §A1–A5 and Open Questions 1 and 4 · SPRINT-03 decomposition brief contract K8, K4 (log.ts order) and shared files · walkthrough rows 7.8, 8.6, 8.10, 8.13, 10.4, 11.6 (walkthrough-wiki, 2026-10-17) · STORY-004-02…05 · SPRINT-03 gate1-decisions.md items 4, 14, 21 (approved at Gate 1, 2026-10-17) and consistency-audit findings 13, 17 · verified src/commands/search.ts, src/search/misses.ts, src/search/filters.ts, src/search/since.ts, src/search/engine.ts, src/ingest/log.ts, commander 15.0.0 `--no-` option behaviour, and the SPRINT-02 red tests under test/search

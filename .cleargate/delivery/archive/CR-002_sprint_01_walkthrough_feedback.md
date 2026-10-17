@@ -4,7 +4,7 @@ parent_ref: EPIC-001 | EPIC-002 | EPIC-003 | EPIC-005 | EPIC-006
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: Draft
+status: Completed
 approved: true
 complexity_label: L2
 context_source: "SPRINT-01 walkthrough: walkthrough-wiki test session report (2026-10-16) + orchestrator observation of its transcript · verified against src/ and the raw epic files"

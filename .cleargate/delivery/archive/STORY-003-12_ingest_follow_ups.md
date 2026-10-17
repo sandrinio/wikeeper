@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-003
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: Draft
+status: "Completed"
 approved: true
 ambiguity: 🟢 Low
 context_source: CR-003 (approved 2026-10-17) §B1–B3 and Open Question 2 · SPRINT-03 decomposition brief contract K11 and shared files · walkthrough rows 7.2, 7.9, 7.20, 11.26a (walkthrough-wiki, 2026-10-17) · STORY-003-09 R3/R10, STORY-003-04 R6 · SPRINT-03 gate1-decisions.md item 9 (approved at Gate 1, 2026-10-17) and consistency-audit findings 9, 13 · verified src/ingest/validate.ts, src/ingest/snapshot.ts, src/wiki/parse-page.ts, src/commands/ingest-finish.ts, src/commands/ingest-start.ts, src/core/output.ts, src/commands/ingest-facts.ts, src/commands/ingest-abort.ts and the SPRINT-02 red tests under test/ingest

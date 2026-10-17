@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-002
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: Draft
+status: "Completed"
 approved: true
 ambiguity: 🟢 Low
 context_source: CR-003 C1 and Open Question 3 (approved 2026-10-17; walkthrough rows 0.9c, 4.2d) · SPRINT-03 decomposition contract K9 · SPRINT-03 gate1-decisions.md 2026-10-17 (split 1; decisions 16, 18, 21; decision 17 as revised 2026-10-17, which moves the read-only allow rules to STORY-005-09 (split 4); technical call on rule order) · SPRINT-03 consistency-audit.md 2026-10-17 (findings 1, 3, 7, 8, 12, 13) · SPIKE-002 (Claude Code ask rules, concluded 2026-10-17) · EPIC-002 · CR-001 · verified src/agents/enforce/claude.ts, src/agents/enforce/codex.ts, src/agents/enforce/index.ts, src/agents/enforce/json-merge.ts, src/agents/index.ts, src/commands/doctor.ts, src/commands/ingest-apply.ts, src/commands/ingest-abort.ts, src/ingest/lock.ts, templates/system/SETUP.md, test/templates/structure.ts, test/templates.test.ts, test/templates.red.node.test.ts, test/templates/setup.red.node.test.ts, test/agents/enforce.test.ts, test/agents/enforce-ai-rules.red.node.test.ts, test/agents/enforce.red.node.test.ts at 40018c5 · Claude Code permissions docs (code.claude.com/docs/en/permissions, re-fetched 2026-10-17) and Codex rules docs, fetched 2026-10-17

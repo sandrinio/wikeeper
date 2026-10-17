@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-003
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: Draft
+status: "Completed"
 approved: true
 ambiguity: 🟢 Low
 context_source: EPIC-003 (approved 2026-10-16; §2 `read` bullet — DOCX via mammoth → turndown + GFM, PDF via unpdf, "likely scanned"; §2 out of scope — OCR, `.doc`, `.pptx`, `.xlsx`; §1 `read` metric) · architecture.md §7.7, D-20 · SPRINT-03 decomposition brief (human decisions 2026-10-17, contract K7) · STORY-003-10 (dispatcher, `Converted`, `withHeader`, `UNSUPPORTED_HINTS`, test server, module trace) · verified src/search/engine.ts, src/core/exit-codes.ts, ./package.json, ./.gitattributes, test/e2e/pack.ts, test/fixtures/hooks/SOURCES.md · mammoth 1.13.0, @joplin/turndown-plugin-gfm 1.0.68, turndown-plugin-gfm 1.0.2, unpdf 1.9.0 checked on npm and in their published sources 2026-10-17 · SPIKE-001 (the human's Georgian and English PDF and DOCX files, letters-based scanned rule, 32 MB on disk, Node 22.12, 24 and 25, import cost) · SPRINT-03 gate1-decisions.md 2026-10-17 (decisions 7, 8; package.json order) · SPRINT-03 consistency-audit.md 2026-10-17 (findings 7, 10, 13)

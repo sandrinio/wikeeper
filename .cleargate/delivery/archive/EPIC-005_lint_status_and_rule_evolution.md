@@ -4,7 +4,7 @@ parent_ref: INITIATIVE-001
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: Draft
+status: Completed
 approved: true
 ambiguity: 🟢 Low
 context_source: architecture.md v0.4 §5.2, §8, §9, §10 (D-14, D-31) · INITIATIVE-001

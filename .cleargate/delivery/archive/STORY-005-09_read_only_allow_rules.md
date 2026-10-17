@@ -4,7 +4,7 @@ parent_epic_ref: EPIC-005
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: Draft
+status: "Completed"
 approved: true
 ambiguity: 🟢 Low
 context_source: SPRINT-03 gate1-decisions.md 2026-10-17 (split 4, which moves R13 out of STORY-005-05; decision 17 as revised 2026-10-17; decision 21; technical call on rule order and the SETUP.md order 002-09 → 003-10 → 005-09) · split from STORY-005-05 R13, §1.4 Q2 and Q3 (2026-10-17) · EPIC-005 (approved 2026-10-16) §2 · CR-001 (no mode allows a broad rule) · STORY-004-02 R9 (the `search` allow rule in every mode, the pattern this story follows) · STORY-002-09 (the `ai`-mode ask and prompt rules, `removeEnforce` on `update`, `test/agents/rule-match.ts`) · STORY-003-10 R10 (the `read` rules) · verified src/agents/enforce/claude.ts, src/agents/enforce/codex.ts, src/agents/enforce/index.ts, src/program.ts, templates/system/SETUP.md, test/templates/structure.ts, test/templates.test.ts, test/templates.red.node.test.ts, test/templates/setup.red.node.test.ts, test/agents/enforce.test.ts, test/agents/enforce-ai-rules.red.node.test.ts, test/agents/enforce.red.node.test.ts, test/search/search.red.node.test.ts, test/doctor-reporting.red.node.test.ts at 40018c5 · Claude Code permissions docs and Codex rules docs as cited in STORY-002-09 (fetched 2026-10-17)
