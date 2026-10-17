@@ -280,7 +280,7 @@ Feature: CR-003 writing, answering and onboarding text
 - **Notes on the files above:**
   - Test files: `test/templates/writing-and-answering-text.red.node.test.ts` (QA-Red).
   - Related files: `templates/agent-block.md`, the two R14 lines only.
-  - Shipped-block list: append-only. One entry in `src/agents/shipped-blocks.ts` (the R14 text) and one pin in `test/agents/shipped-blocks.test.ts` (its sha256). Nothing else in either file changes (STORY-002-11 R6).
+  - Shipped-block list: append-only. One entry in `src/agents/shipped-blocks.ts` (the R14 text) and one pin in `test/agents/shipped-blocks.test.ts` (its sha256). Nothing else in either file changes (STORY-002-11 R6), except one line: `test/agents/shipped-blocks.test.ts:56` hard-codes `entry 2` and becomes `entry ${SHIPPED_BLOCKS.length}`, the same assertion for every later append (CR:spec-clarification, orchestrator 2026-10-17, M4 plan Open decision 5).
 - **Read, not edited (consumed, unchanged):**
   - `src/agents/doctor-checks.ts` (block signature, `:31`, `:34`).
   - `src/agents/inject.ts` (the `v1` marker).
