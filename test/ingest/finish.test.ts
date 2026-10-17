@@ -96,6 +96,29 @@ describe("validate", () => {
     expect(v.warnings[0]).toContain(`sources/${ID}.md is missing`);
     const ok = await validateIngest(paths, ID, { created: [], updated: [], deleted: [] }, { modified: [], deleted: [] });
     expect(ok.ok).toBe(true);
+    expect(ok.invalid).toEqual([]);
+  });
+
+  it("collects frontmatter YAML and field errors of created pages, sorted, and skips the citation check for them", async () => {
+    const { paths, put } = await setup();
+    await put(path.join(paths.pagesDir, "a.md"), `---\ntitle: 1\nsummary: [x]\n---\n# A\n[[${ID}]]\n`);
+    await put(path.join(paths.pagesDir, "b.md"), `---\nsummary: b: c\nsources: [${ID}]\n---\n# B\n`);
+    await put(path.join(paths.pagesDir, "c.md"), `# C\n[[${ID}]]\n`);
+    await put(path.join(paths.pagesDir, "d.txt"), "x: y: z");
+    const v = await validateIngest(
+      paths,
+      ID,
+      { created: ["a.md", "b.md", "c.md", "d.txt"], updated: [], deleted: [] },
+      { modified: [], deleted: [] },
+    );
+    expect(v.ok).toBe(false);
+    expect(v.invalid.map((f) => f.path)).toEqual(["a.md", "a.md", "b.md"]);
+    expect(v.invalid[0]!.message).toBe('frontmatter field "title" must be a string or null');
+    expect(v.invalid[1]!.message.startsWith('frontmatter field "summary"')).toBe(true);
+    expect(v.invalid[2]!.message).toMatch(/^line 2: invalid frontmatter YAML: /);
+    expect(v.invalid[2]!.message).not.toContain("\n");
+    expect(v.invalid[2]!.message).not.toContain(" at line ");
+    expect(v.uncited).toEqual([]);
   });
 });
 

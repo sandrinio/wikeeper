@@ -150,11 +150,14 @@ export function createIngestFinishCommand(deps: { now?: () => Date } = {}): Inge
             const parts: string[] = [];
             if (v.uncited.length > 0) parts.push(`pages without [[${id}]]: ${v.uncited.join(", ")}`);
             if (v.outside.length > 0) parts.push(`changed outside pages/: ${v.outside.join(", ")}`);
+            if (v.invalid.length > 0) {
+              parts.push(`frontmatter errors: ${v.invalid.map((f) => `${f.path} (${f.message})`).join(", ")}`);
+            }
             throw new WikeeperError(
               ExitCode.ERROR,
               "validation_failed",
               `finish refused for ${id}: ${parts.join("; ")}. Fix them and rerun wikeeper ingest finish ${id}, or run wikeeper ingest abort ${id}`,
-              { uncited: v.uncited, outside: v.outside },
+              { uncited: v.uncited, outside: v.outside, invalid: v.invalid },
             );
           }
 
