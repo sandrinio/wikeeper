@@ -334,7 +334,7 @@ describe("STORY-005-03 the finish lint hook (red)", () => {
     expect(has("broken-link", ".wiki/pages/team.md")).toBe(true);
     expect(lint.filter((f) => f.path === ".wiki/pages/glossary.md")).toEqual([]);
     for (const f of lint) expect(["broken-link", "uncited-claim", UNL]).toContain(f.id);
-    const warnings = fin.json.data.warnings as string[];
+    const warnings = fin.json.warnings as string[];
     expect(
       warnings.some((w) =>
         w.startsWith(`lint [error] ${UNL} .wiki/pages/roadmap.md: changed since ingest ${PLAN} recorded it`),
