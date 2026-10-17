@@ -6,7 +6,7 @@ import type { Command } from "commander";
 import { loadConfig } from "../core/config.js";
 import { ExitCode, WikeeperError } from "../core/exit-codes.js";
 import { emitResult, getOutputContext } from "../core/output.js";
-import { findRepoRoot, resolvePaths } from "../core/paths.js";
+import { assertInitialised, findRepoRoot, resolvePaths } from "../core/paths.js";
 import { isValidKindId, normalizeKindId } from "../ingest/kind-rules.js";
 import { planDirectory } from "../ingest/plan.js";
 import type { IngestPlan, PlanEntry } from "../ingest/plan.js";
@@ -52,14 +52,7 @@ export const ingestPlanCommand: IngestSubcommand = {
         const root = findRepoRoot(ctx.cwd);
         const { config } = await loadConfig(root);
         const paths = resolvePaths(root, config);
-        try {
-          await stat(paths.configFile);
-        } catch (err) {
-          if ((err as NodeJS.ErrnoException).code === "ENOENT") {
-            throw new WikeeperError(ExitCode.ERROR, "not_initialised", "wiki is not initialised: run wikeeper init");
-          }
-          throw err;
-        }
+        await assertInitialised(paths);
 
         const dirAbs = path.resolve(ctx.cwd, dir);
         let st;

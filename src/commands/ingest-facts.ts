@@ -1,12 +1,13 @@
 // src/commands/ingest-facts.ts
 // `wikeeper ingest facts <id>`: validate and store the facts extracted from a registered source.
-import { readdir, readFile, stat } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import type { Command } from "commander";
 import { loadConfig } from "../core/config.js";
 import { ExitCode, WikeeperError } from "../core/exit-codes.js";
 import { emitResult, getOutputContext } from "../core/output.js";
-import { findRepoRoot, resolvePaths } from "../core/paths.js";
+import { assertInitialised, findRepoRoot, resolvePaths } from "../core/paths.js";
+import { stripBom } from "../core/text.js";
 import { FACTS_SCHEMA_REL, validateFacts, writeFacts } from "../ingest/facts.js";
 import { findKindRule, normalizeKindId } from "../ingest/kind-rules.js";
 import { readLogEvents } from "../ingest/log.js";
@@ -44,14 +45,7 @@ export const ingestFactsCommand: IngestSubcommand = {
         const root = findRepoRoot(ctx.cwd);
         const { config } = await loadConfig(root);
         const paths = resolvePaths(root, config);
-        try {
-          await stat(paths.configFile);
-        } catch (err) {
-          if ((err as NodeJS.ErrnoException).code === "ENOENT") {
-            throw new WikeeperError(ExitCode.ERROR, "not_initialised", "wiki is not initialised: run wikeeper init");
-          }
-          throw err;
-        }
+        await assertInitialised(paths);
 
         // 2. input
         let text: string;
@@ -76,7 +70,7 @@ export const ingestFactsCommand: IngestSubcommand = {
         // 3. parse
         let parsed: unknown;
         try {
-          parsed = JSON.parse(text.charCodeAt(0) === 0xfeff ? text.slice(1) : text);
+          parsed = JSON.parse(stripBom(text));
         } catch (err) {
           throw invalid(
             [{ path: "$", message: `invalid JSON: ${err instanceof Error ? err.message : String(err)}` }],

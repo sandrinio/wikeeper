@@ -1,11 +1,10 @@
 import { existsSync } from "node:fs";
-import { stat } from "node:fs/promises";
 import path from "node:path";
 import type { Command } from "commander";
 import { loadConfig } from "../core/config.js";
 import { ExitCode, WikeeperError } from "../core/exit-codes.js";
 import { getOutputContext, emitResult } from "../core/output.js";
-import { findRepoRoot, resolvePaths, toPosixRelative } from "../core/paths.js";
+import { assertInitialised, findRepoRoot, resolvePaths, toPosixRelative } from "../core/paths.js";
 import { writeIndex } from "../ingest/index-builder.js";
 import { readLogEvents, regenerateLogView } from "../ingest/log.js";
 import type { CommandModule } from "../program.js";
@@ -27,14 +26,7 @@ export const indexCommand: CommandModule = {
         const root = findRepoRoot(ctx.cwd);
         const { config } = await loadConfig(root);
         const paths = resolvePaths(root, config);
-        try {
-          await stat(paths.configFile);
-        } catch (err) {
-          if ((err as NodeJS.ErrnoException).code === "ENOENT") {
-            throw new WikeeperError(ExitCode.ERROR, "not_initialised", "wiki is not initialised: run wikeeper init");
-          }
-          throw err;
-        }
+        await assertInitialised(paths);
         if (existsSync(paths.lockFile)) {
           throw new WikeeperError(
             ExitCode.ERROR,

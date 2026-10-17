@@ -1,22 +1,17 @@
 // src/commands/ingest-abort.ts
 // `wikeeper ingest abort <id> [--drop]`: roll an ingest's write phase back and release the lock.
-import { stat } from "node:fs/promises";
 import type { Command } from "commander";
 import { compareCodeUnits } from "../core/compare.js";
 import { loadConfig } from "../core/config.js";
 import { ExitCode, WikeeperError } from "../core/exit-codes.js";
 import { emitResult, getOutputContext } from "../core/output.js";
-import { findRepoRoot, resolvePaths, toPosixRelative } from "../core/paths.js";
-import { readLock, releaseLock } from "../ingest/lock.js";
+import { assertInitialised, findRepoRoot, resolvePaths, toPosixRelative } from "../core/paths.js";
+import { formatLockAge, readLock, releaseLock } from "../ingest/lock.js";
 import { readLogEvents, writeLogEvent } from "../ingest/log.js";
 import { readMeta, removeSource } from "../ingest/registry.js";
 import { readSnapshot, removeSnapshot, restoreSnapshot, snapshotDir } from "../ingest/snapshot.js";
 import { plural } from "./doctor.js";
 import type { IngestSubcommand } from "./ingest.js";
-
-function ageText(ms: number): string {
-  return ms < 3_600_000 ? plural(Math.floor(ms / 60_000), "minute") : plural(Math.floor(ms / 3_600_000), "hour");
-}
 
 export const ingestAbortCommand: IngestSubcommand = {
   register(group: Command): void {
@@ -30,14 +25,7 @@ export const ingestAbortCommand: IngestSubcommand = {
         const root = findRepoRoot(ctx.cwd);
         const { config } = await loadConfig(root);
         const paths = resolvePaths(root, config);
-        try {
-          await stat(paths.configFile);
-        } catch (err) {
-          if ((err as NodeJS.ErrnoException).code === "ENOENT") {
-            throw new WikeeperError(ExitCode.ERROR, "not_initialised", "wiki is not initialised: run wikeeper init");
-          }
-          throw err;
-        }
+        await assertInitialised(paths);
 
         if ((await readLogEvents(paths, { type: "ingest", sourceId: id })).events.length > 0) {
           throw new WikeeperError(
@@ -60,7 +48,7 @@ export const ingestAbortCommand: IngestSubcommand = {
             "locked",
             holder === null
               ? "cannot drop while .wiki/.lock is unreadable: another ingest may be writing; rerun wikeeper ingest apply --force-unlock first"
-              : `cannot drop ${id}: ingest ${holder} holds the write lock (acquired ${ageText(lock.age_ms ?? 0)} ago); ` +
+              : `cannot drop ${id}: ingest ${holder} holds the write lock (acquired ${formatLockAge(lock.age_ms ?? 0)} ago); ` +
                 `dropping raw files mid-write would look like a write outside pages/ to it`,
             { holder, age_ms: lock.age_ms, stale: lock.stale },
           );

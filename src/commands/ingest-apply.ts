@@ -1,25 +1,19 @@
 // src/commands/ingest-apply.ts
 // `wikeeper ingest apply <id>`: open the write phase — take the lock, snapshot pages/, print the brief's ingest line and the facts.
-import { stat } from "node:fs/promises";
 import type { Command } from "commander";
 import { loadConfig } from "../core/config.js";
 import { ExitCode, WikeeperError } from "../core/exit-codes.js";
 import { sha256File } from "../core/manifest.js";
 import { emitResult, getOutputContext } from "../core/output.js";
-import { findRepoRoot, resolvePaths, toPosixRelative } from "../core/paths.js";
+import { assertInitialised, findRepoRoot, resolvePaths, toPosixRelative } from "../core/paths.js";
 import { factsFilePath, readFacts } from "../ingest/facts.js";
 import type { FactsFile } from "../ingest/facts.js";
-import { acquireLock, readLock, releaseLock } from "../ingest/lock.js";
+import { acquireLock, formatLockAge, readLock, releaseLock } from "../ingest/lock.js";
 import type { LockInfo } from "../ingest/lock.js";
 import { readLogEvents } from "../ingest/log.js";
 import { readMeta } from "../ingest/registry.js";
 import { readSnapshot, removeSnapshot, snapshotDir, takeSnapshot } from "../ingest/snapshot.js";
-import { plural } from "./doctor.js";
 import type { IngestSubcommand } from "./ingest.js";
-
-function ageText(ms: number): string {
-  return ms < 3_600_000 ? plural(Math.floor(ms / 60_000), "minute") : plural(Math.floor(ms / 3_600_000), "hour");
-}
 
 export function buildBrief(id: string): string {
   return `ingest:    ${id}   facts: raw/${id}.facts.json`;
@@ -47,14 +41,7 @@ export const ingestApplyCommand: IngestSubcommand = {
         const root = findRepoRoot(ctx.cwd);
         const { config } = await loadConfig(root);
         const paths = resolvePaths(root, config);
-        try {
-          await stat(paths.configFile);
-        } catch (err) {
-          if ((err as NodeJS.ErrnoException).code === "ENOENT") {
-            throw new WikeeperError(ExitCode.ERROR, "not_initialised", "wiki is not initialised: run wikeeper init");
-          }
-          throw err;
-        }
+        await assertInitialised(paths);
 
         if ((await readLogEvents(paths, { type: "ingest", sourceId: id })).events.length > 0) {
           throw new WikeeperError(ExitCode.ERROR, "ingest_finished", `the ingest of ${id} is already finished`);
@@ -104,7 +91,7 @@ export const ingestApplyCommand: IngestSubcommand = {
             const holder = got.replaced.source_id;
             const aged = Math.max(0, now.getTime() - Date.parse(got.replaced.acquired_at));
             warnings.push(
-              `took over the stale lock of ${holder} (acquired ${ageText(aged)} ago): its page changes were not restored; ` +
+              `took over the stale lock of ${holder} (acquired ${formatLockAge(aged)} ago): its page changes were not restored; ` +
                 `its snapshot is at ${toPosixRelative(root, snapshotDir(paths, holder))}`,
             );
           } else if (before.held && before.lock === null) {

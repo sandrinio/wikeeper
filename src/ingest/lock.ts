@@ -53,7 +53,8 @@ export async function readLock(paths: ResolvedPaths, now: Date = new Date()): Pr
   return { held: true, lock, stale: age > STALE_LOCK_MS, age_ms: age };
 }
 
-function age(ms: number): string {
+/** A lock age for messages: whole minutes below an hour, whole hours from then on. */
+export function formatLockAge(ms: number): string {
   return ms < 3_600_000
     ? plural(Math.floor(ms / 60_000), "minute")
     : plural(Math.floor(ms / 3_600_000), "hour");
@@ -67,7 +68,7 @@ function lockedError(code: "locked" | "lock_not_stale", state: LockState): Wikee
     message = ".wiki/.lock is unreadable and counts as stale: rerun with --force-unlock to take it over";
   } else {
     message =
-      `ingest ${holder} holds the write lock (acquired ${age(state.age_ms ?? 0)} ago); ` +
+      `ingest ${holder} holds the write lock (acquired ${formatLockAge(state.age_ms ?? 0)} ago); ` +
       `finish it, or run wikeeper ingest abort ${holder} to restore its pages`;
     if (state.stale) message += "; the lock is stale (older than 2 hours): rerun with --force-unlock to take it over";
   }

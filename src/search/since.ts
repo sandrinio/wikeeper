@@ -1,6 +1,7 @@
 // src/search/since.ts
 // Contract C12 — contract/S-02-since (owner STORY-004-04). Frozen exports: parseSince and SinceBound.
 // Consumer: STORY-004-05 (--misses --since).
+import { DATE_RE, isCalendarDate } from "../core/dates.js";
 import { ExitCode, WikeeperError } from "../core/exit-codes.js";
 import type { StoredLogEvent } from "../ingest/log.js";
 import type { Entity, Fact, Page } from "../wiki/parse-page.js";
@@ -11,17 +12,7 @@ export interface SinceBound {
   instant: string; // ISO-8601 UTC instant, passed to readLogEvents({ since })
 }
 
-const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const DATETIME_RE = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})$/;
-
-function validDate(date: string): boolean {
-  const y = Number(date.slice(0, 4));
-  const m = Number(date.slice(5, 7));
-  const d = Number(date.slice(8, 10));
-  const t = new Date(Date.UTC(y, m - 1, d));
-  if (y < 100) t.setUTCFullYear(y);
-  return t.getUTCFullYear() === y && t.getUTCMonth() === m - 1 && t.getUTCDate() === d;
-}
 
 /** Throws WikeeperError(ExitCode.USAGE, "invalid_since", …, { expected: "YYYY-MM-DD", got }). */
 export function parseSince(raw: string): SinceBound {
@@ -33,11 +24,11 @@ export function parseSince(raw: string): SinceBound {
       { expected: "YYYY-MM-DD", got: raw },
     );
   if (DATE_RE.test(raw)) {
-    if (!validDate(raw)) throw bad();
+    if (!isCalendarDate(raw)) throw bad();
     return { date: raw, instant: new Date(Date.parse(`${raw}T00:00:00Z`)).toISOString() };
   }
   const m = DATETIME_RE.exec(raw);
-  if (m === null || !validDate(m[1]!)) throw bad();
+  if (m === null || !isCalendarDate(m[1]!)) throw bad();
   if (Number(m[2]) > 23 || Number(m[3]) > 59 || (m[4] !== undefined && Number(m[4]) > 59)) throw bad();
   const ms = Date.parse(raw);
   if (Number.isNaN(ms)) throw bad();

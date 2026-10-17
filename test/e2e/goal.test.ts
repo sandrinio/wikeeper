@@ -1,36 +1,26 @@
-import { execFileSync, spawnSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { lstat, mkdir, mkdtemp, readFile, readdir, readlink, rm, symlink, writeFile } from "node:fs/promises";
+import { lstat, mkdir, mkdtemp, readFile, readdir, readlink, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { stripBlock } from "../../src/agents/inject.js";
+import { packCli } from "./pack.js";
 
 // Goal Acceptance Check items 1-4 (SPRINT-01), run against the packed package.
-const PKG_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 let tmp = "";
 let cli = "";
+let cleanup: () => Promise<void> = async () => {};
 
 beforeAll(async () => {
   tmp = await mkdtemp(path.join(os.tmpdir(), "wikeeper-goal-"));
-  execFileSync(process.execPath, [path.join(PKG_ROOT, "node_modules", "typescript", "bin", "tsc"), "-p", "tsconfig.build.json"], {
-    cwd: PKG_ROOT,
-    stdio: "pipe",
-  });
-  // Never spawn npm / npm.cmd directly: Node >= 20 rejects .cmd without a shell on Windows (EINVAL).
-  const npmExec = process.env["npm_execpath"];
-  const packArgs = ["pack", "--json", "--pack-destination", tmp];
-  const packed = npmExec
-    ? execFileSync(process.execPath, [npmExec, ...packArgs], { cwd: PKG_ROOT, encoding: "utf8" })
-    : execFileSync("npm", packArgs, { cwd: PKG_ROOT, encoding: "utf8", shell: true });
-  const info = JSON.parse(packed) as Array<{ filename: string }>;
-  execFileSync("tar", ["-xzf", path.join(tmp, info[0]!.filename), "-C", tmp]);
-  await symlink(path.join(PKG_ROOT, "node_modules"), path.join(tmp, "package", "node_modules"), "junction");
-  cli = path.join(tmp, "package", "dist", "cli.js");
+  const packed = await packCli();
+  cli = packed.cli;
+  cleanup = packed.cleanup;
 }, 180_000);
 
 afterAll(async () => {
+  await cleanup();
   if (tmp) await rm(tmp, { recursive: true, force: true, maxRetries: 3 });
 }, 120_000);
 

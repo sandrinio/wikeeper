@@ -4,8 +4,10 @@ import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import YAML from "yaml";
 import { compareCodeUnits } from "../core/compare.js";
+import { isCalendarDate } from "../core/dates.js";
+import { SOURCE_ID_PATTERN } from "../ingest/source-id.js";
 
-export const CITATION_RE: RegExp = /^src-\d{4}-\d{2}-\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*$/;
+export const CITATION_RE: RegExp = SOURCE_ID_PATTERN;
 
 export interface PageFrontmatter {
   type: string | null;
@@ -127,15 +129,6 @@ function targetsIn(text: string): string[] {
 
 function distinct(items: readonly string[]): string[] {
   return [...new Set(items)];
-}
-
-function validDate(date: string): boolean {
-  const y = Number(date.slice(0, 4));
-  const m = Number(date.slice(5, 7));
-  const d = Number(date.slice(8, 10));
-  const t = new Date(Date.UTC(y, m - 1, d));
-  if (y < 100) t.setUTCFullYear(y);
-  return t.getUTCFullYear() === y && t.getUTCMonth() === m - 1 && t.getUTCDate() === d;
 }
 
 function emptyFrontmatter(): PageFrontmatter {
@@ -284,7 +277,7 @@ export function parsePage(text: string, relPath: string): Page {
       if (f) {
         const [, date, status] = f as unknown as [string, string, string, string];
         const rest = orig.slice(orig.length - f[3]!.length);
-        if (!validDate(date)) {
+        if (!isCalendarDate(date)) {
           errors.push({ line: lineNo, code: "fact_date", message: `fact has an impossible date "${date}"` });
         } else if (status !== "decided" && status !== "tentative") {
           errors.push({
