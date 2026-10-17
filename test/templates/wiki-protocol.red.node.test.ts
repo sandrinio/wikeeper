@@ -21,6 +21,7 @@ const SECTIONS = [
   "Search",
   "Answering questions",
   "Proposing rule changes",
+  "Lint and status",
   "Log and index",
 ];
 const COMMANDS = new Set(["init", "update", "remove", "doctor", "setup", "hook", "ingest", "index", "search", "read", "lint", "status", "rules"]);
@@ -128,7 +129,7 @@ const TERMS: Array<[string, string[]]> = [
 ];
 
 describe("STORY-006-04 S1: every section exists, in order, with its required terms", () => {
-  it("has exactly the thirteen sections in order", async () => {
+  it("has exactly the fourteen sections in order", async () => {
     expect(splitSections(await readWiki()).headings).toEqual(SECTIONS);
   });
 
