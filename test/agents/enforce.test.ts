@@ -243,7 +243,7 @@ describe("BUG-002: no backup for files wikeeper created; recorded backups die wi
 });
 
 describe("CR-001 ai mode allows only ingest and search commands, and asks for the destructive flags", () => {
-  it("CLAUDE_ENFORCE ai rules are the ingest pair, the four ask rules, then the search pair", () => {
+  it("CLAUDE_ENFORCE ai rules are the ingest pair, the four ask rules, the read pair, then the search pair", () => {
     const rules = CLAUDE_ENFORCE.items("CMD", "ai").filter((i) => i.kind === "rule");
     expect(rules.map((i) => i.identity)).toEqual([
       "permissions.allow[Bash(npx wikeeper ingest *)]",
@@ -252,18 +252,22 @@ describe("CR-001 ai mode allows only ingest and search commands, and asks for th
       "permissions.ask[Bash(wikeeper ingest *--drop*)]",
       "permissions.ask[Bash(npx wikeeper ingest *--force-unlock*)]",
       "permissions.ask[Bash(wikeeper ingest *--force-unlock*)]",
+      "permissions.allow[Bash(npx wikeeper read *)]",
+      "permissions.allow[Bash(wikeeper read *)]",
       "permissions.allow[Bash(npx wikeeper search *)]",
       "permissions.allow[Bash(wikeeper search *)]",
     ]);
     expect(rules.map((i) => i.value)).toEqual(rules.map((i) => /\[(.*)\]$/.exec(i.identity)![1]));
   });
 
-  it("Codex ai rules are the ingest pair, the abort prompts, then the search pair, npx first", () => {
+  it("Codex ai rules are the ingest pair, the abort prompts, the read pair, then the search pair, npx first", () => {
     expect(CODEX_ENFORCE[1].items("CMD", "ai").map((i) => i.value)).toEqual([
       'prefix_rule(pattern=["npx","wikeeper","ingest"], decision="allow")',
       'prefix_rule(pattern=["wikeeper","ingest"], decision="allow")',
       'prefix_rule(pattern=["npx","wikeeper","ingest","abort"], decision="prompt")',
       'prefix_rule(pattern=["wikeeper","ingest","abort"], decision="prompt")',
+      'prefix_rule(pattern=["npx","wikeeper","read"], decision="allow")',
+      'prefix_rule(pattern=["wikeeper","read"], decision="allow")',
       'prefix_rule(pattern=["npx","wikeeper","search"], decision="allow")',
       'prefix_rule(pattern=["wikeeper","search"], decision="allow")',
     ]);

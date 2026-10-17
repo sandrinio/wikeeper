@@ -19,6 +19,7 @@ import { hookCommand } from "./commands/hook.js";
 import { searchCommand } from "./commands/search.js";
 import { indexCommand } from "./commands/index.js";
 import { ingestCommand } from "./commands/ingest.js";
+import { readCommand } from "./commands/read.js";
 import { ensureAgentsIntegration } from "./agents/index.js";
 
 const packageJson = JSON.parse(
@@ -41,6 +42,7 @@ export const defaultCommands: CommandModule[] = [
   searchCommand,
   indexCommand,
   ingestCommand,
+  readCommand,
 ];
 
 export function createProgram(

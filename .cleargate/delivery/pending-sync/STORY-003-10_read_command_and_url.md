@@ -520,19 +520,19 @@ All transitive licenses are permissive (MIT, ISC, BSD-2-Clause, `MIT OR GPL-3.0-
 
 ## Task Breakdown
 
-- [ ] Start the story branch from the sprint branch after STORY-001-10 and STORY-002-09 have merged
-- [ ] Add `linkedom` `^0.18.13`, `defuddle` `^0.19.5` and `turndown` `^7.2.4` to `dependencies` on top of STORY-001-10's `package.json`, and regenerate the lockfile with `npm install` -> R11
-- [ ] Write `test/read/http-server.ts`, the committed fixtures and `SOURCES.md` -> R2, R4
-- [ ] Implement `src/read/url.ts`: request headers, timeout, Content-Length and streamed cap, error mapping -> R6
-- [ ] Implement `src/read/html.ts`: decoding, lazy linkedom and defuddle, metadata, `data:` images, `needs_browser` -> R4, R9
-- [ ] Implement `src/read/index.ts`: classify the source, the dispatch tables, `UNSUPPORTED_HINTS`, pass-through, the DOCX/PDF stubs, `withHeader` -> R2, R3, R5
-- [ ] Implement `src/commands/read.ts`: argument and `--out` checks, the `wx` write, the three output modes; append it to `defaultCommands` in `src/program.ts` -> R1, R7, R8
-- [ ] Write `test/read/*.test.ts` for the Outline in S1, S2 and the error Outline S4, plus the unit tests in §4.1
-- [ ] Write `test/e2e/module-trace.ts` and `test/e2e/read.test.ts` (S3) -> R9, R11
-- [ ] QA-Red: re-scope the red assertions in §3.1 on the merged tree, only by adding the read pair (§1.4 Q3) -> R10
-- [ ] Add the read pair to `claude.ts` and `codex.ts` in the R10 order; extend `test/agents/enforce.test.ts` -> R10
-- [ ] Add the read rules to the `ai` row of SETUP.md's step-4 preview table; `test/templates/setup.red.node.test.ts` S2 passes on the merged tree -> R10
-- [ ] Write the S5 Outline test (init, update across modes, remove)
+- [x] Start the story branch from the sprint branch after STORY-001-10 and STORY-002-09 have merged
+- [x] Add `linkedom` `^0.18.13`, `defuddle` `^0.19.5` and `turndown` `^7.2.4` to `dependencies` on top of STORY-001-10's `package.json`, and regenerate the lockfile with `npm install` -> R11
+- [x] Write `test/read/http-server.ts`, the committed fixtures and `SOURCES.md` -> R2, R4
+- [x] Implement `src/read/url.ts`: request headers, timeout, Content-Length and streamed cap, error mapping -> R6
+- [x] Implement `src/read/html.ts`: decoding, lazy linkedom and defuddle, metadata, `data:` images, `needs_browser` -> R4, R9
+- [x] Implement `src/read/index.ts`: classify the source, the dispatch tables, `UNSUPPORTED_HINTS`, pass-through, the DOCX/PDF stubs, `withHeader` -> R2, R3, R5
+- [x] Implement `src/commands/read.ts`: argument and `--out` checks, the `wx` write, the three output modes; append it to `defaultCommands` in `src/program.ts` -> R1, R7, R8
+- [x] Write `test/read/*.test.ts` for the Outline in S1, S2 and the error Outline S4, plus the unit tests in §4.1
+- [x] Write `test/e2e/module-trace.ts` and `test/e2e/read.test.ts` (S3) -> R9, R11
+- [x] QA-Red (done in 1a4546b): re-scope the red assertions in §3.1 on the merged tree, only by adding the read pair (§1.4 Q3) -> R10
+- [x] Add the read pair to `claude.ts` and `codex.ts` in the R10 order; extend `test/agents/enforce.test.ts` -> R10
+- [x] Add the read rules to the `ai` row of SETUP.md's step-4 preview table; `test/templates/setup.red.node.test.ts` S2 passes on the merged tree -> R10
+- [x] Write the S5 Outline test (init, update across modes, remove)
 
 ## 4. Quality Gates
 

@@ -14,6 +14,11 @@ const AI_PROMPT_LINES = [
   'prefix_rule(pattern=["wikeeper","ingest","abort"], decision="prompt")',
 ];
 
+const READ_LINES = [
+  'prefix_rule(pattern=["npx","wikeeper","read"], decision="allow")',
+  'prefix_rule(pattern=["wikeeper","read"], decision="allow")',
+];
+
 const SEARCH_LINES = [
   'prefix_rule(pattern=["npx","wikeeper","search"], decision="allow")',
   'prefix_rule(pattern=["wikeeper","search"], decision="allow")',
@@ -39,7 +44,7 @@ const rules: AgentEnforceSpec = {
   format: "lines",
   items(_cmd, permission) {
     const mode = permission === "ai" ? [...AI_LINES, ...AI_PROMPT_LINES] : permission === "ask" ? ASK_LINES : [];
-    const lines = [...mode, ...SEARCH_LINES];
+    const lines = [...mode, ...(permission === "ai" ? READ_LINES : []), ...SEARCH_LINES];
     return lines.map((line): EnforceItem => ({ kind: "rule", agent: "codex", identity: line, value: line }));
   },
 };

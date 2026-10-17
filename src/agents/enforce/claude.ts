@@ -22,6 +22,8 @@ const AI_ASK_RULES = [
   "Bash(wikeeper ingest *--force-unlock*)",
 ];
 
+const READ_RULES = ["Bash(npx wikeeper read *)", "Bash(wikeeper read *)"];
+
 export const CLAUDE_ENFORCE: AgentEnforceSpec = {
   file: ".claude/settings.json",
   format: "json",
@@ -40,6 +42,9 @@ export const CLAUDE_ENFORCE: AgentEnforceSpec = {
       }
       for (const rule of AI_ASK_RULES) {
         items.push({ kind: "rule", agent: "claude", identity: `permissions.ask[${rule}]`, value: rule });
+      }
+      for (const rule of READ_RULES) {
+        items.push({ kind: "rule", agent: "claude", identity: `permissions.allow[${rule}]`, value: rule });
       }
     } else if (permission === "ask") {
       for (const rule of ["Bash(npx wikeeper ingest start *)", "Bash(wikeeper ingest start *)"]) {
