@@ -6,6 +6,8 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-17 · #test-harness #perf · test/setup-files.red.node.test.ts S1 times out at 5 s when several worktree suites run at once; it passes alone. Re-run it alone before blaming a story.
+2026-10-17 · #qa #test-harness · macOS sed -i needs '' and cited line numbers go stale; match rows by pattern, not by line number.
 2026-10-17 · #qa #red-test #contract · A red test asserted claudeDecision === "prompt" but contract C5's type is "ask"; check red expectations against the frozen contract type.
 2026-10-17 · #qa #red-test · A red Outline that shares one init across rows needs its temp dirs cleaned in afterAll; afterEach deletes them after row 1.
 2026-10-17 · #test-harness #red-test · init seeds .wiki/raw/.gitkeep; assert raw/ holds no source files, never that raw/ does not exist.
