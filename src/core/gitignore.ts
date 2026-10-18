@@ -94,6 +94,7 @@ export function managedIgnoreEntries(
       continue;
     }
     priv.add(formatEntry(rel(abs)));
+    priv.add(formatEntry(rel(path.resolve(paths.archiveDir, p))));
   }
   entries.push(...[...priv].sort(compareCodeUnits));
   return { entries, warnings };

@@ -254,7 +254,7 @@ The block is a short pointer that rarely changes; the real protocol lives in `sy
 <!-- WIKI:START v1 — managed by wikeeper -->
 ## Project Wiki
 Managed by wikeeper — edit outside this block only.
-This repo has a knowledge wiki in `.wiki/`; its content folder is set by `content_dir` in `.wiki/config.yml`.
+This repo has a knowledge wiki in `.wiki/`; its content folder is set by `content_dir` in `.wiki/config.yml`. Once set up, open each session with the size `wikeeper statusline` prints, not an error.
 If `.wiki/config.yml` has no `setup_completed_at`, follow `.wiki/system/SETUP.md` first.
 Otherwise read `.wiki/system/WIKI.md` before ingesting, searching or editing anything in the wiki (skills: `wiki-ingest`, `wiki-search`).
 At the start of every session read `.wiki/me.md` and `.wiki/project.md`; if `.wiki/me.md` is missing, first onboard the user with `.wiki/system/ONBOARDING.md`.
@@ -438,6 +438,21 @@ Limits, handed back to the agent:
 - **Pages needing JavaScript or a login** — the agent uses its own browser and passes the text on stdin.
 - **`.doc`, `.pptx`, `.xlsx`** — not supported; the `unsupported` error (exit 2) says what to ask for instead (a .docx, a PDF export, a CSV export).
 
+### 7.8 Token gauges **[Built — SPRINT-04]**
+
+Every size the user sees is an estimate in tokens: how much of a context a document or a page fills.
+
+- **What is measured.** A source's text, each page, and the wiki total, with `index.md` reported beside it. Not measured: what the agent loads or spends in a session.
+- **Method.** SPIKE-003's weighted character count, within ±15% of Claude Opus 5.5's count. Claude counts the most of the measured models; GPT-6 counts 0.46–0.75× as many; Gemini was not measured. A PDF with no text layer is counted at about 1,600 tokens a page and marked rough. Every count is printed with `≈`.
+- **Levels.** A source or a page is 🟢, 🟡 or 🔴 against two limits. The wiki total has no level.
+- **Defaults.** Page 4k (yellow) and 10k (red); source 20k and 60k; `confirm_at: yellow`. They are sized for a usable window of about 250k tokens, the smallest among the supported agents.
+- **Size approval.** `wikeeper ingest start` exits 3 (`needs_approval`) with `cause` `permission`, `size` or `both` when a source's estimate reaches the level `confirm_at` names (`tokens.source.confirm_at`), in every permission mode. A denied source stays denied.
+- **Plan estimates.** `wikeeper ingest plan` shows each file's estimate and the total, and marks rough ones.
+- **Where sizes show.** `read`, `ingest start`, `ingest plan`, the `finish` report, search `page_tokens`, `status` (`tokens`), `statusline` and the `oversized-page` warning.
+- **Limits.** `wikeeper config get [key]`, `wikeeper config set <key> <value>` and `wikeeper config unset <key>` read and change `tokens.*` in `.wiki/config.yml`.
+- **Status line.** `wikeeper statusline` prints one line; `wikeeper statusline --install` adds it to Claude Code's status line in `.claude/settings.local.json`, and refuses to replace a status line that is already set.
+- **Agent instructions.** The pointer block opens each session with the size line (R1); WIKI.md tells the agent to ask with the estimate before a large document is read, to offer a helper or selected parts for a 🔴 source, to tell the user once per session when a page turns 🔴, and to change a limit only when the user asks.
+
 ## 8. Knowledge model **[Proposed]**
 
 - **Pages are organized by entity** (person, project, risk, decision), not by source, so knowledge from different sources accumulates in one place.
@@ -468,11 +483,13 @@ Each proposal is a small diff the user approves. Approved → rule version bumpe
 | `update` | replace package-owned files | Agreed |
 | `remove [--purge]` | remove tooling; `--purge` also deletes knowledge | Agreed |
 | `ingest start / plan / facts / apply / finish / abort` | gated, three-phase ingest (§7.3) | Agreed (hooks, phases) |
-| `read <file\|url>` | markdown for formats the agent can't read itself (§7.7) | Built (SPRINT-03) |
-| `status` | open ingest and stale lock, unfinished sources, re-ingest candidates (outdated rule versions), pending rule suggestions, misses | Built (SPRINT-03) |
-| `lint [--rules]` | broken links, uncited claims, orphan pages, index drift, unlogged changes, stale facts; with `--rules`, rule problems (§9) | Built (SPRINT-03) |
+| `read <file\|url>` | markdown for formats the agent can't read itself (§7.7); reports the text's token estimate and level (§7.8) | Built (SPRINT-03) |
+| `status` | open ingest and stale lock, unfinished sources, re-ingest candidates (outdated rule versions), pending rule suggestions, misses, and the `tokens` section (§7.8) | Built (SPRINT-03) |
+| `lint [--rules]` | broken links, uncited claims, orphan pages, index drift, unlogged changes, stale facts, oversized pages; with `--rules`, rule problems (§9) | Built (SPRINT-03) |
 | `rules record / list` | remember the user's decisions on proposed rule changes (§9) | Built (SPRINT-03) |
 | `search <query>` | **wiki_search** — query the wiki; also used by ingest to find pages to update; `--entity`, `--type`, `--where`, `--status`, `--mark`, `--since`, `--no-miss`, `--misses` | Built |
+| `config get [key] / set <key> <value> / unset <key>` | read and change the `tokens` limits in `.wiki/config.yml` (§7.8) | Built (SPRINT-04) |
+| `statusline [--install]` | one line with the wiki's size; `--install` adds it to Claude Code's status line (§7.8) | Built (SPRINT-04) |
 | `doctor` | agent wiring, duplicate blocks, config validity, setup files (`me.md` ignored and not committed, `project.md` present and not ignored), `kb_instructions.md` parse | Built |
 | `setup --done` | mark setup complete | Built |
 
@@ -488,6 +505,15 @@ agents: [claude, codex, antigravity]
 content_dir: .wiki              # move pages/, raw/, index.md, log/ to a visible folder (§4)
 private: []                     # pages kept out of git, e.g. [people.md] (§5.3)
 enforce: false                  # harness hooks + permission rules (§6.6)
+
+tokens:                        # estimated-token limits (§7.8); 20k or 20000
+  page:
+    yellow: 4k                 # a page at or above this is 🟡
+    red: 10k                   # a page at or above this is 🔴; `oversized-page` warns
+  source:
+    yellow: 20k                # a source at or above this is 🟡
+    red: 60k                   # a source at or above this is 🔴
+    confirm_at: yellow         # yellow | red | never: the level at which `ingest start` asks first
 
 ingest:
   permission: ask              # ai | ask | whitelist

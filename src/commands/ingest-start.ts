@@ -13,7 +13,11 @@ import { stripBom } from "../core/text.js";
 import { findKindRule, isValidKindId, normalizeKindId, parseSourceKinds } from "../ingest/kind-rules.js";
 import type { SourceKindRule } from "../ingest/kind-rules.js";
 import { formatSize } from "../ingest/report.js";
-import { evaluatePermission } from "../ingest/permissions.js";
+import { checkSourceSize, evaluatePermission, sizeLimitText } from "../ingest/permissions.js";
+import type { SizeCheck } from "../ingest/permissions.js";
+import { describeTokens, sourceTokens } from "../ingest/source-size.js";
+import { formatFromExtension } from "../read/index.js";
+import type { TokenLevel } from "../core/tokens.js";
 import type { PermissionResult } from "../ingest/permissions.js";
 import {
   fileOrigin,
@@ -62,7 +66,7 @@ function baseNoExt(p: string): string {
 export interface IngestStartResult {
   status: "registered" | "duplicate";
   id: string | null; // null for a duplicate
-  source: SourceMeta | null;
+  source: (SourceMeta & { tokens: number | null; tokens_rough: boolean; level: TokenLevel | null }) | null;
   prior: { id: string; captured_at: string; origin: string; match: "sha256" | "origin" } | null;
   rule: SourceKindRule | null;
   permission: PermissionResult | null; // null for a duplicate (not evaluated)
@@ -239,28 +243,61 @@ export function createIngestStartCommand(deps: { now?: () => Date } = {}): Inges
             return;
           }
 
-          // 6. permission
+          // 6. permission, then the size
           const perm = evaluatePermission(config.ingest, {
             origin: resolved.origin,
             originType: resolved.originType,
             kind,
             approved: opts.approved === true,
           });
-          if (perm.decision !== "allowed") {
-            const details = {
+          if (perm.decision === "denied") {
+            throw new WikeeperError(ExitCode.DENIED, "denied", perm.reason, {
               source: { origin: resolved.origin, origin_type: resolved.originType, size, sha256, kind, rule },
               reason: perm.reason,
               matched: perm.matched,
-            };
-            if (perm.decision === "needs_approval") {
-              throw new WikeeperError(
-                ExitCode.NEEDS_APPROVAL,
-                "needs_approval",
-                `${resolved.origin} needs approval (${formatSize(size)}, ${kind === null ? "no kind yet" : rule === null ? `kind ${kind}, no rule for ${kind}` : `kind ${kind}, rule ${rule.id} v${rule.version}`}): ${perm.reason}`,
-                details,
-              );
-            }
-            throw new WikeeperError(ExitCode.DENIED, "denied", perm.reason, details);
+            });
+          }
+          const format =
+            resolved.originalPath !== null && resolved.text === null
+              ? formatFromExtension(path.extname(resolved.originalPath))
+              : null;
+          const counted = await sourceTokens({ text: resolved.text, originalPath: resolved.originalPath, format });
+          const sizeCheck: SizeCheck | null = counted === null ? null : checkSourceSize(counted, config.tokens.source);
+          const permAsks = perm.decision === "needs_approval";
+          const sizeAsks = sizeCheck !== null && sizeCheck.reached && opts.approved !== true;
+          if (permAsks || sizeAsks) {
+            const cause = permAsks && sizeAsks ? "both" : permAsks ? "permission" : "size";
+            const reason =
+              cause === "permission"
+                ? perm.reason
+                : cause === "size"
+                  ? `it is ${sizeLimitText(sizeCheck as SizeCheck)}: show the user the estimate and rerun with --approved once they agree.`
+                  : `${perm.reason} It is also ${sizeLimitText(sizeCheck as SizeCheck)}.`;
+            const sizes =
+              sizeCheck === null
+                ? formatSize(size)
+                : `${describeTokens(sizeCheck.tokens, sizeCheck.level, sizeCheck.rough)} · ${formatSize(size)}`;
+            throw new WikeeperError(
+              ExitCode.NEEDS_APPROVAL,
+              "needs_approval",
+              `${resolved.origin} needs approval (${sizes}, ${kind === null ? "no kind yet" : rule === null ? `kind ${kind}, no rule for ${kind}` : `kind ${kind}, rule ${rule.id} v${rule.version}`}): ${reason}`,
+              {
+                source: { origin: resolved.origin, origin_type: resolved.originType, size, sha256, kind, rule },
+                reason,
+                matched: perm.matched,
+                cause,
+                size:
+                  sizeCheck === null
+                    ? null
+                    : {
+                        tokens: sizeCheck.tokens,
+                        rough: sizeCheck.rough,
+                        level: sizeCheck.level,
+                        limit: sizeCheck.limit,
+                        confirm_at: sizeCheck.confirm_at,
+                      },
+              },
+            );
           }
 
           // 7. register, then pre-hooks
@@ -297,7 +334,7 @@ export function createIngestStartCommand(deps: { now?: () => Date } = {}): Inges
           const data: IngestStartResult = {
             status: "registered",
             id: meta.id,
-            source: meta,
+            source: { ...meta, tokens: counted?.tokens ?? null, tokens_rough: counted?.rough ?? false, level: sizeCheck?.level ?? null },
             prior: null,
             rule,
             permission: perm,
@@ -310,7 +347,7 @@ export function createIngestStartCommand(deps: { now?: () => Date } = {}): Inges
             data,
             warnings,
             message: [
-              `registered ${meta.id} from ${meta.origin} (${meta.size} bytes)`,
+              `registered ${meta.id} from ${meta.origin} (${sizeCheck === null ? `${formatSize(meta.size)}, not counted in tokens` : `${describeTokens(sizeCheck.tokens, sizeCheck.level, sizeCheck.rough)} · ${formatSize(meta.size)}`})`,
               `${rule ? `rule ${rule.id} v${rule.version}` : "no rule"}; permission ${perm.mode}: ${perm.decision}`,
               `next: ${next}`,
             ],
