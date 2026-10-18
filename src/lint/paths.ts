@@ -10,3 +10,8 @@ import type { ResolvedPaths } from "../core/paths.js";
 export function pagePath(paths: ResolvedPaths, rel: string): string {
   return toPosixRelative(paths.root, path.join(paths.pagesDir, ...rel.split("/")));
 }
+
+/** "projects/atlas.md" -> ".wiki/archive/projects/atlas.md": repository-relative POSIX, following content_dir. */
+export function archivePath(paths: ResolvedPaths, rel: string): string {
+  return toPosixRelative(paths.root, path.join(paths.archiveDir, ...rel.split("/")));
+}

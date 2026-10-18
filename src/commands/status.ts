@@ -6,6 +6,8 @@ import type { WikeeperConfig } from "../core/config.js";
 import { WikeeperError } from "../core/exit-codes.js";
 import { formatLimit, formatTokens, levelMark, levelOf, measureWiki } from "../core/tokens.js";
 import type { TokenLevel, TokenLimits } from "../core/tokens.js";
+import { entityStatus, daysSince, isFinalStatus } from "../lint/staleness.js";
+import { pageEntities, loadPages } from "../wiki/parse-page.js";
 import { emitResult, getOutputContext } from "../core/output.js";
 import { assertInitialised, findRepoRoot, resolvePaths, toPosixRelative } from "../core/paths.js";
 import type { ResolvedPaths } from "../core/paths.js";
@@ -42,6 +44,11 @@ export interface StatusData {
     limits: { page: TokenLimits; source: TokenLimits & { confirm_at: "yellow" | "red" | "never" } };
     largest: Array<{ path: string; tokens: number; level: TokenLevel }>; // at most 5
   };
+  archive: { pages: number; tokens: number };
+  archive_candidates: Array<
+    | { path: string; reason: "size"; tokens: number }
+    | { path: string; reason: "final_status"; status: string; entity: string; last_dated: string }
+  >;
 }
 
 async function exists(file: string): Promise<boolean> {
@@ -162,6 +169,34 @@ export async function collectStatus(
       .map((p) => ({ path: p.path, tokens: p.tokens, level: levelOf(p.tokens, config.tokens.page) })),
   };
 
+  // archive (STORY-008-05)
+  const archiveSize = await measureWiki({ ...paths, pagesDir: paths.archiveDir });
+  const archive = { pages: archiveSize.page_count, tokens: archiveSize.total };
+  const sizeByPath = new Map(
+    size.pages.filter((p) => p.tokens >= config.tokens.page.red).map((p) => [p.path, p.tokens] as const),
+  );
+  const archiveCandidates: StatusData["archive_candidates"] = [];
+  const pageList = await loadPages(paths.pagesDir);
+  for (const page of pageList) {
+    const sz = sizeByPath.get(page.path);
+    if (sz !== undefined) archiveCandidates.push({ path: page.path, reason: "size", tokens: sz });
+    for (const e of pageEntities(page)) {
+      if (e.facts.length === 0) continue;
+      const st = entityStatus(page, e);
+      if (st === null || !isFinalStatus(st.value)) continue;
+      const newest = e.facts.reduce((a, f) => (f.date > a ? f.date : a), "");
+      if (daysSince(newest, now) <= config.lint.stale_after_days) continue;
+      archiveCandidates.push({
+        path: page.path,
+        reason: "final_status",
+        status: st.value,
+        entity: e.name,
+        last_dated: newest,
+      });
+    }
+  }
+  archiveCandidates.sort((a, b) => compareCodeUnits(a.path, b.path));
+
   const data: StatusData = {
     open_ingest: lock.lock,
     stale_lock: lock.stale,
@@ -175,11 +210,13 @@ export async function collectStatus(
     },
     misses,
     tokens,
+    archive,
+    archive_candidates: archiveCandidates,
   };
   return { data, warnings };
 }
 
-function renderStatus(data: StatusData, ageMs: number | null): string[] {
+function renderStatus(data: StatusData, ageMs: number | null, staleAfterDays: number): string[] {
   const out: string[] = [];
   if (data.open_ingest !== null) {
     out.push(
@@ -236,6 +273,30 @@ function renderStatus(data: StatusData, ageMs: number | null): string[] {
     out.push("  largest pages:");
     for (const l of t.largest) out.push(`    ${l.path} ${formatTokens(l.tokens)} ${levelMark(l.level)}`);
   }
+  out.push(
+    data.archive.pages === 0
+      ? "archive: none"
+      : `archive: ${formatTokens(data.archive.tokens)} tokens · ${plural(data.archive.pages, "page")}`,
+  );
+  if (data.archive_candidates.length === 0) out.push("archive candidates: none");
+  else {
+    out.push(`archive candidates: ${data.archive_candidates.length}`);
+    let anySize = false;
+    for (const c of data.archive_candidates) {
+      if (c.reason === "size") {
+        anySize = true;
+        out.push(`  ${c.path} ${formatTokens(c.tokens)} ${levelMark("red")} (tokens.page.red is ${formatLimit(t.limits.page.red)})`);
+      } else {
+        out.push(
+          `  ${c.path} · ${c.entity}: status ${c.status}, last dated ${c.last_dated} (lint.stale_after_days is ${staleAfterDays})`,
+        );
+      }
+    }
+    out.push(
+      "  nothing moves to the archive until the user asks for a clean-up" +
+        (anySize ? "; to raise the page limit instead, run wikeeper config set tokens.page.red <n>" : ""),
+    );
+  }
   return out;
 }
 
@@ -256,7 +317,7 @@ export function createStatusCommand(deps: { now?: () => Date } = {}): CommandMod
           const { data, warnings } = await collectStatus(paths, config, at);
           const ageMs =
             data.open_ingest === null ? null : at.getTime() - Date.parse(data.open_ingest.acquired_at);
-          emitResult(ctx, { command: "status", data, warnings, message: renderStatus(data, ageMs) });
+          emitResult(ctx, { command: "status", data, warnings, message: renderStatus(data, ageMs, config.lint.stale_after_days) });
         });
     },
   };

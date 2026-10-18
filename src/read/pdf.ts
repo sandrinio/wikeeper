@@ -215,5 +215,6 @@ export async function readPdf(bytes: Uint8Array): Promise<Converted> {
     author: clean(info["Author"]),
     date: pdfDate(info["CreationDate"]),
     warnings,
+    pages: pages.length,
   };
 }
