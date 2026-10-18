@@ -284,6 +284,7 @@ The fields of the `--json` output of `wikeeper status`, and what to do with each
 - `pending_rule_suggestions`: what finished ingests could not capture, by source. Propose rule changes for them (section "Proposing rule changes").
 - `setup`: when `completed_at` is null, offer `.wiki/system/SETUP.md`; when `me` is false, offer `.wiki/system/ONBOARDING.md`.
 - `misses`: how many searches found nothing. `wikeeper search --misses` lists them, and they feed rule proposals.
+- `tokens`: the wiki's size: `wiki` (all pages), `page_count`, `index` (`.wiki/index.md`), the `limits`, and the five `largest` pages, each with its `level`. A 🔴 page is handled as said above.
 
 `wikeeper lint` checks the pages and reports findings; it never changes anything. Each finding names its check id, the file from the repository root and, when known, the line. It exits 1 when any finding is an error. `wikeeper ingest finish` already reports the `broken-link`, `uncited-claim` and `unlogged-change` findings for the pages it changed. Run `wikeeper lint` after a merge or pull that touched the wiki (after `wikeeper index rebuild`), and when the user asks whether the wiki is in good shape. `wikeeper lint --check <id>` reruns one check, for example `wikeeper lint --check unlogged-change`.
 
@@ -295,6 +296,7 @@ The fields of the `--json` output of `wikeeper status`, and what to do with each
 | `index-drift` | `.wiki/index.md` is out of date. Run `wikeeper index rebuild`. |
 | `unlogged-change` | The page changed outside an ingest: a shell write the guard cannot see (section "Write phase"), a hand edit, a `post_ingest` hook, or a git merge that combined two ingests' edits. Show the user the change. To keep a hand or shell edit, record it with a chat-excerpt ingest whose write phase updates that page, for example by adding the cited fact line; an ingest that leaves the page as it was at apply does not clear the finding. To drop the edit, restore the page's last ingested version from git, with the user's approval. A merged page stays reported until the next ingest updates it: tell the user, and do not restore it, because that would lose one branch's ingest. Hooks in `hooks.post_ingest` of `.wiki/config.yml` must not edit pages: page hashes are taken before the hooks run. |
 | `stale-fact` | A status, or a tentative planned date, was last dated more than `lint.stale_after_days` days ago (default 30). Ask the user whether it still holds, or offer to ingest a newer source; a confirmation the user gives in chat is ingested as a chat excerpt whose write phase adds a dated fact line. |
+| `oversized-page` | A page is at or above `tokens.page.red`. Tell the user once in the session, as said above; an ordinary ingest never shrinks a page. |
 
 Pages change only in a write phase, so a page finding is fixed in the next ingest that touches the page or, when the user wants it fixed now, in a chat-excerpt ingest of their instruction. `index-drift` is the one exception.
 

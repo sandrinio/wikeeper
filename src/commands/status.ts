@@ -4,6 +4,8 @@ import { compareCodeUnits } from "../core/compare.js";
 import { loadConfig } from "../core/config.js";
 import type { WikeeperConfig } from "../core/config.js";
 import { WikeeperError } from "../core/exit-codes.js";
+import { formatLimit, formatTokens, levelMark, levelOf, measureWiki } from "../core/tokens.js";
+import type { TokenLevel, TokenLimits } from "../core/tokens.js";
 import { emitResult, getOutputContext } from "../core/output.js";
 import { assertInitialised, findRepoRoot, resolvePaths, toPosixRelative } from "../core/paths.js";
 import type { ResolvedPaths } from "../core/paths.js";
@@ -33,6 +35,13 @@ export interface StatusData {
   pending_rule_suggestions: Array<{ source_id: string; items: string[] }>;
   setup: { completed_at: string | null; me: boolean; project: boolean };
   misses: number;
+  tokens: {
+    wiki: number;
+    page_count: number;
+    index: number;
+    limits: { page: TokenLimits; source: TokenLimits & { confirm_at: "yellow" | "red" | "never" } };
+    largest: Array<{ path: string; tokens: number; level: TokenLevel }>; // at most 5
+  };
 }
 
 async function exists(file: string): Promise<boolean> {
@@ -141,6 +150,18 @@ export async function collectStatus(
     }
   }
 
+  // tokens (STORY-007-05)
+  const size = await measureWiki(paths);
+  const tokens: StatusData["tokens"] = {
+    wiki: size.total,
+    page_count: size.page_count,
+    index: size.index,
+    limits: config.tokens,
+    largest: size.pages
+      .slice(0, 5)
+      .map((p) => ({ path: p.path, tokens: p.tokens, level: levelOf(p.tokens, config.tokens.page) })),
+  };
+
   const data: StatusData = {
     open_ingest: lock.lock,
     stale_lock: lock.stale,
@@ -153,6 +174,7 @@ export async function collectStatus(
       project: await exists(paths.projectFile),
     },
     misses,
+    tokens,
   };
   return { data, warnings };
 }
@@ -201,6 +223,19 @@ function renderStatus(data: StatusData, ageMs: number | null): string[] {
   out.push(
     data.misses === 0 ? "misses: none" : `misses: ${data.misses} recorded (wikeeper search --misses lists them)`,
   );
+  const t = data.tokens;
+  out.push(`tokens: wiki ${formatTokens(t.wiki)} · ${plural(t.page_count, "page")} · index.md ${formatTokens(t.index)}`);
+  const p = t.limits.page;
+  const s = t.limits.source;
+  out.push(
+    `  limits: page ${formatLimit(p.yellow)}/${formatLimit(p.red)} · source ${formatLimit(s.yellow)}/${formatLimit(s.red)}, ${
+      s.confirm_at === "never" ? "no size approval" : `approval at ${s.confirm_at}`
+    }`,
+  );
+  if (t.largest.length > 0) {
+    out.push("  largest pages:");
+    for (const l of t.largest) out.push(`    ${l.path} ${formatTokens(l.tokens)} ${levelMark(l.level)}`);
+  }
   return out;
 }
 
