@@ -13,7 +13,7 @@ import { readSnapshot, snapshotDir } from "../ingest/snapshot.js";
 import type { LintFinding } from "../ingest/lint-hook.js";
 import type { IngestLogEvent, StoredLogEvent } from "../ingest/log.js";
 import type { LintCheck, LintContext } from "./checks.js";
-import { pagePath } from "./paths.js";
+import { archivePath, pagePath } from "./paths.js";
 
 /** sha256 hex of the text without a leading BOM and with CRLF changed to LF. */
 export function pageHash(text: string): string {
@@ -47,6 +47,12 @@ async function readText(file: string): Promise<string | null> {
   }
 }
 
+async function compare(baseDir: string, rel: string, recorded: string): Promise<"missing" | "changed" | "same"> {
+  const text = await readText(path.join(baseDir, ...rel.split("/")));
+  if (text === null) return "missing";
+  return pageHash(text) === recorded ? "same" : "changed";
+}
+
 export const unloggedChangeCheck: LintCheck = {
   id: "unlogged-change",
   severity: "error",
@@ -56,6 +62,7 @@ export const unloggedChangeCheck: LintCheck = {
     let snapSource: string | null = null;
     let snapTakenMs = 0;
     let snapPages: string[] | null = null;
+    let snapArchive: string[] | null = null;
     const lock = await readLock(ctx.paths);
     if (lock.held && lock.lock !== null) {
       const snap = await readSnapshot(ctx.paths, lock.lock.source_id);
@@ -63,12 +70,16 @@ export const unloggedChangeCheck: LintCheck = {
         snapSource = lock.lock.source_id;
         snapTakenMs = Date.parse(snap.taken_at);
         snapPages = Object.keys(snap.pages).filter((k) => k.endsWith(".md") && !hasDotSegment(k));
+        snapArchive = Object.keys(snap.archive ?? {}).filter((k) => k.endsWith(".md") && !hasDotSegment(k));
       }
     }
     const suffix = snapSource === null ? "" : `, before ingest ${snapSource} was applied`;
     const baseDir = snapSource === null ? ctx.paths.pagesDir : path.join(snapshotDir(ctx.paths, snapSource), "pages");
 
+    const archiveBaseDir = snapSource === null ? ctx.paths.archiveDir : path.join(snapshotDir(ctx.paths, snapSource), "archive");
+
     const lastTouch = new Map<string, Touch>();
+    const lastArchiveTouch = new Map<string, { stored: StoredLogEvent; hash: string }>();
     for (const stored of ctx.log) {
       const ev = stored.event as unknown as Record<string, unknown>;
       if (ev["type"] !== "ingest") continue;
@@ -81,6 +92,10 @@ export const unloggedChangeCheck: LintCheck = {
         const list = ev[change];
         if (!Array.isArray(list)) continue;
         for (const p of list) if (typeof p === "string") lastTouch.set(p, { stored, change });
+      }
+      const archiveHashes = ev["archive_hashes"];
+      if (isPageHashes(archiveHashes)) {
+        for (const [p, hash] of Object.entries(archiveHashes)) lastArchiveTouch.set(p, { stored, hash });
       }
     }
 
@@ -121,12 +136,31 @@ export const unloggedChangeCheck: LintCheck = {
         baseline++;
         continue;
       }
-      const text = await readText(path.join(baseDir, ...p.split("/")));
-      if (text === null) {
-        err(p, `deleted without a log entry (last recorded by ingest ${src}, ${file})`);
+      const state = await compare(baseDir, p, recorded);
+      if (state === "missing") err(p, `deleted without a log entry (last recorded by ingest ${src}, ${file})`);
+      else if (state === "changed") err(p, `changed since ingest ${src} recorded it (${file})`);
+    }
+
+    // The archive pass: the same mode, skips and messages; no deleted-and-recreated change kind and no baseline.
+    const archiveSet = new Set<string>(snapArchive ?? (ctx.archivePages ?? []).map((p) => p.path));
+    const archiveJudged = [...new Set<string>([...archiveSet, ...lastArchiveTouch.keys()])]
+      .filter((p) => p.endsWith(".md") && !isPrivate(ctx, p))
+      .sort(compareCodeUnits);
+    const archiveErr = (p: string, message: string): void => {
+      findings.push({ id: "unlogged-change", severity: "error", path: archivePath(ctx.paths, p), message: message + suffix });
+    };
+    for (const p of archiveJudged) {
+      const exists = archiveSet.has(p);
+      const touch = lastArchiveTouch.get(p);
+      if (touch === undefined) {
+        if (exists) archiveErr(p, "in no ingest log event");
         continue;
       }
-      if (pageHash(text) !== recorded) err(p, `changed since ingest ${src} recorded it (${file})`);
+      const src = (touch.stored.event as IngestLogEvent).source_id;
+      const file = touch.stored.file;
+      const state = exists ? await compare(archiveBaseDir, p, touch.hash) : "missing";
+      if (state === "missing") archiveErr(p, `deleted without a log entry (last recorded by ingest ${src}, ${file})`);
+      else if (state === "changed") archiveErr(p, `changed since ingest ${src} recorded it (${file})`);
     }
     if (baseline > 0) {
       findings.push({

@@ -13,7 +13,7 @@ import { toPosixRelative } from "../core/paths.js";
 import { stripBom } from "../core/text.js";
 import { buildIndex } from "../ingest/index-builder.js";
 import { plural } from "../commands/doctor.js";
-import { pagePath } from "./paths.js";
+import { archivePath, pagePath } from "./paths.js";
 import type { WikeeperConfig } from "../core/config.js";
 import type { ResolvedPaths } from "../core/paths.js";
 import type { LintFinding } from "../ingest/lint-hook.js";
@@ -33,7 +33,7 @@ import { RULES_LINT_CHECKS } from "./rules-lint.js";
 import { oversizedPageCheck } from "./size.js";
 import { staleFactCheck } from "./staleness.js";
 
-export { pagePath } from "./paths.js";
+export { pagePath, archivePath } from "./paths.js";
 
 export type LintScope = "pages" | "rules";
 
@@ -45,6 +45,8 @@ export interface LintContext {
   log: StoredLogEvent[];
   now: Date;
   only?: string[]; // page paths relative to pages/ (input only; set by the finish hook)
+  archivePages?: Page[]; // parsed archive pages, paths relative to archive/; missing = []
+  onlyArchive?: string[]; // archive paths relative to archive/ (input only; set by the finish hook)
 }
 
 export interface LintCheck {
@@ -96,8 +98,11 @@ export async function runLint(ctx: LintContext, opts: { scope: LintScope; checks
   const selected = reg.filter((c) => opts.checks === undefined || opts.checks.includes(c.id));
   let findings: LintFinding[] = [];
   for (const check of selected) findings.push(...(await check.run(ctx)));
-  if (ctx.only !== undefined) {
-    const keep = new Set(ctx.only.map((p) => pagePath(ctx.paths, p)));
+  if (ctx.only !== undefined || ctx.onlyArchive !== undefined) {
+    const keep = new Set([
+      ...(ctx.only ?? []).map((p) => pagePath(ctx.paths, p)),
+      ...(ctx.onlyArchive ?? []).map((p) => archivePath(ctx.paths, p)),
+    ]);
     findings = findings.filter((f) => f.path !== undefined && keep.has(f.path));
   }
   return findings.sort(compareFindings);
@@ -137,7 +142,7 @@ export const indexDriftCheck: LintCheck = {
       throw err;
     }
     const cur = stripBom(text).replace(/\r\n/g, "\n");
-    const want = buildIndex(ctx.pages);
+    const want = buildIndex(ctx.pages, { archived: (ctx.archivePages ?? []).length });
     if (cur === want) return [];
     const a = entryPaths(cur);
     const b = entryPaths(want);

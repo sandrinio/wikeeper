@@ -55,13 +55,14 @@ async function reportTokens(paths: ResolvedPaths, id: string, config: WikeeperCo
 }
 
 export const FINISH_CHECKS: readonly string[] = ["broken-link", "uncited-claim", "unlogged-change", "oversized-page"];
-export const finishLintHook: LintHook = async ({ paths, changed }) => {
-  if (changed.length === 0) return [];
+export const finishLintHook: LintHook = async ({ paths, changed, archiveChanged = [] }) => {
+  if (changed.length === 0 && archiveChanged.length === 0) return [];
   const { config } = await loadConfig(paths.root);
   const pages = await loadPages(paths.pagesDir);
+  const archivePages = await loadPages(paths.archiveDir);
   const log = (await readLogEvents(paths)).events;
   return runLint(
-    { paths, config, pages, kb: null, log, now: new Date(), only: changed },
+    { paths, config, pages, archivePages, kb: null, log, now: new Date(), only: changed, onlyArchive: archiveChanged },
     { scope: "pages", checks: [...FINISH_CHECKS] },
   );
 };
@@ -254,6 +255,7 @@ export function createIngestFinishCommand(deps: { now?: () => Date } = {}): Inge
               paths,
               sourceId: id,
               changed: [...diff.created, ...diff.updated].sort(compareCodeUnits),
+              archiveChanged: [...(diff.archive?.created ?? []), ...(diff.archive?.updated ?? [])].sort(compareCodeUnits),
             });
           } catch (err) {
             warnings.push(`lint hook failed: ${msg(err)}`);
