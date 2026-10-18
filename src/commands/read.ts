@@ -6,6 +6,10 @@ import { DEFAULT_CONFIG, loadConfig } from "../core/config.js";
 import { ExitCode, WikeeperError } from "../core/exit-codes.js";
 import { emitResult, getOutputContext } from "../core/output.js";
 import { findRepoRoot, isInside, resolvePaths } from "../core/paths.js";
+import { formatSize } from "../ingest/report.js";
+import { describeTokens } from "../ingest/source-size.js";
+import { levelOf } from "../core/tokens.js";
+import type { TokenLevel } from "../core/tokens.js";
 import type { CommandModule } from "../program.js";
 import { readSource } from "../read/index.js";
 import type { ReadResult } from "../read/index.js";
@@ -17,6 +21,7 @@ export interface ReadDeps {
 }
 /** --json data: the ReadResult, plus `out` when --out was given. */
 export interface ReadCommandData extends ReadResult {
+  level: TokenLevel;
   out?: string;
 }
 
@@ -32,7 +37,7 @@ async function exists(p: string): Promise<boolean> {
 }
 
 /** R8: lexical checks, all before anything is read or fetched. Returns the absolute target. */
-async function checkOut(cwd: string, out: string): Promise<string> {
+async function checkOut(cwd: string, out: string, contentDir: string): Promise<string> {
   const abs = path.resolve(cwd, out);
   if (await exists(abs)) throw usage(`--out ${out} already exists: read never overwrites, pick a new name`);
   let parentOk = false;
@@ -50,14 +55,7 @@ async function checkOut(cwd: string, out: string): Promise<string> {
   if (path.relative(cwd, abs).split(path.sep).some((s) => s.startsWith(".") && s !== "..")) {
     throw usage(`--out ${out}: read does not write into hidden folders or hidden files`);
   }
-  const root = findRepoRoot(cwd);
-  let contentDir = DEFAULT_CONFIG.content_dir;
-  try {
-    contentDir = (await loadConfig(root)).config.content_dir;
-  } catch {
-    // a broken config: protect the default content directory
-  }
-  const paths = resolvePaths(root, { content_dir: contentDir });
+  const paths = resolvePaths(findRepoRoot(cwd), { content_dir: contentDir });
   if (abs === paths.contentDir || isInside(paths.contentDir, abs)) {
     throw usage(`--out ${out}: read does not write into the wiki's content directory`);
   }
@@ -76,7 +74,13 @@ export function createReadCommand(deps: ReadDeps = {}): CommandModule {
           const ctx = getOutputContext(command);
           if (source === undefined) throw usage("read needs a source: a file path or an http(s) URL");
           if (source === "-") throw usage("read takes a file or a URL, not stdin");
-          const abs = opts.out === undefined ? undefined : await checkOut(ctx.cwd, opts.out);
+          let config = DEFAULT_CONFIG;
+          try {
+            config = (await loadConfig(findRepoRoot(ctx.cwd))).config;
+          } catch {
+            // no config.yml or a broken one: default limits, default content directory
+          }
+          const abs = opts.out === undefined ? undefined : await checkOut(ctx.cwd, opts.out, config.content_dir);
           const r = await readSource(source, { cwd: ctx.cwd, ...deps });
           const text = r.markdown + "\n";
           if (abs !== undefined) {
@@ -89,14 +93,15 @@ export function createReadCommand(deps: ReadDeps = {}): CommandModule {
               throw err;
             }
           }
-          const data: ReadCommandData = { ...r, ...(abs !== undefined ? { out: abs } : {}) };
+          const level = levelOf(r.tokens, config.tokens.source);
+          const data: ReadCommandData = { ...r, level, ...(abs !== undefined ? { out: abs } : {}) };
           emitResult(ctx, {
             command: "read",
             data,
             warnings: r.warnings.map((w) => w.message),
             message:
               abs !== undefined
-                ? `wrote ${opts.out} (${Buffer.byteLength(text)} bytes, ${r.format})`
+                ? `wrote ${opts.out} (${describeTokens(r.tokens, level, r.tokens_rough)} · ${formatSize(Buffer.byteLength(text))} · ${r.format})`
                 : r.markdown,
           });
         });
