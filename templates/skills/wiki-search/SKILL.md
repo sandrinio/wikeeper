@@ -7,4 +7,4 @@ description: Use when the user asks who owns or decides something, what is at ri
 
 Before you answer from memory, look in the wiki. Run `wikeeper search <query> --json` with the key words of the question, read the pages it points to, and answer from them.
 
-Follow `.wiki/system/WIKI.md`, sections "Search" and "Answering questions". Cite the pages your answer rests on. If the wiki does not know, say so instead of guessing, and offer to ingest a source that would answer it. Check each hit's `page_tokens` before you read its page (section "Search").
+Follow `.wiki/system/WIKI.md`, sections "Search" and "Answering questions". Cite the pages your answer rests on. If the wiki does not know, say so instead of guessing, and offer to ingest a source that would answer it. Check each hit's `page_tokens` before you read its page (section "Search"). When a question about the past finds no answer, search again with `--archive` (section "Search").
