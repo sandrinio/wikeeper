@@ -51,6 +51,7 @@ async function snapshotTree(dir: string, base = dir): Promise<string[]> {
   const out: string[] = [];
   for (const e of await readdir(dir, { withFileTypes: true })) {
     const p = path.join(dir, e.name);
+    if (e.isSymbolicLink()) continue;
     if (e.isDirectory()) out.push(...(await snapshotTree(p, base)));
     else out.push(`${path.relative(base, p)}:${(await readFile(p)).toString("base64")}`);
   }
@@ -217,7 +218,7 @@ describe("S5 a new wiki gets the limits written out; an existing wiki gets them 
 
       const other = await gitRepo();
       await mkdir(path.join(other, ".wiki"), { recursive: true });
-      const mine = "# mine\nprofile: management\nagents: []\n";
+      const mine = "# mine\nprofile: management\nagents:\n  - claude\n";
       const f2 = path.join(other, ".wiki", "config.yml");
       await writeFile(f2, mine);
       expect((await run(other, ["init", "--yes"])).code).toBe(0);
