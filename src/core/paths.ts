@@ -16,6 +16,7 @@ export interface ResolvedPaths {
   lockFile: string;
   contentDir: string;
   pagesDir: string;
+  archiveDir: string;
   rawDir: string;
   logDir: string;
   indexFile: string;
@@ -50,6 +51,7 @@ export function resolvePaths(root: string, config: Pick<WikeeperConfig, "content
     lockFile: path.join(wikiDir, ".lock"),
     contentDir,
     pagesDir: path.join(contentDir, "pages"),
+    archiveDir: path.join(contentDir, "archive"),
     rawDir: path.join(contentDir, "raw"),
     logDir: path.join(contentDir, "log"),
     indexFile: path.join(contentDir, "index.md"),

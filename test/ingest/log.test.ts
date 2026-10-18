@@ -97,3 +97,30 @@ describe("page_hashes (STORY-005-03)", () => {
     expect((await readLogEvents(paths)).events[0]!.event).toMatchObject({ page_hashes: { "a.md": h } });
   });
 });
+
+describe("archive_hashes and archive_restored (STORY-008-01)", () => {
+  const base = {
+    type: "ingest" as const, at: "2026-10-16T00:00:00.000Z", source_id: "src-1", kind: "k", rule_version: null,
+    permission: "ai" as const, origin: "o", created: [] as string[], updated: [] as string[], deleted: [] as string[], contradictions: 0, rule_suggestions: 0,
+  };
+  it("round-trips archive_hashes and archive_restored, in key order after page_hashes and restored", async () => {
+    const h = "ef".repeat(32);
+    const f1 = await writeLogEvent(paths, { ...base, page_hashes: { "a.md": h }, archive_hashes: { "a.md": h } });
+    const t1 = await readFile(path.join(root, ...f1.split("/")), "utf8");
+    expect(t1.indexOf("page_hashes")).toBeLessThan(t1.indexOf("archive_hashes"));
+    await writeLogEvent(paths, { type: "abort", at: "2026-10-16T00:00:01.000Z", source_id: "src-1", dropped: false, restored: [], archive_restored: ["a.md"] });
+    const evs = (await readLogEvents(paths)).events.map((e) => e.event);
+    expect(evs[0]).toMatchObject({ archive_hashes: { "a.md": h } });
+    expect(evs[1]).toMatchObject({ archive_restored: ["a.md"] });
+  });
+  it("refuses malformed values and writes no file", async () => {
+    await expect(writeLogEvent(paths, { ...base, archive_hashes: { "a.md": "abc" } })).rejects.toMatchObject({ code: "invalid_event" });
+    await expect(
+      writeLogEvent(paths, { type: "abort", at: base.at, source_id: "s", dropped: false, restored: [], archive_restored: "a.md" as never }),
+    ).rejects.toMatchObject({ code: "invalid_event" });
+  });
+  it("writes today's bytes without them", async () => {
+    const rel = await writeLogEvent(paths, base);
+    expect(await readFile(path.join(root, ...rel.split("/")), "utf8")).not.toContain("archive_");
+  });
+});
