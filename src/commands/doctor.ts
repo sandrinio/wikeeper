@@ -15,6 +15,7 @@ import { readPackageVersion, templatesDir } from "../core/templates.js";
 import { KB_INSTRUCTIONS_CHECK_ID, checkKbInstructions } from "../lint/rules-lint.js";
 import { AGENT_NAMES } from "../agents/agent-names.js";
 import { compareCodeUnits } from "../core/compare.js";
+import { compareVersions } from "../core/version.js";
 import type { CommandModule } from "../program.js";
 
 export interface DoctorResult {
@@ -39,17 +40,7 @@ export function plural(n: number, word: string): string {
 
 export const MIN_NODE_VERSION = "22.12.0";
 
-export function compareVersions(a: string, b: string): number | null {
-  const re = /^v?(\d+)\.(\d+)\.(\d+)/;
-  const ma = re.exec(a);
-  const mb = re.exec(b);
-  if (!ma || !mb) return null;
-  for (let i = 1; i <= 3; i++) {
-    const d = Number(ma[i]) - Number(mb[i]);
-    if (d !== 0) return d < 0 ? -1 : 1;
-  }
-  return 0;
-}
+export { compareVersions };
 
 export function checkNodeVersion(version: string): DoctorCheck {
   const cmp = compareVersions(version, MIN_NODE_VERSION);
