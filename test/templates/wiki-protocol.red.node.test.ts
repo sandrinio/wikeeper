@@ -9,6 +9,7 @@ const PKG = path.resolve(import.meta.dirname, "..", "..");
 const WIKI = path.join(PKG, "templates", "system", "WIKI.md");
 
 const SECTIONS = [
+  "Talking to the user",
   "Ingest",
   "Register",
   "Triage and extract",

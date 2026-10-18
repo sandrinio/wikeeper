@@ -160,7 +160,7 @@ describe("STORY-007-07 S1: each size instruction lands in its file and part", ()
     [
       "session (R5)",
       "Lint and status",
-      ["`wiki ≈66k tokens · 43 pages · largest page ≈6.3k 🟡`", "first reply of every session", "`.claude/settings.local.json`", "never replaces"],
+      ["`wiki ≈66k tokens · 43 pages · largest page ≈6.3k 🟡`", "first text you write in every session", "`.claude/settings.local.json`", "never replaces"],
     ],
     [
       "limits (R5)",
@@ -340,6 +340,7 @@ describe("STORY-007-07 S2: the size guidance matches what the commands report", 
     const text = await readTemplate("system/WIKI.md");
     expect(text.replace(/\n$/, "").split("\n").length).toBeLessThanOrEqual(400);
     expect(splitSections(text).map((s) => s.name)).toEqual([
+      "Talking to the user",
       "Ingest",
       "Register",
       "Triage and extract",
@@ -365,15 +366,15 @@ describe("STORY-007-07 S2: the size guidance matches what the commands report", 
       ["agents/claude/wiki-writer.md", "090e6b4f6bb1bfe0aa4dd25118253e826f3bee160aacf51b161f82b60018cd83"],
       ["agents/codex/wiki-extractor.toml", "58c660375153c9d9cef0dc4674b2eef4f682e5083480bc12e53638ec12ab6407"],
       ["agents/codex/wiki-writer.toml", "e4c5b865f48e8e6c5203452d5d523ad21649df857029c306e7c6a79150087cbd"],
-      ["skills/wiki-ingest/SKILL.md", "f2e8d6625acdd33b784aa0b8d9bfc773c7bbe8a3ac45fe741e3cc10a11882a08"],
-      ["system/ONBOARDING.md", "d7ded2bf545fc328386f00ff6bc1ff1d6c8031ec35b11b90caf5b36cae28cb8f"],
+      ["skills/wiki-ingest/SKILL.md", "91eebe0479df04b61f6cc7f48c10eb9b47dea4ecf487ed0bbcb34494a96287c0"],
+      ["system/ONBOARDING.md", "5cc0dea373e130bdc2cb467a27c330aa2aafb759420fd38b2ab4f292ca5ecfc4"],
     ];
     for (const [rel, pin] of PINS) expect(sha(await readTemplate(rel)), rel).toBe(pin);
     const setup = (await readTemplate("system/SETUP.md"))
       .split("\n")
       .filter((l) => !/^\| `(ai|ask|whitelist)` \|/.test(l))
       .join("\n");
-    expect(sha(setup), "system/SETUP.md without its three step-4 rows").toBe("880e3e8863b8c006a037bdfb793d8d9a3561c08cb1d7f1632e7467368e48348f");
+    expect(sha(setup), "system/SETUP.md without its three step-4 rows").toBe("577cedaaad08f54c9480622669186f60afd560366b7b356a4bdd7dd6d4fe67ed");
   });
 });
 

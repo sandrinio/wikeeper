@@ -16,6 +16,7 @@ const T = 60_000;
 const PKG = path.resolve(import.meta.dirname, "..", "..");
 
 const SECTIONS = [
+  "Talking to the user",
   "Ingest",
   "Register",
   "Triage and extract",
@@ -315,18 +316,18 @@ describe("STORY-009-03 S3: WIKI.md keeps its structure and every name in the new
 });
 
 const PINS: Record<string, string> = {
-  "agent-block.md": "2b705df38a04fb31f9e33b0a30c0c35f154a13bb6e5fd430c04dfe30997117a7",
+  "agent-block.md": "845af60f5db641f0f6e90c89e6b5fd84fca800a3234f36d2bac312066fa28d95",
   "agents/antigravity/wiki-extractor.md": "da3dce3faffc413b6139440b87d184362d2f98ee0d7e3c6903c1e29d528cb0c9",
   "agents/antigravity/wiki-writer.md": "f587776bbae123c90f0ac9e3066bcac5baa71d572314d69403a6bab33746f20b",
   "agents/claude/wiki-extractor.md": "1ef88fd2aa1a3cf42255b7ec9548be3d87dd92582ba76499672a7dcbe9b53977",
   "agents/claude/wiki-writer.md": "090e6b4f6bb1bfe0aa4dd25118253e826f3bee160aacf51b161f82b60018cd83",
   "agents/codex/wiki-extractor.toml": "58c660375153c9d9cef0dc4674b2eef4f682e5083480bc12e53638ec12ab6407",
   "agents/codex/wiki-writer.toml": "e4c5b865f48e8e6c5203452d5d523ad21649df857029c306e7c6a79150087cbd",
-  "skills/wiki-ingest/SKILL.md": "f2e8d6625acdd33b784aa0b8d9bfc773c7bbe8a3ac45fe741e3cc10a11882a08",
-  "skills/wiki-search/SKILL.md": "6221517c61bc7b9a400ebc05b209b1801130a800e6974085e7f4fd95be966acd",
-  "skills/wiki-setup/SKILL.md": "2129ffb30123d93d3a7ef3d4e117a810b0ef24273356e9cf839405b1e03708c1",
-  "system/ONBOARDING.md": "d7ded2bf545fc328386f00ff6bc1ff1d6c8031ec35b11b90caf5b36cae28cb8f",
-  "system/SETUP.md": "87f321a9452adda202e917ef4b312d56b5df761839710f7fa4d53fce4e4259c9",
+  "skills/wiki-ingest/SKILL.md": "91eebe0479df04b61f6cc7f48c10eb9b47dea4ecf487ed0bbcb34494a96287c0",
+  "skills/wiki-search/SKILL.md": "20c7fec470d7dab016baaf3e3b3395c156cb2747b80c88023a7256bee8a6ed45",
+  "skills/wiki-setup/SKILL.md": "532e1a3a51410503e5b65ba2f37daea1c453be66653731fe33bf59e81683f1aa",
+  "system/ONBOARDING.md": "5cc0dea373e130bdc2cb467a27c330aa2aafb759420fd38b2ab4f292ca5ecfc4",
+  "system/SETUP.md": "0eb9304b5a991309a56eda0ca8f446858e3454a4c26c4c6ff0851e50b8d44b22",
 };
 
 // ---------- S4: a wrong name in the text is reported with its line ----------
