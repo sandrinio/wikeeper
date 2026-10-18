@@ -6,6 +6,7 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-18 · #red-test #docs #planning · A red row that pins a growing range (README's `D-01`–`D-NN`) breaks when a later story in the sprint adds an entry; pin "ends at NN or later", or plan the re-scope with the later story at Gate 1.
 2026-10-18 · #qa #cli #npx · npx cannot run a .tgz directly (`npx -y <tgz>` fails, permission denied); test an npx install with `npx -y --package=<tgz> -- wikeeper …`.
 2026-10-18 · #windows #cli · Node >= 24 prints DEP0190 when spawn gets an args array with shell: true; join the checked constant args into one command line and spawn it with no args array.
 2026-10-18 · #cli #contract · Every runner call after an install step needs its own catch: an uncaught rejection surfaces as error.code = err.code (e.g. ENOENT) with details null, outside the command's frozen error codes.
