@@ -2,9 +2,11 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { isDeepStrictEqual } from "node:util";
 import path from "node:path";
 import YAML from "yaml";
+import type { TokenLimits } from "./tokens.js";
 
 export type IngestPermission = "ai" | "ask" | "whitelist";
 export type IngestDelegate = "auto" | "never";
+export type TokenConfirmAt = "yellow" | "red" | "never";
 
 export interface WikeeperConfig {
   profile: string;
@@ -23,6 +25,7 @@ export interface WikeeperConfig {
   };
   hooks: { pre_ingest: string[]; post_ingest: string[] };
   lint: { stale_after_days: number };
+  tokens: { page: TokenLimits; source: TokenLimits & { confirm_at: TokenConfirmAt } };
 }
 export type WikiConfig = WikeeperConfig;
 export interface ConfigIssue {
@@ -39,7 +42,8 @@ export interface LoadConfigResult {
 type Leaf =
   | { type: "string" | "boolean" | "integer" | "string[]" | "string|null"; default: unknown }
   | { type: "enum"; default: string; allowed: readonly string[] }
-  | { type: "content_dir"; default: string };
+  | { type: "content_dir"; default: string }
+  | { type: "token-count"; default: number };
 type Node = Leaf | { type: "map"; children: Record<string, Node> };
 
 /** One table drives defaults, validation and messages. */
@@ -75,6 +79,26 @@ const SCHEMA: Record<string, Node> = {
     },
   },
   lint: { type: "map", children: { stale_after_days: { type: "integer", default: 30 } } },
+  tokens: {
+    type: "map",
+    children: {
+      page: {
+        type: "map",
+        children: {
+          yellow: { type: "token-count", default: 4000 },
+          red: { type: "token-count", default: 10000 },
+        },
+      },
+      source: {
+        type: "map",
+        children: {
+          yellow: { type: "token-count", default: 20000 },
+          red: { type: "token-count", default: 60000 },
+          confirm_at: { type: "enum", default: "yellow", allowed: ["yellow", "red", "never"] },
+        },
+      },
+    },
+  },
 };
 
 function defaultsOf(children: Record<string, Node>): Record<string, unknown> {
@@ -95,6 +119,27 @@ function isMap(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
 }
 
+/** 20000, "20000", "20k", "1.5k" -> a positive whole number; anything else null. */
+function parseTokenCount(value: unknown): number | null {
+  let n: number;
+  if (typeof value === "number") {
+    n = value;
+  } else if (typeof value === "string") {
+    const t = value.trim();
+    let m: RegExpExecArray | null;
+    if (/^\d+$/.test(t)) n = Number(t);
+    else if ((m = /^(\d+)(?:\.(\d{1,3}))?[kK]$/.exec(t))) n = Number(m[1]) * 1000 + Number((m[2] ?? "").padEnd(3, "0"));
+    else return null;
+  } else {
+    return null;
+  }
+  return Number.isSafeInteger(n) && n > 0 ? n : null;
+}
+
+function normalizeLeaf(node: Leaf, value: unknown): unknown {
+  return node.type === "token-count" ? parseTokenCount(value) : value;
+}
+
 function validateLeaf(node: Leaf, value: unknown, root: string): string | null {
   switch (node.type) {
     case "string":
@@ -109,6 +154,8 @@ function validateLeaf(node: Leaf, value: unknown, root: string): string | null {
       return Array.isArray(value) && value.every((x) => typeof x === "string") ? null : "must be a list of strings";
     case "enum":
       return typeof value === "string" && node.allowed.includes(value) ? null : `allowed: ${node.allowed.join(", ")}`;
+    case "token-count":
+      return parseTokenCount(value) === null ? "must be a positive whole number, or a number with k (20000, 20k, 1.5k)" : null;
     case "content_dir": {
       if (typeof value !== "string") return "must be a string";
       const rel = path.relative(root, path.resolve(root, value));
@@ -154,7 +201,7 @@ function walk(
       errors.push({ key: keyPath, value: input[k], message: problem });
       out[k] = structuredClone(node.default);
     } else {
-      out[k] = input[k];
+      out[k] = normalizeLeaf(node, input[k]);
     }
   }
   return out;
@@ -171,6 +218,17 @@ async function readIfExists(file: string): Promise<string | null> {
     if ((err as NodeJS.ErrnoException).code === "ENOENT") return null;
     throw err;
   }
+}
+
+export function tokenLimitIssues(tokens: WikeeperConfig["tokens"]): ConfigIssue[] {
+  const issues: ConfigIssue[] = [];
+  for (const g of ["page", "source"] as const) {
+    const { yellow, red } = tokens[g];
+    if (yellow >= red) {
+      issues.push({ key: `tokens.${g}.yellow`, value: yellow, message: `must be below tokens.${g}.red (${red})` });
+    }
+  }
+  return issues;
 }
 
 export async function loadConfig(root: string): Promise<LoadConfigResult> {
@@ -191,6 +249,12 @@ export async function loadConfig(root: string): Promise<LoadConfigResult> {
     return { config: structuredClone(DEFAULT_CONFIG) as WikeeperConfig, warnings, errors };
   }
   const config = walk(SCHEMA, raw, "", root, warnings, errors) as unknown as WikeeperConfig;
+  const bad = (k: string): boolean => errors.some((e) => e.key === k);
+  const limitIssues = tokenLimitIssues(config.tokens).filter((i) => {
+    const g = i.key.split(".")[1]!;
+    return !(bad("tokens") || bad(`tokens.${g}`) || bad(`tokens.${g}.yellow`) || bad(`tokens.${g}.red`));
+  });
+  errors.push(...limitIssues);
   return { config, warnings, errors };
 }
 
