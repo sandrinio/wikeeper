@@ -132,6 +132,7 @@ export function createIngestFinishCommand(deps: { now?: () => Date } = {}): Inge
               created: ev.created,
               updated: ev.updated,
               deleted: ev.deleted,
+              archived: { facts: 0, pages: 0 },
               contradictions: ev.contradictions,
               rule_suggestions: ev.rule_suggestions,
               log_file: prior[0]!.file,
@@ -182,13 +183,25 @@ export function createIngestFinishCommand(deps: { now?: () => Date } = {}): Inge
               const byPath = new Map<string, string[]>();
               for (const d of v.dropped) byPath.set(d.path, [...(byPath.get(d.path) ?? []), `"${d.line}"`]);
               const groups = [...byPath].map(([p, ls]) => `${p} (${ls.join(", ")})`).join(", ");
-              parts.push(`fact lines dropped (a replaced fact stays in the list): ${groups}`);
+              parts.push(
+                `fact lines dropped (a replaced fact stays in the list; a clean-up moves it unchanged to archive/<same path>): ${groups}`,
+              );
+            }
+            if (v.archived_dropped.length > 0) {
+              const byPath = new Map<string, string[]>();
+              for (const d of v.archived_dropped) {
+                byPath.set(d.path, [...(byPath.get(d.path) ?? []), ...(d.line === "" ? [] : [`"${d.line}"`])]);
+              }
+              const groups = [...byPath]
+                .map(([p, ls]) => `archive/${p} (${ls.length === 0 ? "page deleted" : ls.join(", ")})`)
+                .join(", ");
+              parts.push(`archived fact lines dropped (no line leaves archive/): ${groups}`);
             }
             throw new WikeeperError(
               ExitCode.ERROR,
               "validation_failed",
               `finish refused for ${id}: ${parts.join("; ")}. Fix them and rerun wikeeper ingest finish ${id}, or run wikeeper ingest abort ${id}`,
-              { uncited: v.uncited, outside: v.outside, invalid: v.invalid, dropped: v.dropped },
+              { uncited: v.uncited, outside: v.outside, invalid: v.invalid, dropped: v.dropped, archived_dropped: v.archived_dropped },
             );
           }
 
@@ -275,6 +288,7 @@ export function createIngestFinishCommand(deps: { now?: () => Date } = {}): Inge
             created: diff.created,
             updated: diff.updated,
             deleted: diff.deleted,
+            archived: v.archived,
             contradictions,
             rule_suggestions: facts.uncovered?.length ?? 0,
             log_file: logFile,

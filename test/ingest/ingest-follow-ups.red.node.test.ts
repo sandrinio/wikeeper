@@ -9,6 +9,8 @@ import type { ResolvedPaths } from "../../src/core/paths.js";
 import { writeFacts } from "../../src/ingest/facts.js";
 import { readLogEvents } from "../../src/ingest/log.js";
 import { registerSource } from "../../src/ingest/registry.js";
+import { describeTokens } from "../../src/ingest/source-size.js";
+import { estimateTokens } from "../../src/core/tokens.js";
 import { runCli } from "../../src/program.js";
 
 // Red tests for STORY-003-12: dropped fact lines refused, needs_approval output, help text.
@@ -173,6 +175,8 @@ describe("STORY-003-12 S2 which edits count as dropped", () => {
     const r = await repo();
     await applied(r, [TL]);
     await rm(path.join(r.paths.pagesDir, "roadmap.md"));
+    await mkdir(r.paths.archiveDir, { recursive: true });
+    await writeFile(path.join(r.paths.archiveDir, "roadmap.md"), `---\ntype: project\n---\n${TL}\n`);
     await putPage(r, "other.md", `# Other\n${cite}`);
     const res = await run(r.root, ["ingest", "finish", ID, "--json"]);
     expect(res.code).toBe(0);
@@ -231,7 +235,7 @@ describe("STORY-003-12 S3 approval request is a question", () => {
       expect(human.code).toBe(3);
       expect((await readdir(path.join(r.root, ".wiki", "raw"))).filter((f) => f !== ".gitkeep")).toEqual([]);
       expect(human.err).toBe(
-        `notes.md needs approval (6 B, ${named}): ingest.permission is ask: show the user the source "notes.md" and rerun with --approved once they agree.\n`,
+        `notes.md needs approval (${describeTokens(estimateTokens("hello"), "green", false)} · 6 B, ${named}): ingest.permission is ask: show the user the source "notes.md" and rerun with --approved once they agree.\n`,
       );
       const j = await run(r.root, ["ingest", "start", "notes.md", ...kindArgs, "--json"]);
       expect(j.code).toBe(3);

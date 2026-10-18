@@ -6,6 +6,41 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-18 · #privacy #json · settingsError(json-merge.ts:23) puts V8's JSON.parse message in the error, and V8 quotes up to about 10 characters of the file for unexpected-token errors (e.g. '..."tusLine": ~/x.sh}" is not valid JSON'). Any 'never print settings content' rule needs that detail sanitised.
+2026-10-18 · #test-harness #stdin · To check that a bounded stdin read releases a real pipe, start the built CLI from a script with stdin=PIPE and never close it, then time the node process alone. Timing a shell pipeline like '(sleep N) | node ...' measures the sleep, not node.
+2026-10-18 · #test-harness · Don't hardcode compressed zip byte counts from fixtures in tests; derive them or re-measure when the fixture changes
+2026-10-18 · #qa #red-test #fixtures · a live row that opens with a text assertion cannot show its live logic is sound on baseline; smoke it once with the text asserts stubbed in a throwaway copy, then delete the copy
+2026-10-18 · #red-test #fixtures · a status fixture page is measured with the real estimateTokens; a source link costs ~15 tokens, so keep fixtures under tokens.page.red or give the row its own config
+2026-10-18 · #qa #red-test #lint · index-drift row for 'index without archived line' passes before the check counts the archive, so assert the drift warning (red) and pin the rebuild row as the other side
+2026-10-18 · #red-test #fixtures · size fixtures must be built with the real estimateTokens (sized), never a per-word constant guess; approx 12k measured 9.7k
+2026-10-18 · #qa #fixtures · Scratch dirs in the shared scratchpad collide with other agents; use a story-unique name (qa-<story>-copy), never tb
+2026-10-18 · #qa #red-test · config-command reds assert json.command and error.code per row; at baseline an unknown `config` subcommand exits 2 with command 'wikeeper', so exit code alone proves nothing
+2026-10-18 · #qa #test-harness #perf · With several worktree suites running (load avg ~50), 5 s timeouts hit git/spawn tests in random files and search p95 fails: rerun failures alone with --testTimeout=60000, run test:perf when load drops.
+2026-10-18 · #qa #red-test · a guard row that already passes at baseline (e.g. a rename accepted today) needs a new-field assertion like data.archived to be red
+2026-10-18 · #search #qa · a fact's text keeps its trailing [[src-…]] citation; human changes lines must strip it to match the Gherkin lines
+2026-10-18 · #search #fixtures · archive pages share path and entity key with live ones; every map and key set needs a tree prefix
+2026-10-18 · #qa #red-test #cli · remove --help wraps the --purge description; normalise whitespace before asserting help text
+2026-10-18 · #templates #coverage · DOCUMENTED_FORMS counts only code spans with "wikeeper <cmd> … --flag"; a bare `--flag` bullet never satisfies checkCoverage.
+2026-10-18 · #lint #finish · The finish lint hook runs before the snapshot and lock are removed: unlogged-change judges in snapshot mode during finish.
+2026-10-18 · #lint #only · oversized-page pre-filters on ctx.only itself; a new onlyArchive filter must leave `only` set for it.
+2026-10-18 · #vitest #config · vitest 5 reads vitest.config.* from its root only (no parent lookup): a worktree without the file runs without its test.env.
+2026-10-18 · #esm #cycle · doctor → update-check → read/url → ingest/report → doctor once report imports plural: never call an imported function at module top level there.
+2026-10-18 · #ux #doctor · A doctor message ending ": run …" plus a fix: line prints the step twice (decision 66); check every new doctor check.
+2026-10-18 · #red-test #ts · Call a widened factory through a cast or `as never` deps, so typecheck stays green at the QA-Red commit.
+2026-10-18 · #templates #walkthrough #update · A project reads its own .wiki/system/WIKI.md, which only update replaces: text about stale files reaches the agent one release late; test it with updated files and a hand-set manifest version.
+2026-10-18 · #contract #red-test · A story built on a text contract lacks parallel chains' code: merge the sprint branch before QA-Red when its red file imports their modules.
+2026-10-18 · #qa #red-test #ci · CI checks out at fetch depth 1, so a red test cannot git show <base>:path; pin LF-normalised sha256s in a named it().
+2026-10-18 · #docs #test-harness · architecture.md has '## ' lines inside ```md fences: a section splitter must skip fenced blocks.
+2026-10-18 · #readme #unicode · README emoji headings may carry U+FE0F and ranges use U+2013: write red literals with \u escapes.
+2026-10-18 · #red-test #test-harness · snapshotTree helpers must skip symlinks: init --agents claude links skills dirs, readFile gives EISDIR
+2026-10-18 · #qa #red-test #fixtures · Story 007-04 quotes fixture sizes (report docx document.xml 2841 B, article.html 1225 B) that differ from the repo (2851 B, 1237 B); compute expected figures from the fixture bytes, never hardcode them
+2026-10-18 · #red-test #contract · Red tests that size fixtures with estimateTokens fail on the C1 stub before reaching the code under test; the real estimator is only exercised after STORY-007-01 is merged in.
+2026-10-18 · #red-test #lint #test-harness · afterEach setLintHook(null) with no beforeEach restore makes finish lint warnings order-dependent
+2026-10-18 · #test-harness #git · macOS sed has no \n in replacements; use python for multi-line source edits
+2026-10-18 · #qa #red-test #templates · When a red test pins a shipped block, keep BLOCK_LINES and PINS as the old release and add a separate new-line constant for the re-scoped template compare
+2026-10-18 · #qa #test-harness #enforce · init does not create CLAUDE.md or AGENTS.md on its own: write a team file first when a test needs the pointer block
+2026-10-18 · #qa #red-test #contract · a literal dynamic import of a module that does not exist yet leaves one tsc TS2307 error on the red file until the Developer creates the module; expected, not a defect
+2026-10-18 · #test-harness #worktree · A worktree's node_modules holds only caches (packages resolve from the main checkout): run npm ci in it before tests that build with tsc or install the packed package.
 2026-10-18 · #red-test #ts · A red test importing a module its build branch lacks breaks typecheck there: reach unbuilt code through the CLI instead.
 2026-10-18 · #contract #qa · Never catch errors from a contract stub that 'never throws': the catch turns the stub into a passing test.
 2026-10-18 · #test-harness #macos · Build expected child paths from the paths as given, not from realpath (/var resolves to /private/var).

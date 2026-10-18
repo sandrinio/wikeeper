@@ -10,7 +10,7 @@ import { readLogEvents, regenerateLogView } from "../ingest/log.js";
 import type { CommandModule } from "../program.js";
 
 export interface IndexRebuildResult {
-  index: { file: string; pages: number; changed: boolean };
+  index: { file: string; pages: number; archived: number; changed: boolean };
   log: { file: string; events: number };
   skipped: Array<{ file: string; reason: string }>;
 }
@@ -42,14 +42,14 @@ export const indexCommand: CommandModule = {
           ...skipped.map((s) => `${s.file}: ${s.reason}`),
         ];
         const data: IndexRebuildResult = {
-          index: { file: idx.file, pages: idx.pages, changed: idx.changed },
+          index: { file: idx.file, pages: idx.pages, archived: idx.archived, changed: idx.changed },
           log: { file: log.file, events: log.events },
           skipped,
         };
         emitResult(ctx, {
           command: "index rebuild",
           data,
-          message: `rebuilt ${idx.file} (${idx.pages} pages${idx.changed ? "" : ", unchanged"}) and ${log.file} (${log.events} events)`,
+          message: `rebuilt ${idx.file} (${idx.pages} pages${idx.archived > 0 ? `, ${idx.archived} archived` : ""}${idx.changed ? "" : ", unchanged"}) and ${log.file} (${log.events} events)`,
           warnings,
         });
       });
