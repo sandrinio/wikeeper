@@ -4,20 +4,16 @@
 
 ## Active
 
-- [[EPIC-007]] (epic) — Draft — Token gauges
-- [[EPIC-008]] (epic) — Draft — Fact archive
-- [[EPIC-009]] (epic) — Draft — Version check and upgrade
-- [[SPRINT-04]] (sprint) — Active — Token gauges and fact archive
 - [[INITIATIVE-001]] (initiative) — Triaged — Wiki CLI — Karpathy-style LLM wiki for AI agents
 - [[CR-004]] (cr) — Draft — Designer review for CLI output and agent instructions
-- [[BUG-003]] (bug) — Triaged — The agent runs the size line at session start but does not show it, and misses a 🔴 page
+- [[BUG-004]] (bug) — Triaged — Setup reads a large document unmeasured, and the agent names commands to the user
 
 ## Archive
 
-- Epics: 6 Completed · [expand](archive/epics.md)
-- Sprints: 3 Completed · [expand](archive/sprints.md)
+- Epics: 9 Completed · [expand](archive/epics.md)
+- Sprints: 4 Completed · [expand](archive/sprints.md)
 - CRs: 3 Completed · [expand](archive/crs.md)
-- Bugs: 2 Completed · [expand](archive/bugs.md)
+- Bugs: 3 Completed · [expand](archive/bugs.md)
 - Spikes: 3 Completed · [expand](archive/spikes.md)
 
 ## Contradictions
