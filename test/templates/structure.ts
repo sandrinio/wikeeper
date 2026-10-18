@@ -479,6 +479,11 @@ export const DOCUMENTED_FORMS: readonly string[] = [
   "ingest facts --dry-run",
   "search --no-miss",
   "search --mark",
+  "statusline",
+  "statusline --install",
+  "config get",
+  "config set",
+  "config unset",
 ];
 
 export async function checkCoverage(dir: string): Promise<Finding[]> {

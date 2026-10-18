@@ -65,6 +65,13 @@ describe("read-only commands match an allow rule in every mode", () => {
     ["wikeeper rules list --json", "allow", "allow"],
     ["wikeeper rules record --rejected --kind meeting --summary x", "default", "default"],
     ["wikeeper --json status", "default", "default"],
+    ["wikeeper statusline", "allow", "allow"],
+    ["npx wikeeper statusline", "allow", "allow"],
+    ["wikeeper statusline --install", "allow", "allow"],
+    ["wikeeper config get", "allow", "allow"],
+    ["npx wikeeper config get tokens --json", "allow", "allow"],
+    ["wikeeper config set tokens.page.red 12k", "default", "default"],
+    ["wikeeper config unset tokens.page.red", "default", "default"],
   ];
   for (const mode of ["ai", "ask", "whitelist"] as const) {
     for (const [command, claude, codex] of rows) {

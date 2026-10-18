@@ -54,6 +54,10 @@ const READ_ONLY_CLAUDE = [
   "Bash(wikeeper status *)",
   "Bash(npx wikeeper rules list *)",
   "Bash(wikeeper rules list *)",
+  "Bash(npx wikeeper statusline *)",
+  "Bash(wikeeper statusline *)",
+  "Bash(npx wikeeper config get *)",
+  "Bash(wikeeper config get *)",
 ];
 const READ_ONLY_CODEX = [
   'prefix_rule(pattern=["npx","wikeeper","lint"], decision="allow")',
@@ -62,6 +66,10 @@ const READ_ONLY_CODEX = [
   'prefix_rule(pattern=["wikeeper","status"], decision="allow")',
   'prefix_rule(pattern=["npx","wikeeper","rules","list"], decision="allow")',
   'prefix_rule(pattern=["wikeeper","rules","list"], decision="allow")',
+  'prefix_rule(pattern=["npx","wikeeper","statusline"], decision="allow")',
+  'prefix_rule(pattern=["wikeeper","statusline"], decision="allow")',
+  'prefix_rule(pattern=["npx","wikeeper","config","get"], decision="allow")',
+  'prefix_rule(pattern=["wikeeper","config","get"], decision="allow")',
 ];
 const ASK_CLAUDE = [
   "Bash(npx wikeeper ingest *--drop*)",
