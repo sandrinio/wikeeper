@@ -6,12 +6,13 @@ import { CITATION_RE, normalizeName, pageEntities } from "../wiki/parse-page.js"
 import type { LintFinding } from "../ingest/lint-hook.js";
 import type { Page } from "../wiki/parse-page.js";
 import type { LintCheck, LintContext } from "./checks.js";
-import { pagePath } from "./paths.js";
+import { archivePath, pagePath } from "./paths.js";
 
-const resolvers = new WeakMap<readonly Page[], (target: string) => string[]>();
+type Resolver = (target: string) => string[];
+const NO_ARCHIVE: readonly Page[] = [];
+const resolvers = new WeakMap<readonly Page[], WeakMap<readonly Page[], Resolver>>();
 
-/** Resolves a wikilink target to the Page.path values it names; [] = broken. */
-export function linkResolver(pages: readonly Page[]): (target: string) => string[] {
+function keyMap(pages: readonly Page[], archived: boolean): Map<string, string[]> {
   const map = new Map<string, string[]>();
   const add = (key: string, p: string): void => {
     if (key === "") return;
@@ -20,23 +21,57 @@ export function linkResolver(pages: readonly Page[]): (target: string) => string
     else if (!list.includes(p)) list.push(p);
   };
   for (const page of pages) {
-    add(normalizeName(page.path.replace(/\.md$/, "")), page.path);
+    const bare = page.path.replace(/\.md$/, "");
+    add(normalizeName(bare), page.path);
+    if (archived) add(normalizeName("archive/" + bare), page.path);
     for (const e of pageEntities(page)) {
       const keys = entityKeys(e);
       for (const k of keys.names) add(k, page.path);
       for (const k of keys.aliases) add(k, page.path);
     }
   }
-  return (target) => map.get(normalizeName(target)) ?? [];
+  return map;
 }
 
-function sharedResolver(pages: readonly Page[]): (target: string) => string[] {
-  let r = resolvers.get(pages);
+/** Resolves a wikilink target to the Page.path values it names; [] = broken. A pages/ match wins over archive/. */
+export function linkResolver(pages: readonly Page[], archivePages: readonly Page[] = NO_ARCHIVE): Resolver {
+  const live = keyMap(pages, false);
+  if (archivePages.length === 0) return (target) => live.get(normalizeName(target)) ?? [];
+  const archive = keyMap(archivePages, true);
+  return (target) => {
+    const key = normalizeName(target);
+    return live.get(key) ?? archive.get(key) ?? [];
+  };
+}
+
+function sharedResolver(pages: readonly Page[], archivePages: readonly Page[] = NO_ARCHIVE): Resolver {
+  let byArchive = resolvers.get(pages);
+  if (byArchive === undefined) {
+    byArchive = new WeakMap();
+    resolvers.set(pages, byArchive);
+  }
+  let r = byArchive.get(archivePages);
   if (r === undefined) {
-    r = linkResolver(pages);
-    resolvers.set(pages, r);
+    r = linkResolver(pages, archivePages);
+    byArchive.set(archivePages, r);
   }
   return r;
+}
+
+function linkFindings(paths: LintContext["paths"], page: Page, resolve: Resolver, where: (rel: string) => string): LintFinding[] {
+  const findings: LintFinding[] = [];
+  const seen = new Set<string>();
+  for (const link of page.links) {
+    const key = `${link.line}\u0000${normalizeName(link.target)}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    if (resolve(link.target).length > 0) continue;
+    const message = CITATION_RE.test(link.target)
+      ? `[[${link.target}]] cites a source with no page ${pagePath(paths, `sources/${link.target}.md`)}`
+      : `[[${link.target}]] does not resolve to a page`;
+    findings.push({ id: "broken-link", severity: "error", message, path: where(page.path), line: link.line });
+  }
+  return findings;
 }
 
 export const brokenLinkCheck: LintCheck = {
@@ -44,21 +79,11 @@ export const brokenLinkCheck: LintCheck = {
   severity: "error",
   scope: "pages",
   async run(ctx: LintContext): Promise<LintFinding[]> {
-    const resolve = sharedResolver(ctx.pages);
+    const archive = ctx.archivePages ?? NO_ARCHIVE;
+    const resolve = sharedResolver(ctx.pages, archive);
     const findings: LintFinding[] = [];
-    for (const page of ctx.pages) {
-      const seen = new Set<string>();
-      for (const link of page.links) {
-        const key = `${link.line}\u0000${normalizeName(link.target)}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
-        if (resolve(link.target).length > 0) continue;
-        const message = CITATION_RE.test(link.target)
-          ? `[[${link.target}]] cites a source with no page ${pagePath(ctx.paths, `sources/${link.target}.md`)}`
-          : `[[${link.target}]] does not resolve to a page`;
-        findings.push({ id: "broken-link", severity: "error", message, path: pagePath(ctx.paths, page.path), line: link.line });
-      }
-    }
+    for (const page of ctx.pages) findings.push(...linkFindings(ctx.paths, page, resolve, (r) => pagePath(ctx.paths, r)));
+    for (const page of archive) findings.push(...linkFindings(ctx.paths, page, resolve, (r) => archivePath(ctx.paths, r)));
     return findings;
   },
 };

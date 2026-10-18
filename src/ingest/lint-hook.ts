@@ -12,6 +12,7 @@ export interface LintHookContext {
   paths: ResolvedPaths;
   sourceId: string;
   changed: string[]; // created ∪ updated, relative to pages/
+  archiveChanged?: string[]; // created ∪ updated, relative to archive/
 }
 export type LintHook = (ctx: LintHookContext) => Promise<LintFinding[]>;
 
