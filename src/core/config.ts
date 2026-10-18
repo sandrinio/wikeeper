@@ -2,9 +2,11 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { isDeepStrictEqual } from "node:util";
 import path from "node:path";
 import YAML from "yaml";
+import type { TokenLimits } from "./tokens.js";
 
 export type IngestPermission = "ai" | "ask" | "whitelist";
 export type IngestDelegate = "auto" | "never";
+export type TokenConfirmAt = "yellow" | "red" | "never";
 
 export interface WikeeperConfig {
   profile: string;
@@ -23,6 +25,7 @@ export interface WikeeperConfig {
   };
   hooks: { pre_ingest: string[]; post_ingest: string[] };
   lint: { stale_after_days: number };
+  tokens: { page: TokenLimits; source: TokenLimits & { confirm_at: TokenConfirmAt } };
 }
 export type WikiConfig = WikeeperConfig;
 export interface ConfigIssue {
@@ -171,6 +174,10 @@ async function readIfExists(file: string): Promise<string | null> {
     if ((err as NodeJS.ErrnoException).code === "ENOENT") return null;
     throw err;
   }
+}
+
+export function tokenLimitIssues(_tokens: WikeeperConfig["tokens"]): ConfigIssue[] {
+  throw new Error("contract stub C1");
 }
 
 export async function loadConfig(root: string): Promise<LoadConfigResult> {
