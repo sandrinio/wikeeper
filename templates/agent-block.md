@@ -1,7 +1,7 @@
 <!-- WIKI:START v1 — managed by wikeeper -->
 ## Project Wiki
 Managed by wikeeper — edit outside this block only.
-This repo has a knowledge wiki in `.wiki/`; its content folder is set by `content_dir` in `.wiki/config.yml`.
+This repo has a knowledge wiki in `.wiki/`; its content folder is set by `content_dir` in `.wiki/config.yml`. Once set up, open each session with the size `wikeeper statusline` prints, not an error.
 If `.wiki/config.yml` has no `setup_completed_at`, follow `.wiki/system/SETUP.md` first.
 Otherwise read `.wiki/system/WIKI.md` before ingesting, searching or editing anything in the wiki (skills: `wiki-ingest`, `wiki-search`).
 At the start of every session read `.wiki/me.md` and `.wiki/project.md`; if `.wiki/me.md` is missing, first onboard the user with `.wiki/system/ONBOARDING.md`.

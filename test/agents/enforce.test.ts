@@ -249,6 +249,10 @@ const RO_CLAUDE_IDS = [
   "permissions.allow[Bash(wikeeper status *)]",
   "permissions.allow[Bash(npx wikeeper rules list *)]",
   "permissions.allow[Bash(wikeeper rules list *)]",
+  "permissions.allow[Bash(npx wikeeper statusline *)]",
+  "permissions.allow[Bash(wikeeper statusline *)]",
+  "permissions.allow[Bash(npx wikeeper config get *)]",
+  "permissions.allow[Bash(wikeeper config get *)]",
 ];
 const RO_CODEX = [
   'prefix_rule(pattern=["npx","wikeeper","lint"], decision="allow")',
@@ -257,6 +261,10 @@ const RO_CODEX = [
   'prefix_rule(pattern=["wikeeper","status"], decision="allow")',
   'prefix_rule(pattern=["npx","wikeeper","rules","list"], decision="allow")',
   'prefix_rule(pattern=["wikeeper","rules","list"], decision="allow")',
+  'prefix_rule(pattern=["npx","wikeeper","statusline"], decision="allow")',
+  'prefix_rule(pattern=["wikeeper","statusline"], decision="allow")',
+  'prefix_rule(pattern=["npx","wikeeper","config","get"], decision="allow")',
+  'prefix_rule(pattern=["wikeeper","config","get"], decision="allow")',
 ];
 
 describe("CR-001 ai mode allows only ingest and search commands, and asks for the destructive flags", () => {
@@ -319,13 +327,13 @@ describe("CR-001 ai mode allows only ingest and search commands, and asks for th
     expect(vals("whitelist")).toEqual([...SEARCH_CX, ...RO_CODEX]);
   });
 
-  it("READ_ONLY_COMMANDS is exactly lint, status and rules list, and both writers build from it, npx first", () => {
-    expect([...READ_ONLY_COMMANDS]).toEqual(["lint", "status", "rules list"]);
+  it("READ_ONLY_COMMANDS is exactly lint, status, rules list, statusline and config get, and both writers build from it, npx first", () => {
+    expect([...READ_ONLY_COMMANDS]).toEqual(["lint", "status", "rules list", "statusline", "config get"]);
     for (const mode of ["ai", "ask", "whitelist"] as const) {
       const claude = CLAUDE_ENFORCE.items("CMD", mode).filter((i) => i.kind === "rule").map((i) => i.value);
-      expect(claude.slice(-6)).toEqual(READ_ONLY_COMMANDS.flatMap((c) => [`Bash(npx wikeeper ${c} *)`, `Bash(wikeeper ${c} *)`]));
+      expect(claude.slice(-10)).toEqual(READ_ONLY_COMMANDS.flatMap((c) => [`Bash(npx wikeeper ${c} *)`, `Bash(wikeeper ${c} *)`]));
       const codex = CODEX_ENFORCE[1].items("CMD", mode).map((i) => i.value);
-      expect(codex.slice(-6)).toEqual(
+      expect(codex.slice(-10)).toEqual(
         READ_ONLY_COMMANDS.flatMap((c) => {
           const t = c.split(" ").map((w) => `"${w}"`).join(",");
           return [`prefix_rule(pattern=["npx","wikeeper",${t}], decision="allow")`, `prefix_rule(pattern=["wikeeper",${t}], decision="allow")`];
@@ -341,15 +349,15 @@ describe("STORY-005-09: read-only allow rules through init, update and enforce f
     JSON.parse(await readFile(manifestPath(root), "utf8")).files.filter((e: any) => e.kind === "rule").map((e: any) => e.identity);
 
   for (const mode of ["ai", "ask", "whitelist"] as const) {
-    it(`init --enforce in ${mode} mode writes the six rules last and records twelve rule entries`, async () => {
+    it(`init --enforce in ${mode} mode writes the ten rules last and records twenty rule entries`, async () => {
       await pathWith(true);
       const root = await repo({ ".wiki/config.yml": `agents: [claude, codex]\ningest:\n  permission: ${mode}\n` });
       expect((await drive(root, ["init", "--json", "--enforce", "--yes"])).code).toBe(0);
       const allow: string[] = JSON.parse(await read(root, ".claude/settings.json")).permissions.allow;
-      expect(allow.slice(-8, -6)).toEqual(["Bash(npx wikeeper search *)", "Bash(wikeeper search *)"]);
-      expect(allow.slice(-6)).toEqual(RO_CLAUDE_IDS.map((i) => /\[(.*)\]$/.exec(i)![1]));
+      expect(allow.slice(-12, -10)).toEqual(["Bash(npx wikeeper search *)", "Bash(wikeeper search *)"]);
+      expect(allow.slice(-10)).toEqual(RO_CLAUDE_IDS.map((i) => /\[(.*)\]$/.exec(i)![1]));
       const lines = (await read(root, ".codex/rules/wikeeper.rules")).split("\n").filter(Boolean);
-      expect(lines.slice(-6)).toEqual(RO_CODEX);
+      expect(lines.slice(-10)).toEqual(RO_CODEX);
       const ids = await ruleIds(root);
       for (const id of RO_CLAUDE_IDS) expect(ids).toContain(id);
       for (const line of RO_CODEX) expect(ids).toContain(line);
@@ -375,10 +383,10 @@ describe("STORY-005-09: read-only allow rules through init, update and enforce f
     expect((await drive(root, ["update", "--json"])).code).toBe(0);
     const after = JSON.parse(await read(root, ".claude/settings.json"));
     expect(after.model).toBe("x");
-    expect(after.permissions.allow.slice(-6)).toEqual(RO_CLAUDE_IDS.map((i) => /\[(.*)\]$/.exec(i)![1]));
+    expect(after.permissions.allow.slice(-10)).toEqual(RO_CLAUDE_IDS.map((i) => /\[(.*)\]$/.exec(i)![1]));
     const lines = (await read(root, ".codex/rules/wikeeper.rules")).split("\n").filter(Boolean);
     expect(lines.slice(0, older.length)).toEqual(older);
-    expect(lines.slice(-6)).toEqual(RO_CODEX);
+    expect(lines.slice(-10)).toEqual(RO_CODEX);
     const ids = await ruleIds(root);
     for (const id of [...RO_CLAUDE_IDS, ...RO_CODEX]) expect(ids).toContain(id);
 
@@ -389,10 +397,10 @@ describe("STORY-005-09: read-only allow rules through init, update and enforce f
 
     await writeFile(path.join(root, ".wiki", "config.yml"), (await read(root, ".wiki/config.yml")).replace(/permission: ai/, "permission: ask"));
     expect((await drive(root, ["update", "--json"])).code).toBe(0);
-    expect(JSON.parse(await read(root, ".claude/settings.json")).permissions.allow.slice(-6)).toEqual(
+    expect(JSON.parse(await read(root, ".claude/settings.json")).permissions.allow.slice(-10)).toEqual(
       RO_CLAUDE_IDS.map((i) => /\[(.*)\]$/.exec(i)![1]),
     );
-    // update appends the lines a file lacks at its end, so the six stay but are no longer last.
+    // update appends the lines a file lacks at its end, so the ten stay but are no longer last.
     expect((await read(root, ".codex/rules/wikeeper.rules")).split("\n").filter(Boolean)).toEqual(expect.arrayContaining(RO_CODEX));
 
     await writeFile(path.join(root, ".wiki", "config.yml"), (await read(root, ".wiki/config.yml")).replace(/enforce: true/, "enforce: false"));

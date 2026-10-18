@@ -112,17 +112,25 @@ You control what enters your knowledge base via `ingest.permission` in `.wiki/co
 
 ---
 
+## 📏 Token Gauges
+
+Every size `wikeeper` shows is an estimate in tokens, printed with `≈` and within about ±15% of Claude's count. A source is 🟢, 🟡 or 🔴 against `tokens.source` (20k and 60k by default), a page against `tokens.page` (4k and 10k); the wiki total has no level. When a source reaches `tokens.source.confirm_at` (yellow by default), `wikeeper ingest start` asks for your approval before the source is read, in every permission mode. Change a limit with `wikeeper config set`, for example `wikeeper config set tokens.page.red 12k`; `wikeeper statusline` prints the wiki's size on one line.
+
+---
+
 ## 🧰 CLI Command Reference
 
 | Command | Description |
 | :--- | :--- |
 | `wikeeper init [--profile management] [--enforce]` | Scaffold `.wiki/`, wire up `CLAUDE.md` / `AGENTS.md` / `GEMINI.md`, and install skills & sub-agents |
-| `wikeeper read <file\|url> [--out <file>]` | Convert PDF, DOCX, web URLs, HTML, Markdown, or CSV into clean Markdown |
+| `wikeeper read <file\|url> [--out <file>]` | Convert PDF, DOCX, web URLs, HTML, Markdown, or CSV into clean Markdown, with its estimated size |
 | `wikeeper ingest start · plan · facts · apply · finish · abort` | Run the 3-phase transactional ingest pipeline (or `--dry-run` on `facts` to preview rule changes) |
 | `wikeeper search [query]` | Full-text BM25 + structured search (`--type`, `--where`, `--status`, `--mark decided\|tentative`, `--entity`, `--since`, `--misses`) |
-| `wikeeper lint [--rules] [--check <id>]` | Check pages (`broken-link`, `uncited-claim`, `orphan-page`, `index-drift`, `unlogged-change`, `stale-fact`) or validate `kb_instructions.md` |
-| `wikeeper status` | Show active locks, unfinished sources, re-ingest candidates (from rule upgrades), pending rule suggestions, and search misses |
+| `wikeeper lint [--rules] [--check <id>]` | Check pages (`broken-link`, `uncited-claim`, `orphan-page`, `index-drift`, `unlogged-change`, `stale-fact`, `oversized-page`) or validate `kb_instructions.md` |
+| `wikeeper status` | Show active locks, unfinished sources, re-ingest candidates (from rule upgrades), pending rule suggestions, search misses, and the `tokens` section (the wiki's size and its largest pages) |
 | `wikeeper rules record · list` | Record `--accepted` or `--rejected` rule proposals with SHA-256 fingerprints so rejected ideas are never re-offered |
+| `wikeeper config get · set · unset` | Read and change the token limits in `.wiki/config.yml` |
+| `wikeeper statusline [--install]` | Print the wiki's size on one line; `--install` adds it to Claude Code's status line |
 | `wikeeper doctor` | Verify agent wiring, setup files (`me.md`, `project.md`), hook rules, and `kb_instructions.md` syntax |
 | `wikeeper update` / `wikeeper remove [--purge]` | Upgrade package-owned system files and skills without touching your knowledge base |
 
@@ -157,7 +165,7 @@ Out of the box, `wikeeper` ships with the **Management** profile:
 ```bash
 npm install
 npm test          # Unit, structural, and acceptance suite
-npm run test:perf # Search & cache performance benchmarks
+npm run test:perf # Search, cache and status-line performance benchmarks
 npm run build     # TypeScript build + commit stamp
 ```
 
