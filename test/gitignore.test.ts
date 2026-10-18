@@ -20,6 +20,12 @@ describe("managedIgnoreEntries", () => {
     expect(r.entries.slice(-2)).toEqual([".wiki/pages/a.md", ".wiki/pages/b.md"]);
     expect(path.sep).toBeTruthy();
   });
+
+  it("mirrors each private entry under archive/, sorted before the pages/ entries", () => {
+    const r = managedIgnoreEntries(resolvePaths(root, DEFAULT_CONFIG), { private: ["team.md", "../x.md"] });
+    expect(r.warnings).toHaveLength(1);
+    expect(r.entries.slice(-2)).toEqual([".wiki/archive/team.md", ".wiki/pages/team.md"]);
+  });
 });
 
 describe("applyManagedBlock", () => {

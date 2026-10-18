@@ -86,6 +86,7 @@ describe("STORY-002-08 unit: managedIgnoreEntries backups parameter and backupPa
     wikiDir: path.resolve("/r/.wiki"),
     contentDir: path.resolve("/r/.wiki"),
     pagesDir: path.resolve("/r/.wiki/pages"),
+    archiveDir: path.resolve("/r/.wiki/archive"),
     rawDir: path.resolve("/r/.wiki/raw"),
     lockFile: path.resolve("/r/.wiki/.lock"),
     meFile: path.resolve("/r/.wiki/me.md"),
@@ -103,6 +104,7 @@ describe("STORY-002-08 unit: managedIgnoreEntries backups parameter and backupPa
     expect(withBak.slice(base.length)).toEqual([
       ".claude/settings.json.bak",
       ".codex/hooks.json.bak",
+      ".wiki/archive/secret.md",
       ".wiki/pages/secret.md",
     ]);
   });
