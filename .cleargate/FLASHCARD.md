@@ -6,6 +6,9 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-19 · #red-test #templates #pointer-block · The raw sha256 of templates/agent-block.md is pinned in archive-instructions.red R11 (e), upgrade-instructions.red R2 and writing-and-answering-text.red R14: a pointer-block change re-scopes all three, plus any WIKI.md phrase a red row checks.
+2026-10-19 · #red-test #shipped-blocks · Plant old pointer blocks with SHIPPED_BLOCKS.find(by sha256), never by index: it also catches an entry edited in place instead of appended.
+2026-10-19 · #walkthrough #instructions · "Open each session with X" reads to the agent as "run X", not "show X": say where the output goes ("in your first reply"), and put a must-tell rule where a question-only session reads it.
 2026-10-18 · #red-test #docs #planning · A red row that pins a growing range (README's `D-01`–`D-NN`) breaks when a later story in the sprint adds an entry; pin "ends at NN or later" and drop any bare `D-NN` phrase that only the range contained, or plan the re-scope with the later story at Gate 1.
 2026-10-18 · #qa #cli #npx · npx cannot run a .tgz directly (`npx -y <tgz>` fails, permission denied); test an npx install with `npx -y --package=<tgz> -- wikeeper …`.
 2026-10-18 · #windows #cli · Node >= 24 prints DEP0190 when spawn gets an args array with shell: true; join the checked constant args into one command line and spawn it with no args array.
