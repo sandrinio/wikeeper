@@ -38,6 +38,7 @@ describe("report", () => {
     created: ["a.md"],
     updated: [],
     deleted: ["b.md", "c.md"],
+    archived: { facts: 0, pages: 0 },
     contradictions: 1,
     rule_suggestions: 2,
     log_file: ".wiki/log/x.md",

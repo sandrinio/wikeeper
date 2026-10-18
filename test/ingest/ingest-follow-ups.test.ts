@@ -62,9 +62,9 @@ describe("dropped fact lines", () => {
     expect(v.invalid.length).toBeGreaterThan(0);
   });
 
-  it("does not check created pages, deleted pages or non-md files", async () => {
+  it("does not check created pages or non-md files", async () => {
     const paths = await setup(null, OLD);
-    const v = await validateIngest(paths, ID, { created: ["roadmap.md"], updated: [], deleted: ["gone.md"] }, { modified: [], deleted: [] });
+    const v = await validateIngest(paths, ID, { created: ["roadmap.md"], updated: [], deleted: [] }, { modified: [], deleted: [] });
     expect(v.dropped).toEqual([]);
   });
 

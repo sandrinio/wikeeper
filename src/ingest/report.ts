@@ -1,4 +1,5 @@
 // The ingest report (STORY-003-09 R7): metadata only, never page content (D-08).
+import { plural } from "../commands/doctor.js";
 import type { IngestPermission } from "../core/config.js";
 import type { Page } from "../wiki/parse-page.js";
 import type { LintFinding } from "./lint-hook.js";
@@ -15,6 +16,7 @@ export interface IngestReport {
   created: string[];
   updated: string[];
   deleted: string[];
+  archived: { facts: number; pages: number };
   contradictions: number;
   rule_suggestions: number;
   log_file: string;
@@ -37,10 +39,14 @@ export function formatSize(bytes: number): string {
 
 export function formatReport(r: IngestReport): string[] {
   const rule = r.rule_version === null ? `no rule for ${r.kind}` : `rule ${r.kind} v${r.rule_version}`;
-  return [
+  const lines = [
     `✅ Ingested ${r.source_id}`,
     `   kind ${r.kind} · origin ${r.origin} · ${formatSize(r.size)} · sha ${r.sha256.slice(0, 4)}…`,
     `   ${rule} · permission ${r.permission}`,
     `   created ${r.created.length} · updated ${r.updated.length} · deleted ${r.deleted.length} · contradictions ${r.contradictions} · rule suggestions ${r.rule_suggestions}`,
   ];
+  if (r.archived.facts > 0 || r.archived.pages > 0) {
+    lines.push(`   archived ${plural(r.archived.facts, "fact line")} · ${plural(r.archived.pages, "page")}`);
+  }
+  return lines;
 }
