@@ -1,6 +1,7 @@
 // Contract C2 — permission evaluation (owner STORY-003-02). Frozen exports.
 import { homedir } from "node:os";
 import type { WikeeperConfig } from "../core/config.js";
+import type { TokenLevel } from "../core/tokens.js";
 import { normalizeKindId } from "./kind-rules.js";
 import type { OriginType } from "./registry.js";
 
@@ -149,4 +150,23 @@ export function evaluatePermission(
       `Checked origin entries: ${list(origins)}. Checked kind entries: ${list(kinds)}; ` +
       `path entries support **, * and ? - add the path or the kind to ingest.whitelist in .wiki/config.yml.`,
   };
+}
+
+// Contract C2 (K5, frozen). STORY-007-03 replaces the bodies; names and types stay.
+export type SourceLimits = WikeeperConfig["tokens"]["source"];
+export interface SizeCheck {
+  tokens: number;
+  rough: boolean;
+  level: TokenLevel;
+  limit: number | null;
+  confirm_at: SourceLimits["confirm_at"];
+  reached: boolean;
+}
+
+export function checkSourceSize(_counted: { tokens: number; rough: boolean }, _limits: SourceLimits): SizeCheck {
+  throw new Error("contract stub C2");
+}
+
+export function sizeLimitText(_check: SizeCheck): string {
+  throw new Error("contract stub C2");
 }
