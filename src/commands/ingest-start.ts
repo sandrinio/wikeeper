@@ -7,6 +7,7 @@ import type { Command } from "commander";
 import { loadConfig } from "../core/config.js";
 import { ExitCode, WikeeperError } from "../core/exit-codes.js";
 import { emitResult, getOutputContext } from "../core/output.js";
+import { updateNotice } from "../core/update-check.js";
 import type { OutputContext } from "../core/output.js";
 import { assertInitialised, findRepoRoot, isInside, resolvePaths } from "../core/paths.js";
 import { stripBom } from "../core/text.js";
@@ -230,6 +231,8 @@ export function createIngestStartCommand(deps: { now?: () => Date } = {}): Inges
               available_kinds: availableKinds,
               next: null,
             };
+            const notice = updateNotice(command);
+            if (notice !== null) warnings.push(notice);
             emitResult(ctx, {
               command: "ingest start",
               data,
@@ -305,6 +308,8 @@ export function createIngestStartCommand(deps: { now?: () => Date } = {}): Inges
             available_kinds: availableKinds,
             next,
           };
+          const notice = updateNotice(command);
+          if (notice !== null) warnings.push(notice);
           emitResult(ctx, {
             command: "ingest start",
             data,
