@@ -19,7 +19,7 @@ server_pushed_at_version: null
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-18T21:44:01Z
+  last_gate_check: 2026-10-18T22:26:36Z
   transition: ready-for-fix
 pushed_by: null
 pushed_at: null
@@ -57,7 +57,8 @@ draft_tokens:
   - A new WIKI.md section "Talking to the user", right after the opening paragraph: `The commands, flags, codes, JSON and settings keys and wikeeper's own file names in these instructions are for you, not for the user. Never say one to the user, and never ask the user to run a command: run it yourself, after their yes where one is needed, and tell them in plain words what you did or found. You may name the user's own files (\`me.md\`, \`project.md\`, \`config.yml\`, \`kb_instructions.md\`) when you show or change one. The one exception is a step only the user can take, such as a command you must never run (section "Lint and status"): show that one command in a code span and say why you can't run it.`
   - One sentence under the title of SETUP.md and of ONBOARDING.md, and one at the end of each of the three skills (`wiki-ingest`, `wiki-search`, `wiki-setup`): `Talk to the user in plain words: \`.wiki/system/WIKI.md\`, section "Talking to the user".`
   - SETUP.md step 6 and ONBOARDING.md step 5: "…and that if it does not, they should run `wikeeper doctor`" becomes "…and that if it does not, they can tell you and you will check the setup".
-- **Human decision:** _approved as recommended (human, 2026-10-19, Brief: "Approve all")_
+  - Added at the human's review (the agent runs doctor itself, never the user): WIKI.md "Talking to the user" also says `When the user says you did not use their name, their preferences or the project brief, run \`wikeeper doctor\` yourself, tell them in plain words what it found, and fix it with their approval.`, so a later session knows what "check the setup" means.
+- **Human decision:** _approved as recommended (human, 2026-10-19, Brief: "Approve all"); the doctor sentence added after the human asked "it could run it itself, right?"_
 
 - **Question (Q4, the permission modes):** SETUP.md step 4 says "Show this table of what each mode installs", and the agent showed the user a table of command patterns (`ingest *--drop*`, `.codex/rules/wikeeper.rules`). What does step 4 say?
 - **Recommended:** "Explain the three modes of `ingest.permission`:" becomes `Explain the three modes of \`ingest.permission\` to the user in plain words, one sentence each: who approves before a document goes into the wiki.` "Show this table of what each mode installs when `enforce` is on:" becomes `This table, for you, lists what each mode installs when \`enforce\` is on. Show it only if the user asks what changes in their agent's settings, and then say it in plain words:` The table itself stays.
@@ -74,6 +75,18 @@ draft_tokens:
 - **Question (Q7, the gate):** The reproduction is behavioural (one new-user run), so the gate's "100% deterministic" criterion is not met literally. Proceed?
 - **Recommended:** Yes, as for BUG-003. The text is checked deterministically by the red test; the behaviour by a re-walk: a new-user run in a fresh throwaway folder (setup to the first source) and 3 fresh sessions, with the pass rules in §5.
 - **Human decision:** _approved as recommended (human, 2026-10-19, Brief: "Approve all")_
+
+- **Question (Q8, the plan's wording corrections):** The Architect (`plans/M7.md` §1.0) found four defects in the recommended texts. C1: "sizes wikeeper printed" fails two sealed vocabulary checks (they read `printed` as a command). C2: Q1 never says `--out` goes in the system temp folder. C3: `read --json` prints the whole document, so measuring with it reads it. C4: Q4's "Show it only if …, and then say it in plain words" contradicts itself. Accept?
+- **Recommended:** Yes: C1 "sizes the CLI printed" (ux.md §1.7's own words); C2 adds "make `--out` a new file in the system temp directory"; C3 adds "Run it without `--json`: with it, `read` prints the whole text."; C4 "Show" → "Use". None changes a decision.
+- **Human decision:** _accepted by the orchestrator as wording fixes (2026-10-19); reported to the human_
+
+- **Question (Q9, five more sentences):** The plan found sentences that contradict Q3's rule: WIKI.md "Write phase" step 9 "show the user its report" (the raw report holds a hash, a rule version and the permission mode; ux.md A.23); Register's exit-3 "show the user what `wikeeper ingest start` returned"; "Lint and status"'s whitelist re-ingest bullet naming `ingest.whitelist.kinds` to the user; SETUP.md step 4 "agree `ingest.whitelist.kinds` and `ingest.whitelist.origins` with the user"; SETUP.md step 6 and ONBOARDING.md step 5 "quote the finding". Fix now?
+- **Recommended:** Fix now, in this bug: the same defect in the same files, and the re-walk's first ingest is on the path. The Architect gives the exact texts in `plans/M7.md`.
+- **Human decision:** _fix now in BUG-004 (human, 2026-10-19)_. The Architect's grep of `templates/**` found five more sentences with the same defect, included by the orchestrator under the same decision (`plans/M7.md` §1.9, items f–j): SETUP.md step 4's chat-capture sentence (kind id and key) and step 3's rules-check findings (check ids); WIKI.md "Register" exit 4 (the denial reason names `ingest.permission`) and the directory plan (its `run wikeeper ingest start … --approved` line); "Proposing rule changes"' dry run (source ids, rule versions, raw fact lines). Every sentence left alone has its reason in §1.9 (the user's own content, a size the user must see, or the allowed exception); no sub-agent template mentions the user.
+
+- **Question (Q10, re-scopes):** Which sealed tests change?
+- **Recommended:** #25–#30 exactly as `plans/M7.md` §2.2 gives them, applied by QA-Red only: #25 `bug-003-session-line.red` (line 4, "before any text", the WIKI.md sentence); #26 `writing-and-answering-text.red` (LINE_4_SPRINT_04); #27 `token-instructions.red` (the session phrase, the section list, the skill/ONBOARDING/SETUP pins); #28 `archive-instructions.red` and #29 `upgrade-instructions.red` (section lists and hash pins); #30 `wiki-protocol.red` (section list). No other sealed file pins a changed sentence.
+- **Human decision:** _covered by the approved Brief ("the Architect will list each one, and QA-Red alone edits them", Risks); recorded by the orchestrator (2026-10-19)_
 
 ## 1. The Anomaly (Expected vs. Actual)
 
@@ -141,9 +154,9 @@ WIKI.md 293    … Show it to the user in your first reply of every session.
 ## 4. Execution Sandbox (Suspected Blast Radius)
 
 **Investigate / Modify:**
-- `templates/system/SETUP.md`: the sentence under the title (Q3, Q5), step 2.1 (Q1), step 4's two lead sentences (Q4), step 6's last sentence (Q3), step 7 (Q2). The step 4 table stays.
-- `templates/system/ONBOARDING.md`: the sentence under the title (Q3, Q5), step 5's last sentence (Q3).
-- `templates/system/WIKI.md`: the new section "Talking to the user" after the opening paragraph (Q3); "Lint and status": the sizes paragraph's last sentence (Q2) and the statusline sentence (Q6).
+- `templates/system/SETUP.md`: the sentence under the title (Q3, Q5), step 2.1 (Q1), step 3's rules-check sentence (Q9), step 4's two lead sentences (Q4), its whitelist and chat-capture sentences (Q9), step 6's doctor sentences (Q3, Q9), step 7 (Q2). The step 4 table stays.
+- `templates/system/ONBOARDING.md`: the sentence under the title (Q3, Q5), step 5's doctor sentences (Q3, Q9).
+- `templates/system/WIKI.md`: the new section "Talking to the user" after the opening paragraph (Q3); "Write phase" step 9 (Q9); "Register": the exit-3, exit-4 and directory bullets (Q9); "Proposing rule changes": the dry-run sentence (Q9); "Lint and status": the sizes paragraph's last sentence (Q2), the statusline sentence (Q6) and the whitelist re-ingest bullet (Q9). Exact texts: `plans/M7.md` §1.
 - `templates/skills/wiki-ingest/SKILL.md`, `templates/skills/wiki-search/SKILL.md`, `templates/skills/wiki-setup/SKILL.md`: one sentence each (Q3).
 - `templates/agent-block.md`: line 4 only (Q6). Still 14 lines, each at most 200 UTF-16 units.
 - `src/agents/shipped-blocks.ts`: append the new block (Q6); never edit an earlier entry.
@@ -208,6 +221,11 @@ Feature: Setup measures a document before reading it, and the agent speaks in pl
     Then neither holds "they should run `wikeeper doctor`"
     And SETUP.md step 4 tells the agent to explain the modes in plain words and holds no "Show this table"
     And SETUP.md says all of ONBOARDING.md is step 1, and ONBOARDING.md says not to number its steps to the user
+    And WIKI.md "Write phase" tells the agent to pass on the finish report's figures in plain words and never paste the report
+    And WIKI.md "Register" tells the agent to ask for an approval, give a refusal's reason and show a folder plan in plain words, never the command's raw output
+    And WIKI.md "Proposing rule changes" and "Lint and status" tell the user in plain words what a rule change would do and what a whitelist re-ingest needs
+    And SETUP.md steps 3 and 4 go through the rules check and agree the whitelist in plain words, and the agent writes the whitelist keys itself
+    And SETUP.md step 6 and ONBOARDING.md step 5 tell the user in plain words what doctor found, quote no finding, and have the agent run a fix line itself after a yes
 
   Scenario: Line 4 puts the size line before any text
     Given templates/agent-block.md
