@@ -1,6 +1,6 @@
 {
   "name": "wikeeper",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "A Karpathy-style LLM wiki that your AI coding agent keeps: gated ingest, cited facts, search. Works with Claude Code, Codex and Antigravity.",
   "keywords": [
     "llm-wiki",

@@ -152,7 +152,7 @@ describe("STORY-006-11 S4: the R6 re-scopes are in place (anchors by content)", 
     expect(setup).toContain('["doctor", "update", "setup", "ingest", "read", "lint"]');
     expect(setup).toContain("only SPRINT-03 commands");
     expect(setup).toContain("Bash(npx wikeeper read *), Bash(wikeeper read *)");
-    expect(setup).toContain("Bash(wikeeper rules list *)]");
+    expect(setup).toContain("Bash(wikeeper config get *)]");
 
     expect(await src("test/templates/onboarding.red.node.test.ts")).toContain(
       'toMatch(/\\.wiki\\/system\\/WIKI\\.md`?, section "Proposing rule changes"/)',
@@ -171,7 +171,7 @@ describe("STORY-006-11 S4: the R6 re-scopes are in place (anchors by content)", 
       expect(t).toContain("const READ_ONLY_CLAUDE = [");
       expect(t).toContain("const READ_ONLY_CODEX = [");
     }
-    expect(enforce).toContain("toHaveLength(9)");
+    expect(enforce).toContain("toHaveLength(13)");
 
     expect(await src("test/search/search-misses.red.node.test.ts")).toContain('"1 miss, 1 distinct query"');
   });

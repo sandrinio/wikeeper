@@ -181,6 +181,13 @@ describe("SPRINT-03 structural checks (STORY-006-11)", () => {
     expect([...tree.commands.get("rules")!.subcommands.get("record")!].sort()).toEqual(["--accepted", "--from", "--kind", "--rejected", "--summary"]);
   });
 
+  it("the command tree has the SPRINT-04 config and statusline commands", () => {
+    const tree = commandTree();
+    for (const c of ["config", "statusline"]) expect(tree.commands.has(c), c).toBe(true);
+    expect([...tree.commands.get("config")!.subcommands.keys()].sort()).toEqual(["get", "set", "unset"]);
+    expect([...tree.commands.get("statusline")!.options]).toContain("--install");
+  });
+
   it("checkCoverage names the one form whose last mention was removed", async () => {
     const { copy, text } = await copyWith("system/WIKI.md", (t) => t.replaceAll(" --dry-run`", "`"));
     expect(text).not.toContain(" --dry-run`");
