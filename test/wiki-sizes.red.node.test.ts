@@ -94,12 +94,9 @@ function sized(head: string, target: number): string {
   expect(estimateTokens(text)).toBe(target);
   return text;
 }
+/** Text that starts with `head` and measures `target` tokens under the real estimator. */
 function approx(head: string, target: number): string {
-  let text = head;
-  const unit = "word ";
-  const n = Math.max(0, Math.floor((target - estimateTokens(head)) / 2.2));
-  text += unit.repeat(n);
-  return text;
+  return sized(head, target);
 }
 async function listPages(dir: string, rel = ""): Promise<string[]> {
   const out: string[] = [];
