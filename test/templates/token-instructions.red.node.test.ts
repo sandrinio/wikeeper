@@ -296,11 +296,18 @@ describe("STORY-007-07 S2: the size guidance matches what the commands report", 
 
   it("config get tokens exits 0 and marks its values as defaults [group B: 007-02]", async () => {
     const root = await repo("ai");
+    const setRes = await run(root, ["config", "set", "tokens.page.red", "12k"]);
+    expect(setRes.code, `${setRes.text} ${setRes.err}`).toBe(0);
+    const unsetRes = await run(root, ["config", "unset", "tokens.page.red"]);
+    expect(unsetRes.code, `${unsetRes.text} ${unsetRes.err}`).toBe(0);
     const res = await run(root, ["config", "get", "tokens"]);
     expect(res.code, `${res.text} ${res.err}`).toBe(0);
     const lines = res.text.trim().split("\n");
     expect(lines.length).toBe(5);
-    for (const l of lines) expect(l.endsWith(" (default)"), l).toBe(true);
+    for (const l of lines) {
+      if (l.includes("tokens.page.red")) expect(l.endsWith(" (default)"), l).toBe(true);
+      else expect(l.endsWith(" (default)"), l).toBe(false);
+    }
     const json = await run(root, ["config", "get", "tokens", "--json"]);
     expect(json.json.data.entries.map((e: any) => e.key)).toEqual([
       "tokens.page.yellow",
@@ -309,7 +316,7 @@ describe("STORY-007-07 S2: the size guidance matches what the commands report", 
       "tokens.source.red",
       "tokens.source.confirm_at",
     ]);
-    for (const e of json.json.data.entries) expect(e.from_default).toBe(true);
+    for (const e of json.json.data.entries) expect(e.from_default).toBe(e.key === "tokens.page.red");
   }, T);
 
   it("the fields that open a status bullet are exactly the keys of status --json, tokens among them [group B: 007-05]", async () => {
