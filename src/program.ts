@@ -23,6 +23,7 @@ import { lintCommand } from "./commands/lint.js";
 import { rulesCommand } from "./commands/rules.js";
 import { readCommand } from "./commands/read.js";
 import { statusCommand } from "./commands/status.js";
+import { upgradeCommand } from "./commands/upgrade.js";
 import { ensureAgentsIntegration } from "./agents/index.js";
 
 const packageJson = JSON.parse(
@@ -49,6 +50,7 @@ export const defaultCommands: CommandModule[] = [
   rulesCommand,
   readCommand,
   statusCommand,
+  upgradeCommand,
 ];
 
 export function createProgram(
