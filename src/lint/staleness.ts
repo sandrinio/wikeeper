@@ -34,12 +34,12 @@ function utcDay(iso: string): number {
   return d.getTime();
 }
 
-function isFinal(value: string): boolean {
+export function isFinalStatus(value: string): boolean {
   const m = /\p{L}+/u.exec(value);
   return m !== null && FINAL_STATUSES.includes(m[0].toLowerCase());
 }
 
-function statusOf(page: Page, entity: Entity): { value: string; line?: number } | null {
+export function entityStatus(page: Page, entity: Entity): { value: string; line?: number } | null {
   for (let i = entity.typedLinks.length - 1; i >= 0; i--) {
     const l = entity.typedLinks[i]!;
     if (l.key.toLowerCase() === "status") return { value: l.value, line: l.line };
@@ -51,6 +51,12 @@ function statusOf(page: Page, entity: Entity): { value: string; line?: number } 
     }
   }
   return null;
+}
+
+/** UTC-day age of a YYYY-MM-DD date at `now`, as stale-fact counts it. */
+export function daysSince(date: string, now: Date): number {
+  const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  return Math.round((today - utcDay(date)) / DAY_MS);
 }
 
 function plannedDate(text: string): string | null {
@@ -66,9 +72,8 @@ export const staleFactCheck: LintCheck = {
   scope: "pages",
   async run(ctx: LintContext): Promise<LintFinding[]> {
     const now = ctx.now;
-    const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
     const limit = ctx.config.lint.stale_after_days;
-    const ageOf = (date: string): number => Math.round((today - utcDay(date)) / DAY_MS);
+    const ageOf = (date: string): number => daysSince(date, now);
     const out: LintFinding[] = [];
     for (const page of ctx.pages) {
       const path = pagePath(ctx.paths, page.path);
@@ -76,8 +81,8 @@ export const staleFactCheck: LintCheck = {
         if (entity.facts.length === 0) continue;
         const newest = entity.facts.reduce((a, f) => (f.date > a ? f.date : a), "");
         const age = ageOf(newest);
-        const status = statusOf(page, entity);
-        if (status !== null && !isFinal(status.value) && age > limit) {
+        const status = entityStatus(page, entity);
+        if (status !== null && !isFinalStatus(status.value) && age > limit) {
           const f: LintFinding = {
             id: "stale-fact",
             severity: "warning",
