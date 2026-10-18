@@ -1,12 +1,12 @@
 // src/search/aliases.ts — STORY-004-04: resolve `--entity <name>` by name or alias, with backlinks.
 import path from "node:path";
 import { compareCodeUnits } from "../core/compare.js";
-import { toPosixRelative } from "../core/paths.js";
 import type { ResolvedPaths } from "../core/paths.js";
 import { normalizeName, owningEntityKey } from "../wiki/parse-page.js";
 import type { Backlink, Entity, Page } from "../wiki/parse-page.js";
+import { hitFile } from "./engine.js";
 import type { EntityMatch } from "./engine.js";
-import { toFactView } from "./since.js";
+import { compareFactViews, toFactView } from "./since.js";
 
 export interface EntityResolution {
   entity: Entity;
@@ -78,13 +78,29 @@ export function entityBacklinks(
   return [...seen.values()].sort((a, b) => compareCodeUnits(a.path, b.path) || a.line - b.line);
 }
 
+/** The archive entity with the same path and kind (and, for a section, the same normalised name). */
+export function archiveCounterpart(entity: Entity, archiveEntities: readonly Entity[]): Entity | null {
+  return (
+    archiveEntities.find(
+      (a) =>
+        a.path === entity.path &&
+        a.kind === entity.kind &&
+        (entity.kind === "page" || normalizeName(a.name) === normalizeName(entity.name)),
+    ) ?? null
+  );
+}
+
 export function toEntityMatch(
   res: EntityResolution,
   pages: readonly Page[],
   root: string,
   paths: ResolvedPaths,
   backlinks: Map<string, Backlink[]>,
+  opts: { archived?: boolean; counterpart?: { entity: Entity; page: Page } | null } = {},
 ): EntityMatch {
+  void root;
+  const archived = opts.archived === true;
+  const cp = opts.counterpart ?? null;
   const e = res.entity;
   const page = pages.find((p) => p.path === e.path)!;
   const sectionOf = (ent: Entity): string => (ent.kind === "page" ? "" : (pages.find((p) => p.path === ent.path)?.sections[ent.section]?.heading ?? ""));
@@ -93,7 +109,8 @@ export function toEntityMatch(
     name: e.name,
     type: e.type,
     path: e.path,
-    file: toPosixRelative(root, path.join(paths.pagesDir, ...e.path.split("/"))),
+    file: hitFile(paths, e.path, archived),
+    archived,
     section: sectionOf(e),
     line: e.line,
     aliases: e.aliases,
@@ -101,10 +118,11 @@ export function toEntityMatch(
     matched_alias: res.matchedAlias,
     summary: e.summary,
     typed_links: e.typedLinks.map((t) => ({ key: t.key, value: t.value, targets: t.targets })),
-    facts: e.facts
-      .map((f) => toFactView(f, e, page))
-      .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0) || a.line - b.line),
-    backlinks: entityBacklinks(e, pages, backlinks),
+    facts: [
+      ...e.facts.map((f) => toFactView(f, e, page, archived)),
+      ...(cp === null ? [] : cp.entity.facts.map((f) => toFactView(f, cp.entity, cp.page, true))),
+    ].sort(compareFactViews),
+    backlinks: entityBacklinks(e, archived ? [] : pages, backlinks),
     also_matches: res.others.map((o) => ({ name: o.name, path: o.path, section: sectionOf(o), line: o.line })),
   };
 }

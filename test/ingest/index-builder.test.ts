@@ -16,4 +16,22 @@ describe("buildIndex", () => {
     expect(out).toContain("- [p](pages/p.md)\n");
     expect(out).toContain("- [a](pages/a.md) — a b c");
   });
+
+  it("adds one archived line after the generated line, singular for one, byte-identical at 0", () => {
+    const pages = [parsePage("---\ntype: person\n---\n", "p.md")];
+    const base = buildIndex(pages);
+    expect(buildIndex(pages, { archived: 0 })).toBe(base);
+    const one = buildIndex(pages, { archived: 1 });
+    expect(one).toContain("Do not edit._\n\n_1 archived page — search it with `wikeeper search --archive`._\n\n## person");
+    const three = buildIndex(pages, { archived: 3 });
+    expect(three).toContain("_3 archived pages — search them with `wikeeper search --archive`._\n\n## person");
+    expect(three).not.toContain("archive/");
+  });
+
+  it("puts the archived line after _No pages yet._ when pages is empty", () => {
+    expect(buildIndex([])).toBe("# Wiki index\n\n_No pages yet._\n");
+    expect(buildIndex([], { archived: 3 })).toBe(
+      "# Wiki index\n\n_No pages yet._\n\n_3 archived pages — search them with `wikeeper search --archive`._\n",
+    );
+  });
 });

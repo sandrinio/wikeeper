@@ -1,12 +1,10 @@
 // src/search/filters.ts
 // STORY-004-03: structured search filters (--type, --where, --status) over entities.
-import path from "node:path";
 import { ExitCode, WikeeperError } from "../core/exit-codes.js";
-import { toPosixRelative } from "../core/paths.js";
 import type { ResolvedPaths } from "../core/paths.js";
 import { normalizeName } from "../wiki/parse-page.js";
 import type { Entity, Page } from "../wiki/parse-page.js";
-import { hitSources } from "./engine.js";
+import { hitFile, hitSources } from "./engine.js";
 import type { SearchFilters, SearchHitBase, WhereFilter } from "./engine.js";
 import { compareCodeUnits } from "../core/compare.js";
 
@@ -112,7 +110,8 @@ export function matchesFilters(entity: Entity, filters: SearchFilters, page: Pag
 }
 
 /** One `SearchHit` for an entity that passed the filters (no query). */
-export function entityHit(entity: Entity, page: Page, root: string, paths: ResolvedPaths): SearchHitBase {
+export function entityHit(entity: Entity, page: Page, root: string, paths: ResolvedPaths, archived = false): SearchHitBase {
+  void root;
   const section = page.sections[entity.section];
   let text = entity.summary;
   if (text === null || text.trim() === "") {
@@ -120,7 +119,8 @@ export function entityHit(entity: Entity, page: Page, root: string, paths: Resol
   }
   return {
     path: entity.path,
-    file: toPosixRelative(root, path.join(paths.pagesDir, ...entity.path.split("/"))),
+    file: hitFile(paths, entity.path, archived),
+    archived,
     title: page.title,
     entity: entity.name,
     type: entity.type,
@@ -151,11 +151,16 @@ export function markHits(
   filters: SearchFilters,
   root: string,
   paths: ResolvedPaths,
+  archive?: { entities: readonly Entity[]; pages: readonly Page[] },
 ): SearchHitBase[] {
-  const pageOf = new Map(pages.map((p) => [p.path, p]));
+  void root;
   const filtered = hasFilters(filters);
   const hits: Array<SearchHitBase & { date: string }> = [];
-  for (const e of entities) {
+  const trees = [{ entities, pages, archived: false }];
+  if (archive !== undefined) trees.push({ entities: archive.entities, pages: archive.pages, archived: true });
+  for (const tree of trees) {
+  const pageOf = new Map(tree.pages.map((p) => [p.path, p]));
+  for (const e of tree.entities) {
     const page = pageOf.get(e.path);
     if (page === undefined) continue;
     if (filtered && !matchesFilters(e, filters, page)) continue;
@@ -163,7 +168,8 @@ export function markHits(
       if (f.status !== mark) continue;
       hits.push({
         path: e.path,
-        file: toPosixRelative(root, path.join(paths.pagesDir, ...e.path.split("/"))),
+        file: hitFile(paths, e.path, tree.archived),
+        archived: tree.archived,
         title: page.title,
         entity: e.name,
         type: e.type,
@@ -176,6 +182,13 @@ export function markHits(
       });
     }
   }
-  hits.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0) || compareCodeUnits(a.path, b.path) || a.line - b.line);
+  }
+  hits.sort(
+    (a, b) =>
+      (a.date < b.date ? 1 : a.date > b.date ? -1 : 0) ||
+      compareCodeUnits(a.path, b.path) ||
+      Number(a.archived) - Number(b.archived) ||
+      a.line - b.line,
+  );
   return hits.map(({ date: _date, ...hit }) => hit);
 }
