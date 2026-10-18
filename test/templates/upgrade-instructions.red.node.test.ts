@@ -315,7 +315,7 @@ describe("STORY-009-03 S3: WIKI.md keeps its structure and every name in the new
 });
 
 const PINS: Record<string, string> = {
-  "agent-block.md": "81f6e0fd2bd51023be421d3c7db671fe7b2b36689a1f85fbf7ac2bffa07792de",
+  "agent-block.md": "2b705df38a04fb31f9e33b0a30c0c35f154a13bb6e5fd430c04dfe30997117a7",
   "agents/antigravity/wiki-extractor.md": "da3dce3faffc413b6139440b87d184362d2f98ee0d7e3c6903c1e29d528cb0c9",
   "agents/antigravity/wiki-writer.md": "f587776bbae123c90f0ac9e3066bcac5baa71d572314d69403a6bab33746f20b",
   "agents/claude/wiki-extractor.md": "1ef88fd2aa1a3cf42255b7ec9548be3d87dd92582ba76499672a7dcbe9b53977",
