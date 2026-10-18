@@ -222,7 +222,7 @@ Feature: Index and search over the archive
 ```
 
 ### 2.2 Verification Steps (Manual)
-- [ ] In a scratch copy of `~/walkthrough-wiki`, move one fact line by hand from a page into `.wiki/archive/<same path>` (with the page's frontmatter), run `wikeeper index rebuild`, and check that `index.md` gains the archived-pages line and no archive entry; `wikeeper search <a word from the line>` finds nothing, `--archive` finds it marked archived, and `wikeeper search --entity <entity>` lists it with `archived: true`.
+- [ ] In a scratch copy of the testbed (`testbed.md`, Making a scratch copy), move one fact line by hand from a page into `.wiki/archive/<same path>` (with the page's frontmatter), run `wikeeper index rebuild`, and check that `index.md` gains the archived-pages line and no archive entry; `wikeeper search <a word from the line>` finds nothing, `--archive` finds it marked archived, and `wikeeper search --entity <entity>` lists it with `archived: true`.
 
 ## 3. The Implementation Guide
 

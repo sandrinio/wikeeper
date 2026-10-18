@@ -95,6 +95,9 @@ As an AI coding agent planning a folder for a user, I want `ingest plan` to show
 - **Recommended:** Yes, as §3.1 lists: `totals` gains `tokens` (the count of `docs/meetings/a.md`, from `estimateTokens`), `tokens_rough: false` and `not_estimated: 0`, by test name on the tree merged with STORY-007-03; nothing else in the file changes.
 - **Human decision:** _approved as recommended (human, 2026-10-18, Gate 1; `plans/gate1-decisions.md`)_
 
+- **Plan confirmation (human, 2026-10-18):**
+  - P6: the size reason prints the limit through STORY-007-03's `sizeLimitText`, now with K1's `formatLimit` (`tokens.source.yellow (1k).`; §2.1 scenario 2, row 1).
+
 ### 1.5 Risks
 
 > Risks specific to this Story (cross-story risks belong in the milestone plan).
@@ -160,7 +163,7 @@ Feature: Estimates in ingest plan
 
     Examples:
       | mode      | confirm_at | big   | scan  | small | n | reason                                                                       |
-      | ai        | yellow     | true  | true  | false | 2 | Its estimate is at or above the approval limit tokens.source.yellow (1000).  |
+      | ai        | yellow     | true  | true  | false | 2 | Its estimate is at or above the approval limit tokens.source.yellow (1k).    |
       | ai        | red        | false | true  | false | 1 | ingest.permission is ai                                                      |
       | ai        | never      | false | false | false | 0 | ingest.permission is ai                                                      |
       | whitelist | yellow     | true  | true  | false | 2 | matches the whitelist entry "docs/**". Its estimate is at or above           |

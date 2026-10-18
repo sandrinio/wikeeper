@@ -37,15 +37,21 @@ last_remote_update: null
 source: local-authored
 last_synced_status: null
 last_synced_body_sha: null
-stamp_error: no ledger rows for work_item_id STORY-007-06
 draft_tokens:
-  input: null
-  output: null
-  cache_creation: null
-  cache_read: null
-  model: null
-  last_stamp: 2026-10-18T07:58:47Z
-  sessions: []
+  input: 0
+  output: 0
+  cache_creation: 0
+  cache_read: 0
+  model: claude-opus-5-5
+  last_stamp: 2026-10-18T11:47:04Z
+  sessions:
+    - session: 47c84598-2a59-4cfa-a987-cfe39161376b
+      model: claude-opus-5-5
+      input: 0
+      output: 0
+      cache_read: 0
+      cache_creation: 0
+      ts: 2026-10-18T10:24:23Z
 ---
 
 # STORY-007-06: `wikeeper statusline` and `--install`
@@ -63,8 +69,8 @@ As a user working in a wiki with Claude Code, I want a status line that always s
   - The directory is `workspace.current_dir` when that is a non-empty string, else `cwd` when it is, else `ctx.cwd`. A relative value is resolved against `ctx.cwd`. JSON that does not parse, or has neither field, means `ctx.cwd`.
   - Claude Code's docs (read 2026-10-18) say both fields hold the current working directory and that `workspace.current_dir` is preferred.
   - When stdin is a terminal, nothing is read.
-- **R3 — The line (K8).** From that directory: `findRepoRoot` → `loadConfig` → `resolvePaths`. When `.wiki/config.yml` exists, it calls `measureWiki(paths)` and prints exactly one line: `wiki ≈66k tokens · 43 pages · largest page 🟡 ≈6.3k`.
-  - The parts are `formatTokens(total)`, `plural(page_count, "page")` (`src/commands/doctor.ts:36`), and `levelMark(levelOf(largest.tokens, config.tokens.page))` followed by `formatTokens(largest.tokens)`.
+- **R3 — The line (K8).** From that directory: `findRepoRoot` → `loadConfig` → `resolvePaths`. When `.wiki/config.yml` exists, it calls `measureWiki(paths)` and prints exactly one line: `wiki ≈66k tokens · 43 pages · largest page ≈6.3k 🟡`.
+  - The parts are `formatTokens(total)`, `plural(page_count, "page")` (`src/commands/doctor.ts:36`), and `formatTokens(largest.tokens)` followed by a space and `levelMark(levelOf(largest.tokens, config.tokens.page))`: one line is not a list of pages, so the mark follows its figure.
   - With no pages it prints `wiki ≈0 tokens · 0 pages`.
   - No colour codes, and nothing on stderr.
 - **R4 — Outside a wiki.** When the resolved root has no `.wiki/config.yml`, it prints nothing and exits 0. Claude Code then shows no status line (its docs: no output leaves the status line blank).
@@ -74,32 +80,30 @@ As a user working in a wiki with Claude Code, I want a status line that always s
 - **R8 — `--install`: which command.** `--install` needs an initialised wiki at `findRepoRoot(ctx.cwd)` (`not_initialised`, exit 1, otherwise) and never reads stdin. The command it writes depends on `resolveGuardForm({ root })` (`src/agents/enforce/guard-command.ts:35`), the same first-match order as the guard hook:
   - `path` → `wikeeper statusline`
   - `local` → `"<root>/node_modules/.bin/wikeeper" statusline`: an absolute path with forward slashes, in double quotes (§1.4 Q2)
-  - `npx` → `npx -y wikeeper@<npmVersion(package version)> statusline` (`src/core/version.ts:28`), plus a warning that npx adds start-up time on every redraw and that `npm i -g wikeeper` (or a dev dependency) makes the line faster.
+  - `npx` → `npx -y wikeeper@<npmVersion(package version)> statusline` (`src/core/version.ts:28`), plus the warning `the status line runs npx on every redraw, which is slow: install wikeeper with npm i -g wikeeper or as a dev dependency, then rerun wikeeper statusline --install`.
 - **R9 — `--install`: never replace (K8).** It reads three settings files: `.claude/settings.local.json` and `.claude/settings.json` under the root, and the user file. The user file is `$CLAUDE_CONFIG_DIR/settings.json` when `CLAUDE_CONFIG_DIR` is set and non-empty, else `~/.claude/settings.json` (Claude Code's docs: `CLAUDE_CONFIG_DIR` moves the home-directory settings).
   - A file "sets a status line" when its top-level `statusLine` is present and not `null`.
   - When any of the three does, except for R10's case, the command exits 1 with code `statusline_exists` and changes no file. `details.files` lists the files in that order. Project files are shown relative to the root; the user file is shown as an absolute path with the home directory written as `~`.
-  - The message names the files and says how to add the wiki line to the existing command:
+  - The message names the files and says how to add the wiki line to the existing command. Its first line is the refusal, then three snippet lines, each indented two spaces:
     ```
-    a status line is already set in ~/.claude/settings.json; nothing was changed.
-    To show the wiki size too, make that status line command also print what `<cmd>` prints for the same input. In a shell script:
+    a status line is already set in ~/.claude/settings.json, so nothing was changed: make that command also print what wikeeper statusline prints for the same input (each printed line is its own row), for example in a shell script:
       input=$(cat)
       … your current status line, reading "$input" …
       printf '%s' "$input" | <cmd>
-    Claude Code shows each printed line as its own row.
     ```
     `<cmd>` is the R8 command. The existing command is never printed.
   - Settings files are strict JSON (Claude Code's docs). A file that is not valid JSON, comments included, exits 1 with `settings_invalid` (`settingsError`, `src/agents/enforce/json-merge.ts:23`) and nothing is changed, because the command cannot tell whether that file sets a status line.
 - **R10 — Its own line (§1.4 Q3).** When only `.claude/settings.local.json` sets a status line, and that line is `{ type: "command", command }` whose command runs wikeeper's `statusline` (it matches `/(^|[\s"'/])wikeeper(@[^\s"']+)?["']?\s+statusline\s*$/`):
-  - If the command equals the R8 command, the command exits 0 with `already installed`, and the file stays byte-identical.
+  - If the command equals the R8 command, the command exits 0 with `the wiki status line is already installed in .claude/settings.local.json`, and the file stays byte-identical.
   - Otherwise, for example an older pinned npx version or a different form, `statusLine` is replaced with the R8 value and exit is 0.
 - **R11 — Writing, keeping the format.** It loads `.claude/settings.local.json` with `loadJsonDoc` and writes it with `saveJsonDoc(doc, next, { backup: false })` (`src/agents/enforce/json-merge.ts:53`, `:90`), creating `.claude/` when it is missing.
   - `statusLine: { type: "command", command }` is added as the last top-level key, or replaced in place (R10). Every other key, the key order, the indentation, the line endings, the BOM and the final newline stay as they were.
   - No `.bak` is written: the file only gains or updates one key, and a backup would be an extra file that nothing ignores.
 - **R12 — Keeping the file personal (§1.4 Q4).** Before writing, it checks the file against git with `createGit(root)` (`src/core/git.ts:42`):
   - **Tracked** (`isTracked`): exit 1 with code `settings_tracked`, and nothing is changed. A status line in a committed file would reach everyone.
-  - **Not ignored** (`ignoreRule` returns `null` or a negated rule): after writing, append `/.claude/settings.local.json` to the repository's own exclude file. Its path comes from `git rev-parse --git-path info/exclude`, run through `execFileRunner` (`src/core/git.ts:23`). The output says so. Claude Code's docs say it keeps this file out of git only when it creates the file itself, and that a file made any other way must be ignored by hand.
-  - **No git, or not a work tree:** write the file, and warn that it could not be checked against git.
-- **R13 — `--install` output.** On success it prints `added the wiki status line to .claude/settings.local.json: <cmd>`, followed by `Claude Code shows it at its next status line update. To remove it, delete "statusLine" from .claude/settings.local.json.`
+  - **Not ignored** (`ignoreRule` returns `null` or a negated rule): after writing, append `/.claude/settings.local.json` to the repository's own exclude file. Its path comes from `git rev-parse --git-path info/exclude`, run through `execFileRunner` (`src/core/git.ts:23`). The output says so, in a detail line: `  added /.claude/settings.local.json to .git/info/exclude, so git ignores it`. Claude Code's docs say it keeps this file out of git only when it creates the file itself, and that a file made any other way must be ignored by hand.
+  - **No git, or not a work tree:** write the file, and warn `could not check .claude/settings.local.json against git: keep it out of any commit, it is personal`.
+- **R13 — `--install` output.** On success it prints `added the wiki status line to .claude/settings.local.json: <cmd>`, followed by the line `  it shows from Claude Code's next status line update; to remove it, delete "statusLine" from .claude/settings.local.json`.
   - JSON `data`: `{ installed: boolean /* false when already installed */, replaced: boolean, file: ".claude/settings.local.json", command: string, form: "path" | "local" | "npx", excluded: boolean }`.
 - **R14 — Metadata only (D-08).** The line and the install output carry sizes, levels, file names and the command. They never contain page text or the contents of the user's settings.
 
@@ -137,6 +141,8 @@ As a user working in a wiki with Claude Code, I want a status line that always s
 - **Question (Q5, contract K8):** K8 defines only the outside-a-wiki output. What should an error inside a wiki print, for example a broken `config.yml`?
 - **Recommended:** One line, `wiki size unavailable (<code>): run wikeeper doctor`, with exit 0 (R5). A non-zero exit or empty output leaves Claude Code's status line blank with no hint.
 - **Human decision:** _approved as recommended (human, 2026-10-18, Gate 1; `plans/gate1-decisions.md`)_
+
+- **DRAFTS review (designer, 2026-10-18):** wording aligned with docs/ux.md — the level mark follows the largest page's figure (`largest page ≈6.3k 🟡`; R3, §2.1 scenario 1 row 1); the `--install` messages are pinned as lowercase lines with a next step, no backticks and no final period: the npx warning (R8), the refusal's first line with its snippet indented two spaces and no closing sentence (R9), `already installed` (R10), the exclude note and the no-git warning (R12), and the success detail line (R13). No decision changed.
 
 ### 1.5 Risks
 
@@ -177,7 +183,7 @@ Feature: wikeeper statusline
 
     Examples:
       | setup | cwd | stdin | stdout |
-      | a wiki repository R with default limits and pages "a.md" of about 5k tokens, "b.md" and "c.md" under 4k each | an unrelated temp directory | {"workspace":{"current_dir":"R/notes"},"cwd":"R/notes"} | "wiki " + formatTokens(total) + " tokens · 3 pages · largest page 🟡 " + formatTokens(a.md) + "\n" |
+      | a wiki repository R with default limits and pages "a.md" of about 5k tokens, "b.md" and "c.md" under 4k each | an unrelated temp directory | {"workspace":{"current_dir":"R/notes"},"cwd":"R/notes"} | "wiki " + formatTokens(total) + " tokens · 3 pages · largest page " + formatTokens(a.md) + " 🟡\n" |
       | the same repository R | an unrelated temp directory | {"cwd":"R"} | the same line |
       | the same repository R | R | a terminal (nothing is read) | the same line |
       | the same repository R | R | "not json" | the same line |
@@ -237,7 +243,7 @@ Feature: wikeeper statusline
 ```
 
 ### 2.2 Verification Steps (Manual)
-- [ ] In a copy of `~/walkthrough-wiki`, run `echo '{"workspace":{"current_dir":"'"$PWD"'"}}' | wikeeper statusline` and check that it prints one line with about 43 pages.
+- [ ] In a scratch copy of the testbed (`testbed.md`, Making a scratch copy), run `echo '{"workspace":{"current_dir":"'"$PWD"'"}}' | wikeeper statusline` and check that it prints one line with 56 pages.
 - [ ] On the human's machine, where `~/.claude/settings.json` already sets a status line, run `wikeeper statusline --install` in that copy. Check that it exits 1, names `~/.claude/settings.json`, prints the `printf '%s' "$input" | …` hint, and that `git status` and the three settings files are unchanged (compare checksums).
 - [ ] Add the hinted line to a copy of the existing status line script, run Claude Code in the copy, and check that the wiki line shows as a second row.
 

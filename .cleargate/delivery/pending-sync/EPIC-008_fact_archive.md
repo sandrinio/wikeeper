@@ -119,7 +119,7 @@ Pages only grow, line by line. A replaced fact stays on the page (WIKI.md "Page 
   - How the writer moves a fact line: cut it from the page, add it unchanged to the archive file, and leave a link on the page to its archive.
   - Before deleting a page, move each of its fact lines unchanged to the page it merges into, or to the archive.
   - Ordinary ingests keep recording as today: a replaced fact stays on the page, and nothing moves to the archive.
-  - When a page turns red or `status` lists candidates, tell the user once, with both choices: raise the limit (`wikeeper config set tokens.page.red …`) or ask for a clean-up. Never start a clean-up the user didn't ask for.
+  - When a page turns red or `status` lists candidates, tell the user once, with both choices in plain words: the agent raises the page limit for them on a yes (`wikeeper config set tokens.page.red …`), or they ask for a clean-up. Never start a clean-up the user didn't ask for.
   - How to run a clean-up: the user's decision on stdin to `ingest start -`, then the write phase.
   - When to search with `--archive`.
 - [ ] **Ownership and privacy:**
@@ -188,7 +188,7 @@ Pages only grow, line by line. A replaced fact stays on the page (WIKI.md "Page 
 - New folder `<content_dir>/archive/`, user-owned, mirroring `pages/` paths.
 - JSON fields:
   - `ingest finish` report: `archived: { facts, pages }`
-  - `status`: `archive_candidates: [{ path, reason: "size" | "final-status", tokens?, status? }]`
+  - `status`: `archive_candidates: [{ path, reason: "size" | "final_status", tokens?, status? }]`
   - search hits: `archived: boolean`
 - `index.md` gains one line when archived pages exist.
 
@@ -201,7 +201,7 @@ Feature: Fact archive
     Given pages/projects/atlas.md has the fact line "- 2026-09-01 · tentative · atlas ships 2026-10-15 [[src-a]]"
     And the user asks for a clean-up, and its write phase cuts that line and adds it unchanged to archive/projects/atlas.md
     When I run "wikeeper ingest finish <id>"
-    Then it exits 0, and the report says "archived 1 fact lines · 0 pages"
+    Then it exits 0, and the report says "archived 1 fact line · 0 pages"
 
   Scenario: Default search skips the archive; --archive and history include it
     Given that archived line
@@ -214,7 +214,7 @@ Feature: Fact archive
   Scenario: A finished entity is an archive candidate
     Given pages/projects/beta.md has status:: shipped and its newest fact is 45 days old, with lint.stale_after_days 30
     When I run "wikeeper status --json"
-    Then archive_candidates lists projects/beta.md with reason "final-status"
+    Then archive_candidates lists projects/beta.md with reason "final_status"
 
   Scenario: A link to an archived page is not broken
     Given beta's page was moved whole to archive/projects/beta.md and another page links [[beta]]

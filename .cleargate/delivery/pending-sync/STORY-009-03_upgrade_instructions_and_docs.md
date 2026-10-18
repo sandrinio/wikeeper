@@ -38,15 +38,21 @@ last_remote_update: null
 source: local-authored
 last_synced_status: null
 last_synced_body_sha: null
-stamp_error: no ledger rows for work_item_id STORY-009-03
 draft_tokens:
-  input: null
-  output: null
-  cache_creation: null
-  cache_read: null
-  model: null
-  last_stamp: 2026-10-18T09:20:50Z
-  sessions: []
+  input: 0
+  output: 0
+  cache_creation: 0
+  cache_read: 0
+  model: claude-opus-5-5
+  last_stamp: 2026-10-18T11:46:18Z
+  sessions:
+    - session: 47c84598-2a59-4cfa-a987-cfe39161376b
+      model: claude-opus-5-5
+      input: 0
+      output: 0
+      cache_read: 0
+      cache_creation: 0
+      ts: 2026-10-18T10:23:42Z
 ---
 
 # STORY-009-03: Upgrade instructions and docs
@@ -66,7 +72,7 @@ As an AI coding agent running a wikeeper wiki (for this human: product managemen
 ### 1.2 Detailed Requirements
 The text names only the commands, options and fields that exist at the end of SPRINT-04: the decomposition brief's list, plus STORY-009-02's `wikeeper upgrade [--check]`. Line numbers are at `6b75807`. Edits go on the tree with STORY-007-07 and STORY-008-06 merged.
 - **R1 — WIKI.md, section "Lint and status" (§1.4 Q2).** One paragraph, placed after STORY-007-07's four paragraphs (R5 (b), the fourth as STORY-008-06 R5 (a) edits it) and before "The fields of the `--json` output of `wikeeper status`". Exactly:
-  "Ingest commands ask npm for a newer version at most once a day. While one is out, `wikeeper ingest plan` and `wikeeper ingest start` add the warning `wikeeper 0.4.1 is available (installed 0.4.0): run "wikeeper upgrade"`, `wikeeper status` prints the same line and sets `version.latest`, and `wikeeper doctor` reports it as the `update-available` check. Tell the user once in the session and ask whether to upgrade; on a yes, run `wikeeper upgrade`. It installs the new version with npm the way the running copy was installed, then runs `wikeeper update` in this repository as the new version. Never upgrade unasked, and do not bring it up again in that session unless the user asks. When `wikeeper upgrade` fails, show the user its message: it names the command to run by hand, and a command that starts with `sudo` is for the user to run, never you. When `wikeeper status` says the project's files are from another version (`version.files`, and the `version-mismatch` check in `wikeeper doctor`), tell the user and, on a yes, run the command it names: `wikeeper update` when the files are older, `wikeeper upgrade` when the installed version is older. Ask before `wikeeper update` too: besides wikeeper's own files under `.wiki/system/`, it rewrites the hooks and the pointer block in `AGENTS.md` and `CLAUDE.md`."
+  "Ingest commands ask npm for a newer version at most once a day. While one is out, `wikeeper ingest plan` and `wikeeper ingest start` add the warning `wikeeper 0.4.1 is available (installed 0.4.0): run wikeeper upgrade`, `wikeeper status` prints the same text on its `version:` line and sets `version.latest`, and `wikeeper doctor` reports it as the `update-available` check. Tell the user once in the session and ask whether to upgrade; on a yes, run `wikeeper upgrade`. It installs the new version with npm the way the running copy was installed, then runs `wikeeper update` in this repository as the new version. Never upgrade unasked, and do not bring it up again in that session unless the user asks. When a newer version is out and this project's files are older too, ask once, whether to upgrade: it refreshes the files as well. When several of these are due at once, tell them in one message after the user's request is done: a red page and its clean-up candidates first, then the version question. When `wikeeper upgrade` fails, tell the user in plain words what failed and whether anything was installed. If `error.details.command` starts with `sudo`, uses pnpm, yarn or bun, is to be run as administrator, or needs npm, which was not found, show the user that one command in a code span and say why you don't run it; when they say it is done, run `error.details.then` if it is set (their reply is the yes for it). Offer to run any other `error.details.command`, such as `wikeeper update` after `update_failed`. When it is null, say in plain words what the message asks: to try again later, or to update the folder it runs from. When `wikeeper status` says the project's files are from another version (`version.files`, and the `version-mismatch` check in `wikeeper doctor`), tell the user and, on a yes, run the command it names: `wikeeper update` when the files are older, `wikeeper upgrade` when the installed version is older. Ask before `wikeeper update` too: besides wikeeper's own files under `.wiki/system/`, it rewrites the hooks and the pointer block in `AGENTS.md` and `CLAUDE.md`."
   - The quoted warning is K14's `availableMessage("0.4.1", "0.4.0")` verbatim.
   - Two names are doctor ids that STORY-009-01 always emits: "the `update-available` check" and "the `version-mismatch` check" (`checkDoctorIds`, `test/templates/structure.ts:200`).
   - The paragraph never writes "wikeeper" before a lowercase word that is not a command (FLASHCARD 2026-10-17 `#templates #vocabulary`), and never uses the word "section" (`SECTION_RE`, `test/templates/structure.ts:272`; FLASHCARD `#templates #sections`).
@@ -140,6 +146,8 @@ The text names only the commands, options and fields that exist at the end of SP
 - **Recommended:** D-38, the next free number after STORY-008-06's D-37; if another entry lands first, the next free one. The README range follows it. The lifecycle decision D-09 stays as written, and D-38 extends it.
 - **Human decision:** _approved as recommended (human, 2026-10-18, Gate 1; `plans/gate1-decisions.md`)_
 
+- **DRAFTS review (designer, 2026-10-18):** wording aligned with docs/ux.md — the quoted warning names `wikeeper upgrade` bare, and `status` prints the same text on its `version:` line (R1, §2.1 scenario 2, Why not simpler?); the failure sentences tell the user in plain words what failed, show only a `sudo`, pnpm, yarn or bun command in a code span, and offer `wikeeper update` again after `update_failed` (R1, §2.1 "failure (R1)"); two sentences ask once when a newer version is out and the files are older too, and put notices due at once into one message after the request (R1, §2.1 "one question (R1)"). Still one paragraph (§1.4 Q2). No decision changed. Round 2: the failure sentences cover every STORY-009-02 R8 path: a command to be run as administrator (win32) or one that needs npm, which was not found, is shown in a code span like a `sudo` one; any other `error.details.command` (such as `wikeeper update` after `update_failed`, or `npm install --save-dev` for a project install `package.json` does not list) is offered to run; a null command is told in plain words (try again later, or update the folder it runs from) (R1; R2-P2). The "failure (R1)" phrases still hold, checked.
+
 ### 1.5 Risks
 
 > Risks specific to this Story (cross-story risks belong in the milestone plan).
@@ -177,8 +185,9 @@ Feature: Upgrade instructions and docs
       | part | file | place | phrases |
       | notice (R1) | templates/system/WIKI.md | section "Lint and status" | "at most once a day", "`wikeeper ingest plan`", "`wikeeper ingest start`", "`version.latest`", "the `update-available` check" |
       | asking (R1) | templates/system/WIKI.md | section "Lint and status" | "Tell the user once in the session and ask whether to upgrade", "on a yes, run `wikeeper upgrade`", "Never upgrade unasked", "do not bring it up again in that session" |
+      | one question (R1) | templates/system/WIKI.md | section "Lint and status" | "ask once, whether to upgrade", "it refreshes the files as well", "tell them in one message after the user's request is done", "then the version question" |
       | files (R1) | templates/system/WIKI.md | section "Lint and status" | "`version.files`", "the `version-mismatch` check", "`wikeeper update` when the files are older", "`wikeeper upgrade` when the installed version is older", "Ask before `wikeeper update` too" |
-      | failure (R1) | templates/system/WIKI.md | section "Lint and status" | "show the user its message", "starts with `sudo`", "never you" |
+      | failure (R1) | templates/system/WIKI.md | section "Lint and status" | "tell the user in plain words", "starts with `sudo`", "`error.details.command`" |
       | principles (R3 a) | architecture.md | §2 | "daily version check", "runs npm only in `upgrade`" |
       | lifecycle (R3 b) | architecture.md | §3 | "`init`, `update`, `upgrade`, `remove`", "sends nothing about the wiki", "`update_check: false`", "`WIKEEPER_NO_UPDATE_CHECK`", "`NO_UPDATE_NOTIFIER`", "`CI`", "never runs `sudo`" |
       | network (R3 c) | architecture.md | §7.7 | "`read` and the daily version check (§3) are wikeeper's only network uses" |
@@ -190,7 +199,7 @@ Feature: Upgrade instructions and docs
   Scenario: The text matches what the CLI prints
     Given a wiki initialised through the default program in a temp git repository, with its manifest's package_version set to "0.0.1+abc1234"
     When I run "wikeeper status", "wikeeper status --json" and "wikeeper doctor --json" there
-    Then the human status has a line ending in 'run "wikeeper update"', and WIKI.md section "Lint and status" names "`wikeeper update` when the files are older"
+    Then the human status has a line ending in 'run wikeeper update', and WIKI.md section "Lint and status" names "`wikeeper update` when the files are older"
     And the warning WIKI.md quotes equals availableMessage("0.4.1", "0.4.0")
     And the fields that open a status bullet in that section are exactly the keys of data, "version" among them, and the "- `version`: " bullet is byte-identical to STORY-009-01's
     And doctor's checks include "version-mismatch" with severity "warning" and "update-available"
@@ -217,7 +226,7 @@ Feature: Upgrade instructions and docs
 ```
 
 ### 2.2 Verification Steps (Manual)
-- [ ] Part-4 walkthrough (sprint plan §1, real user, a fresh session). In `~/walkthrough-wiki`, whose files are from 0.3.0, with 0.4.0 installed, ask a plain question that makes the agent run `wikeeper status` at session start. The agent tells the user that the project's files are out of date, asks, and runs `wikeeper update` only after a yes. Answer no once in another fresh session: the agent does not run `update` and does not bring it up again in that session.
+- [ ] Part-4 walkthrough (sprint plan §1, real user, a fresh session). In a scratch copy of the testbed (`testbed.md`, Making a scratch copy), whose files are from 0.3.0, with 0.4.0 installed, ask a plain question that makes the agent run `wikeeper status` at session start. The agent tells the user that the project's files are out of date, asks, and runs `wikeeper update` only after a yes. Answer no once in another fresh session, in a fresh copy: the agent does not run `update` and does not bring it up again in that session.
 - [ ] Read the README "Upgrading" section and architecture.md §3 against `wikeeper upgrade --help` and `wikeeper doctor` output: every command, option and switch they name exists.
 
 ## 3. The Implementation Guide
@@ -230,9 +239,9 @@ Feature: Upgrade instructions and docs
 |---|---|
 | Primary File | `templates/system/WIKI.md` |
 | Related Files | `./architecture.md`, `./README.md` |
-| Test Files | `test/templates/structure.ts`, `test/templates.test.ts`, `test/templates/upgrade-instructions.red.node.test.ts` |
+| Test Files | `test/templates/structure.ts`, `test/templates.test.ts` |
 | Re-scoped red test (QA-Red) | `test/templates/wiki-protocol.red.node.test.ts` |
-| New Files Needed | Yes — `test/templates/upgrade-instructions.red.node.test.ts` (QA-Red) |
+| New Files Needed | `test/templates/upgrade-instructions.red.node.test.ts` (written by QA-Red) |
 
 - **Read, not edited:**
   - `src/core/update-check.ts` (`availableMessage`, the `versionMismatch` messages) and `src/commands/upgrade.ts` (`upgrade`, `--check`, the hand commands);
@@ -321,7 +330,7 @@ Consumed (frozen):
 ## Why not simpler?
 
 - **Smallest existing surface that could carry this:** the CLI's own messages, which already name `wikeeper upgrade` and `wikeeper update` (STORY-009-01), with no instruction text at all.
-- **Why isn't extension / parameterization / config sufficient?** The messages say what to run, not whether to run it. An agent reading `run "wikeeper upgrade"` in a warning would run it unasked, which EPIC-009 forbids (§0: the agent asks first). The only place to say "tell once, ask first" is WIKI.md. The docs change because architecture.md states that only `read` uses the network, which is no longer true, and README readers need the privacy statement and the off switch. Everything goes into existing sections, with one README section added.
+- **Why isn't extension / parameterization / config sufficient?** The messages say what to run, not whether to run it. An agent reading `run wikeeper upgrade` in a warning would run it unasked, which EPIC-009 forbids (§0: the agent asks first). The only place to say "tell once, ask first" is WIKI.md. The docs change because architecture.md states that only `read` uses the network, which is no longer true, and README readers need the privacy statement and the off switch. Everything goes into existing sections, with one README section added.
 
 ---
 

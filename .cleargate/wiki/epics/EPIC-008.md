@@ -6,8 +6,8 @@ children: []
 status: "Draft"
 remote_id: ""
 raw_path: ".cleargate/delivery/pending-sync/EPIC-008_fact_archive.md"
-last_ingest: "2026-10-18T07:09:36.858Z"
-last_ingest_commit: ""
+last_ingest: "2026-10-18T14:20:31.725Z"
+last_ingest_commit: "8988a2c33332accb4c940e26c8f087fd85ed697c"
 repo: "planning"
 ---
 
@@ -23,7 +23,7 @@ repo: "planning"
     <rule>The agent judges which facts are replaced or finished; the CLI makes no judgement and moves nothing itself (architecture.md §2 principle 1).</rule>
     <rule>Facts move to the archive only in a clean-up the user asks for. Ordinary ingests keep recording as today: a replaced fact stays on the page.
 
-[+14,780 bytes not shown — read .cleargate/delivery/pending-sync/EPIC-008_fact_archive.md]
+[+14,850 bytes not shown — read .cleargate/delivery/pending-sync/EPIC-008_fact_archive.md]
 
 ## Blast radius
 Affects: no parent/child refs declared in frontmatter

@@ -9,7 +9,7 @@ approved: true
 approved_by: Sandro Suladze
 approved_at: 2026-10-18T09:45:20Z
 ambiguity: 🟢 Low
-context_source: "EPIC-008 (approved 2026-10-18) §2 (`wikeeper status`: archive size next to the wiki total, archive_candidates by page red limit and final status; Ownership and privacy: remove keeps archive/, --purge deletes it, private: hides the archive file), §5 (final-status scenario), §6 (the agent only tells the user; the CLI moves nothing) · SPRINT-04 decomposition brief, contract K13 (owned), K9 (consumed: paths.archiveDir), K1/K2 (consumed: estimateTokens, formatTokens, levelMark, measureWiki, config.tokens.page, STORY-007-01), K7 (consumed: StatusData.tokens, STORY-007-05, lands first in src/commands/status.ts) · verified src/commands/status.ts, src/lint/staleness.ts, src/wiki/parse-page.ts, src/core/gitignore.ts, src/commands/remove.ts, src/commands/init.ts, src/commands/update.ts, src/core/config.ts · red tests that pin the touched output (test/gitignore.red.node.test.ts:56, test/help.red.node.test.ts:72, test/remove.red.node.test.ts, test/status.red.node.test.ts) read 2026-10-18"
+context_source: "EPIC-008 (approved 2026-10-18) §2 (`wikeeper status`: archive size next to the wiki total, archive_candidates by page red limit and final status; Ownership and privacy: remove keeps archive/, --purge deletes it, private: hides the archive file), §5 (final_status scenario), §6 (the agent only tells the user; the CLI moves nothing) · SPRINT-04 decomposition brief, contract K13 (owned), K9 (consumed: paths.archiveDir), K1/K2 (consumed: estimateTokens, formatTokens, levelMark, measureWiki, config.tokens.page, STORY-007-01), K7 (consumed: StatusData.tokens, STORY-007-05, lands first in src/commands/status.ts) · verified src/commands/status.ts, src/lint/staleness.ts, src/wiki/parse-page.ts, src/core/gitignore.ts, src/commands/remove.ts, src/commands/init.ts, src/commands/update.ts, src/core/config.ts · red tests that pin the touched output (test/gitignore.red.node.test.ts:56, test/help.red.node.test.ts:72, test/remove.red.node.test.ts, test/status.red.node.test.ts) read 2026-10-18"
 actor: AI coding agent
 complexity_label: L2
 parallel_eligible: n
@@ -39,15 +39,21 @@ last_remote_update: null
 source: local-authored
 last_synced_status: null
 last_synced_body_sha: null
-stamp_error: no ledger rows for work_item_id STORY-008-05
 draft_tokens:
-  input: null
-  output: null
-  cache_creation: null
-  cache_read: null
-  model: null
-  last_stamp: 2026-10-18T08:02:19Z
-  sessions: []
+  input: 0
+  output: 0
+  cache_creation: 0
+  cache_read: 0
+  model: claude-opus-5-5
+  last_stamp: 2026-10-18T11:49:55Z
+  sessions:
+    - session: 47c84598-2a59-4cfa-a987-cfe39161376b
+      model: claude-opus-5-5
+      input: 0
+      output: 0
+      cache_read: 0
+      cache_creation: 0
+      ts: 2026-10-18T10:23:59Z
 ---
 
 # STORY-008-05: `status` archive size and candidates; `remove`, `--purge` and `private:` cover the archive
@@ -69,17 +75,16 @@ As an AI coding agent starting a session, I want `wikeeper status` to show how b
     - its status is final: the status is the entity's last `status::` typed link, or for a page entity with none, its frontmatter `status`; it is final when its first word is in `FINAL_STATUSES` (case-insensitive), as `stale-fact` reads it;
     - it has at least one fact line;
     - its newest fact date is more than `lint.stale_after_days` days before today, counted in UTC days as `stale-fact` counts them.
-  - A final-status entry is `{ path, reason: "final-status", status, entity, last_dated }`. `status` is the value as written; `entity` is the entity name; `last_dated` is the newest fact date. `entity` and `last_dated` are additive to K13 (§1.4 Q1).
-  - **Order.** By `path` in code-unit order; on one page, the size entry first, then final-status entries in page order.
+  - A final_status entry is `{ path, reason: "final_status", status, entity, last_dated }`. `status` is the value as written; `entity` is the entity name; `last_dated` is the newest fact date. `entity` and `last_dated` are additive to K13 (§1.4 Q1).
+  - **Order.** By `path` in code-unit order; on one page, the size entry first, then final_status entries in page order.
 - **R3 — One status rule.** `src/lint/staleness.ts` exports what `stale-fact` already uses, and both callers use these exports: `isFinalStatus(value)` (today's private `isFinal`, `:37`), `entityStatus(page, entity)` (today's `statusOf`, `:42`) and `daysSince(date, now)` (the UTC-day age at `:71`). `stale-fact` findings do not change.
 - **R4 — Read-only.** `status` still creates, changes and deletes no file (STORY-005-05 R2), and it moves nothing: candidates are for the agent to tell the user, who decides (EPIC-008 §6).
 - **R5 — Human output.** Directly after the wiki-size lines STORY-007-05 adds:
-  - `archive: none`, or `archive: <n> page(s) · <formatTokens(tokens)> tokens`, e.g. `archive: 3 pages · ≈12k tokens`.
+  - `archive: none`, or `archive: <formatTokens(tokens)> tokens · <plural(n, "page")>`, e.g. `archive: ≈12k tokens · 3 pages`: the figure first, then the count, as the wiki-size line puts them.
   - `archive candidates: none`, or `archive candidates: <n>`, then one line per entry:
-    - size: `  <path> <formatTokens(tokens)> tokens 🔴 (tokens.page.red is <formatLimit(red)>)`, with STORY-007-05's `formatLimit` (`src/lint/size.ts`), as in the `oversized-page` message (`100` → `100`, `10000` → `10k`);
+    - size: `  <path> <formatTokens(tokens)> 🔴 (tokens.page.red is <formatLimit(red)>)`, the `<path> ≈<n> <mark>` shape STORY-007-05 uses for a page and its size, with K1's `formatLimit` (`src/core/tokens.ts`, STORY-007-01), as in the `oversized-page` message (`100` → `100`, `10000` → `10k`);
     - final status: `  <path> · <entity>: status <status>, last dated <last_dated> (lint.stale_after_days is <n>)`;
-    - then `  tell the user once: nothing moves to the archive until they ask for a clean-up`;
-    - and, when at least one size entry exists, `  or they raise the page limit: wikeeper config set tokens.page.red <n>`.
+    - then one line, `  nothing moves to the archive until the user asks for a clean-up; to raise the page limit instead, run wikeeper config set tokens.page.red <n>`, with the part after `; ` only when at least one size entry exists. When to tell the user, and how often, is WIKI.md's (R8 (b)).
 - **R6 — `private:` covers the archive (K13).** For each `private:` entry inside `pages/`, `managedIgnoreEntries` (`src/core/gitignore.ts:73`) also adds its mirror under `archive/`. The mirror is `path.resolve(paths.archiveDir, entry)`, made repository-relative and passed through `formatEntry` like the `pages/` entry.
   - Mirrors and `pages/` entries are sorted together in the private group, so `.wiki/archive/team.md` comes before `.wiki/pages/team.md`.
   - An entry outside `pages/` keeps its one existing warning and gets no mirror.
@@ -91,8 +96,8 @@ As an AI coding agent starting a session, I want `wikeeper status` to show how b
   - With `content_dir: .` the archive is `<repo>/archive/`; whether that needs a guard is STORY-008-01 §1.4 Q3 (recommended: no code, as for `pages/`).
 - **R8 — The two WIKI.md status bullets (STORY-008-06 R5 (c), (d) and §1.4 Q2; recommended answer, approved at Gate 1 on 2026-10-18).** On this story's tree `test/templates/sprint-03-commands.red.node.test.ts:307` fails until WIKI.md section "Lint and status" opens a bullet for each new status key. So this story writes in `templates/system/WIKI.md`, after the `tokens` bullet (STORY-007-05 R10), exactly:
   - (a) "- `archive`: the size of `archive/`: its `pages` and estimated `tokens`. They are not counted in `tokens`, and a search skips them unless it runs with `--archive`."
-  - (b) "- `archive_candidates`: pages a clean-up could shrink, each with its `reason`: `size` (at or above `tokens.page.red`) or `final-status` (an entity with a final status whose newest fact is older than `lint.stale_after_days`). Tell the user about them once in the session: for `size`, the two choices above; for `final-status`, a clean-up that moves that entity's fact lines to `archive/` (the whole page when the entity is the page), or leaving it. Never start a clean-up yourself."
-  - Nothing else in WIKI.md changes here; STORY-008-06 checks the two bullets. WIKI.md's merge order is 007-05 → 008-05 → 007-07 → 008-06. "The two choices above" points at the red-page paragraph that STORY-007-07 writes and STORY-008-06 extends. The bare `--archive` is no command reference for the template checks, but it names STORY-008-03's flag, so this story preferably merges after STORY-008-03 (merge order only, not a dependency).
+  - (b) "- `archive_candidates`: pages a clean-up could shrink, each with its `reason`: `size` (at or above `tokens.page.red`) or `final_status` (an entity with a final status whose newest fact is older than `lint.stale_after_days`). Tell the user about them once in the session: for `size`, the red-page notice above, told once with it; for `final_status`, a clean-up that moves that entity's fact lines to `archive/` (the whole page when the entity is the page), or leaving it. Never start a clean-up yourself."
+  - Nothing else in WIKI.md changes here; STORY-008-06 checks the two bullets. WIKI.md's merge order is 007-05 → 008-05 → 007-07 → 008-06. "The red-page notice above" points at the red-page paragraph that STORY-007-07 writes and STORY-008-06 extends. The bare `--archive` is no command reference for the template checks, but it names STORY-008-03's flag, so this story preferably merges after STORY-008-03 (merge order only, not a dependency).
 
 ### 1.3 Out of Scope
 - Moving anything to the archive, and any automatic clean-up (EPIC-008 §2 out of scope).
@@ -106,7 +111,7 @@ As an AI coding agent starting a session, I want `wikeeper status` to show how b
 > Resolve every entry before flipping ambiguity to 🟢. Each entry pairs a question with a recommended answer.
 
 - **Question (Q1, contract K13 shape):** K13's entry is `{ path; reason; tokens?; status? }`. A final status often belongs to a section entity (`## Gamma` with `type::` and `status:: done`) on a page that holds live entities too, so `path` alone does not say which entity is finished, or since when.
-- **Recommended:** Add `entity` and `last_dated` to final-status entries (R2), so the agent can say "Gamma is done and has nothing newer than 2026-08-15". Size entries stay `{ path, reason, tokens }`.
+- **Recommended:** Add `entity` and `last_dated` to final_status entries (R2), so the agent can say "Gamma is done and has nothing newer than 2026-08-15". Size entries stay `{ path, reason, tokens }`.
 - **Human decision:** _approved as recommended (human, 2026-10-18, Gate 1; `plans/gate1-decisions.md`)_
 
 - **Question (Q2, immutable red test):** `test/gitignore.red.node.test.ts:56` asserts the exact `entries` list for `private: ["team.md"]`, ending in `.wiki/pages/team.md`. Mirroring the entry (R6) changes that list whatever the order.
@@ -114,13 +119,19 @@ As an AI coding agent starting a session, I want `wikeeper status` to show how b
 - **Second red file (consistency audit, 2026-10-18):** `test/settings-reports.red.node.test.ts`, "appends sorted, deduplicated backups after the fixed entries and before private entries" (`:96`), passes `private: ["secret.md"]` with a hand-built `ResolvedPaths` literal (`:84`, `as never`) that has no `archiveDir`. R6 then calls `path.resolve(undefined, …)` and throws, and the expected tail `[".claude/settings.json.bak", ".codex/hooks.json.bak", ".wiki/pages/secret.md"]` (`:103`) also lacks the mirror. Recommended: re-scope that one test the same way: the literal gains `archiveDir: path.resolve("/r/.wiki/archive")`, and the tail gains `".wiki/archive/secret.md"` before `".wiki/pages/secret.md"`. Alternative: derive the mirror from `paths.contentDir` (which the literal has) instead of `paths.archiveDir`; the tail still changes, so the re-scope is needed either way.
 - **Human decision:** _approved as recommended (human, 2026-10-18, Gate 1; `plans/gate1-decisions.md`)_
 
-- **Question (Q3, file surface):** The final-status rule needs `stale-fact`'s private helpers. `src/lint/staleness.ts` is not in the decomposition brief's file list for 008-05.
+- **Question (Q3, file surface):** The final_status rule needs `stale-fact`'s private helpers. `src/lint/staleness.ts` is not in the decomposition brief's file list for 008-05.
 - **Recommended:** Export the three helpers (R3) instead of copying them. `stale-fact`'s behaviour and the file's other exports (`FINAL_STATUSES`, `staleFactCheck`) are unchanged, and STORY-008-04 does not edit this file. The consistency audit (2026-10-18) has added the file to this story's scope in the decomposition brief; confirm at Gate 1.
 - **Human decision:** _approved as recommended (human, 2026-10-18, Gate 1; `plans/gate1-decisions.md`)_
 
 - **Question (Q4, granularity; consistency audit 2026-10-18):** The rubric's "unrelated goals joined" and "subsystems span" signals trip: `status` candidates for the agent, and housekeeping (`private:` mirror, `remove` keep and purge) for the owner. Split the housekeeping out?
 - **Recommended:** Keep one story. R6 and R7 add one folder to three existing lists (about 10 lines), which on its own would trip the rubric's too-small signal (a parameter addition under 30 lines). The Gherkin stays at five scenarios and the complexity at L2.
 - **Human decision:** _approved as recommended (human, 2026-10-18, Gate 1; `plans/gate1-decisions.md`)_
+
+- **DRAFTS review (designer, 2026-10-18):** wording aligned with docs/ux.md — the archive line puts the figure first and takes the plural helper (`archive: ≈12k tokens · 3 pages`; R5, §2.1 scenarios 1 and 3); a size candidate uses STORY-007-05's page shape, path then figure then mark (`projects/atlas.md ≈100 🔴 (tokens.page.red is 100)`; R5, §2.1 scenarios 1 and 3); the two hint lines become one, with no "tell the user once:" in the CLI's output (R5, §2.1 scenario 3, §4.1); the `size` reason in the `archive_candidates` bullet points at the red-page notice, told once with it (R8 (b) and its note; the bullet stays equal to STORY-008-06 R5 (d)). No decision changed.
+
+- **Plan confirmation (human, 2026-10-18):**
+  - P6: size candidate lines print the limit with K1's `formatLimit` from `src/core/tokens.ts` (STORY-007-01), not from `src/lint/size.ts` (R5, §3.1, §3.2, §3.3).
+  - P10: the reason code is snake_case, `reason: "final_status"` (R2, R8 (b), §2.1 scenario 2, §3.3 and the frontmatter `context_source`), as `docs/ux.md` §4.6 asks for a code.
 
 ### 1.5 Risks
 
@@ -130,7 +141,7 @@ As an AI coding agent starting a session, I want `wikeeper status` to show how b
 - **Mitigation:** `--purge` needs the confirmation word and its description names `archive/` (R7). The resolution is STORY-008-01 §1.4 Q3, where the archive path is decided (recommended: keep `<content_dir>/archive`, as `--purge` already treats `<root>/pages/` with `content_dir: .`).
 - **Risk:** `src/commands/status.ts` is edited by STORY-007-05 first (`tokens`). Its human lines and `measureWiki` call are not written yet.
 - **Mitigation:** This story merges after 007-05, places its lines after 007-05's wiki-size lines, and reads the size candidates from 007-05's `measureWiki` result rather than measuring again (R2).
-- **Risk:** On a real wiki the final-status list can be long, for example a project page with many shipped sections.
+- **Risk:** On a real wiki the final_status list can be long, for example a project page with many shipped sections.
 - **Mitigation:** One line per entity, sorted by path; the agent reads `--json` and tells the user once (R5 hint; STORY-008-06).
 - **Risk:** `status`'s read-only test hashes the whole repository; reading the archive must not create a cache or index.
 - **Mitigation:** R1 and R2 use only `listPageFiles`, `readFile`, `parsePage` and the K1 functions; the read-only scenario runs with an archive present.
@@ -165,8 +176,8 @@ Feature: The archive in status, remove and private
     Examples:
       | files                                                                         | archive                  | candidates                                                  | line                                                   |
       | pages/team.md (20 tokens) and no archive/                                     | { pages: 0, tokens: 0 }  | []                                                          | archive: none                                          |
-      | pages/team.md (20 tokens) and archive/projects/atlas.md (40 tokens)           | { pages: 1, tokens: 40 } | []                                                          | archive: 1 page · ≈40 tokens                           |
-      | pages/projects/atlas.md (100 tokens) and archive/projects/atlas.md (40 tokens) | { pages: 1, tokens: 40 } | [{ path: "projects/atlas.md", reason: "size", tokens: 100 }] | projects/atlas.md ≈100 tokens 🔴 (tokens.page.red is 100) |
+      | pages/team.md (20 tokens) and archive/projects/atlas.md (40 tokens)           | { pages: 1, tokens: 40 } | []                                                          | archive: ≈40 tokens · 1 page                           |
+      | pages/projects/atlas.md (100 tokens) and archive/projects/atlas.md (40 tokens) | { pages: 1, tokens: 40 } | [{ path: "projects/atlas.md", reason: "size", tokens: 100 }] | projects/atlas.md ≈100 🔴 (tokens.page.red is 100) |
       | pages/projects/atlas.md (99 tokens)                                           | { pages: 0, tokens: 0 }  | []                                                          | archive candidates: none                               |
       | pages/team.md (20 tokens) and archive/projects/big.md (500 tokens)            | { pages: 1, tokens: 500 } | []                                                         | archive candidates: none                               |
 
@@ -179,10 +190,10 @@ Feature: The archive in status, remove and private
 
     Examples:
       | page                                                                                                         | candidates                                                                                                          |
-      | pages/projects/beta.md (title Beta, frontmatter status: shipped), newest fact 2026-09-17                     | [{ path: "projects/beta.md", reason: "final-status", status: "shipped", entity: "Beta", last_dated: "2026-09-17" }] |
+      | pages/projects/beta.md (title Beta, frontmatter status: shipped), newest fact 2026-09-17                     | [{ path: "projects/beta.md", reason: "final_status", status: "shipped", entity: "Beta", last_dated: "2026-09-17" }] |
       | pages/projects/beta.md (title Beta, frontmatter status: shipped), newest fact 2026-09-18                     | []                                                                                                                  |
       | pages/projects/beta.md (title Beta, "status:: active"), newest fact 2026-06-01                               | []                                                                                                                  |
-      | pages/roadmap.md with a section "## Gamma" ("type:: project", "status:: Done — merged"), newest Gamma fact 2026-08-15 | [{ path: "roadmap.md", reason: "final-status", status: "Done — merged", entity: "Gamma", last_dated: "2026-08-15" }] |
+      | pages/roadmap.md with a section "## Gamma" ("type:: project", "status:: Done — merged"), newest Gamma fact 2026-08-15 | [{ path: "roadmap.md", reason: "final_status", status: "Done — merged", entity: "Gamma", last_dated: "2026-08-15" }] |
       | pages/projects/beta.md (frontmatter status: shipped) with no fact lines                                      | []                                                                                                                  |
       | archive/projects/delta.md (frontmatter status: shipped), newest fact 2026-01-01, and no pages/ page          | []                                                                                                                  |
 
@@ -192,11 +203,10 @@ Feature: The archive in status, remove and private
     And pages/projects/atlas.md (100 tokens), pages/projects/beta.md (title Beta, frontmatter status: shipped, newest fact 2026-09-01, 30 tokens) and archive/projects/atlas.md (40 tokens)
     When I run "wikeeper status"
     Then the exit code is 0
-    And it prints "archive: 1 page · ≈40 tokens" and "archive candidates: 2"
-    And it prints "  projects/atlas.md ≈100 tokens 🔴 (tokens.page.red is 100)"
+    And it prints "archive: ≈40 tokens · 1 page" and "archive candidates: 2"
+    And it prints "  projects/atlas.md ≈100 🔴 (tokens.page.red is 100)"
     And it prints "  projects/beta.md · Beta: status shipped, last dated 2026-09-01 (lint.stale_after_days is 30)"
-    And it prints "  tell the user once: nothing moves to the archive until they ask for a clean-up"
-    And it prints "  or they raise the page limit: wikeeper config set tokens.page.red <n>"
+    And it prints "  nothing moves to the archive until the user asks for a clean-up; to raise the page limit instead, run wikeeper config set tokens.page.red <n>"
     And no file in the repository was created, changed or deleted
     And templates/system/WIKI.md section "Lint and status" has the R8 bullets starting "- `archive`: " and "- `archive_candidates`: "
 
@@ -231,7 +241,7 @@ Feature: The archive in status, remove and private
 ```
 
 ### 2.2 Verification Steps (Manual)
-- [ ] In a scratch copy of `~/walkthrough-wiki`, set `tokens.page.red` below the largest page's size, add one archive page by hand, and run `wikeeper status`: the archive line, a size candidate and any shipped or done entities older than 30 days are listed, and `git status` in the copy shows no change.
+- [ ] In a scratch copy of the testbed (`testbed.md`, Making a scratch copy), set `tokens.page.red` to 6k, below `decisions.md` and `risks.md` (testbed.md "Pages for specific checks"), add one archive page by hand, and run `wikeeper status`: the archive line, a size candidate for each of those two pages and any shipped or done entities older than 30 days are listed, beta among them (done in August with no fact since; testbed.md "beta's dates"), and `git status` in the copy is the same before and after `status`.
 - [ ] In a scratch repo with `private: [team.md]`, run `wikeeper init --yes`, create `.wiki/archive/team.md`, and check that `git status --porcelain` does not list it.
 
 ## 3. The Implementation Guide
@@ -250,7 +260,7 @@ Feature: The archive in status, remove and private
 | Related Files (new tests) | `test/archive-status.red.node.test.ts` |
 | New Files Needed | `test/archive-status.red.node.test.ts` (QA-Red) |
 
-- **Read, not edited:** `src/core/tokens.ts` (`estimateTokens`, `formatTokens`, `levelMark`, `measureWiki`, K1), `src/core/config.ts` (`tokens.page`, K2; `lint.stale_after_days`), `src/core/paths.ts` (`archiveDir`, K9), `src/wiki/parse-page.ts` (`listPageFiles`, `loadPages`, `pageEntities`), `src/commands/init.ts` and `src/commands/update.ts` (callers of `managedIgnoreEntries`, unchanged).
+- **Read, not edited:** `src/core/tokens.ts` (`estimateTokens`, `formatTokens`, `formatLimit`, `levelMark`, `measureWiki`, K1), `src/core/config.ts` (`tokens.page`, K2; `lint.stale_after_days`), `src/core/paths.ts` (`archiveDir`, K9), `src/wiki/parse-page.ts` (`listPageFiles`, `loadPages`, `pageEntities`), `src/commands/init.ts` and `src/commands/update.ts` (callers of `managedIgnoreEntries`, unchanged).
 - **Red tests that must stay green, unmodified:** `test/status.red.node.test.ts` (the read-only hash and the existing lines), `test/help.red.node.test.ts` (purge tokens), `test/remove.red.node.test.ts`, `test/init.red.node.test.ts` (S4 `wiki/pages/team.md`), `test/lint/stale-fact.red.node.test.ts`, `test/templates/sprint-03-commands.red.node.test.ts` S3 (status bullets equal the status keys, R8). `test/gitignore.red.node.test.ts:56` and one test of `test/settings-reports.red.node.test.ts` (`:96`) are re-scoped by this story's QA-Red only (§1.4 Q2).
 
 ### 3.2 Technical Logic
@@ -260,7 +270,7 @@ Feature: The archive in status, remove and private
   3. Final-status entries (R2, R3): `loadPages(paths.pagesDir)`; for each page and each entity in `pageEntities(page)` with facts, `entityStatus` → `isFinalStatus` → newest fact date → `daysSince(newest, now) > config.lint.stale_after_days`.
   4. Sort (R2) and set `data.archive` and `data.archive_candidates`.
 - **Staleness exports (R3).** Rename on export only (`isFinal` → `isFinalStatus`, `statusOf` → `entityStatus`), extract the age arithmetic from `staleFactCheck` (`src/lint/staleness.ts:69`–`:71`) into `daysSince`, and call the three from `staleFactCheck`. The file keeps importing `checks.ts` with `import type` only.
-- **Human output (R5).** In `renderStatus` (`src/commands/status.ts:160`), after 007-05's lines; `plural(n, "page")` for the archive line, `formatTokens` and `levelMark("red")` (K1) and `formatLimit` (STORY-007-05, `src/lint/size.ts`) for size lines; the red limit is `data.tokens.limits.page.red` (K7), and `config.lint.stale_after_days` is passed to `renderStatus` with the data.
+- **Human output (R5).** In `renderStatus` (`src/commands/status.ts:160`), after 007-05's lines; `plural(n, "page")` for the archive line, `formatTokens`, `levelMark("red")` and `formatLimit` (K1, `src/core/tokens.ts`) for size lines; the red limit is `data.tokens.limits.page.red` (K7), and `config.lint.stale_after_days` is passed to `renderStatus` with the data.
 - **Gitignore (R6).** In the private loop (`src/core/gitignore.ts:89`), after the inside-`pages/` test, add `formatEntry(rel(path.resolve(paths.archiveDir, p)))` to the same `priv` set; the existing sort orders the group. With `content_dir: .` this gives `archive/team.md` (it has a slash, so `formatEntry` adds none; FLASHCARD 2026-10-17 `#gitignore`).
 - **Remove (R7).** Add `paths.archiveDir` after `paths.pagesDir` in the owned list (`src/commands/remove.ts:216`) and in `keptCandidates` (`:231`); edit the `--purge` description (`:148`).
 - **Fixtures.** The status rows use `createStatusCommand({ now })` for 2026-10-18. Write `.wiki/config.yml` with `tokens: { page: { yellow: 50, red: 100 } }` (K2: yellow below red). Remove rows run through `runCli`'s default program in a git repo, so the agents integration registers (FLASHCARD 2026-10-17 `#qa #test-harness`). Assert `data.kept` with `toContain`, not by neighbours (FLASHCARD 2026-10-17 `#remove #qa`).
@@ -279,7 +289,7 @@ export interface StatusData {
   archive: { pages: number; tokens: number };
   archive_candidates: Array<
     | { path: string; reason: "size"; tokens: number }
-    | { path: string; reason: "final-status"; status: string; entity: string; last_dated: string }
+    | { path: string; reason: "final_status"; status: string; entity: string; last_dated: string }
   >;
 }
 
@@ -289,7 +299,7 @@ export function entityStatus(page: Page, entity: Entity): { value: string; line?
 export function daysSince(date: string, now: Date): number; // UTC days, as stale-fact counts them
 ```
 
-Consumed (frozen): `ResolvedPaths.archiveDir` (K9); `estimateTokens`, `formatTokens`, `levelMark`, `measureWiki` (K1) and `config.tokens.page` (K2), STORY-007-01; `StatusData.tokens` and the `measureWiki` result in `collectStatus` (K7, STORY-007-05).
+Consumed (frozen): `ResolvedPaths.archiveDir` (K9); `estimateTokens`, `formatTokens`, `formatLimit`, `levelMark`, `measureWiki` (K1) and `config.tokens.page` (K2), STORY-007-01; `StatusData.tokens` and the `measureWiki` result in `collectStatus` (K7, STORY-007-05).
 
 ## Task Breakdown
 
@@ -308,7 +318,7 @@ Consumed (frozen): `ResolvedPaths.archiveDir` (K9); `estimateTokens`, `formatTok
 
 | Test Type | Minimum Count | Notes |
 |---|---|---|
-| Unit tests | 6 | final-status rule at 30 and 31 days, with a page entity, a section entity, a typed-link status over a frontmatter status, and no facts; size rule at red − 1 and red; sort with a size and a final-status entry on one page; archive size with a dot-segment file and no `archive/`; human lines and plurals (`1 page`, `3 pages`, the second hint line only with a size entry); `managedIgnoreEntries` mirror order and one warning for an outside entry; `daysSince` matching `stale-fact`'s ages |
+| Unit tests | 6 | final_status rule at 30 and 31 days, with a page entity, a section entity, a typed-link status over a frontmatter status, and no facts; size rule at red − 1 and red; sort with a size and a final_status entry on one page; archive size with a dot-segment file and no `archive/`; human lines and plurals (`1 page`, `3 pages`, the hint's `; to raise the page limit instead, …` part only with a size entry); `managedIgnoreEntries` mirror order and one warning for an outside entry; `daysSince` matching `stale-fact`'s ages |
 | Integration tests | 0 | Temp directories only. |
 | E2E / acceptance tests | 5 | One per Gherkin scenario (Outline rows counted once), through `runCli`. |
 
@@ -324,7 +334,7 @@ Consumed (frozen): `ResolvedPaths.archiveDir` (K9); `estimateTokens`, `formatTok
 ## Existing Surfaces
 
 - **Surface:** `src/commands/status.ts:22` — `StatusData`; `src/commands/status.ts:67` — `collectStatus`; `src/commands/status.ts:160` — `renderStatus`.
-- **Surface:** `src/lint/staleness.ts:11` — `FINAL_STATUSES`; `src/lint/staleness.ts:37` — `isFinal`; `src/lint/staleness.ts:42` — `statusOf`; `src/lint/staleness.ts:63` — `staleFactCheck`, whose age rule (`:71`, `:80`) the final-status candidates reuse.
+- **Surface:** `src/lint/staleness.ts:11` — `FINAL_STATUSES`; `src/lint/staleness.ts:37` — `isFinal`; `src/lint/staleness.ts:42` — `statusOf`; `src/lint/staleness.ts:63` — `staleFactCheck`, whose age rule (`:71`, `:80`) the final_status candidates reuse.
 - **Surface:** `src/wiki/parse-page.ts:381` — `pageEntities`; `src/wiki/parse-page.ts:432` — `listPageFiles`.
 - **Surface:** `src/core/gitignore.ts:73` — `managedIgnoreEntries`, with the private loop at `:89`; called by `src/commands/init.ts:238` and `src/commands/update.ts:205`.
 - **Surface:** `src/commands/remove.ts:213` — the purge branch and its owned list (`:216`); `src/commands/remove.ts:231` — the kept candidates; `src/commands/remove.ts:148` — the `--purge` description.

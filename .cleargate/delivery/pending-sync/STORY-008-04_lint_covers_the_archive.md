@@ -78,7 +78,7 @@ As an AI coding agent keeping the wiki, I want lint to treat `archive/` as part 
     - a file that is touched but missing → `deleted without a log entry (last recorded by ingest <src>, <file>)`;
     - a file whose hash differs from the recorded hash (`pageHash`) → `changed since ingest <src> recorded it (<file>)`.
   - No baseline `info` line for the archive: no event written before 0.4.0 can touch `archive/`.
-- **R9 — `wikeeper lint` loads the archive.** It loads `loadPages(paths.archiveDir)` into `archivePages`. When there is at least one archive page, the first human line is `checked <n> page(s) and <m> archived page(s) with <k> check(s)`, e.g. `checked 12 pages and 3 archived pages with 7 checks`; otherwise it is unchanged (`test/lint/lint-command.test.ts:125`). `LintData` is unchanged.
+- **R9 — `wikeeper lint` loads the archive.** It loads `loadPages(paths.archiveDir)` into `archivePages`. When there is at least one archive page, the first human line is `checked <plural(n, "page")> and <plural(m, "archived page")> with <plural(k, "check")>`, as `src/commands/lint.ts:48` already writes its counts, e.g. `checked 12 pages and 3 archived pages with 7 checks`, or `checked 1 page and 1 archived page with 7 checks`; otherwise it is unchanged (`test/lint/lint-command.test.ts:125`). `LintData` is unchanged.
 - **R10 — Finish lint hook covers archive changes.**
   - `LintHookContext` gains `archiveChanged?: string[]`: the archive pages created or updated by the ingest, relative to `archive/`. `ingest finish` passes the created and updated lists of `diff.archive` (K9), sorted, to `runLintHook`.
   - `finishLintHook` returns `[]` when `changed` and `archiveChanged` are both empty (`test/ingest/finish-lint.test.ts:16`). Otherwise it also loads the archive pages and runs `FINISH_CHECKS` (unchanged) with `only: changed` and `onlyArchive: archiveChanged`.
@@ -110,6 +110,8 @@ As an AI coding agent keeping the wiki, I want lint to treat `archive/` as part 
 - **Question (Q4, file surface):** `finishLintHook` and the `runLintHook` call are in `src/commands/ingest-finish.ts` (`:42`, `:229`), not in `src/ingest/lint-hook.ts`. The decomposition brief's shared-file table lists that file for 008-01, 007-05 and 008-02 only.
 - **Recommended:** This story edits `ingest-finish.ts` in those two places only and merges after the three. The consistency audit (2026-10-18) has added 008-04 to that row of the decomposition brief (merge order 008-01 → 007-05 → 008-02 → 008-04); confirm at Gate 1.
 - **Human decision:** _approved as recommended (human, 2026-10-18, Gate 1; `plans/gate1-decisions.md`)_
+
+- **DRAFTS review (designer, 2026-10-18):** wording aligned with docs/ux.md — the first `lint` line writes each count with the plural helper instead of `page(s)` and `check(s)` (R9). No decision changed.
 
 ### 1.5 Risks
 
@@ -211,7 +213,7 @@ Feature: Lint covers the archive
 ```
 
 ### 2.2 Verification Steps (Manual)
-- [ ] In a scratch copy of `~/walkthrough-wiki`, run a clean-up ingest that moves one page whole to `.wiki/archive/` and leaves `[[archive/<path>]]` on a page that linked it; then `wikeeper lint` reports no broken link for either, no orphan or stale finding on the archive page, and `checked … and 1 archived page …`. Edit the archive file by hand and check that `wikeeper lint` reports `unlogged-change` on it.
+- [ ] In a scratch copy of the testbed (`testbed.md`, Making a scratch copy), run a clean-up ingest that moves one page whole to `.wiki/archive/` and leaves `[[archive/<path>]]` on a page that linked it; then `wikeeper lint` reports no broken link for either, no orphan or stale finding on the archive page, and `checked … and 1 archived page …`. Edit the archive file by hand and check that `wikeeper lint` reports `unlogged-change` on it.
 
 ## 3. The Implementation Guide
 

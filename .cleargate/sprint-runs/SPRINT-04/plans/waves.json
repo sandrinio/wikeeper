@@ -1,0 +1,425 @@
+{
+  "schema_version": 2,
+  "sprint": "SPRINT-04",
+  "generated_at": "2026-10-18T11:03:49Z",
+  "contracts": [
+    {
+      "id": "C1",
+      "branch": "contract/S-04-tokens",
+      "base": "sprint/S-04",
+      "owner_story": "STORY-007-01",
+      "frozen_exports": [
+        "src/core/tokens.ts: TokenLevel(type \"green\" | \"yellow\" | \"red\")",
+        "src/core/tokens.ts: TokenLimits(interface { yellow: number; red: number })",
+        "src/core/tokens.ts: WikiSize(interface { total: number; page_count: number; index: number; pages: Array<{ path: string; tokens: number }> })",
+        "src/core/tokens.ts: estimateTokens(text: string): number",
+        "src/core/tokens.ts: levelOf(tokens: number, limits: TokenLimits): TokenLevel",
+        "src/core/tokens.ts: levelMark(level: TokenLevel): string",
+        "src/core/tokens.ts: formatTokens(n: number): string",
+        "src/core/tokens.ts: formatLimit(n: number): string",
+        "src/core/tokens.ts: PDF_TOKENS_PER_PAGE(const number = 1600)",
+        "src/core/tokens.ts: measureWiki(paths: ResolvedPaths): Promise<WikiSize>",
+        "src/core/config.ts: TokenConfirmAt(type \"yellow\" | \"red\" | \"never\")",
+        "src/core/config.ts: WikeeperConfig.tokens({ page: TokenLimits; source: TokenLimits & { confirm_at: TokenConfirmAt } })",
+        "src/core/config.ts: tokenLimitIssues(tokens: WikeeperConfig[\"tokens\"]): ConfigIssue[]"
+      ],
+      "consumers": [
+        "STORY-007-05",
+        "STORY-007-06",
+        "STORY-007-03",
+        "STORY-007-04"
+      ],
+      "created_by": "developer skeleton dispatch (one dispatch writes C1, C2 and C3, one commit and one branch per contract; C2 stacks on C1; bodies throw 'contract stub Cn'; constants carry their frozen values; no tests, templates, package.json or package-lock.json): src/core/tokens.ts (new) with every K1 export; src/core/config.ts type-only additions (TokenConfirmAt, WikeeperConfig.tokens, a throwing tokenLimitIssues); no SCHEMA, walk, validateLeaf or src/commands/init.ts change (STORY-007-01's own); STORY-007-01 builds from this branch",
+      "create_when": "contract step, first"
+    },
+    {
+      "id": "C2",
+      "branch": "contract/S-04-source-size",
+      "base": "contract/S-04-tokens",
+      "owner_story": "STORY-007-03",
+      "frozen_exports": [
+        "src/ingest/source-size.ts: sourceTokens(input: { text: string | null; originalPath: string | null; format: ReadFormat | null }): Promise<{ tokens: number; rough: boolean } | null>",
+        "src/ingest/source-size.ts: describeTokens(tokens: number, level: TokenLevel, rough: boolean): string",
+        "src/ingest/permissions.ts: SourceLimits(type = WikeeperConfig[\"tokens\"][\"source\"])",
+        "src/ingest/permissions.ts: SizeCheck(interface { tokens; rough; level; limit; confirm_at; reached }, field types per STORY-007-03 §3.3)",
+        "src/ingest/permissions.ts: checkSourceSize(counted: { tokens: number; rough: boolean }, limits: SourceLimits): SizeCheck",
+        "src/ingest/permissions.ts: sizeLimitText(check: SizeCheck): string"
+      ],
+      "consumers": [
+        "STORY-007-04"
+      ],
+      "created_by": "developer skeleton dispatch (same dispatch as C1, stacked on C1): src/ingest/source-size.ts (new) and the four K5 exports appended to src/ingest/permissions.ts; bodies throw 'contract stub C2'; no change to src/read/*, src/commands/read.ts or src/commands/ingest-start.ts; STORY-007-03 builds from this branch",
+      "create_when": "contract step, after C1"
+    },
+    {
+      "id": "C3",
+      "branch": "contract/S-04-update-check",
+      "base": "sprint/S-04",
+      "owner_story": "STORY-009-01",
+      "frozen_exports": [
+        "src/core/update-check.ts: UPDATE_CHECK_TTL_MS(const number = 86_400_000)",
+        "src/core/update-check.ts: UPDATE_CHECK_TIMEOUT_MS(const number = 1_500)",
+        "src/core/update-check.ts: SavedCheck(interface { checked_at: string; installed: string; latest: string | null })",
+        "src/core/update-check.ts: UpdateCheckDeps(interface { fetch?: typeof fetch; now?: () => Date; env?: NodeJS.ProcessEnv; installed?: string; timeoutMs?: number; configIssues?: readonly ConfigIssue[] })",
+        "src/core/update-check.ts: updateCheckEnabled(config: WikeeperConfig, env: NodeJS.ProcessEnv, issues?: readonly ConfigIssue[]): boolean",
+        "src/core/update-check.ts: readSavedCheck(paths: ResolvedPaths): Promise<SavedCheck | null>",
+        "src/core/update-check.ts: checkForUpdate(paths: ResolvedPaths, config: WikeeperConfig, deps?: UpdateCheckDeps & { force?: boolean }): Promise<SavedCheck | null>",
+        "src/core/update-check.ts: newerVersion(saved: SavedCheck | null, installed: string): string | null",
+        "src/core/update-check.ts: availableMessage(latest: string, installed: string): string",
+        "src/core/update-check.ts: VersionMismatch(type { kind: \"files-older\" | \"files-newer\"; files: string; installed: string; message: string })",
+        "src/core/update-check.ts: versionMismatch(installed: string, files: string | null): VersionMismatch | null",
+        "src/core/update-check.ts: REGISTRY_VERSION_RE(const RegExp = /^\\d+\\.\\d+\\.\\d+$/)",
+        "src/core/update-check.ts: updateCheckFile(paths: ResolvedPaths): string",
+        "src/core/update-check.ts: fetchLatestVersion(deps?: Pick<UpdateCheckDeps, \"fetch\" | \"env\" | \"timeoutMs\">): Promise<{ latest: string | null; error: string | null }>",
+        "src/core/update-check.ts: writeSavedCheck(paths: ResolvedPaths, saved: SavedCheck): Promise<boolean>",
+        "src/core/update-check.ts: updateCheckOffReason(config: WikeeperConfig, env: NodeJS.ProcessEnv, issues?: readonly ConfigIssue[]): string | null",
+        "src/core/update-check.ts: runIngestUpdateCheck(command: Command, deps?: UpdateCheckDeps): Promise<void>",
+        "src/core/update-check.ts: rememberUpdateNotice(command: Command, notice: string | null): void",
+        "src/core/update-check.ts: updateNotice(command: Command): string | null",
+        "src/core/version.ts: compareVersions(a: string, b: string): number (moved unchanged from src/commands/doctor.ts:42 with its body; doctor.ts re-exports it)"
+      ],
+      "consumers": [
+        "STORY-009-02"
+      ],
+      "created_by": "developer skeleton dispatch (same dispatch as C1 and C2, its own branch on sprint/S-04): src/core/update-check.ts (new) with every K14 export, bodies throw 'contract stub C3', constants carry their frozen values; the compareVersions move to src/core/version.ts with the doctor.ts re-export is final, written once (existing code, unchanged); update-check.ts never imports src/commands/doctor.ts (import cycle, STORY-009-01 §3.2); no config.ts, status.ts, ingest.ts or vitest.config.ts change; STORY-009-01 builds from it through C8",
+      "create_when": "contract step"
+    },
+    {
+      "id": "C4",
+      "branch": "contract/S-04-config",
+      "base": "contract/S-04-tokens",
+      "owner_story": "STORY-007-01",
+      "frozen_exports": [
+        "src/core/config.ts: SCHEMA group tokens (page { yellow 4000, red 10000 }, source { yellow 20000, red 60000, confirm_at \"yellow\" }) with leaf type \"token-count\"",
+        "src/core/config.ts: normalizeLeaf(node, value) (module-private; name and signature frozen for STORY-007-02's parseConfigValue)",
+        "src/core/config.ts: tokenLimitIssues(tokens: WikeeperConfig[\"tokens\"]): ConfigIssue[]",
+        "src/core/config.ts: TokenConfirmAt(type \"yellow\" | \"red\" | \"never\")"
+      ],
+      "consumers": [
+        "STORY-007-02"
+      ],
+      "created_by": "STORY-007-01's own Developer commit (not a skeleton): cut from story/STORY-007-01 (itself cut from C1) at the Developer commit; carries the real estimator, the tokens SCHEMA, normalizeLeaf, initialConfigText and red re-scope #1 (test/config.red.node.test.ts)",
+      "create_when": "when STORY-007-01's Developer reports done, before its QA-Verify"
+    },
+    {
+      "id": "C5",
+      "branch": "contract/S-04-archive",
+      "base": "sprint/S-04",
+      "owner_story": "STORY-008-01",
+      "frozen_exports": [
+        "src/core/paths.ts: ResolvedPaths.archiveDir(string)",
+        "src/ingest/snapshot.ts: SnapshotInfo.archive(Record<string, string>)",
+        "src/ingest/snapshot.ts: restoreSnapshot(paths: ResolvedPaths, sourceId: string): Promise<{ restored: string[]; removed: string[]; archive: { restored: string[]; removed: string[] } | null }>",
+        "src/ingest/diff.ts: TreeDiff({ created: string[]; updated: string[]; deleted: string[] })",
+        "src/ingest/diff.ts: PageDiff(TreeDiff & { archive?: TreeDiff })",
+        "src/ingest/log.ts: IngestLogEvent.archive_hashes(Record<string, string> | undefined)",
+        "src/ingest/log.ts: AbortLogEvent.archive_restored(string[] | undefined)",
+        "src/commands/ingest-apply.ts: ApplyData.snapshot({ dir: string; pages: number; archive: number } | null)"
+      ],
+      "consumers": [
+        "STORY-008-02"
+      ],
+      "created_by": "STORY-008-01's own Developer commit (not a skeleton): cut from story/STORY-008-01 at the Developer commit; carries K9, the guard on archive/, the snapshot archive copy and red re-scope #12 (test/paths.red.node.test.ts)",
+      "create_when": "when STORY-008-01's Developer reports done, before its QA-Verify"
+    },
+    {
+      "id": "C6",
+      "branch": "contract/S-04-sizes",
+      "base": "contract/S-04-config",
+      "owner_story": "STORY-007-05",
+      "frozen_exports": [
+        "src/commands/status.ts: StatusData.tokens({ wiki: number; page_count: number; index: number; limits: { page: TokenLimits; source: TokenLimits & { confirm_at: \"yellow\" | \"red\" | \"never\" } }; largest: Array<{ path: string; tokens: number; level: TokenLevel }> })",
+        "src/ingest/report.ts: IngestReport.tokens({ wiki: number; change: number | null; largest: { path: string; tokens: number; level: TokenLevel } | null })",
+        "src/ingest/report.ts: formatChange(n: number | null): string",
+        "src/search/engine.ts: SearchHit.page_tokens(number)",
+        "src/search/engine.ts: SearchHitBase(type alias Omit<SearchHit, \"page_tokens\">)",
+        "src/search/engine.ts: SearchCorpus.pageTokens(path: string): number",
+        "src/lint/size.ts: oversizedPageCheck(LintCheck, \"oversized-page\", warning, registered after unlogged-change and before stale-fact; in FINISH_CHECKS)"
+      ],
+      "consumers": [
+        "STORY-008-03",
+        "STORY-008-05"
+      ],
+      "created_by": "STORY-007-05's own Developer commit merged onto a stack (not a skeleton): branch cut from contract/S-04-config (007-01's real code), then contract/S-04-archive merged in (008-01; shares only src/commands/ingest-finish.ts with 007-05, in separate hunks), then story/STORY-007-05 merged in at its Developer commit; carries K7 plus 007-05's WIKI.md tokens bullet and oversized-page row, test/lint/check-fixtures.ts, test/ingest/report.test.ts and test/ingest/finish-lint.test.ts",
+      "create_when": "when the STORY-007-01, STORY-008-01 and STORY-007-05 Developers have all reported done",
+      "notes": "Hub contract: it gates the builds of 008-03, 008-05 and, through C7, C8 and C9, those of 008-04, 009-01, 008-06 and 009-03. If 007-05 bounces at QA-Verify after this cut, each of those consumers re-syncs on 007-05's merge before its own QA-Verify."
+    },
+    {
+      "id": "C7",
+      "branch": "contract/S-04-search-archive",
+      "base": "contract/S-04-sizes",
+      "owner_story": "STORY-008-03",
+      "frozen_exports": [
+        "src/ingest/index-builder.ts: buildIndex(pages: readonly Page[], opts?: { archived?: number })",
+        "src/ingest/index-builder.ts: writeIndex(paths: ResolvedPaths)",
+        "src/search/engine.ts: SearchHit.archived(boolean)",
+        "src/search/engine.ts: FactView.archived(boolean)",
+        "src/search/engine.ts: EntityMatch.archived(boolean)",
+        "src/search/engine.ts: SearchDoc.archived(boolean)",
+        "src/search/engine.ts: SearchRequest.archive?(boolean)",
+        "src/search/engine.ts: SearchCorpus.archivePages/archiveEntities/archiveDocs, pageTokens(path: string, archived?: boolean)",
+        "src/search/engine.ts: loadSearchCorpus(paths: ResolvedPaths, opts?: { useCache?: boolean; onRebuild?: () => void; archive?: boolean })",
+        "src/search/since.ts: toFactView(fact: Fact, entity: Entity, page: Page, archived?: boolean)"
+      ],
+      "consumers": [
+        "STORY-008-04"
+      ],
+      "created_by": "STORY-008-03's own Developer commit (not a skeleton): cut from story/STORY-008-03 (itself cut from C6) at the Developer commit",
+      "create_when": "when STORY-008-03's Developer reports done, before its QA-Verify"
+    },
+    {
+      "id": "C8",
+      "branch": "contract/S-04-archive-status",
+      "base": "contract/S-04-sizes",
+      "owner_story": "STORY-008-05",
+      "frozen_exports": [
+        "src/lint/staleness.ts: isFinalStatus(value: string): boolean",
+        "src/lint/staleness.ts: entityStatus(page: Page, entity: Entity): { value: string; line?: number } | null",
+        "src/lint/staleness.ts: daysSince(date: string, now: Date): number",
+        "src/commands/status.ts: StatusData(archive: { pages: number; tokens: number }; archive_candidates: Array<{ path: string; reason: \"size\"; tokens: number } | { path: string; reason: \"final_status\"; status: string; entity: string; last_dated: string }>)"
+      ],
+      "consumers": [
+        "STORY-009-01"
+      ],
+      "created_by": "STORY-008-05's own Developer commit, stacked like SPRINT-03's C5 (not a skeleton): branch cut from story/STORY-008-05 (itself cut from C6) at the Developer commit, then contract/S-04-update-check (C3) merged in (no shared file); carries K13, 008-05's two WIKI.md status bullets, red re-scopes #14 and #15, and the K14 skeleton, so STORY-009-01 and STORY-009-02 share C3 as their merge base",
+      "create_when": "when STORY-008-05's Developer reports done, before its QA-Verify"
+    },
+    {
+      "id": "C9",
+      "branch": "contract/S-04-token-text",
+      "base": "contract/S-04-sizes",
+      "owner_story": "STORY-007-07",
+      "frozen_exports": [
+        "src/agents/enforce/claude.ts: READ_ONLY_COMMANDS(readonly [\"lint\", \"status\", \"rules list\", \"statusline\", \"config get\"])",
+        "src/agents/shipped-blocks.ts: SHIPPED_BLOCKS(readonly string[]) (fourth entry \"SPRINT-04 (STORY-007-07)\", append-only)",
+        "test/templates/structure.ts: DOCUMENTED_FORMS(readonly string[]) (five forms appended: statusline, statusline --install, config get, config set, config unset)"
+      ],
+      "consumers": [
+        "STORY-008-06"
+      ],
+      "created_by": "STORY-007-07's own Developer commit merged onto C6 (not a skeleton): branch cut from contract/S-04-sizes, then story/STORY-007-07 (built from sprint/S-04) merged in at its Developer commit; its WIKI.md hunks are separate from 007-05's bullet and row, and C6 holds no package.json edit; carries 007-07's WIKI.md, SKILL.md, architecture.md, README.md, structure.ts, templates.test.ts and wiki-protocol.red edits next to 007-05's oversized-page row, which STORY-008-06 R5(b) rewrites",
+      "create_when": "when STORY-007-07's Developer reports done and C6 exists",
+      "notes": "Mostly a text contract: it carries ordered bytes (template text, docs, structural tests) for STORY-008-06, beyond the three frozen code exports."
+    },
+    {
+      "id": "C10",
+      "branch": "contract/S-04-archive-text",
+      "base": "contract/S-04-token-text",
+      "owner_story": "STORY-008-06",
+      "frozen_exports": [],
+      "consumers": [
+        "STORY-009-03"
+      ],
+      "created_by": "STORY-008-06's own Developer commit (not a skeleton): cut from story/STORY-008-06 (itself cut from C9) at the Developer commit; carries WIKI.md (008-06's edit of 007-07's fourth paragraph), SKILL.md, architecture.md (D-37), README.md and the DOCUMENTED_FORMS entry search --archive",
+      "create_when": "when STORY-008-06's Developer reports done, before its QA-Verify",
+      "notes": "Text-only contract (ordered bytes), like SPRINT-03's C8 and C9."
+    }
+  ],
+  "stories": {
+    "STORY-007-01": {
+      "base": "contract/S-04-tokens",
+      "upstream": []
+    },
+    "STORY-007-02": {
+      "base": "contract/S-04-config",
+      "upstream": [
+        "STORY-007-01"
+      ]
+    },
+    "STORY-007-03": {
+      "base": "contract/S-04-source-size",
+      "upstream": [
+        "STORY-007-01"
+      ]
+    },
+    "STORY-007-04": {
+      "base": "contract/S-04-source-size",
+      "upstream": [
+        "STORY-007-01",
+        "STORY-007-03"
+      ]
+    },
+    "STORY-007-05": {
+      "base": "contract/S-04-tokens",
+      "upstream": [
+        "STORY-007-01",
+        "STORY-008-01"
+      ]
+    },
+    "STORY-007-06": {
+      "base": "contract/S-04-tokens",
+      "upstream": [
+        "STORY-007-01"
+      ]
+    },
+    "STORY-007-07": {
+      "base": "sprint/S-04",
+      "upstream": [
+        "STORY-007-02",
+        "STORY-007-03",
+        "STORY-007-04",
+        "STORY-007-05",
+        "STORY-007-06"
+      ]
+    },
+    "STORY-008-01": {
+      "base": "sprint/S-04",
+      "upstream": []
+    },
+    "STORY-008-02": {
+      "base": "contract/S-04-archive",
+      "upstream": [
+        "STORY-007-05",
+        "STORY-008-01"
+      ]
+    },
+    "STORY-008-03": {
+      "base": "contract/S-04-sizes",
+      "upstream": [
+        "STORY-007-01",
+        "STORY-007-05",
+        "STORY-008-01"
+      ]
+    },
+    "STORY-008-04": {
+      "base": "contract/S-04-search-archive",
+      "upstream": [
+        "STORY-007-01",
+        "STORY-007-05",
+        "STORY-008-01",
+        "STORY-008-02",
+        "STORY-008-03"
+      ]
+    },
+    "STORY-008-05": {
+      "base": "contract/S-04-sizes",
+      "upstream": [
+        "STORY-007-01",
+        "STORY-007-05",
+        "STORY-008-01"
+      ]
+    },
+    "STORY-008-06": {
+      "base": "contract/S-04-token-text",
+      "upstream": [
+        "STORY-007-01",
+        "STORY-007-05",
+        "STORY-007-07",
+        "STORY-008-01",
+        "STORY-008-02",
+        "STORY-008-03",
+        "STORY-008-04",
+        "STORY-008-05"
+      ]
+    },
+    "STORY-009-01": {
+      "base": "contract/S-04-archive-status",
+      "upstream": [
+        "STORY-007-01",
+        "STORY-007-02",
+        "STORY-007-03",
+        "STORY-007-04",
+        "STORY-007-05",
+        "STORY-007-06",
+        "STORY-008-01",
+        "STORY-008-05"
+      ]
+    },
+    "STORY-009-02": {
+      "base": "contract/S-04-update-check",
+      "upstream": [
+        "STORY-009-01"
+      ]
+    },
+    "STORY-009-03": {
+      "base": "contract/S-04-archive-text",
+      "upstream": [
+        "STORY-007-01",
+        "STORY-007-05",
+        "STORY-007-07",
+        "STORY-008-01",
+        "STORY-008-06",
+        "STORY-009-01",
+        "STORY-009-02"
+      ]
+    }
+  },
+  "waves": [
+    {
+      "wave": "wave1",
+      "stories": [
+        "STORY-007-01",
+        "STORY-008-01"
+      ],
+      "parallel": true,
+      "rationale": "integration layer 0: no upstream; 007-01 builds from its own skeleton C1, 008-01 from sprint/S-04; no shared path; their Developer commits seed C4, C5 and C6"
+    },
+    {
+      "wave": "wave2",
+      "stories": [
+        "STORY-007-02",
+        "STORY-007-03",
+        "STORY-007-05",
+        "STORY-007-06"
+      ],
+      "parallel": true,
+      "rationale": "integration layer 1: 007-02 builds from C4 (config.ts on 007-01's tokens SCHEMA and private normalizeLeaf; real collision, ordered); 007-03 from its own skeleton C2; 007-05 and 007-06 from C1; 007-05 also integrates after 008-01 (orchestrator order on ingest-finish.ts; separate hunks, re-applied at re-sync). No real collision among the four: the only shared path is src/program.ts (007-02 and 007-06 each append one import and one defaultCommands entry; insert-only, keep both). parallel_eligible n is a hint from the story files"
+    },
+    {
+      "wave": "wave3",
+      "stories": [
+        "STORY-008-02",
+        "STORY-008-03",
+        "STORY-008-05",
+        "STORY-007-04"
+      ],
+      "parallel": true,
+      "rationale": "integration layer 2: 008-02 builds from C5 (008-01's Developer commit; its report.ts, report.test.ts and finish report-literal hunks are re-applied on 007-05's at re-sync, in the order counts, archived, wiki); 008-03 and 008-05 from C6 (search files and status.ts and WIKI.md bullets on top of 007-05's; real collisions, ordered); 007-04 from C2. No shared path among the four. Merge 008-02 first (bounce exposure high), then 008-03 before 008-05 (008-05's WIKI.md bullet names --archive)"
+    },
+    {
+      "wave": "wave4",
+      "stories": [
+        "STORY-007-07",
+        "STORY-008-04",
+        "STORY-009-01"
+      ],
+      "parallel": true,
+      "rationale": "integration layer 3: 007-07 builds from sprint/S-04 at once (text, allow rules, docs, 0.4.0; no upstream edits its lines; re-syncs on 007-02 to 007-06 for the real-tree checks) and seeds C9; 008-04 builds from C7 (checks.ts, FINISH_CHECKS and finish-lint.test.ts on 007-05's, buildIndex from 008-03; real collisions, ordered) and re-applies its ingest-finish.ts hook hunk beside 008-02's refusal; 009-01 builds from C8 (status.ts and the WIKI.md version bullet on top of 008-05's, plus the K14 skeleton C3) and re-applies its config.ts, doctor.ts (beside 007-02's config-valid branch, decision 66), ingest-start.ts, ingest-plan.ts and test:perf hunks at re-sync. 007-07 and 009-01 share only templates/system/WIKI.md and package.json, in separate hunks (version :3 vs test:perf :46), so this is not a real collision; both package.json arrows involving 007-07 were dropped by the human (2026-10-18); merge 007-07 before 009-01 when both are ready (the accepted WIKI.md order, a merge order only). 009-01's manual check runs on a scratch copy with the version set to 0.4.0 (never committed), since 009-01 may merge before 007-07's bump. From 009-01's merge on, vitest.config.ts applies to every later story"
+    },
+    {
+      "wave": "wave5",
+      "stories": [
+        "STORY-008-06",
+        "STORY-009-02"
+      ],
+      "parallel": true,
+      "rationale": "integration layer 4: 008-06 builds from C9 (007-07's text and 007-05's oversized-page row, which it rewrites; real collisions, ordered); 009-02 (upstream 009-01) has been built from C3 since the contract step (it merges 009-01's Developer commit for the real K14 bodies) and makes one src/program.ts append (insert-only); no shared path between them"
+    },
+    {
+      "wave": "wave6",
+      "stories": [
+        "STORY-009-03"
+      ],
+      "parallel": false,
+      "rationale": "integration layer 5: upstream 009-02, 008-06, 009-01; builds from C10 (WIKI.md paragraph after 007-07's as 008-06 edits it, architecture.md and README.md after D-37, DOCUMENTED_FORMS and COMMANDS on top; real collisions, ordered); re-syncs for the upgrade command and 009-01's bullet; merges last"
+    }
+  ],
+  "lane_assignments": {
+    "STORY-007-01": "standard",
+    "STORY-007-02": "standard",
+    "STORY-007-03": "standard",
+    "STORY-007-04": "standard",
+    "STORY-007-05": "standard",
+    "STORY-007-06": "standard",
+    "STORY-007-07": "standard",
+    "STORY-008-01": "standard",
+    "STORY-008-02": "standard",
+    "STORY-008-03": "standard",
+    "STORY-008-04": "standard",
+    "STORY-008-05": "standard",
+    "STORY-008-06": "standard",
+    "STORY-009-01": "standard",
+    "STORY-009-02": "standard",
+    "STORY-009-03": "standard"
+  }
+}

@@ -9,6 +9,7 @@
 - [[EPIC-009]] (epic) — Draft — Version check and upgrade
 - [[SPRINT-04]] (sprint) — Draft — Token gauges and fact archive
 - [[INITIATIVE-001]] (initiative) — Triaged — Wiki CLI — Karpathy-style LLM wiki for AI agents
+- [[CR-004]] (cr) — Draft — Designer review for CLI output and agent instructions
 
 ## Archive
 

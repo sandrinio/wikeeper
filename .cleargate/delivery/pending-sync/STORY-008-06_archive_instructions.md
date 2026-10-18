@@ -41,15 +41,21 @@ last_remote_update: null
 source: local-authored
 last_synced_status: null
 last_synced_body_sha: null
-stamp_error: no ledger rows for work_item_id STORY-008-06
 draft_tokens:
-  input: null
-  output: null
-  cache_creation: null
-  cache_read: null
+  input: 0
+  output: 0
+  cache_creation: 0
+  cache_read: 0
   model: null
-  last_stamp: 2026-10-18T08:09:11Z
-  sessions: []
+  last_stamp: 2026-10-18T11:50:28Z
+  sessions:
+    - session: 47c84598-2a59-4cfa-a987-cfe39161376b
+      model: ""
+      input: 0
+      output: 0
+      cache_read: 0
+      cache_creation: 0
+      ts: 2026-10-18T10:23:32Z
 ---
 
 # STORY-008-06: Archive instructions and docs
@@ -81,10 +87,10 @@ The text names only the commands and flags that exist at the end of SPRINT-04. I
   - (a) "When `finish` refuses with `fact lines dropped`, put each named line back exactly as it was and run `wikeeper ingest finish <id>` again; the lock is still held." becomes: "When `finish` refuses with `fact lines dropped`, put each named line back exactly as it was or, in a clean-up, add it unchanged to `archive/<path>`; then run `wikeeper ingest finish <id>` again; the lock is still held. When it refuses with `archived fact lines dropped`, put each named line back in its archive page exactly as it was, or restore the deleted archive page: no line ever leaves `archive/`."
   - (b) "change nothing under `pages/`." becomes "change nothing under `pages/` or `archive/`."
 - **R5 — Telling the user (EPIC-008 §2, §6; K13). WIKI.md section "Lint and status", on STORY-007-07's text.**
-  - (a) STORY-007-07 R5 (b) 4: "and say they can raise the limit with `wikeeper config set tokens.page.red <n>`" becomes "and offer both choices: raise the limit with `wikeeper config set tokens.page.red <n>`, or ask for a clean-up, which moves replaced and finished facts to `archive/` and keeps them (section "Write phase")"; "never change a limit yourself" becomes "never change a limit or start a clean-up yourself". "Once in the session" keeps STORY-007-07 §1.4 Q3's meaning.
+  - (a) STORY-007-07 R5 (b) 4: "and offer to raise the page limit for them; on a yes, run `wikeeper config set tokens.page.red <n>`" becomes "and offer both choices in plain words: you raise the page limit for them (on a yes, `wikeeper config set tokens.page.red <n>`), or they ask for a clean-up, which moves replaced and finished facts to `archive/` and keeps them (section "Write phase")"; "never change a limit yourself" becomes "never change a limit or start a clean-up yourself". "Once in the session" keeps STORY-007-07 §1.4 Q3's meaning.
   - (b) The `oversized-page` row (STORY-007-07 R5 (d)) becomes: "| `oversized-page` | A page is at or above `tokens.page.red`. Tell the user once in the session, as said above: they raise the limit or ask for a clean-up; an ordinary ingest never shrinks a page. |"
   - (c) A status-field bullet after `tokens`: "- `archive`: the size of `archive/`: its `pages` and estimated `tokens`. They are not counted in `tokens`, and a search skips them unless it runs with `--archive`."
-  - (d) A status-field bullet after it: "- `archive_candidates`: pages a clean-up could shrink, each with its `reason`: `size` (at or above `tokens.page.red`) or `final-status` (an entity with a final status whose newest fact is older than `lint.stale_after_days`). Tell the user about them once in the session: for `size`, the two choices above; for `final-status`, a clean-up that moves that entity's fact lines to `archive/` (the whole page when the entity is the page), or leaving it. Never start a clean-up yourself." (A final-status candidate can be a section entity on a page with live entities, STORY-008-05 R2, so "moves the whole page" was changed by the consistency audit, 2026-10-18.)
+  - (d) A status-field bullet after it: "- `archive_candidates`: pages a clean-up could shrink, each with its `reason`: `size` (at or above `tokens.page.red`) or `final_status` (an entity with a final status whose newest fact is older than `lint.stale_after_days`). Tell the user about them once in the session: for `size`, the red-page notice above, told once with it; for `final_status`, a clean-up that moves that entity's fact lines to `archive/` (the whole page when the entity is the page), or leaving it. Never start a clean-up yourself." (A final_status candidate can be a section entity on a page with live entities, STORY-008-05 R2, so "moves the whole page" was changed by the consistency audit, 2026-10-18.)
   - (c) and (d) must land in the commit that adds the `archive` and `archive_candidates` status keys (§1.4 Q2). Under the recommended answer STORY-008-05 writes them with this text (its R8 carries it verbatim), and this story checks them and changes nothing else in them.
 - **R6 — Searching the archive (K11).**
   - (a) WIKI.md section "Search", a bullet after `--since` (`:226`): "- `--archive`: also search `archive/`, where clean-ups keep replaced and finished facts; its hits carry `archived: true`. `--since` and `--entity` always include archived facts, marked `archived: true`."
@@ -97,9 +103,9 @@ The text names only the commands and flags that exist at the end of SPRINT-04. I
   - (d) §8 (`:441`): the "Two layers per page" bullet says replaced facts stay until a clean-up the user asks for moves them to `archive/`; a new "Archive" bullet: same paths and page format; a dropped line must be in `archive/` at the same path, a deleted page's lines must be somewhere in `pages/` or `archive/`, no line leaves `archive/`; the index, default search and page lint skip it; `search --archive`, `--since` and `--entity` include it; `status` lists candidates; the agent judges, the CLI checks.
   - (e) §10 (`:463`): the `search` row adds `--archive`; the `remove [--purge]` row says `remove` keeps `archive/` and `--purge` deletes it. §11 (`:481`): the `content_dir` comment lists `archive/`.
   - (f) §13 (`:511`): "D-37 | Outdated facts move from pages/ to archive/ only in a clean-up the user asks for. `ingest finish` refuses a fact line that leaves pages/ without reaching archive/, and any line that leaves archive/." (the next free number if another entry lands first).
-  - (g) `README.md`: How It Works item 4 (`README.md:71–74`) says the snapshot covers `.wiki/archive/` and that `finish` refuses a dropped fact line unless the identical line moves to `.wiki/archive/` in a clean-up you asked for; the CLI table's `search` row adds `--archive` and the `remove` row says the archive is kept; a short "Fact archive" paragraph (ordinary ingests keep every fact, the agent offers a clean-up or a higher limit when a page turns 🔴, nothing is deleted); the decision-log range (`README.md:164`) becomes `D-01`–`D-37`.
+  - (g) `README.md`: How It Works item 2 (`README.md:69`) says "keeps the immutable original in `.wiki/raw/`" in place of "archives the immutable original in `.wiki/raw/`", so "archive" keeps one meaning; item 4 (`README.md:71–74`) says the snapshot covers `.wiki/archive/` and that `finish` refuses a dropped fact line unless the identical line moves to `.wiki/archive/` in a clean-up you asked for; the CLI table's `search` row adds `--archive` and the `remove` row says the archive is kept; a short "Fact archive" paragraph (ordinary ingests keep every fact, the agent offers a clean-up or a higher limit when a page turns 🔴, nothing is deleted); the decision-log range (`README.md:164`) becomes `D-01`–`D-37`.
 - **R9 — Structural template tests.** `DOCUMENTED_FORMS` (`test/templates/structure.ts:467`) gains `search --archive`. QA-Red writes `test/templates/archive-instructions.red.node.test.ts` from §2.1.
-- **R10 — Vocabulary.** The new text names exactly: `wikeeper search --archive`, `wikeeper ingest start -`, `wikeeper ingest facts <id>`, `wikeeper ingest finish <id>`, `wikeeper config set tokens.page.red <n>`; the fields `archived: true`, `archive`, `archive_candidates`, `reason`, `size`, `final-status`, `pages`, `tokens`; the refusals `fact lines dropped` and `archived fact lines dropped`; the report text `archived N fact lines · M pages`; the typed line `archive:: [[archive/<path>]]`; the paths `archive/` and `archive/<path>`, written like `pages/` and never as `.wiki/archive/`, which `checkPaths` reports as unknown (`test/templates/structure.ts:238`).
+- **R10 — Vocabulary.** The new text names exactly: `wikeeper search --archive`, `wikeeper ingest start -`, `wikeeper ingest facts <id>`, `wikeeper ingest finish <id>`, `wikeeper config set tokens.page.red <n>`; the fields `archived: true`, `archive`, `archive_candidates`, `reason`, `size`, `final_status`, `pages`, `tokens`; the refusals `fact lines dropped` and `archived fact lines dropped`; the report text `archived N fact lines · M pages`; the typed line `archive:: [[archive/<path>]]`; the paths `archive/` and `archive/<path>`, written like `pages/` and never as `.wiki/archive/`, which `checkPaths` reports as unknown (`test/templates/structure.ts:238`).
 - **R11 — Invariants.** (a) Every command, flag and section named exists when this story merges (`test/templates.test.ts:113`). (b) WIKI.md keeps its 14 `##` sections and at most 400 lines. (c) The Delegation table keeps its four rows (`test/templates/writing-and-answering-text.red.node.test.ts:351`). (d) "Write phase" keeps "fact lines dropped", "new dated line", "exactly as it was", "wikeeper ingest start -", "correction" and "change nothing under `pages/`" (the same file, `:233–234`). (e) The pointer block, SETUP.md, the six sub-agent prompts and the wiki-ingest skill are not touched. (f) No red test changes.
 
 ### 1.3 Out of Scope
@@ -130,13 +136,18 @@ The text names only the commands and flags that exist at the end of SPRINT-04. I
 
 Settled and not reopened: the conservation rules (K10), what default search and lint skip (K11, K12), the candidate reasons (K13), and the merge order 007-07 → 008-06 on WIKI.md, the wiki-search skill, architecture.md and README.md. "Once in the session" follows STORY-007-07 §1.4 Q3.
 
+- **DRAFTS review (designer, 2026-10-18):** wording aligned with docs/ux.md — the red-page clause starts from STORY-007-07's new text and offers both choices in plain words, with the agent running `wikeeper config set tokens.page.red <n>` on a yes (R5 (a), §2.1 "telling (R5)"); the `size` reason points at the red-page notice, told once with it, still byte-equal to STORY-008-05 R8 (b) (R5 (d)); README item 2 says "keeps" for `.wiki/raw/`, so "archive" means only `archive/` (R8 (g)); the report counts take the plural helper (`archived 1 fact line · 0 pages`; §1.5, §2.1 scenario 2). No decision changed.
+
+- **Plan confirmation (human, 2026-10-18):**
+  - P10: the candidate reason is `final_status`, snake_case like every code (R5 (d), R10, §2.1 "telling (R5)" and scenario 4, §3.3, Existing Surfaces); R5 (d) stays byte-equal to STORY-008-05 R8 (b).
+
 ### 1.5 Risks
 
 > Risks specific to this Story (cross-story risks belong in the milestone plan).
 
 - **Risk:** The text describes four surfaces drafted in parallel (K10–K13); a renamed refusal, field or reason makes it wrong.
 - **Mitigation:** Every owner story is a predecessor; scenarios 2–4 run a clean-up, the refusals and `status` and compare the names the text uses with the real output.
-- **Risk:** Scenario 2's report counts assume K10 counts a whole moved page as one archived page plus its fact lines, and a moved line as a fact line only (EPIC-008 §5: one moved line reports "archived 1 fact lines · 0 pages").
+- **Risk:** Scenario 2's report counts assume K10 counts a whole moved page as one archived page plus its fact lines, and a moved line as a fact line only (EPIC-008 §5: one moved line reports "archived 1 fact line · 0 pages").
 - **Mitigation:** QA-Red takes the counts from STORY-008-02's frozen definition; only the expected numbers change if it differs.
 - **Risk:** A clean-up's facts file has an empty `facts` list. The schema allows it (no `minItems`, `templates/system/schemas/facts.schema.json:31`), but no ingest has used one.
 - **Mitigation:** Scenario 2 runs one from `ingest start -` to `ingest finish`; a refusal there goes back to the owner of that step.
@@ -180,7 +191,7 @@ Feature: Archive instructions and docs
       | ordinary (R3)     | templates/system/WIKI.md              | section "Write phase"       | "an ordinary ingest moves nothing to `archive/`", "except `archive/` in a clean-up" |
       | ordinary (R3)     | templates/system/WIKI.md              | section "Page format"       | "A replaced fact stays in the list", "Only a clean-up the user asks for" |
       | refusals (R4)     | templates/system/WIKI.md              | section "Write phase"       | "`fact lines dropped`", "`archived fact lines dropped`", "exactly as it was", "no line ever leaves `archive/`", "change nothing under `pages/` or `archive/`" |
-      | telling (R5)      | templates/system/WIKI.md              | section "Lint and status"   | "offer both choices", "or ask for a clean-up", "never change a limit or start a clean-up yourself", "`final-status`", "Never start a clean-up yourself" |
+      | telling (R5)      | templates/system/WIKI.md              | section "Lint and status"   | "offer both choices", "or they ask for a clean-up", "never change a limit or start a clean-up yourself", "`final_status`", "Never start a clean-up yourself" |
       | status lines (R5) | templates/system/WIKI.md              | section "Lint and status"   | "- `archive`: ", "- `archive_candidates`: ", "`reason`", "`lint.stale_after_days`" |
       | search (R6)       | templates/system/WIKI.md              | section "Search"            | "`--archive`", "`archived: true`", "`--since`", "`--entity`" |
       | answering (R6)    | templates/system/WIKI.md              | section "Answering questions" | "about the past", "`--archive`" |
@@ -200,8 +211,8 @@ Feature: Archive instructions and docs
 
     Examples:
       | setup                                                                  | decision                                 | what                                                                  | report                          | term       | archived                  |
-      | pages/projects/atlas.md with "atlas ships 2026-10-15" and a newer date | Archive the replaced Atlas launch date.  | that line to archive/projects/atlas.md, with "archive:: [[archive/projects/atlas]]" on the page | archived 1 fact lines · 0 pages | 2026-10-15 | archive/projects/atlas.md |
-      | pages/projects/beta.md with status:: shipped and two fact lines, linked as [[Beta]] from another page | Archive the finished Beta project. | the whole page to archive/projects/beta.md                            | archived 2 fact lines · 1 pages | beta       | archive/projects/beta.md  |
+      | pages/projects/atlas.md with "atlas ships 2026-10-15" and a newer date | Archive the replaced Atlas launch date.  | that line to archive/projects/atlas.md, with "archive:: [[archive/projects/atlas]]" on the page | archived 1 fact line · 0 pages | 2026-10-15 | archive/projects/atlas.md |
+      | pages/projects/beta.md with status:: shipped and two fact lines, linked as [[Beta]] from another page | Archive the finished Beta project. | the whole page to archive/projects/beta.md                            | archived 2 fact lines · 1 page | beta       | archive/projects/beta.md  |
 
   @rules @data
   Scenario Outline: The refusals the text names, and the recovery it gives
@@ -223,7 +234,7 @@ Feature: Archive instructions and docs
     Given a temp git wiki whose pages/projects/gamma.md has status:: shipped and a newest fact 45 days old, with lint.stale_after_days 30
     When I run "wikeeper status --json"
     Then the fields that open a status bullet in section "Lint and status" are exactly the keys of data, "archive" and "archive_candidates" among them
-    And data.archive_candidates lists projects/gamma.md with reason "final-status", and the reasons the "archive_candidates" bullet names are exactly "size" and "final-status"
+    And data.archive_candidates lists projects/gamma.md with reason "final_status", and the reasons the "archive_candidates" bullet names are exactly "size" and "final_status"
     And WIKI.md keeps its fourteen sections in order and at most 400 lines, its Delegation table keeps four rows, and the files R11 (e) names are byte-identical to the base
 
   @rules
@@ -239,10 +250,10 @@ Feature: Archive instructions and docs
 ```
 
 ### 2.2 Verification Steps (Manual)
-- [ ] Walkthrough in `~/walkthrough-wiki`: ingest a status update that replaces a date; check that the old line stays on the page and nothing moves to the archive.
-- [ ] Let a page reach 🔴; check that the agent says so once, offers both choices, and starts nothing. Decline both and check that it does not repeat itself in that session.
-- [ ] Ask for a clean-up; check that the agent shows what it would move, waits for approval, records the decision as a chat ingest, moves only the approved lines, and shows the report's archived counts.
-- [ ] Ask about an old date that only the archive holds; check that the agent searches again with the archive before saying the wiki does not know.
+- [ ] Walkthrough in a scratch copy of the testbed (`testbed.md`, Making a scratch copy), one fresh copy per session where a session's changes affect the next: ingest a status update that replaces a date, for example one that moves atlas GA again; check that the old line stays on the page and nothing moves to the archive.
+- [ ] Lower `tokens.page.red` to 6k so that `decisions.md` and `risks.md` are 🔴 (testbed.md "Pages for specific checks"); check that the agent says so once, offers both choices, and starts nothing. Decline both and check that it does not repeat itself in that session.
+- [ ] Ask for a clean-up of the replaced atlas GA dates (testbed.md "Superseded facts"); check that the agent shows what it would move, waits for approval, records the decision as a chat ingest, moves only the approved lines, and shows the report's archived counts.
+- [ ] Ask about an old date that only the archive holds, such as an atlas GA date the clean-up moved; check that the agent searches again with the archive before saying the wiki does not know.
 
 ## 3. The Implementation Guide
 
@@ -254,8 +265,8 @@ Feature: Archive instructions and docs
 |---|---|
 | Primary File | `templates/system/WIKI.md` |
 | Related Files | `templates/skills/wiki-search/SKILL.md`, `architecture.md`, `README.md` |
-| Test Files | `test/templates/structure.ts`, `test/templates/archive-instructions.red.node.test.ts` |
-| New Files Needed | Yes — `test/templates/archive-instructions.red.node.test.ts` (QA-Red) |
+| Test Files | `test/templates/structure.ts` |
+| New Files Needed | `test/templates/archive-instructions.red.node.test.ts` (written by QA-Red) |
 
 - **Read, not edited:** `templates/agents/*/wiki-writer.*` (§1.4 Q3), `templates/skills/wiki-ingest/SKILL.md` (it already lists "Write phase" and "Lint and status"), `src/ingest/validate.ts`, `src/lint/citations.ts`, `src/lint/links.ts`, `src/lint/staleness.ts` (`FINAL_STATUSES`).
 - **Red tests:** none re-scoped. The status-field check (`test/templates/sprint-03-commands.red.node.test.ts:307`) passes once R5 (c) and (d) are in, whoever writes them (§1.4 Q2).
@@ -269,7 +280,7 @@ Feature: Archive instructions and docs
 
 ### 3.3 API Contract (if applicable)
 
-No new command, option or export; `DOCUMENTED_FORMS` gains `search --archive`. Consumed, frozen: K9 (`archive/` paths, snapshot and restore), K10 (`fact lines dropped` with deleted pages, `archived fact lines dropped`, the report's `archived` counts and line, archive pages exempt from citing the source), K11 (`search --archive`, `archived: true`, `--since` and `--entity` with archived facts, the index line), K12 (links resolve over pages and archive, live first), K13 (`archive`, `archive_candidates` with `size` and `final-status`).
+No new command, option or export; `DOCUMENTED_FORMS` gains `search --archive`. Consumed, frozen: K9 (`archive/` paths, snapshot and restore), K10 (`fact lines dropped` with deleted pages, `archived fact lines dropped`, the report's `archived` counts and line, archive pages exempt from citing the source), K11 (`search --archive`, `archived: true`, `--since` and `--entity` with archived facts, the index line), K12 (links resolve over pages and archive, live first), K13 (`archive`, `archive_candidates` with `size` and `final_status`).
 
 ## Task Breakdown
 
@@ -306,7 +317,7 @@ No new command, option or export; `DOCUMENTED_FORMS` gains `search --archive`. C
 - **Surface:** `src/lint/citations.ts:17` — `TYPED_RE`: a typed line is not a claim; `src/lint/links.ts:14` — `linkResolver` keys pages by path and names, so a name or path link reaches the live page first; STORY-008-04 R3 adds the `archive/<path>` key that only an archive page has, which the R1 typed line uses.
 - **Surface:** `src/ingest/validate.ts:36` — `citesSource`; `:53` — every created or updated page must cite the ingest's source.
 - **Surface:** `templates/system/schemas/facts.schema.json:31` — `facts` is an array with no `minItems`.
-- **Surface:** `src/lint/staleness.ts:11` — `FINAL_STATUSES`, which the `final-status` candidates use.
+- **Surface:** `src/lint/staleness.ts:11` — `FINAL_STATUSES`, which the `final_status` candidates use.
 - **Surface:** `test/templates/structure.ts:238` — `CLI_DIRS`; `:467` — `DOCUMENTED_FORMS`; `test/templates/sprint-03-commands.red.node.test.ts:302` — the status-field check.
 - **Surface:** `./architecture.md` §4, §4.1, §7.3, §8, §10, §11, §13; `./README.md` How It Works and the CLI table.
 - **Coverage of this requirement:** partial — every section exists; nothing in the templates names `archive/`, a clean-up or `--archive` yet, and "Write phase" still says a whole page may be deleted freely.

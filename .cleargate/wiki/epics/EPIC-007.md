@@ -6,8 +6,8 @@ children: []
 status: "Draft"
 remote_id: ""
 raw_path: ".cleargate/delivery/pending-sync/EPIC-007_token_gauges.md"
-last_ingest: "2026-10-18T07:36:55.026Z"
-last_ingest_commit: ""
+last_ingest: "2026-10-18T14:20:31.216Z"
+last_ingest_commit: "8988a2c33332accb4c940e26c8f087fd85ed697c"
 repo: "planning"
 ---
 
@@ -22,7 +22,7 @@ repo: "planning"
     <rule>Offline and deterministic: no model calls, no API keys (architecture.md §2 principle 1). Every count is an estimate and is printed with "≈". The method is SPIKE-003's weighted character count (measured error ±15%), with no new dependency.</rule>
     <rule>The CLI is the gate (principle 2): the size approval is exit 3 `needs_approval` from `ingest start`, in every permission mode, cleared by `--approved`.
 
-[+18,095 bytes not shown — read .cleargate/delivery/pending-sync/EPIC-007_token_gauges.md]
+[+18,185 bytes not shown — read .cleargate/delivery/pending-sync/EPIC-007_token_gauges.md]
 
 ## Blast radius
 Affects: no parent/child refs declared in frontmatter

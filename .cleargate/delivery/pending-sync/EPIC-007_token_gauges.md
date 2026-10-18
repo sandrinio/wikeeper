@@ -89,7 +89,7 @@ draft_tokens:
 ## 1. Problem & Value
 
 **Why are we doing this?**
-The user can't see how big their content is in tokens: what a document is worth before it is read, how big each page is, and how much the whole wiki holds. `read` and `ingest start` report bytes only, which say little for a PDF or for Georgian text. A long PDF can be tens of thousands of tokens. The user wants to always know these sizes, and to confirm or reject a large document before it is read. The walkthrough wiki holds about 66k tokens in 43 pages (median about 870, largest about 6.3k), measured by SPIKE-003.
+The user can't see how big their content is in tokens: what a document is worth before it is read, how big each page is, and how much the whole wiki holds. `read` and `ingest start` report bytes only, which say little for a PDF or for Georgian text. A long PDF can be tens of thousands of tokens. The user wants to always know these sizes, and to confirm or reject a large document before it is read. The walkthrough wiki holds about 66k tokens across 43 pages (median about 870, largest about 6.3k), measured by SPIKE-003.
 
 **Success Metrics (North Star):**
 - Every command that reads, registers or writes wiki content reports its size as an estimate with a level.
@@ -125,7 +125,7 @@ The user can't see how big their content is in tokens: what a document is worth 
   - It works for every single-value setting: `ingest.permission`, `lint.stale_after_days`, the token limits and the rest.
   - List settings (`agents`, `private`, the whitelist, hooks) stay hand-edited.
 - [ ] **`wikeeper status`** gains a `tokens` section: the wiki total and page count, `index.md`, the limits, and the five largest pages with their levels.
-- [ ] **`wikeeper statusline`** prints one line, e.g. `wiki ≈66k tokens · 43 pages · largest page 🟡 ≈6.3k`.
+- [ ] **`wikeeper statusline`** prints one line, e.g. `wiki ≈66k tokens · 43 pages · largest page ≈6.3k 🟡`.
   - `--install` adds it to `.claude/settings.local.json`, which is personal to this repo.
   - It refuses when a status line is already set in that file, in `.claude/settings.json` or in `~/.claude/settings.json`. It then prints how to add the line to the existing one instead.
 - [ ] **`wikeeper read`** reports the estimate and level: in the `--out` message, and in the `--json` fields `tokens` and `level`.
@@ -141,7 +141,7 @@ The user can't see how big their content is in tokens: what a document is worth 
 - [ ] **Search hits** carry `page_tokens`, the size of the page the hit is on.
 - [ ] **Lint warning** `oversized-page`: a page at or above the page red limit.
 - [ ] **Agent instructions** (`WIKI.md`, pointer block, wiki-search skill):
-  - Show the one-line gauge at the start of every session.
+  - Show the one-line gauge at the start of every session, once setup is done.
   - Show the estimate when asking for approval.
   - For a red source, offer the extractor sub-agent (only facts come back) or reading selected sections.
   - When a page turns red, tell the user once. They decide whether to raise the limit or, once EPIC-008 ships, ask for a clean-up.
@@ -220,7 +220,7 @@ The user can't see how big their content is in tokens: what a document is worth 
   ```
 - JSON fields:
   - `read`: `data.tokens`, `data.level`
-  - `ingest start`: `source.tokens`, `source.level`; the `needs_approval` details add `reason: "size"` and `limit`
+  - `ingest start`: `source.tokens`, `source.level`; the `needs_approval` details add `cause: "permission" | "size" | "both"` and `size: { tokens, rough, level, limit, confirm_at }`
   - `ingest plan`: `tokens` per file and `totals.tokens`
   - `ingest finish`: `tokens` (wiki total, change, largest page)
   - search hits: `page_tokens`
@@ -240,7 +240,7 @@ Feature: Token gauges
   Scenario: A large source needs approval in ai mode
     Given ingest.permission is ai and a text file of about 30k estimated tokens
     When I run "wikeeper ingest start notes.txt"
-    Then it exits 3 with needs_approval, reason "size", the estimate, level yellow and limit 20k
+    Then it exits 3 with needs_approval, cause "size", the estimate, level yellow and limit 20k
     And rerunning with --approved registers the source
 
   Scenario: A whitelisted large source still needs approval; a denied one stays denied

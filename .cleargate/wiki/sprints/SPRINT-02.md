@@ -3,30 +3,29 @@ type: sprint
 id: "SPRINT-02"
 parent: ""
 children: []
-status: "Draft"
+status: "Completed"
 remote_id: ""
-raw_path: ".cleargate/delivery/pending-sync/SPRINT-02_ingest_and_instructions.md"
-last_ingest: "2026-10-17T08:20:11.053Z"
-last_ingest_commit: ""
+raw_path: ".cleargate/delivery/archive/SPRINT-02_ingest_and_instructions.md"
+last_ingest: "2026-10-18T14:20:30.195Z"
+last_ingest_commit: "cb15c86bcf957153d62a5416f4328154b8426707"
 repo: "planning"
 report_raw_path: ".cleargate/sprint-runs/SPRINT-02/SPRINT-02_REPORT.md"
 last_report_ingest_commit: "cb15c86bcf957153d62a5416f4328154b8426707"
 ---
 
-# SPRINT-02: Ingest pipeline and instructions
-
-> **Draft, not planned.** This file only records the scope that was selected. There is no story decomposition, Sprint Design Review, wave plan or milestone yet; those come at planning time, before Gate 2.
+# SPRINT-02: Ingest, search and instructions
 
 ## 0. Stakeholder Brief
 
-- **Sprint Goal (draft, to confirm at planning):** An agent takes a real source from "ingest this" to cited wiki pages through `wikeeper ingest`, under all three permission modes, guided by the real SETUP.md and WIKI.md for the Management profile.
-- **Business Outcome:** wikeeper starts doing its job. After SPRINT-01 it installs an empty shell; after SPRINT-02 the agent can set up the wiki properly and fill it from meeting notes, documents and links, with provenance, permissions and a write lock.
-- **Risks (top 3):** EPIC-003 is the largest epic so far (about 12 capabilities), so its decomposition may need a split; EPIC-006's structural tests depend on EPIC-003's command names; document-reading libraries (PDF, DOCX, URL) are new dependencies that must stay lazy-loaded.
+- **Sprint Goal:** An agent takes a real source from "ingest this" to cited wiki pages through `wikeeper ingest`, under all three permission modes, finding what the wiki already knows with `wikeeper search`, guided by the real SETUP.md, ONBOARDING.md and WIKI.md.
+- **Business Outcome:** wikeeper starts doing its job. After SPRINT-01 it installs an empty shell; after SPRINT-02 the agent can set up the wiki properly, fill it from meeting notes, documents, links and chat, with provenance, permissions and a write lock, and answer questions from it.
+- **Risks (top 3):** 27 stories, the largest sprint so far; EPIC-006's instructions and its structural test depend on the final EPIC-003/004 command names; the page format is shared by the parser, the index, `finish`, search and the page templates.
 
-[+3,725 bytes not shown — read .cleargate/delivery/pending-sync/SPRINT-02_ingest_and_instructions.md]
+[+53,062 bytes not shown — read .cleargate/delivery/archive/SPRINT-02_ingest_and_instructions.md]
 
 ## Blast radius
 Affects: no parent/child refs declared in frontmatter
+
 <!-- BEGIN sprint-report -->
 ## Sprint Report
 

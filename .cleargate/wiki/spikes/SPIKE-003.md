@@ -6,8 +6,8 @@ children: []
 status: "Completed"
 remote_id: ""
 raw_path: ".cleargate/delivery/pending-sync/SPIKE-003_token_estimate_calibration.md"
-last_ingest: "2026-10-18T07:36:10.626Z"
-last_ingest_commit: ""
+last_ingest: "2026-10-18T14:20:32.688Z"
+last_ingest_commit: "8988a2c33332accb4c940e26c8f087fd85ed697c"
 repo: "planning"
 ---
 
@@ -28,7 +28,7 @@ repo: "planning"
 - Lose: neither gets within ±20% on Georgian. Stop; EPIC-007 shows the measured error next to each estimate, and the limits allow for it.
 - Blocked: no model's real counts can be obtained within ±5%. Stop and return to the sponsor.
 
-[+6,581 bytes not shown — read .cleargate/delivery/pending-sync/SPIKE-003_token_estimate_calibration.md]
+[+6,591 bytes not shown — read .cleargate/delivery/pending-sync/SPIKE-003_token_estimate_calibration.md]
 
 ## Blast radius
 Affects: no parent/child refs declared in frontmatter

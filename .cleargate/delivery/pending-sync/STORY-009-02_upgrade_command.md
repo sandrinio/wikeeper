@@ -37,15 +37,21 @@ last_remote_update: null
 source: local-authored
 last_synced_status: null
 last_synced_body_sha: null
-stamp_error: no ledger rows for work_item_id STORY-009-02
 draft_tokens:
-  input: null
-  output: null
-  cache_creation: null
-  cache_read: null
-  model: null
-  last_stamp: 2026-10-18T09:16:58Z
-  sessions: []
+  input: 0
+  output: 0
+  cache_creation: 0
+  cache_read: 0
+  model: claude-opus-5-5
+  last_stamp: 2026-10-18T11:45:37Z
+  sessions:
+    - session: 47c84598-2a59-4cfa-a987-cfe39161376b
+      model: claude-opus-5-5
+      input: 0
+      output: 0
+      cache_read: 0
+      cache_creation: 0
+      ts: 2026-10-18T10:23:56Z
 ---
 
 # STORY-009-02: `wikeeper upgrade`
@@ -108,7 +114,7 @@ As a wikeeper user, I want one command that installs the newest wikeeper the way
   - `<bin>` is `bin.wikeeper` (or `bin` when it is a string) in the newly installed `package.json`, read after the npm step; it defaults to `dist/cli.js`. Running the bin file with the current Node uses neither PATH nor `.cmd` shims, and runs the new code, because the running process still holds the old one (§1.4 Q4).
   - The update child's last stdout line is its JSON envelope. `updated` is true when it exited 0 with `ok: true`, and its `data.warnings` become `upgrade`'s warnings.
   - For `npx`, the new version's `update` builds its hook command again. With no `wikeeper` on PATH and no project `.bin`, that gives `npx -y wikeeper@<v> hook guard --agent <agent>` from its own `packageVersion` (`src/agents/enforce/guard-command.ts:73`, FLASHCARD 2026-10-17 `#enforce #test-harness`).
-  - **Outside a wiki project:** `global` and `local` run the npm step only (`updated: false`). `npx` runs nothing and exits 0 with `npx runs the version you name: use npx -y wikeeper@<v>; there is no wiki project here to update`.
+  - **Outside a wiki project:** `global` and `local` run the npm step only (`updated: false`). `npx` runs nothing and exits 0 with `nothing to upgrade here: npx runs the version you name, so run npx -y wikeeper@<v>; there is no wiki project here to update`.
   - After the npm step, the command loads no module it has not loaded yet: the files on disk now belong to the new version.
   - After a successful run inside a wiki, `writeSavedCheck` stores `{ installed: <v>, latest: <v> }`, so the next ingest command under the new version needs no request.
 - **R7 — Nothing newer (`latest` ≤ `installed`).** No detection and no runner call.
@@ -120,26 +126,26 @@ As a wikeeper user, I want one command that installs the newest wikeeper the way
     - `command`: the one command to run by hand, or null;
     - `then`: what to run afterwards in this project (`wikeeper update`, or `node_modules/.bin/wikeeper update` for a project install), or null outside a wiki project.
 
-    The message ends with `To upgrade by hand: <command>, then run <then> in this project.` (the `then` part only when there is one).
-  - `registry_unreachable` — `could not reach the npm registry (<cause>); nothing was changed. Try again later.` Details `{ cause, command: null, then: null }` (§1.4 Q8).
-  - `npm_missing` — `npm was not found; nothing was changed.` Details `{ command, then, install }`; `command` is the R6 npm step.
-  - `npm_failed` — `npm install failed (exit <code>); nothing was changed:` followed by npm's last 10 non-empty lines (stderr, else stdout). Details `{ command, then, install, exit_code, output }`.
-    - For a `global` install whose output contains `EACCES` or `EPERM`, `command` is `sudo npm install -g wikeeper@<v>` on POSIX. On win32 it is `npm install -g wikeeper@<v>`, and the message adds `in a terminal run as administrator`.
+    The message's first line reads `<what is wrong>: <next step>`, with no final period. With a `command`, the next step is `to upgrade by hand, run <command>, then run <then> in this project` (the `then` part only when there is one). Tool output (npm's, or the update child's) follows as detail lines, each indented two spaces (ux.md §3.4).
+  - `registry_unreachable` — `could not reach the npm registry (<cause>); nothing was changed: try again later`, e.g. `could not reach the npm registry (ENOTFOUND); nothing was changed: try again later`. Details `{ cause, command: null, then: null }` (§1.4 Q8).
+  - `npm_missing` — `npm was not found; nothing was changed: to upgrade by hand, run <command>, then run <then> in this project`, e.g. `npm was not found; nothing was changed: to upgrade by hand, run npm install -g wikeeper@0.4.1, then run wikeeper update in this project`. Details `{ command, then, install }`; `command` is the R6 npm step.
+  - `npm_failed` — `npm install failed (exit <code>); nothing was changed: to upgrade by hand, run <command>, then run <then> in this project`, followed by npm's last 10 non-empty lines (stderr, else stdout) as detail lines. For example `npm install failed (exit 243); nothing was changed: to upgrade by hand, run sudo npm install -g wikeeper@0.4.1, then run wikeeper update in this project`, then `  npm error code EACCES` and the other npm lines. Details `{ command, then, install, exit_code, output }`.
+    - For a `global` install whose output contains `EACCES` or `EPERM`, `command` is `sudo npm install -g wikeeper@<v>` on POSIX. On win32 it is `npm install -g wikeeper@<v>`, and the hand step reads `run npm install -g wikeeper@<v> in a terminal run as administrator`.
     - Otherwise `command` is the R6 npm step.
-  - `upgrade_unsupported` — `wikeeper runs from <dir>, <how>, which wikeeper upgrade does not handle; nothing was run.` Details `{ command, then, install, reason }`. `command` uses the recognised manager:
+  - `upgrade_unsupported` — `wikeeper runs from <dir>, <how>, which wikeeper upgrade does not handle; nothing was run: to upgrade by hand, run <command>, then run <then> in this project`, e.g. `…; nothing was run: to upgrade by hand, run pnpm add -g wikeeper@0.4.1, then run wikeeper update in this project`. Details `{ command, then, install, reason }`. `command` uses the recognised manager:
     - pnpm: `pnpm add -g wikeeper@<v>` or `pnpm add -D wikeeper@<v>`;
     - yarn: `yarn global add wikeeper@<v>` or `yarn add --dev wikeeper@<v>`;
     - bun: `bun add -g wikeeper@<v>` or `bun add -d wikeeper@<v>`;
     - a project install that `package.json` does not list (R4): `npm install --save-dev wikeeper@<v>`;
-    - a source checkout or a linked folder: null. There is no safe single command for a folder that npm did not install, so the message says `update that folder yourself`.
-  - `update_failed` — `wikeeper <v> is installed, but its update failed:` followed by the child's last 10 lines. Details `{ upgraded: true, install, commands_run, command, then: null }`, where `command` is the update step as `commands_run` shows it (`wikeeper update`, `node_modules/.bin/wikeeper update` or `npx -y wikeeper@<v> update`).
+    - a source checkout or a linked folder: null. There is no safe single command for a folder that npm did not install, so the next step reads `update that folder yourself, then run <then> in this project` (`…; nothing was run: update that folder yourself, then run wikeeper update in this project`).
+  - `update_failed` — `wikeeper <v> is installed, but its update failed: run <command> in this project`, e.g. `wikeeper 0.4.1 is installed, but its update failed: run wikeeper update in this project`, followed by the child's last 10 lines as detail lines. Details `{ upgraded: true, install, commands_run, command, then: null }`, where `command` is the update step as `commands_run` shows it (`wikeeper update`, `node_modules/.bin/wikeeper update` or `npx -y wikeeper@<v> update`).
 - **R9 — `--check` (K16 `UpgradeCheckResult`).**
   - It fetches and saves as R2, then detects as R3; it may run `npm root -g`, which changes nothing.
   - Data `{ installed, latest, newer, install, command }`. `command` is the first command `upgrade` would run: the npm step, the update for `npx`, the hand command for `unknown` (or R4's refusal), or `wikeeper update` when nothing is newer but the files are older. It is null when there is nothing to do.
   - Human output: `wikeeper 0.4.1 is available (installed 0.4.0); wikeeper upgrade would run: npm install -g wikeeper@0.4.1, then wikeeper update`, or the R7 message.
   - Exit 0 for every install kind; exit 1 only for `registry_unreachable` (§1.4 Q7). It installs and updates nothing.
 - **R10 — Output on success (K16 `UpgradeResult`).** `{ installed, latest, upgraded, install, commands_run, updated }`. Human lines:
-  - `global`: `upgraded wikeeper 0.4.0 → 0.4.1 with npm install -g and updated this project's files`, then `other projects that use this wikeeper: run "wikeeper update" in each ("wikeeper status" there says so)`.
+  - `global`: `upgraded wikeeper 0.4.0 → 0.4.1 with npm install -g and updated this project's files`, then `other projects that use this wikeeper: run wikeeper update in each (wikeeper status there says so)`.
   - `local`: `upgraded wikeeper 0.4.0 → 0.4.1 in this project's devDependencies and updated this project's files` (or `dependencies`, `optionalDependencies`).
   - `npx`: `updated this project's files with wikeeper 0.4.1 through npx`.
 - **R11 — No allow rule (§1.4 Q6).** `READ_ONLY_COMMANDS` (`src/agents/enforce/claude.ts:28`) and the Codex lines built from it (`src/agents/enforce/codex.ts:27`) stay as they are, and no ask rule is added. No existing rule matches `wikeeper upgrade`: the only wikeeper-wide patterns are `ingest`, `read`, `search` and the read-only commands. So Claude Code and Codex treat it as any unlisted command, and the user's host asks before it runs.
@@ -198,6 +204,8 @@ As a wikeeper user, I want one command that installs the newest wikeeper the way
 - **Recommended:** None: `details.command` is null, and the message says nothing was changed and to try again later. Without the registry's answer there is no version to name, and `npm install -g wikeeper@latest` would install the wrong copy for a project or npx install.
 - **Human decision:** _approved as recommended (human, 2026-10-18, Gate 1; `plans/gate1-decisions.md`)_
 
+- **DRAFTS review (designer, 2026-10-18):** wording aligned with docs/ux.md — every failure message's first line reads `<what is wrong>: <next step>` with no final period, the hand step `to upgrade by hand, run <command>, then run <then> in this project` replaces the "To upgrade by hand: …." tail, and npm's or the child's lines follow as detail lines indented two spaces (R8); the npx-outside-a-wiki line starts `nothing to upgrade here:` and says "run" instead of "use" (R6); the "other projects" hint names `wikeeper update` and `wikeeper status` bare (R10); the §1.5 sandbox mitigation follows STORY-009-03's new failure text. No decision changed.
+
 ### 1.5 Risks
 
 > Risks specific to this Story (cross-story risks belong in the milestone plan).
@@ -209,7 +217,7 @@ As a wikeeper user, I want one command that installs the newest wikeeper the way
 - **Risk:** Windows spawning (`.cmd`, shell quoting) and Windows global layouts cannot be checked on this machine.
 - **Mitigation:** `npmSpawn` is a pure function with win32 rows. Only constants and a checked version reach a shell. The Windows CI job runs the detection tests on real temp folders, with folder links created as `"junction"`, as `test/e2e/pack.ts:41` does.
 - **Risk:** Inside an agent's sandbox (Codex workspace-write, for example), npm has no network or cannot write the global folder.
-- **Mitigation:** The error is npm's own, shown with the hand command (R8). WIKI.md (STORY-009-03) tells the agent to show it to the user.
+- **Mitigation:** The error is npm's own, shown with the hand command (R8). WIKI.md (STORY-009-03) tells the agent to tell the user what failed and to show the hand command when it is the user's to run.
 - **Risk:** `src/program.ts` is also appended to by STORY-007-02 and STORY-007-06.
 - **Mitigation:** One import and one entry at the end of `defaultCommands`, on the merged tree. STORY-009-01 already follows both stories.
 
@@ -309,7 +317,7 @@ Feature: wikeeper upgrade
 
 ### 2.2 Verification Steps (Manual)
 No version newer than 0.4.0 can exist on npm during the sprint, so a real upgrade cannot run. These steps check detection and `--check` on real layouts, with the real registry answering 0.3.0.
-- [ ] Pack the branch (`npm pack` of a scratch build at 0.4.0). Install the tarball into a temp prefix: `npm install -g --prefix <tmp>/g ./wikeeper-0.4.0.tgz`. In a copy of `~/walkthrough-wiki-backup-2026-10-17.tar.gz`, run `<tmp>/g/bin/wikeeper upgrade --check --json`. It reports `install: "global"`, `latest: "0.3.0"`, `newer: false`, and `command: "wikeeper update"` (the copy's files are from 0.3.0). With the tarball as a devDependency of a scratch project, `node_modules/.bin/wikeeper upgrade --check --json` reports `install: "local"`.
+- [ ] Pack the branch (`npm pack` of a scratch build at 0.4.0). Install the tarball into a temp prefix: `npm install -g --prefix <tmp>/g ./wikeeper-0.4.0.tgz`. In a scratch copy of the testbed (`testbed.md`, Making a scratch copy), run `<tmp>/g/bin/wikeeper upgrade --check --json`. It reports `install: "global"`, `latest: "0.3.0"`, `newer: false`, and `command: "wikeeper update"` (the testbed's manifest is from 0.3.0). With the tarball as a devDependency of a scratch project, `node_modules/.bin/wikeeper upgrade --check --json` reports `install: "local"`.
 - [ ] In the same copy, `<tmp>/g/bin/wikeeper upgrade` prints `no newer version on npm (latest 0.3.0, installed 0.4.0)`, then the files-older handling of R7. Check that `.wiki/system/manifest.json` then says `0.4.0+<commit>`, and `git status` shows only wikeeper's own files.
 - [ ] `npx -y ./wikeeper-0.4.0.tgz upgrade --check --json` in the copy reports `install: "npx"`.
 

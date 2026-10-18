@@ -6,6 +6,11 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-18 · #templates #qa · A story's red phrase breaks when a later story edits that sentence in place; pin only the part that survives.
+2026-10-18 · #ux #templates · Agent text for a failed command must cover every error code; 'otherwise try again later' strands the ones it forgot.
+2026-10-18 · #ux #wording · Story-drafted CLI messages drift: they quote commands and end in periods. Spec hints as `run wikeeper x`, lowercase, no period (docs/ux.md §3.2–3.3).
+2026-10-18 · #ux #templates · "Show the user what it printed" leaks commands to the user; say what to tell in plain words, and name the one command the user must run, if any.
+2026-10-18 · #ux #cli · One fact, one shape across commands: `wiki ≈66k tokens · 43 pages`, `<path> ≈6.3k 🟡`, limits through formatLimit (20k) (docs/ux.md §3.4, §3.8–3.9).
 2026-10-17 · #release #npm #ci · npm 12 prints `npm pack --json` as an object keyed by package name, not an array; release.yml pins npm@11 (>= 11.5.1 for trusted publishing). `npm publish --dry-run` passes dry-run down to the tests' own `npm pack` (no tarball): simulate a release with `npm publish --registry=http://127.0.0.1:9/` instead.
 2026-10-17 · #qa #red-test #enforce · The `read` allow pair exists only in ai mode, while the lint/status/rules-list allow rules are in every mode; a per-mode assertion must not demand `read` in ask or whitelist.
 2026-10-17 · #qa #red-test · Red rows that read a CLI form out of template text and run it live need a scratch copy with the planned text applied, to prove them green before the red commit.

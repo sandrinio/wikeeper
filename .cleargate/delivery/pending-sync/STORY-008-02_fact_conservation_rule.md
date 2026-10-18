@@ -37,15 +37,21 @@ last_remote_update: null
 source: local-authored
 last_synced_status: null
 last_synced_body_sha: null
-stamp_error: no ledger rows for work_item_id STORY-008-02
 draft_tokens:
-  input: null
-  output: null
-  cache_creation: null
-  cache_read: null
-  model: null
-  last_stamp: 2026-10-18T08:00:36Z
-  sessions: []
+  input: 0
+  output: 0
+  cache_creation: 0
+  cache_read: 0
+  model: claude-opus-5-5
+  last_stamp: 2026-10-18T11:49:06Z
+  sessions:
+    - session: 47c84598-2a59-4cfa-a987-cfe39161376b
+      model: claude-opus-5-5
+      input: 0
+      output: 0
+      cache_read: 0
+      cache_creation: 0
+      ts: 2026-10-18T10:24:08Z
 ---
 
 # STORY-008-02: The conservation rule at `ingest finish`, archive validation, the report's archived counts
@@ -88,7 +94,7 @@ As a user who asked the agent for a clean-up, I want `ingest finish` to accept a
   - the `dropped` part reads `fact lines dropped (a replaced fact stays in the list; a clean-up moves it unchanged to archive/<same path>): <path> ("<line>", …), …`; deleted pages' lines are grouped under their path like the others;
   - a new part follows it: `archived fact lines dropped (no line leaves archive/): archive/<path> ("<line>", …), …`, where an entry with an empty line shows as `archive/<path> (page deleted)`;
   - `details` gains `archived_dropped` beside `uncited`, `outside`, `invalid` and `dropped`.
-- **R9 — Report (K10).** `IngestReport` gains `archived: { facts: number; pages: number }`. The `finish` report takes it from `v.archived`. The re-run path (`src/commands/ingest-finish.ts:107`, an ingest already logged) reports `{ facts: 0, pages: 0 }`, as it reports `hooks: []` and `lint: []`, because the log event does not record the counts. `formatReport` adds `   archived <facts> fact lines · <pages> pages` directly after the `   created …` line, when `facts > 0` or `pages > 0` (§1.4 Q2), with no plural forms, as EPIC-008 §5 writes it. STORY-007-05's `   wiki ≈…` line follows it.
+- **R9 — Report (K10).** `IngestReport` gains `archived: { facts: number; pages: number }`. The `finish` report takes it from `v.archived`. The re-run path (`src/commands/ingest-finish.ts:107`, an ingest already logged) reports `{ facts: 0, pages: 0 }`, as it reports `hooks: []` and `lint: []`, because the log event does not record the counts. `formatReport` adds `   archived <plural(facts, "fact line")> · <plural(pages, "page")>` (`plural`, `src/commands/doctor.ts:36`) directly after the `   created …` line, when `facts > 0` or `pages > 0` (§1.4 Q2): `archived 1 fact line · 0 pages`, `archived 3 fact lines · 1 page`. STORY-007-05's `   wiki ≈…` line follows it.
 - **R10 — Compatibility.** A write phase that touches no archive file and deletes no page with fact lines finishes exactly as today: same checks, same message, `archived: { facts: 0, pages: 0 }` and no `archived` line. A snapshot from an older wikeeper has an empty `archive` map (K9), so every archive file counts as created: R5 checks it, and R4 finds nothing to compare.
 
 ### 1.3 Out of Scope
@@ -117,6 +123,8 @@ Decided while drafting (not open):
 - A deleted archive page is refused even without fact lines (R4, EPIC-008 §2). An archive page cannot be renamed within an ingest.
 - The re-run path reports zero counts (R9): the rule ran in full before that ingest was logged, and the counts are display-only metadata (D-08).
 - `invalid` mixes both trees, so archive entries carry the `archive/` prefix there. `archived_dropped` holds archive pages only, so its paths are relative to `archive/`, as `dropped` paths are relative to `pages/`.
+
+- **DRAFTS review (designer, 2026-10-18):** wording aligned with docs/ux.md — the report's `archived` line takes the plural helper for both counts (`archived 1 fact line · 0 pages`, `archived 3 fact lines · 1 page`), and "with no plural forms" is gone (R9, §2.1 scenario 5). When the line shows (Q2) is unchanged. No decision changed.
 
 ### 1.5 Risks
 - **Risk:** The rule refuses page deletions that SPRINT-03 accepted. For example, a writer deletes an outdated page in an ordinary ingest.
@@ -232,14 +240,14 @@ Feature: Fact conservation at ingest finish
     Examples:
       | change                                                                                                                                   | archived              | line                                                                                     |
       | appended a fact line citing the ingest to pages/team.md                                                                                  | { facts: 0, pages: 0 } | no line starting with "   archived"                                                      |
-      | moved A1 unchanged to archive/projects/atlas.md                                                                                          | { facts: 1, pages: 0 } | "   archived 1 fact lines · 0 pages" directly after the line starting "   created "         |
-      | moved A1 and A2 unchanged to archive/projects/atlas.md and moved pages/projects/beta.md whole to archive/projects/beta.md                 | { facts: 3, pages: 1 } | "   archived 3 fact lines · 1 pages" directly after the line starting "   created "         |
-      | moved pages/notes/kickoff.md whole to archive/notes/kickoff.md                                                                           | { facts: 0, pages: 1 } | "   archived 0 fact lines · 1 pages" directly after the line starting "   created " (Q2)    |
+      | moved A1 unchanged to archive/projects/atlas.md                                                                                          | { facts: 1, pages: 0 } | "   archived 1 fact line · 0 pages" directly after the line starting "   created "         |
+      | moved A1 and A2 unchanged to archive/projects/atlas.md and moved pages/projects/beta.md whole to archive/projects/beta.md                 | { facts: 3, pages: 1 } | "   archived 3 fact lines · 1 page" directly after the line starting "   created "         |
+      | moved pages/notes/kickoff.md whole to archive/notes/kickoff.md                                                                           | { facts: 0, pages: 1 } | "   archived 0 fact lines · 1 page" directly after the line starting "   created " (Q2)    |
       | moved A1 unchanged to archive/projects/atlas.md, and an ingest log event for the source was already written (an earlier finish stopped after logging) | { facts: 0, pages: 0 }, and json.warnings contains "already recorded" | no line starting with "   archived" |
 ```
 
 ### 2.2 Verification Steps (Manual)
-- [ ] In a copy of `~/walkthrough-wiki`, run a chat-excerpt clean-up (`wikeeper ingest start -` with "archive the replaced Atlas dates"), and in its write phase cut one replaced fact line into `archive/<same path>`. Run `finish` and read the report's `archived` line. Then, in a second clean-up, delete a page without moving its lines, and read the refusal and its hint.
+- [ ] In a scratch copy of the testbed (`testbed.md`, Making a scratch copy), run a chat-excerpt clean-up (`wikeeper ingest start -` with "archive the replaced Atlas dates"), and in its write phase cut one replaced fact line, an earlier atlas GA date from `products/atlas.md` (testbed.md "Superseded facts"), into `archive/<same path>`. Run `finish` and read the report's `archived` line. Then, in a second clean-up, delete a page without moving its lines, and read the refusal and its hint.
 - [ ] In the same copy, remove a line from an archive page during an ingest, read the `archived fact lines dropped` refusal, then run `wikeeper ingest abort <id>`.
 
 ## 3. The Implementation Guide

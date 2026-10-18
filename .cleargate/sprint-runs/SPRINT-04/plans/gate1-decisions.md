@@ -1,6 +1,6 @@
 # SPRINT-04 — Gate 1 decisions
 
-Status: **approved** — the human agreed with every recommendation on 2026-10-18 ("agree with recommendations"), including all 19 red-test re-scopes. Items 1–40 come from `consistency-audit.md`; items 41–61 from the EPIC-009 drafting.
+Status: **approved** — the human agreed with every recommendation on 2026-10-18 ("agree with recommendations"), including all 19 red-test re-scopes. Items 1–40 come from `consistency-audit.md`; items 41–61 from the EPIC-009 drafting. Items 62–65 were decided by the human at the plan confirmation on 2026-10-18 (section "Plan confirmation").
 
 ## EPIC-007 and EPIC-008 (from the consistency audit)
 
@@ -10,7 +10,7 @@ One line each, with the recommended answer. Merged entries name every story that
 1. **007-01 Q1** — The estimator follows SPIKE-003's script: any repeated non-letter symbol is a run, regex without the `u` flag. **Rec: follow the script.**
 2. **007-01 Q2** — A hand-written yellow ≥ red keeps both values and is reported, not reset to the defaults. **Rec: keep both values.**
 3. **007-02 Q1** — `config set` / `unset content_dir` is refused (`config_key_not_settable`) with move instructions. **Rec: refuse.**
-4. **007-02 Q2** — `enforce`, `setup_completed_at` and `profile` are settable; `enforce` gets an "after `wikeeper update`" warning. **Rec: allow all three.**
+4. **007-02 Q2** — `enforce`, `setup_completed_at` and `profile` are settable; `enforce` gets a "run wikeeper update" warning. **Rec: allow all three.**
 5. **007-03 Q1** — For a likely-scanned PDF, `read`'s `tokens` is pages × 1,600 with `tokens_rough: true`. **Rec: yes.**
 6. **007-03 Q2 + 007-04 Q2** — Sources that cannot be counted or estimated get `tokens: null`, no size check, and "not counted" / "not estimated". This covers `.pptx`, images, a broken PDF or DOCX, and plan duplicates and denied files. **Rec: null.**
 7. **007-03 Q3 (b)** — The `ask`-mode approval line also shows the estimate (`(≈2 tokens 🟢 · 6 B, …)`). **Rec: yes.** Alternative: today's text when `cause` is `permission`.
@@ -75,6 +75,16 @@ One line each, with the recommended answer. Merged entries name every story that
 59. **009-03 Q3** — `upgrade --check` is documented in the README only; the agent isn't told to run it. **Rec: yes.**
 60. **009-03 Q5** — The architecture.md decision entry is D-38 (after 008-06's D-37). **Rec: yes.**
 61. **009-01 Q9, 009-03 Q4** — Authorise EPIC-009's red-test re-scopes (rows 16–19 below). **Rec: authorise as listed.**
+
+## Plan confirmation (human, 2026-10-18)
+
+Decided by the human at the SPRINT-04 plan confirmation on 2026-10-18, from the designer's DRAFTS review (`design/SPRINT-04-design-drafts.md` §1 P6, P10; §2 H1, H2) and, for decision 66, its round 2 (`design/SPRINT-04-design-drafts-r2.md` §3 R2-H1). No red-test re-scope is added.
+
+62. **P6 (007-01, 007-03, 007-04, 007-05, 008-05)** — `formatLimit(n)` moves from K7 (`src/lint/size.ts`, 007-05) to K1 (`src/core/tokens.ts`, 007-01) as an additive export; `sizeLimitText` prints `tokens.source.<confirm_at> (<formatLimit(limit)>)`, e.g. `tokens.source.yellow (20k)`. `details.size.limit` stays a number, and lines that echo config keep stored numbers. **Decided: approved.**
+63. **P10 (008-05, 008-06, EPIC-008)** — The archive-candidate reason is `final_status` (snake_case, a code), not `final-status`. **Decided: approved.**
+64. **H1 (007-02)** — `E_CONFIG_SYNTAX` stays; both syntax-error throw sites (`src/core/config.ts:185`, `:225`) end with `: fix the YAML syntax in .wiki/config.yml` (007-02 R11); 007-06 keeps `(E_CONFIG_SYNTAX)`. Renaming the six upper-case `E_` codes together is a CR to file after SPRINT-04. **Decided: add the next step now, keep the code.**
+65. **H2 (007-07, EPIC-007)** — Pointer-block line 4 ends " Once set up, open each session with the size `wikeeper statusline` prints, not an error." (198 characters); on a wiki whose setup is not done, setup comes first and the size line waits. EPIC-007 §2 gains "once setup is done". **Decided: the designer's recommendation.**
+66. **H1 follow-up (a) (007-02, 009-01)** — From the designer's DRAFTS round 2 (`design/SPRINT-04-design-drafts-r2.md` §3 R2-H1): after decision 64, `doctor` showed the syntax-error step twice, in its message and on its `fix:` line. `src/core/config.ts` exports the step as `CONFIG_SYNTAX_FIX`, which R11's message appends; doctor's `config-valid` check (`src/commands/doctor.ts:151–156`) uses it as its `fix` and drops it from its message, so the step prints once (007-02 R12). `src/commands/doctor.ts` joins 007-02's file surface and becomes a shared file, 007-02 → 009-01, in separate hunks (C3 near `:42`, 007-02 at `:151–156`, 009-01 after `:215`). No red-test re-scope is added. **Decided: fix it in 007-02, as the designer recommended (human, plan confirmation, 2026-10-18).**
 
 ## Red-test re-scopes to authorise (19)
 

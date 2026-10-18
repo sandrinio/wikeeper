@@ -49,7 +49,7 @@ draft_tokens:
   cache_creation: 0
   cache_read: 0
   model: claude-opus-5-5
-  last_stamp: 2026-10-18T09:12:12Z
+  last_stamp: 2026-10-18T11:44:27Z
   sessions:
     - session: 47c84598-2a59-4cfa-a987-cfe39161376b
       model: claude-opus-5-5
@@ -116,14 +116,15 @@ As a wikeeper user whose agent runs the ingest commands, I want those commands t
     - `latest`: the newer version from the saved result, when the check is on and `newerVersion` returns one; else null.
     - `files`: `npmVersion(manifest.package_version)` when the manifest exists and its version parses with `compareVersions`; else null.
     - It reads only the saved file and the manifest, never the network.
-  - Human output: after the last existing line (STORY-008-05's), one line `availableMessage(latest, installed)` when `latest` is set, and one line with the `versionMismatch(...)` message when there is a mismatch. Nothing is printed when neither applies.
+  - Human output: after the last existing line (STORY-008-05's), one line `version: ` followed by `availableMessage(latest, installed)` when `latest` is set, and one line `version: ` followed by the `versionMismatch(...)` message when there is a mismatch, e.g. `version: wikeeper 0.4.1 is available (installed 0.4.0): run wikeeper upgrade`. Every other `status` line reads `label: value` too; the text after the label is K14's, so the agent still recognises it. Nothing is printed when neither applies.
   - `collectStatus(paths, config, now, opts?: StatusVersionOptions)` takes an optional fourth parameter, so the existing calls (`test/status.test.ts:80`) still compile. `createStatusCommand(deps)` gains `installed?` and `env?` next to `now`.
   - **WIKI.md bullet (§1.4 Q7).** Section "Lint and status" gains, after STORY-008-05's `archive_candidates` bullet, exactly:
     "- `version`: `installed` is the version that ran this command; `latest` is a newer version on npm, from the check that ingest commands make at most once a day (null when none is known or the check is off); `files` is the version this project's files come from, as the manifest records it (null when it records none). Handle them as said above."
     The bullet names no command and never writes "wikeeper" before a lowercase word (FLASHCARD 2026-10-17 `#templates #vocabulary`). "As said above" points at STORY-009-03's paragraph, which lands later in this sprint.
 - **R9 — Version mismatch (K14 `versionMismatch`).** Both sides go through `npmVersion` (`src/core/version.ts:28`), then `compareVersions(installed, files)` (`src/commands/doctor.ts:42`), which reads the leading `x.y.z` (so `0.4.0+abc` compares as `0.4.0`).
-  - Result `> 0` → `files-older`, message `this project's wikeeper files are from 0.3.0 (installed 0.4.0): run "wikeeper update"`.
-  - Result `< 0` → `files-newer`, message `this project was updated by wikeeper 0.4.0 (installed 0.3.0): run "wikeeper upgrade"`.
+  - Result `> 0` → `files-older`, message `this project's wikeeper files are from 0.3.0 (installed 0.4.0): run wikeeper update`.
+  - Result `< 0` → `files-newer`, message `this project was updated by wikeeper 0.4.0 (installed 0.3.0): run wikeeper upgrade`.
+  - `availableMessage("0.4.1", "0.4.0")` is `wikeeper 0.4.1 is available (installed 0.4.0): run wikeeper upgrade`. Every hint names the command bare, with no quotes, as doctor's `fix:` lines do (R10).
   - Equal versions, `files` null, or an unparsable side → null. A different build stamp (`0.4.0+dev` and `0.4.0+abc1234`) is not a mismatch.
 - **R10 — Doctor (K15; §1.4 Q5).** `runDoctor` (`src/commands/doctor.ts:87`) always appends both checks, after the integration checks (`:215`), in this order:
   - **`version-mismatch`:**
@@ -201,6 +202,8 @@ As a wikeeper user whose agent runs the ingest commands, I want those commands t
 - **Recommended:** Yes, by content anchor and only as the table lists (FLASHCARD 2026-10-17 `#qa #red-test`). The `config.red` edit sits on STORY-007-01's re-scope of the same assertion.
 - **Human decision:** _approved as recommended (human, 2026-10-18, Gate 1; `plans/gate1-decisions.md`)_
 
+- **DRAFTS review (designer, 2026-10-18):** wording aligned with docs/ux.md — the K14 hints name the command bare, with no quotes (`run wikeeper upgrade`, `run wikeeper update`; R9, §2.1 scenarios 1 and 4, §2.2); the two `status` version lines carry the label `version: ` (R8, §2.1 scenario 4, §2.2). No decision changed. Round 2: from R2-H1, as the human decided at plan confirmation (decision 66), `src/commands/doctor.ts` is now shared with STORY-007-02, which changes the `config-valid` syntax-error branch first; §1.5 and §3.2 ("Doctor") say that this story keeps that branch at its re-sync. Nothing else here changes.
+
 ### 1.5 Risks
 
 > Risks specific to this Story (cross-story risks belong in the milestone plan).
@@ -211,7 +214,7 @@ As a wikeeper user whose agent runs the ingest commands, I want those commands t
 - **Mitigation:** Ingest writes `.wiki/raw/` and `.wiki/log/` anyway, so an unwritable `.wiki/` already breaks ingest. Scenario 2 has the row.
 - **Risk:** `availableMessage` and the doctor fix name `wikeeper upgrade`, which STORY-009-02 adds after this story. Between the two merges, the sprint branch recommends a command that does not exist yet.
 - **Mitigation:** Both stories ship in the same release (0.4.0). If STORY-009-02 slips, the K14 message must change before release.
-- **Risk:** Four shared files: `src/core/config.ts` (007-01 → 007-02), `src/commands/status.ts` (007-05 → 008-05), `src/commands/ingest-start.ts` and `src/commands/ingest-plan.ts` (007-03, 007-04), plus `./package.json`'s `test:perf` line, which STORY-007-06 also extends.
+- **Risk:** Five shared files: `src/core/config.ts` (007-01 → 007-02), `src/commands/status.ts` (007-05 → 008-05), `src/commands/ingest-start.ts` and `src/commands/ingest-plan.ts` (007-03, 007-04), `src/commands/doctor.ts` (007-02, which has already changed the `config-valid` check's syntax-error branch: STORY-007-02 R12, plan decision 66), plus `./package.json`'s `test:perf` line, which STORY-007-06 also extends.
 - **Mitigation:** Every change is additive and comes last: the key after `enforce`, the status lines after 008-05's, the notice as the last warning, the perf file at the end of the script line. `dep_predecessors` lists all seven stories.
 - **Risk:** A private registry in `npm_config_registry` that needs auth answers 401, so its users never see a notice.
 - **Mitigation:** By design: wikeeper reads no `.npmrc` tokens (EPIC-009 out of scope). The check fails silently and is saved.
@@ -239,12 +242,12 @@ Feature: Version check and version warnings
     Given the wiki, the check on (env {}), and an injected fetch that answers {"version":"0.4.1"} and counts its requests
     When I run "wikeeper ingest start notes.md --json" at 2026-10-20T09:00:00Z
     Then one request went to "https://registry.npmjs.org/wikeeper/latest"
-    And json.warnings ends with 'wikeeper 0.4.1 is available (installed 0.4.0): run "wikeeper upgrade"', and json.data and the other warnings equal those of the same run with the check off
+    And json.warnings ends with 'wikeeper 0.4.1 is available (installed 0.4.0): run wikeeper upgrade', and json.data and the other warnings equal those of the same run with the check off
     And .wiki/.cache/update-check.json holds { "checked_at": "2026-10-20T09:00:00.000Z", "installed": "0.4.0", "latest": "0.4.1" }
     When I run "wikeeper ingest plan docs --json", "wikeeper ingest abort <id> --json" and "wikeeper ingest plan docs" at 2026-10-20T10:00:00Z
     Then no request goes to npm
-    And ingest plan's json.warnings is ['wikeeper 0.4.1 is available (installed 0.4.0): run "wikeeper upgrade"'] and no warning of ingest abort contains "is available"
-    And the human ingest plan prints 'warning: wikeeper 0.4.1 is available (installed 0.4.0): run "wikeeper upgrade"' on stderr and the same stdout as with the check off
+    And ingest plan's json.warnings is ['wikeeper 0.4.1 is available (installed 0.4.0): run wikeeper upgrade'] and no warning of ingest abort contains "is available"
+    And the human ingest plan prints 'warning: wikeeper 0.4.1 is available (installed 0.4.0): run wikeeper upgrade' on stderr and the same stdout as with the check off
     When I run "wikeeper ingest plan docs --json" at 2026-10-21T09:00:00Z, and then again with installed "0.4.1"
     Then each run sends one more request, and the run with installed "0.4.1" has no version warning
     When npm_config_registry is "https://npm.example.com/repo" in the env and the saved file is deleted
@@ -296,9 +299,9 @@ Feature: Version check and version warnings
 
     Examples:
       | files         | saved                                              | lines                                                                                          | version                                                | mismatch                              | available                                                              |
-      | 0.3.0+a1b2c3d | no saved result                                    | the line 'this project's wikeeper files are from 0.3.0 (installed 0.4.0): run "wikeeper update"' | { installed: "0.4.0", latest: null, files: "0.3.0" }  | warning with fix "run wikeeper update" | info "not checked yet: ingest commands ask npm at most once a day"     |
-      | 0.5.0+dev     | no saved result                                    | the line 'this project was updated by wikeeper 0.5.0 (installed 0.4.0): run "wikeeper upgrade"'  | { installed: "0.4.0", latest: null, files: "0.5.0" }  | warning with fix "run wikeeper upgrade"| info                                                                   |
-      | 0.4.0+dev     | a result saved three days ago with "latest": "0.4.1" | the line 'wikeeper 0.4.1 is available (installed 0.4.0): run "wikeeper upgrade"'             | { installed: "0.4.0", latest: "0.4.1", files: "0.4.0" }| ok                                    | warning with fix "run wikeeper upgrade"                                |
+      | 0.3.0+a1b2c3d | no saved result                                    | the line 'version: this project's wikeeper files are from 0.3.0 (installed 0.4.0): run wikeeper update' | { installed: "0.4.0", latest: null, files: "0.3.0" }  | warning with fix "run wikeeper update" | info "not checked yet: ingest commands ask npm at most once a day"     |
+      | 0.5.0+dev     | no saved result                                    | the line 'version: this project was updated by wikeeper 0.5.0 (installed 0.4.0): run wikeeper upgrade' | { installed: "0.4.0", latest: null, files: "0.5.0" }  | warning with fix "run wikeeper upgrade"| info                                                                   |
+      | 0.4.0+dev     | a result saved three days ago with "latest": "0.4.1" | the line 'version: wikeeper 0.4.1 is available (installed 0.4.0): run wikeeper upgrade' | { installed: "0.4.0", latest: "0.4.1", files: "0.4.0" }| ok                                    | warning with fix "run wikeeper upgrade"                                |
       | 0.4.0+abc1234 | a result saved an hour ago with "latest": "0.4.0"  | its "misses:" line and the lines of earlier stories, and no version line                       | { installed: "0.4.0", latest: null, files: "0.4.0" }  | ok                                    | ok "no newer version known (checked <its checked_at>)"                 |
 
   @rules
@@ -312,10 +315,10 @@ Feature: Version check and version warnings
 ```
 
 ### 2.2 Verification Steps (Manual)
-- [ ] Extract `~/walkthrough-wiki-backup-2026-10-17.tar.gz` into a scratch folder (read-only use), with wikeeper 0.4.0 from this branch on PATH (`npm link` from a scratch clone, or `node <clone>/dist/cli.js`). In the copy:
+- [ ] In a scratch copy of the testbed (`testbed.md`, Making a scratch copy), whose manifest is from 0.3.0, with wikeeper 0.4.0 from this branch on PATH (`npm link` from a scratch clone, or `node <clone>/dist/cli.js`). In the copy:
   - `wikeeper ingest plan <a folder>` writes `.wiki/.cache/update-check.json`, with `latest` "0.3.0" while 0.3.0 is npm's latest, and prints no version warning;
   - a second run within the hour makes no request (the file's `checked_at` is unchanged);
-  - `wikeeper status` prints `this project's wikeeper files are from 0.3.0 (installed 0.4.0): run "wikeeper update"`.
+  - `wikeeper status` prints `version: this project's wikeeper files are from 0.3.0 (installed 0.4.0): run wikeeper update`.
 - [ ] With the network off, delete the saved file and run `wikeeper ingest plan <folder>`. It prints the same plan within about 1.5 s more than usual, and the file holds `"latest": null`.
 - [ ] `WIKEEPER_NO_UPDATE_CHECK=1 wikeeper ingest plan <folder>` and `CI=1 wikeeper ingest plan <folder>` write no file. `wikeeper doctor` says `the update check is off (WIKEEPER_NO_UPDATE_CHECK)` and `(CI)`.
 
@@ -384,7 +387,7 @@ Not re-scoped:
   - `await guard("version-mismatch", …)`, using the `manifest` doctor already read;
   - `await guard("update-available", …)`, using `readSavedCheck(paths)` and `updateCheckEnabled(config, env, issues)`, where `issues` comes from the `config-valid` step's `loadConfig` result (keep it in a variable).
   
-  The `guard` wrapper turns any throw into an error check, as for the others.
+  The `guard` wrapper turns any throw into an error check, as for the others. STORY-007-02 has already changed that step's `E_CONFIG_SYNTAX` branch (`:151`–`:156`; its `fix` is `CONFIG_SYNTAX_FIX` and its message carries no step, STORY-007-02 R12). This story builds from C8 without that change, so at its re-sync it keeps the branch as 007-02 left it; its own edits are separate hunks.
 - **Config.** One SCHEMA line after `enforce`, and one `WikeeperConfig` field. `DEFAULT_CONFIG` follows from the SCHEMA (`src/core/config.ts:88`).
 - **Tests.**
   - The red file drives the CLI through `runCli` with injected deps. The wiki comes from `init` through the default program (FLASHCARD `#qa #test-harness`).

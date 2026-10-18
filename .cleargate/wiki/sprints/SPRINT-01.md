@@ -3,11 +3,11 @@ type: sprint
 id: "SPRINT-01"
 parent: ""
 children: []
-status: "Draft"
+status: "Completed"
 remote_id: ""
-raw_path: ".cleargate/delivery/pending-sync/SPRINT-01_foundation_and_agent_wiring.md"
-last_ingest: "2026-10-16T20:46:14.931Z"
-last_ingest_commit: "8ef2568f0e8057b195d142358166cda4d938147e"
+raw_path: ".cleargate/delivery/archive/SPRINT-01_foundation_and_agent_wiring.md"
+last_ingest: "2026-10-18T14:20:29.700Z"
+last_ingest_commit: "3876726c3ad36782bb51b869d0e9beb90cf98fb0"
 repo: "planning"
 report_raw_path: ".cleargate/sprint-runs/SPRINT-01/SPRINT-01_REPORT.md"
 last_report_ingest_commit: "0f527a71657ff7e12e196efaafbab15fc33c9572"
@@ -28,10 +28,11 @@ Make `npx wikeeper init` produce a safe, idempotent install that every supported
 
 ## 1. Consolidated Deliverables
 
-[+12,005 bytes not shown — read .cleargate/delivery/pending-sync/SPRINT-01_foundation_and_agent_wiring.md]
+[+27,699 bytes not shown — read .cleargate/delivery/archive/SPRINT-01_foundation_and_agent_wiring.md]
 
 ## Blast radius
 Affects: no parent/child refs declared in frontmatter
+
 <!-- BEGIN sprint-report -->
 ## Sprint Report
 

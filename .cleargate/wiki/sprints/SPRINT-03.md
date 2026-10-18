@@ -3,11 +3,11 @@ type: sprint
 id: "SPRINT-03"
 parent: ""
 children: []
-status: "Active"
+status: "Completed"
 remote_id: ""
-raw_path: ".cleargate/delivery/pending-sync/SPRINT-03_lint_status_and_read.md"
-last_ingest: "2026-10-17T17:06:38.939Z"
-last_ingest_commit: "4fc568f3ec399ea1ec932938ce2c059b304a71f8"
+raw_path: ".cleargate/delivery/archive/SPRINT-03_lint_status_and_read.md"
+last_ingest: "2026-10-18T14:20:30.674Z"
+last_ingest_commit: "f8f9b19b12c95f75b4a458ed95c9053e679bdba5"
 repo: "planning"
 report_raw_path: ".cleargate/sprint-runs/SPRINT-03/SPRINT-03_REPORT.md"
 last_report_ingest_commit: "da15630ef84d75b55ec03897301f481f5ad04be6"
@@ -24,10 +24,11 @@ last_report_ingest_commit: "da15630ef84d75b55ec03897301f481f5ad04be6"
 - **Release:** the sprint sets the package version to `0.3.0`; publishing to npm is a separate step the human approves after Gate 4.
 - **Walkthrough part 3 (Goal check):** headless, in `~/walkthrough-wiki`, after execution and before Gate 4. Run as a real user, not as a test (human, 2026-10-17): no walkthrough framing and no logging request in the prompts; plain product-management requests in the human's voice that never name a wikeeper command or WIKI.md; facts mentioned in passing, to see whether the agent records them unprompted; a fresh session per task; some permission prompts declined.
 
-[+53,923 bytes not shown — read .cleargate/delivery/pending-sync/SPRINT-03_lint_status_and_read.md]
+[+59,344 bytes not shown — read .cleargate/delivery/archive/SPRINT-03_lint_status_and_read.md]
 
 ## Blast radius
 Affects: no parent/child refs declared in frontmatter
+
 <!-- BEGIN sprint-report -->
 ## Sprint Report
 

@@ -42,11 +42,11 @@ draft_tokens:
   output: 0
   cache_creation: 0
   cache_read: 0
-  model: null
-  last_stamp: 2026-10-18T08:02:15Z
+  model: claude-opus-5-5
+  last_stamp: 2026-10-18T12:23:56Z
   sessions:
     - session: 47c84598-2a59-4cfa-a987-cfe39161376b
-      model: ""
+      model: claude-opus-5-5
       input: 0
       output: 0
       cache_read: 0
@@ -55,7 +55,7 @@ draft_tokens:
 ---
 
 # STORY-007-03: Document size in `read` and the size approval at `ingest start`
-**Complexity:** L3 — six source files across `read` and `ingest start`: the estimate in `ReadResult` and the `read` message (K4), a new `src/ingest/source-size.ts` and a size check next to `evaluatePermission` (K5), the approval in `ingest start`, and two red assertions to re-scope. Consumes K1 (`estimateTokens`, `levelOf`, `formatTokens`, `levelMark`, `PDF_TOKENS_PER_PAGE`) and K2 (`config.tokens.source`) from STORY-007-01; until it merges, build against the frozen signatures.
+**Complexity:** L3 — six source files across `read` and `ingest start`: the estimate in `ReadResult` and the `read` message (K4), a new `src/ingest/source-size.ts` and a size check next to `evaluatePermission` (K5), the approval in `ingest start`, and two red assertions to re-scope. Consumes K1 (`estimateTokens`, `levelOf`, `formatTokens`, `formatLimit`, `levelMark`, `PDF_TOKENS_PER_PAGE`) and K2 (`config.tokens.source`) from STORY-007-01; until it merges, build against the frozen signatures.
 
 ## 1. The Spec (The Contract)
 
@@ -72,7 +72,7 @@ As an AI coding agent working for a user, I want `read` and `ingest start` to re
 - **R4 — The size check (K5).** `src/ingest/permissions.ts` gains the pure `checkSourceSize(counted, limits)`, returning `SizeCheck { tokens, rough, level, limit, confirm_at, reached }`:
   - `level` is `levelOf(tokens, limits)`; `limit` is `limits[confirm_at]`, or `null` when `confirm_at` is `never`.
   - `reached` is true when `confirm_at` is `yellow` and the level is yellow or red, or `confirm_at` is `red` and the level is red; it is never true for `never`. A rough count is checked like an exact one.
-  - `sizeLimitText(check)` returns `at or above the approval limit tokens.source.<confirm_at> (<limit>)`, e.g. `tokens.source.yellow (20000)`.
+  - `sizeLimitText(check)` returns `at or above the approval limit tokens.source.<confirm_at> (<formatLimit(limit)>)`, e.g. `tokens.source.yellow (20k)`, with K1's `formatLimit` (plan confirmation, 2026-10-18). `SizeCheck.limit` and `details.size.limit` stay numbers (`20000`).
   - `evaluatePermission` and `PermissionResult` are unchanged (contract C2).
 - **R5 — When `ingest start` counts and asks (K5).** In step 6 (`src/commands/ingest-start.ts:243`), after duplicate detection and the permission decision:
   - A duplicate without `--reingest` returns at step 5 as today (`src/commands/ingest-start.ts:216`): it is not counted and never asked about size. With `--reingest` it is counted and checked like a new source.
@@ -108,6 +108,9 @@ As an AI coding agent working for a user, I want `read` and `ingest start` to re
 - **Question (Q3, red tests):** Two red assertions pin output this story changes. (a) `test/read/read.red.node.test.ts:195` pins `wrote page.md (<n> bytes, html)`; K4 replaces that message, so this re-scope cannot be avoided. (b) `test/ingest/ingest-follow-ups.red.node.test.ts:234` pins the `ask`-mode approval line `notes.md needs approval (6 B, <kind part>): …`. It changes only if the estimate also appears when the permission alone asks. A red test changes only with the human's authorisation.
 - **Recommended:** QA-Red re-scopes both by test name on the merged tree (§3.1), only by inserting the estimate. In `ask` mode the user is asked about every source, and seeing its size then is what EPIC-007 asks for. The alternative for (b) is to keep today's text when `cause` is `permission`, with the estimate in `details.size` only.
 - **Human decision:** _approved as recommended (human, 2026-10-18, Gate 1; `plans/gate1-decisions.md`)_
+
+- **Plan confirmation (human, 2026-10-18):**
+  - P6: `sizeLimitText` prints the limit with K1's `formatLimit` (`tokens.source.yellow (20k)`; R4, §2.1 scenario 5, §2.2, §3.3); `details.size.limit` stays a number. `formatLimit` is in `src/core/tokens.ts` (STORY-007-01), so this story still needs only STORY-007-01.
 
 ### 1.5 Risks
 
@@ -219,14 +222,14 @@ Feature: Document size in read and the size approval at ingest start
 
     Examples:
       | mode | file      | text            | cause      | level  | line                                                                                                                                                                                                   |
-      | ai   | notes.txt | "word" × 1,000  | size       | yellow | notes.txt needs approval (≈1.8k tokens 🟡 · 4.9 KB, no kind yet): it is at or above the approval limit tokens.source.yellow (1000): show the user the estimate and rerun with --approved once they agree. |
-      | ask  | notes.txt | "word" × 1,000  | both       | yellow | notes.txt needs approval (≈1.8k tokens 🟡 · 4.9 KB, no kind yet): ingest.permission is ask: show the user the source "notes.txt" and rerun with --approved once they agree. It is also at or above the approval limit tokens.source.yellow (1000). |
+      | ai   | notes.txt | "word" × 1,000  | size       | yellow | notes.txt needs approval (≈1.8k tokens 🟡 · 4.9 KB, no kind yet): it is at or above the approval limit tokens.source.yellow (1k): show the user the estimate and rerun with --approved once they agree. |
+      | ask  | notes.txt | "word" × 1,000  | both       | yellow | notes.txt needs approval (≈1.8k tokens 🟡 · 4.9 KB, no kind yet): ingest.permission is ask: show the user the source "notes.txt" and rerun with --approved once they agree. It is also at or above the approval limit tokens.source.yellow (1k). |
       | ask  | small.md  | "hello\n"       | permission | green  | small.md needs approval (≈2 tokens 🟢 · 6 B, no kind yet): ingest.permission is ask: show the user the source "small.md" and rerun with --approved once they agree.                                    |
 ```
 
 ### 2.2 Verification Steps (Manual)
 - [ ] In a scratch repository (`git init`, `wikeeper init --yes --agents claude`, `ingest.permission: ai`), copy the macOS `/Library/Documentation/License.lpdf/Contents/Resources/English.lproj/License.pdf` (16 pages of text) in, and run `wikeeper read License.pdf --out /tmp/wk-license.md`. The message shows about ≈28k tokens 🟡; `--json` has `tokens_rough: false`.
-- [ ] `wikeeper ingest start License.pdf --text-file /tmp/wk-license.md` exits 3 and names `tokens.source.yellow (20000)`; the rerun with `--approved` registers it, and its first line shows the same estimate.
+- [ ] `wikeeper ingest start License.pdf --text-file /tmp/wk-license.md` exits 3 and names `tokens.source.yellow (20k)`; the rerun with `--approved` registers it, and its first line shows the same estimate.
 - [ ] `wikeeper config set tokens.source.confirm_at never` (STORY-007-02), then the same `ingest start` on a copy of the PDF registers without `--approved`.
 - [ ] A 3-page scanned PDF from `makeScannedPdf` gives `rough ≈4.8k tokens` in `read` and in `ingest start` without `--text-file`.
 
@@ -304,7 +307,7 @@ export interface SizeCheck {
   reached: boolean;
 }
 export function checkSourceSize(counted: { tokens: number; rough: boolean }, limits: SourceLimits): SizeCheck;
-export function sizeLimitText(check: SizeCheck): string; // "at or above the approval limit tokens.source.yellow (20000)"
+export function sizeLimitText(check: SizeCheck): string; // "at or above the approval limit tokens.source.yellow (20k)", the limit via formatLimit (K1)
 
 // src/commands/ingest-start.ts (K5)
 export interface IngestStartResult {
@@ -317,7 +320,7 @@ export interface IngestStartResult {
 //   size: { tokens: number; rough: boolean; level: TokenLevel; limit: number | null; confirm_at: SourceLimits["confirm_at"] } | null }
 ```
 
-Consumed (frozen, K1/K2): `estimateTokens`, `levelOf`, `formatTokens`, `levelMark`, `PDF_TOKENS_PER_PAGE = 1600`, `TokenLevel`, `TokenLimits`, `WikeeperConfig.tokens.source` with defaults 20000 / 60000 / `yellow`.
+Consumed (frozen, K1/K2): `estimateTokens`, `levelOf`, `formatTokens`, `formatLimit`, `levelMark`, `PDF_TOKENS_PER_PAGE = 1600`, `TokenLevel`, `TokenLimits`, `WikeeperConfig.tokens.source` with defaults 20000 / 60000 / `yellow`.
 
 ## Task Breakdown
 

@@ -42,7 +42,7 @@ draft_tokens:
   cache_creation: 0
   cache_read: 0
   model: claude-opus-5-5
-  last_stamp: 2026-10-18T08:52:59Z
+  last_stamp: 2026-10-18T12:23:18Z
   sessions:
     - session: 47c84598-2a59-4cfa-a987-cfe39161376b
       model: claude-opus-5-5
@@ -78,6 +78,7 @@ As an AI coding agent working in a wiki, I want one offline function that estima
     - else `m = Math.round(n / 100000)` → `≈<m / 10>M`, trailing `.0` dropped (`≈1.2M`, `≈1M`);
     - a negative `n` gives `≈-` followed by the form of `-n` without its `≈` (`≈-1.2k`), for callers that show a change.
     The decimal digit is built from the integers `t` and `m`, never with `toFixed`.
+  - `formatLimit(n)` (additive to K1; plan confirmation, 2026-10-18): a limit is an exact number, so it prints without `≈`. A value of at least 1000 that divides by 100 prints as thousands with `k`, one decimal at most and no trailing `.0` (`4000` → `4k`, `1500` → `1.5k`, `20000` → `20k`); any other value prints as the integer (`1234` → `1234`, `999` → `999`). The decimal is built from integers, as for `formatTokens`. Every line that prints a limit uses it: STORY-007-03's `sizeLimitText`, STORY-007-05's status `limits:` line and `oversized-page` message, and STORY-008-05's size candidates. Lines that echo `config.yml` (`formatConfigIssue`, `config get / set / unset`) keep the stored number.
 - **R3 — The wiki's size (K1).** `measureWiki(paths)` reads, as UTF-8, every file that `listPageFiles(paths.pagesDir)` returns (`.md` files under `pages/`, entries whose name starts with `.` skipped) and `paths.indexFile`. It returns `WikiSize`:
   - `pages`: each page's `path` (relative to `pages/`, POSIX, the form of `Page.path`) and `tokens`, sorted by tokens descending, then path in code-unit order (`compareCodeUnits`);
   - `total`: the sum over pages (`index.md` is not included); `page_count`: the number of pages;
@@ -134,6 +135,9 @@ As an AI coding agent working in a wiki, I want one offline function that estima
 - **Question (Q3, immutable red test):** `test/config.red.node.test.ts:19` ("DEFAULT_CONFIG has the documented R1 defaults", SPRINT-01 QA-Red) checks the whole `DEFAULT_CONFIG` with `toEqual`. R4 adds `tokens`, so the test fails. May this story's QA-Red re-scope it?
 - **Recommended:** Yes. Add only the `tokens` member to that expected object, anchored by content (flashcard 2026-10-17 `#qa #red-test`), as STORY-004-07 did for `search-misses.red`. No other test pins the whole config or the seed text: `test/init.red.node.test.ts:173` checks that an existing `config.yml` stays untouched, which R8 keeps.
 - **Human decision:** _approved as recommended (human, 2026-10-18, Gate 1; `plans/gate1-decisions.md`)_
+
+- **Plan confirmation (human, 2026-10-18):**
+  - P6: `formatLimit(n)` moves here from STORY-007-05 (`src/lint/size.ts`) as an additive K1 export (R2, §2.1 scenario 2, §3.3), so every limit prints one way (`tokens.source.yellow (20k)`, `tokens.page.red is 10k`); config echo lines keep stored numbers.
 
 ### 1.5 Risks
 
@@ -195,6 +199,7 @@ Feature: Token estimator and limits
       | 1234567 | red    | 🔴   | ≈1.2M  |
       | -1200   | green  | 🟢   | ≈-1.2k |
     And PDF_TOKENS_PER_PAGE is 1600
+    And formatLimit gives "4k" for 4000, "10k" for 10000, "1.5k" for 1500, "20k" for 20000, "1234" for 1234 and "999" for 999
 
   @data
   Scenario: The wiki's size counts pages, not index.md, largest first
@@ -239,7 +244,7 @@ Feature: Token estimator and limits
 ```
 
 ### 2.2 Verification Steps (Manual)
-- [ ] Extract `~/walkthrough-wiki-backup-2026-10-17.tar.gz` into a scratch folder (read-only use) and run `measureWiki` on it from a scratch script: `page_count` 43, `total` 68,374 (+3.5% against Claude's 66,042, inside ±15%), `index` 5,302, largest page 5,988.
+- [ ] In a scratch copy of the testbed (`testbed.md`, Making a scratch copy), run `measureWiki` on it from a scratch script. Expected, from testbed.md "Sizes": `page_count` 56; `total` 70,318, the pages only with `index.md` not included (−4.2% against Claude's 73,369 for the 56 pages, inside ±15%); `index` 7,559 (Claude 7,822); largest page `decisions.md` 6,529 (Claude 6,755).
 - [ ] In a fresh git repository run `wikeeper init --yes --agents claude`, open `.wiki/config.yml` and check that the `tokens` block and its comments read as R7, then run `wikeeper doctor`: `ingest permission: ask (default)` and no config warning.
 
 ## 3. The Implementation Guide
@@ -289,7 +294,7 @@ Feature: Token estimator and limits
 
 | Endpoint | Method | Auth | Request Shape | Response Shape |
 |---|---|---|---|---|
-| `estimateTokens`, `levelOf`, `formatTokens`, `levelMark`, `measureWiki` | function | None | see below (K1) | see below (K1) |
+| `estimateTokens`, `levelOf`, `formatTokens`, `formatLimit`, `levelMark`, `measureWiki` | function | None | see below (K1) | see below (K1) |
 | `loadConfig` | function | None | `.wiki/config.yml` with `tokens` | `config.tokens` (K2), `errors` per R5 and R6 |
 
 ```ts
@@ -300,6 +305,7 @@ export interface TokenLimits { yellow: number; red: number }
 export function estimateTokens(text: string): number;          // SPIKE-003 §5 weights, Math.round, ≥ 0
 export function levelOf(tokens: number, limits: TokenLimits): TokenLevel; // ≥ red → red; ≥ yellow → yellow
 export function formatTokens(n: number): string;               // "≈870", "≈6.3k", "≈66k", "≈1.2M"
+export function formatLimit(n: number): string;                // 4000 → "4k", 1500 → "1.5k", 1234 → "1234"; additive (plan confirmation, 2026-10-18)
 export function levelMark(level: TokenLevel): string;          // "🟢" | "🟡" | "🔴"
 export const PDF_TOKENS_PER_PAGE = 1600;
 export interface WikiSize { total: number; page_count: number; index: number; pages: Array<{ path: string; tokens: number }> } // pages: tokens desc, then path
@@ -319,7 +325,7 @@ export function initialConfigText(profile: string): string;
 
 ## Task Breakdown
 
-- [ ] Write `src/core/tokens.ts`: `estimateTokens`, `levelOf`, `levelMark`, `formatTokens`, `PDF_TOKENS_PER_PAGE` -> R1, R2
+- [ ] Write `src/core/tokens.ts`: `estimateTokens`, `levelOf`, `levelMark`, `formatTokens`, `formatLimit`, `PDF_TOKENS_PER_PAGE` -> R1, R2
 - [ ] Add `measureWiki` with concurrent reads -> R3
 - [ ] Add the `tokens` SCHEMA, the `token-count` leaf (`parseTokenCount`, `validateLeaf`, `walk`) and `TokenConfirmAt` to `src/core/config.ts` -> R4, R5
 - [ ] Add `tokenLimitIssues` and its call in `loadConfig` -> R6
@@ -332,7 +338,7 @@ export function initialConfigText(profile: string): string;
 
 | Test Type | Minimum Count | Notes |
 |---|---|---|
-| Unit tests | 10 | Each fixture in §3.2. The oracle: SPIKE-003's reference counting from `bin/final.mjs`, copied into the test with integer weights, equals `estimateTokens` on the fixtures and on 2,000 strings from a seeded generator over a mixed alphabet (letters, digits, space, `\n`, `\t`, U+00A0, `.`, `_`, `-`, `\|`, `д`, `ა`, `é`, `—`, `…`, `€`, `👍`, each sometimes repeated). `levelOf` at both boundaries; `levelMark`; `formatTokens` at 999, 1000, 1049, 1050, 9949, 9950, 999499, 999500, -1200 and 870.6; `measureWiki` order, ties and missing paths; the R5 accepted and refused forms; `tokenLimitIssues` for both groups and the skipped group; `initialConfigText` loads with no errors or warnings and equals the defaults; the seed text is unchanged except `agents` after `setConfigValue(root, "agents", ["claude"])`. |
+| Unit tests | 10 | Each fixture in §3.2. The oracle: SPIKE-003's reference counting from `bin/final.mjs`, copied into the test with integer weights, equals `estimateTokens` on the fixtures and on 2,000 strings from a seeded generator over a mixed alphabet (letters, digits, space, `\n`, `\t`, U+00A0, `.`, `_`, `-`, `\|`, `д`, `ა`, `é`, `—`, `…`, `€`, `👍`, each sometimes repeated). `levelOf` at both boundaries; `levelMark`; `formatTokens` at 999, 1000, 1049, 1050, 9949, 9950, 999499, 999500, -1200 and 870.6; `formatLimit` at 4000, 10000, 1500, 1234 and 999; `measureWiki` order, ties and missing paths; the R5 accepted and refused forms; `tokenLimitIssues` for both groups and the skipped group; `initialConfigText` loads with no errors or warnings and equals the defaults; the seed text is unchanged except `agents` after `setConfigValue(root, "agents", ["claude"])`. |
 | Integration tests | 0 | Temp directories only; no external service. |
 | E2E / acceptance tests | 5 | One per Gherkin scenario (Outline rows counted once), in QA-Red's `test/tokens.red.node.test.ts`; the last one through `runCli` in a temp git repository. |
 | Performance test | 0 | The Epic budget (`statusline` p95 < 300 ms on 500 pages) is measured end to end by STORY-007-06's perf test (K8), which runs `measureWiki` (§1.5). |

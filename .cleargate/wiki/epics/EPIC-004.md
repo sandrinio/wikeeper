@@ -3,11 +3,11 @@ type: epic
 id: "EPIC-004"
 parent: ""
 children: []
-status: "Draft"
+status: "Completed"
 remote_id: ""
-raw_path: ".cleargate/delivery/pending-sync/EPIC-004_search.md"
-last_ingest: "2026-10-16T13:11:30.993Z"
-last_ingest_commit: ""
+raw_path: ".cleargate/delivery/archive/EPIC-004_search.md"
+last_ingest: "2026-10-18T14:20:28.738Z"
+last_ingest_commit: "a0f0550394c9b76c2408480449436ca3ad4e5f24"
 repo: "planning"
 ---
 
@@ -34,7 +34,7 @@ repo: "planning"
     <file path="src/commands/search.ts" action="create" />
     <file path="package.json" action="modify" />
 
-[+5,121 bytes not shown — read .cleargate/delivery/pending-sync/EPIC-004_search.md]
+[+5,250 bytes not shown — read .cleargate/delivery/archive/EPIC-004_search.md]
 
 ## Blast radius
 Affects: no parent/child refs declared in frontmatter

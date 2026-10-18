@@ -6,8 +6,8 @@ children: []
 status: "Draft"
 remote_id: ""
 raw_path: ".cleargate/delivery/pending-sync/EPIC-009_version_check_and_upgrade.md"
-last_ingest: "2026-10-18T09:46:13.449Z"
-last_ingest_commit: ""
+last_ingest: "2026-10-18T14:20:32.239Z"
+last_ingest_commit: "8988a2c33332accb4c940e26c8f087fd85ed697c"
 repo: "planning"
 ---
 
@@ -24,7 +24,7 @@ repo: "planning"
     <rule>The request is one GET for wikeeper's `latest` version from the npm registry. It sends nothing about the wiki.</rule>
     <rule>Only the `ingest` subcommands and `upgrade` contact npm.
 
-[+15,528 bytes not shown — read .cleargate/delivery/pending-sync/EPIC-009_version_check_and_upgrade.md]
+[+15,518 bytes not shown — read .cleargate/delivery/pending-sync/EPIC-009_version_check_and_upgrade.md]
 
 ## Blast radius
 Affects: no parent/child refs declared in frontmatter

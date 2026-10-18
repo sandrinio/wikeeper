@@ -6,8 +6,8 @@ children: []
 status: "Completed"
 remote_id: ""
 raw_path: ".cleargate/delivery/archive/SPIKE-001_read_libraries.md"
-last_ingest: "2026-10-17T10:45:48.769Z"
-last_ingest_commit: ""
+last_ingest: "2026-10-18T14:20:29.216Z"
+last_ingest_commit: "9ace87c658781b3e5d94d133cfab54a724eb1f52"
 repo: "planning"
 ---
 
@@ -33,7 +33,7 @@ Whether [[STORY-003-10]] and [[STORY-003-11]] can be approved as drafted, with t
 
 ## 4. Decision Log
 
-[+4,614 bytes not shown — read .cleargate/delivery/archive/SPIKE-001_read_libraries.md]
+[+4,517 bytes not shown — read .cleargate/delivery/archive/SPIKE-001_read_libraries.md]
 
 ## Blast radius
 Affects: no parent/child refs declared in frontmatter

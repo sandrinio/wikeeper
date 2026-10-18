@@ -103,10 +103,10 @@ draft_tokens:
 - [ ] **When it runs:** before every `wikeeper ingest` subcommand (plan, start, facts, apply, abort, finish), inside a wiki project. Off with:
   - `update_check: false`, a new top-level config key (boolean, default true, not written by `init`, settable with `wikeeper config set`);
   - `WIKEEPER_NO_UPDATE_CHECK=1`, `NO_UPDATE_NOTIFIER` (any value), or `CI` (any value except `false` or `0`).
-- [ ] **Where it shows:** while a newer version is known, `ingest plan` and `ingest start` add the warning `wikeeper 0.4.1 is available (installed 0.4.0): run "wikeeper upgrade"`; `status` and `doctor` show the same line from the saved result.
+- [ ] **Where it shows:** while a newer version is known, `ingest plan` and `ingest start` add the warning `wikeeper 0.4.1 is available (installed 0.4.0): run wikeeper upgrade`; `status` and `doctor` show the same text from the saved result.
 - [ ] **Files from another version** (no network), shown by `status` and `doctor`:
-  - installed newer than the project's files: `this project's wikeeper files are from 0.3.0 (installed 0.4.0): run "wikeeper update"`;
-  - installed older than the project's files: `this project was updated by wikeeper 0.4.0 (installed 0.3.0): run "wikeeper upgrade"`.
+  - installed newer than the project's files: `this project's wikeeper files are from 0.3.0 (installed 0.4.0): run wikeeper update`;
+  - installed older than the project's files: `this project was updated by wikeeper 0.4.0 (installed 0.3.0): run wikeeper upgrade`.
 - [ ] **`wikeeper upgrade [--check]`** (`src/commands/upgrade.ts`):
   - Asks npm afresh and saves the answer.
   - Finds how the running wikeeper was installed, from its own package folder:
@@ -196,7 +196,7 @@ Feature: Version check and upgrade
   Scenario: A newer version is reported, and npm is asked once a day
     Given wikeeper 0.4.0 is installed and npm's latest version is 0.4.1
     When I run "wikeeper ingest start notes.md --json"
-    Then its warnings include 'wikeeper 0.4.1 is available (installed 0.4.0): run "wikeeper upgrade"'
+    Then its warnings include 'wikeeper 0.4.1 is available (installed 0.4.0): run wikeeper upgrade'
     When I run another ingest command an hour later
     Then no request goes to npm
 
@@ -214,7 +214,7 @@ Feature: Version check and upgrade
   Scenario: The project's files are from an older version
     Given the project's manifest says 0.3.0 and wikeeper 0.4.0 is installed
     When I run "wikeeper status"
-    Then it says 'this project's wikeeper files are from 0.3.0 (installed 0.4.0): run "wikeeper update"'
+    Then it says 'this project's wikeeper files are from 0.3.0 (installed 0.4.0): run wikeeper update'
     And "wikeeper doctor" reports it as a warning
 
   Scenario: Upgrade a global install

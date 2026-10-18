@@ -41,11 +41,11 @@ draft_tokens:
   output: 0
   cache_creation: 0
   cache_read: 0
-  model: null
-  last_stamp: 2026-10-18T07:56:59Z
+  model: claude-opus-5-5
+  last_stamp: 2026-10-18T11:48:52Z
   sessions:
     - session: 47c84598-2a59-4cfa-a987-cfe39161376b
-      model: ""
+      model: claude-opus-5-5
       input: 0
       output: 0
       cache_read: 0
@@ -82,7 +82,7 @@ As an AI coding agent running a clean-up the user asked for, I want `archive/` t
 - **R6 — Abort.** `ingest abort` (`src/commands/ingest-abort.ts`):
   - `data.archive` is `{ restored, removed }`: empty lists when nothing changed or the snapshot is older;
   - the human line gains `, archive/: <n> restored, <m> removed` before the `--drop` part, only when n + m > 0. Example: `aborted src-2026-10-18-cleanup: 1 page restored, 0 removed, archive/: 1 restored, 1 removed`;
-  - an older snapshot adds the warning `the snapshot of <id> was taken by an older wikeeper: archive/ was not restored`;
+  - an older snapshot adds the warning `the snapshot of <id> was taken by an older wikeeper, so archive/ was not restored: run wikeeper lint to find archive files this ingest left`;
   - the abort log event gains `archive_restored?: string[]` (archive restored ∪ removed, sorted), written only when it is non-empty. `restored` stays pages-only;
   - `ABORT_HELP` starts `After apply, abort restores pages/ and archive/ from the snapshot and releases the lock.`; the rest of the text is unchanged;
   - the warning `snapshot missing; pages were not restored` is unchanged (a red test pins it).
@@ -127,6 +127,8 @@ Decided while drafting (not open):
 - `archive_hashes` and `archive_restored` are written only when non-empty, so wikis that never use the archive log the same bytes as today (EPIC-008 §3). STORY-008-04 needs no baseline marker: no ingest before this version could record an archive file.
 - `PageDiff.archive` is optional in the type, for the reason in R7.
 - `archive/` itself is kept after a restore, as `pages/` is. An empty folder is invisible to git, and every reader treats missing and empty alike.
+
+- **DRAFTS review (designer, 2026-10-18):** wording aligned with docs/ux.md — the older-snapshot warning names its next step (`the snapshot of <id> was taken by an older wikeeper, so archive/ was not restored: run wikeeper lint to find archive files this ingest left`; R6; §2.1 scenario 4's "archive/ was not restored" still holds). No decision changed.
 
 ### 1.5 Risks
 
@@ -223,7 +225,7 @@ Feature: The archive in the write phase
 
 ### 2.2 Verification Steps (Manual)
 - [ ] In a scratch wiki with Claude Code and `enforce` on: ask the agent to write `.wiki/archive/x.md` with no ingest open (blocked, with the guard reason); then `ingest apply` a chat-excerpt source and write it again (allowed); `ingest abort` removes it.
-- [ ] Copy `~/walkthrough-wiki` to a scratch folder, add 200 files under `.wiki/archive/` (copies of its pages), and time `wikeeper ingest apply` and `abort` with and without them. Record both times in the story's QA notes.
+- [ ] In a scratch copy of the testbed (`testbed.md`, Making a scratch copy), add 200 files under `.wiki/archive/` (copies of its pages), and time `wikeeper ingest apply` and `abort` with and without them. Record both times in the story's QA notes.
 
 ## 3. The Implementation Guide
 

@@ -38,10 +38,10 @@ export function readSavedCheck(paths: ResolvedPaths): Promise<SavedCheck | null>
 export function checkForUpdate(paths: ResolvedPaths, config: WikeeperConfig, deps?: UpdateCheckDeps & { force?: boolean }): Promise<SavedCheck | null>;
 export function newerVersion(saved: SavedCheck | null, installed: string): string | null;
 export function availableMessage(latest: string, installed: string): string;
-// 'wikeeper 0.4.1 is available (installed 0.4.0): run "wikeeper upgrade"'
+// 'wikeeper 0.4.1 is available (installed 0.4.0): run wikeeper upgrade'
 export type VersionMismatch =
-  | { kind: "files-older"; files: string; installed: string; message: string } // run "wikeeper update"
-  | { kind: "files-newer"; files: string; installed: string; message: string }; // run "wikeeper upgrade"
+  | { kind: "files-older"; files: string; installed: string; message: string } // run wikeeper update
+  | { kind: "files-newer"; files: string; installed: string; message: string }; // run wikeeper upgrade
 export function versionMismatch(installed: string, files: string | null): VersionMismatch | null;
 ```
 
@@ -75,7 +75,7 @@ export interface UpgradeCheckResult { installed: string; latest: string | null; 
 |---|---|
 | `src/core/config.ts` | 007-01 → 007-02 → 009-01 |
 | `src/commands/status.ts` | 007-05 → 008-05 → 009-01 |
-| `src/commands/doctor.ts` | 009-01 (plus any SPRINT-04 story the audit finds) |
+| `src/commands/doctor.ts` | 007-02 → 009-01 (007-02's `config-valid` syntax-error branch, decision 66; 009-01's checks after `:215`; separate hunks) |
 | `src/commands/ingest-start.ts` | 007-03 → 009-01 |
 | `src/commands/ingest-plan.ts` | 007-04 → 009-01 |
 | `src/program.ts` | 007-02, 007-06, 009-02 (each appends one command) |

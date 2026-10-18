@@ -42,11 +42,11 @@ draft_tokens:
   output: 0
   cache_creation: 0
   cache_read: 0
-  model: null
-  last_stamp: 2026-10-18T07:54:36Z
+  model: claude-opus-5-5
+  last_stamp: 2026-10-18T11:48:13Z
   sessions:
     - session: 47c84598-2a59-4cfa-a987-cfe39161376b
-      model: ""
+      model: claude-opus-5-5
       input: 0
       output: 0
       cache_read: 0
@@ -70,9 +70,9 @@ As an AI coding agent working in a wiki, I want the wiki's total size, the size 
   - `largest` is the first five entries of `WikiSize.pages` (already sorted tokens descending, then path), each `{ path, tokens, level }` with `level = levelOf(tokens, config.tokens.page)`. `path` is relative to `pages/`, as in K1.
   - `status` stays read-only (STORY-005-05 R2): `measureWiki` only reads.
 - **R2 — Status human lines.** After the `misses:` line, in this order:
-  - `tokens: wiki ≈66k in 43 pages · index.md ≈5.1k` (`formatTokens` for both figures; `1 page` in the singular).
-  - `  limits: page 4k/10k · source 20k/60k, approval at yellow`. Limits are exact numbers, so they print without `≈`: a value of at least 1000 that divides by 100 prints as thousands with `k` (`4000` → `4k`, `1500` → `1.5k`); any other value prints as the integer. `confirm_at: never` prints `no size approval` in place of `approval at <level>`.
-  - `  largest pages:` and then one line per `largest` entry: `    🟡 ≈6.3k projects/atlas.md` (`levelMark`, `formatTokens`, path). With no pages this block is left out.
+  - `tokens: wiki ≈66k · 43 pages · index.md ≈5.1k` (`formatTokens` for both figures; `1 page` in the singular): the figure first, then the count, as in the status line.
+  - `  limits: page 4k/10k · source 20k/60k, approval at yellow`. Limits print with K1's `formatLimit` (STORY-007-01 R2; plan confirmation, 2026-10-18): exact numbers without `≈`, a value of at least 1000 that divides by 100 as thousands with `k` (`4000` → `4k`, `1500` → `1.5k`), any other value as the integer. `confirm_at: never` prints `no size approval` in place of `approval at <level>`.
+  - `  largest pages:` and then one line per `largest` entry: `    projects/atlas.md ≈6.3k 🟡` (path, `formatTokens`, `levelMark`), the shape the finish report uses for its largest page. With no pages this block is left out.
 - **R3 — Finish report figures (K7).** `IngestReport.tokens = { wiki, change, largest }`, built in `src/commands/ingest-finish.ts` after validation passes and before `removeSnapshot` (`src/commands/ingest-finish.ts:239`):
   - `wiki` is `measureWiki(paths).total` once the write phase is over.
   - `change` is `wiki` minus the total of the apply-time snapshot copy of `pages/` (`<wikiDir>/.snapshots/<id>/pages`, `snapshotDir` at `src/ingest/snapshot.ts:20`), measured the same way.
@@ -86,7 +86,7 @@ As an AI coding agent working in a wiki, I want the wiki's total size, the size 
   - It is computed when the search runs, only for the pages in the returned results, from the bytes `loadSearchCorpus` already reads (`src/search/engine.ts:246`). It is not stored in `.wiki/.cache/search.json`, and `SEARCH_CACHE_VERSION` stays `1` (§1.4 Q3). A warm cache and a cold one give the same value.
   - The human search output does not change.
 - **R7 — Lint `oversized-page` (K7).** A new page check in `src/lint/size.ts`: id `oversized-page`, severity `warning`, scope `pages`.
-  - For each page in `ctx.pages` (only those in `ctx.only` when it is set), it reads the page file and estimates its tokens. A page at or above `ctx.config.tokens.page.red` gives one finding with `path = pagePath(ctx.paths, page.path)`, no `line`, and the message `page is ≈12k tokens (tokens.page.red is 10k)` (the count via `formatTokens`, the limit as in R2).
+  - For each page in `ctx.pages` (only those in `ctx.only` when it is set), it reads the page file and estimates its tokens. A page at or above `ctx.config.tokens.page.red` gives one finding with `path = pagePath(ctx.paths, page.path)`, no `line`, and the message `page is ≈12k tokens (tokens.page.red is 10k)` (the count via `formatTokens`, the limit via K1's `formatLimit`, as in R2).
   - It reads `ctx.pages` only, so archive pages are never flagged (K12).
   - It is registered in `PAGE_CHECKS` after `unloggedChangeCheck` and before `staleFactCheck`: `test/lint/stale-fact.red.node.test.ts:241` requires `stale-fact` to stay the last entry, and `test/lint/checks.test.ts:26` requires `unlogged-change` at index 4. Findings are sorted by path (`compareFindings`), so the position changes no output.
   - It gets a trigger and a pass fixture in `LINT_FIXTURES` (`test/lint/check-fixtures.ts`), which `test/templates/structure-sprint-03.red.node.test.ts:205` and `test/lint/check-fixtures.test.ts:11` require for every registered check id.
@@ -131,6 +131,11 @@ As an AI coding agent working in a wiki, I want the wiki's total size, the size 
 - **Recommended:** Keep one story. Each surface gains one figure from the same `measureWiki` / `estimateTokens` call (10–60 lines each), the Gherkin stays at five scenarios, and L3 with `med` exposure does not trip the L3 + high rule. If the human wants a split, the cleanest cut is search `page_tokens` (R6) as its own story, since it is the only part that touches the search files STORY-008-03 edits next; that adds a story and renumbers STORY-007-06 and 007-07.
 - **Human decision:** _approved as recommended (human, 2026-10-18, Gate 1; `plans/gate1-decisions.md`)_
 
+- **DRAFTS review (designer, 2026-10-18):** wording aligned with docs/ux.md — the `tokens:` line puts the figure first, then the count (`tokens: wiki ≈66k · 43 pages · index.md ≈5.1k`; R2, §2.1 scenarios 1 and 5), and each largest-page line uses the finish report's shape, path then figure then mark (`projects/atlas.md ≈6.3k 🟡`; R2, §2.1 scenario 1). No decision changed.
+
+- **Plan confirmation (human, 2026-10-18):**
+  - P6: `formatLimit` is K1's (`src/core/tokens.ts`, STORY-007-01), imported by `status.ts` and `src/lint/size.ts`; `src/lint/size.ts` no longer exports it (R2, R7, §3.2, §3.3). The printed limits (`4k/10k`, `tokens.page.red is 10k`) do not change.
+
 ### 1.5 Risks
 
 > Risks specific to this Story (cross-story risks belong in the milestone plan).
@@ -169,7 +174,7 @@ Feature: Wiki and page sizes
     Then data.tokens.wiki is the sum of estimateTokens over the six page files, data.tokens.page_count is 6 and data.tokens.index is estimateTokens of index.md
     And data.tokens.limits is { page: { yellow: 4000, red: 10000 }, source: { yellow: 20000, red: 60000, confirm_at: "yellow" } }
     And data.tokens.largest has 5 entries in descending tokens, the first { path: "a.md", level: "red" } and the second { path: "b.md", level: "yellow" }
-    And "wikeeper status" prints a line starting with "tokens: wiki ≈" and ending with "in 6 pages · index.md ≈" followed by the index figure, the trimmed line "limits: page 4k/10k · source 20k/60k, approval at yellow", and a trimmed line starting with "🔴 ≈" and ending with " a.md"
+    And "wikeeper status" prints a line starting with "tokens: wiki ≈" and ending with "· 6 pages · index.md ≈" followed by the index figure, the trimmed line "limits: page 4k/10k · source 20k/60k, approval at yellow", and a trimmed line starting with "a.md ≈" and ending with " 🔴"
     And no file in the repository was created, changed or deleted
     And templates/system/WIKI.md section "Lint and status" has the R10 bullet starting "- `tokens`: " and the R10 finding row starting "| `oversized-page` |"
 
@@ -219,13 +224,13 @@ Feature: Wiki and page sizes
 
     Examples:
       | pages | command | outcome |
-      | no pages and no index.md | wikeeper status --json | data.tokens is { wiki: 0, page_count: 0, index: 0, limits: the defaults, largest: [] }, and "wikeeper status" prints "tokens: wiki ≈0 in 0 pages · index.md ≈0" and no "largest pages:" line |
+      | no pages and no index.md | wikeeper status --json | data.tokens is { wiki: 0, page_count: 0, index: 0, limits: the defaults, largest: [] }, and "wikeeper status" prints "tokens: wiki ≈0 · 0 pages · index.md ≈0" and no "largest pages:" line |
       | only pages/.drafts/huge.md of about 12k tokens | wikeeper status --json | data.tokens.page_count is 0 and data.tokens.largest is [] |
       | only pages/.drafts/huge.md of about 12k tokens | wikeeper lint --check oversized-page --json | json.ok is true and data.findings is [] |
 ```
 
 ### 2.2 Verification Steps (Manual)
-- [ ] In a copy of `~/walkthrough-wiki`, run `wikeeper status` and check that the `tokens` block shows about 43 pages and a total near SPIKE-003's ≈66k, within the stated ±15%. Run `git status` in the copy and check that nothing changed.
+- [ ] In a scratch copy of the testbed (`testbed.md`, Making a scratch copy), run `wikeeper status` and check that the `tokens` block shows 56 pages and a `wiki` figure within ±15% of Claude's 73,369. That count is of the 56 pages only, as `wiki` is; `index.md` is shown next to it, not added (testbed.md "Sizes"; the estimate there is 70,318). Run `git status` in the copy and check that nothing changed.
 - [ ] In the same copy, run `wikeeper search <a word from a page> --json` and check that each hit's `page_tokens` matches the figure `status` lists for that page when the page is among the five largest.
 
 ## 3. The Implementation Guide
@@ -250,7 +255,7 @@ Feature: Wiki and page sizes
 - **QA-Red** writes `test/wiki-sizes.red.node.test.ts` from the five §2.1 scenarios; the Developer writes the §4.1 unit tests in the four new test files.
 
 ### 3.2 Technical Logic
-- **Status.** In `collectStatus`, after the existing reads: `const size = await measureWiki(paths)`, then build `tokens` (R1). `renderStatus` (`src/commands/status.ts:160`) appends the R2 lines after `misses:`. The limit formatter (`formatLimit(n)`, R2) lives in `src/lint/size.ts`, which the lint message uses too, and `status.ts` imports it from there. `size.ts` imports `checks.ts` with `import type` only, so importing it loads no registry and adds no load cycle (FLASHCARD 2026-10-17 `#esm #contract #lint`).
+- **Status.** In `collectStatus`, after the existing reads: `const size = await measureWiki(paths)`, then build `tokens` (R1). `renderStatus` (`src/commands/status.ts:160`) appends the R2 lines after `misses:`. The limit formatter `formatLimit(n)` (R2) comes from `src/core/tokens.ts` (K1, STORY-007-01): `status.ts` and the lint message in `src/lint/size.ts` both import it from there, and `src/lint/size.ts` does not export it (plan confirmation, 2026-10-18).
 - **Finish.** Add a helper in `src/commands/ingest-finish.ts`: `reportTokens(paths, id, config): Promise<IngestReport["tokens"]>`.
   - It calls `measureWiki(paths)` for the live tree.
   - It calls `readSnapshot(paths, id)`. When that is non-null, it calls `measureWiki({ ...paths, pagesDir: path.join(snapshotDir(paths, id), "pages") })` and uses that `.total` as the before figure (the copy holds `pages/` only; the `index` read there is ignored). When it is null, `change` is `null`.
@@ -305,15 +310,14 @@ export type SearchHitBase = Omit<SearchHit, "page_tokens">;
 export interface SearchCorpus { /* …existing fields… */ pageTokens(path: string): number }
 
 // src/lint/size.ts
-export const oversizedPageCheck: LintCheck; // id "oversized-page", severity "warning", scope "pages"
-export function formatLimit(n: number): string; // 4000 → "4k", 1500 → "1.5k", 1234 → "1234"; also used by status (R2)
+export const oversizedPageCheck: LintCheck; // id "oversized-page", severity "warning", scope "pages"; its message prints the limit with formatLimit (K1)
 ```
 
-Consumed (frozen, K1/K2 from STORY-007-01): `estimateTokens`, `levelOf`, `formatTokens`, `levelMark`, `measureWiki(paths): Promise<WikiSize>`, `TokenLimits`, `TokenLevel`, `WikeeperConfig.tokens`. Deviation from K7: `change: number | null` (§1.4 Q1).
+Consumed (frozen, K1/K2 from STORY-007-01): `estimateTokens`, `levelOf`, `formatTokens`, `formatLimit`, `levelMark`, `measureWiki(paths): Promise<WikiSize>`, `TokenLimits`, `TokenLevel`, `WikeeperConfig.tokens`. Deviation from K7: `change: number | null` (§1.4 Q1).
 
 ## Task Breakdown
 
-- [ ] Add `tokens` to `StatusData`, fill it in `collectStatus` from `measureWiki`, add `formatLimit` and the R2 human lines -> R1, R2
+- [ ] Add `tokens` to `StatusData`, fill it in `collectStatus` from `measureWiki`, and add the R2 human lines with K1's `formatLimit` -> R1, R2
 - [ ] Add `IngestReport.tokens`, `formatChange` and the fifth report line in `src/ingest/report.ts`; update `test/ingest/report.test.ts` -> R5
 - [ ] Build the report figures in both finish paths, before the snapshot is removed -> R3, R4
 - [ ] Add `SearchCorpus.pageTokens`, `SearchHitBase`, and the single `page_tokens` pass in `executeSearch` -> R6
@@ -328,7 +332,7 @@ Consumed (frozen, K1/K2 from STORY-007-01): `estimateTokens`, `levelOf`, `format
 
 | Test Type | Minimum Count | Notes |
 |---|---|---|
-| Unit tests | 6 | `formatLimit` (`4000`, `10000`, `1500`, `1234`, `999`); `formatChange` (positive, negative, zero, `null`); the R5 line with and without a largest page; `collectStatus.tokens` with fewer than five pages; `oversizedPageCheck` with `only` set and with a missing page file; `pageTokens` equal to `measureWiki`'s figure for a page with a BOM |
+| Unit tests | 6 | the R2 `limits:` line (limits through K1's `formatLimit`, `no size approval` for `never`); `formatChange` (positive, negative, zero, `null`); the R5 line with and without a largest page; `collectStatus.tokens` with fewer than five pages; `oversizedPageCheck` with `only` set and with a missing page file; `pageTokens` equal to `measureWiki`'s figure for a page with a BOM |
 | Integration tests | 0 | Temp directories only; no external service. |
 | E2E / acceptance tests | 5 | One per Gherkin scenario (Outline rows counted once), through `runCli`, in QA-Red's `test/wiki-sizes.red.node.test.ts`. |
 
