@@ -6,6 +6,14 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-18 · #fs #tokens · Buffer.toString/readFile utf8 keep a BOM, TextDecoder drops it: every page token figure must decode the same way.
+2026-10-18 · #contract #config · C1 is type-only for config: DEFAULT_CONFIG.tokens is undefined at runtime until 007-01's schema lands; red on the base is not a wiring gap.
+2026-10-18 · #red-test #tokens · read --out appends "\n": take expected token counts from data.markdown, not the written file.
+2026-10-18 · #cli #stdin · Destroying stdin on a race timeout rejects the pending for-await read: catch the read promise before racing.
+2026-10-18 · #search #archive · A combined --archive index must renumber archive doc ids: wrapIndex looks hits up by docs[r.id] (src/search/engine.ts).
+2026-10-18 · #search #aliases · Backlinks for an archive-only entity need an empty page list, or a live page at the same path is taken for the entity's own.
+2026-10-18 · #contract #esm · check `src/core/version.ts` already exists before writing a new file; contract steps append, never overwrite
+2026-10-18 · #test-harness · setup-files.red S5 can time out at 5s under full-suite load; rerun before blaming a change
 2026-10-18 · #templates #qa · A story's red phrase breaks when a later story edits that sentence in place; pin only the part that survives.
 2026-10-18 · #ux #templates · Agent text for a failed command must cover every error code; 'otherwise try again later' strands the ones it forgot.
 2026-10-18 · #ux #wording · Story-drafted CLI messages drift: they quote commands and end in periods. Spec hints as `run wikeeper x`, lowercase, no period (docs/ux.md §3.2–3.3).

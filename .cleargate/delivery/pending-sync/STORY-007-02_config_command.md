@@ -76,7 +76,7 @@ As a wiki user, through my agent or in a terminal, I want to see every setting w
   - `invalid_config_key`: an unknown key; or a group key with `use: "set"`. The message is `unknown config key "<key>"; keys under <parent>: <k1>, <k2>, …`, where `<parent>` is the nearest prefix of the key that is a SCHEMA group. With no such prefix it is `unknown config key "<key>"; known keys: <every leaf key, in SCHEMA order>`. The key is quoted because the agent gave it, as in `unknown profile "x"` (`src/commands/init.ts:74`). A group key gives `<key> is a group of settings; keys under <key>: …`. Details: `{ key, known: string[] }`.
   - `config_key_not_settable` (`use: "set"`), details `{ key }`, for:
     - a list setting: `<key> is a list setting: edit .wiki/config.yml by hand`, and for `agents` also `, or run wikeeper init --agents <list>`;
-    - `content_dir`: `content_dir is not changed with config set: move pages/, raw/, log/ and index.md to the new folder, edit content_dir in .wiki/config.yml, then run wikeeper update`.
+    - `content_dir`: `content_dir is not changed with config set: move pages/, archive/, raw/, log/ and index.md to the new folder, edit content_dir in .wiki/config.yml, then run wikeeper update`.
 - **R4 — Values (K3).** `parseConfigValue(keyPath, raw: string)` returns the value to write:
   - string → `raw`;
   - `string|null` → `null` for `null`, else `raw`;
@@ -142,6 +142,7 @@ As a wiki user, through my agent or in a terminal, I want to see every setting w
 
 - **DRAFTS review (designer, 2026-10-18):** wording aligned with docs/ux.md — an unknown key is quoted, as a value the agent gave (`unknown config key "tokens.pages.red"`; R3, §2.1 scenario 4); the `set` and `unset` results start with a past-tense verb (`set tokens.source.yellow to 30000 (was 20000)`, `reset tokens.source.yellow to the default 20000 (was 30000)`; R6, R7); the `enforce` warning names its next step (`enforce takes effect once its entries are rewritten: run wikeeper update`; R9, §2.1 scenario 1). No decision changed. Round 2: the syntax-error message keeps only the first line of the parser's message, without yaml's ` at line L, column C:` suffix and code frame, so it is one line ending with the step, as `frontmatter_yaml` does (R11, §3.2, §4.1; §2.1 scenario 5, last row, gains "and has no line break"; R2-P1); the R8 refusal puts its step after a colon, `tokens must be a mapping in .wiki/config.yml: fix it by hand` (R2-P4). The `doctor` duplicate (R2-H1) went to the human, who chose the fix in this story (Plan confirmation, below; R12).
 
+- **Spec clarification (orchestrator, 2026-10-18, M3 plan):** the `content_dir` refusal also names `archive/`, which lives under `content_dir` since STORY-008-01; otherwise a user who follows it leaves the archive behind.
 - **Plan confirmation (human, 2026-10-18):**
   - H1: the next step goes in now and the code stays: both syntax-error throw sites end with `: fix the YAML syntax in .wiki/config.yml`, and `E_CONFIG_SYNTAX` is kept (R1, R11, §2.1 scenario 5, last row). Renaming the upper-case codes together is a follow-up CR (sprint plan, "Not in this sprint").
   - H1 follow-up: doctor.ts joins 007-02 so the step prints once (R12, §2.1 scenario 6, §3.1; `plans/gate1-decisions.md` decision 66).
@@ -247,7 +248,7 @@ Feature: wikeeper config get / set / unset
       | , then "wikeeper config set tokens.page.red 30k" and "wikeeper config set tokens.page.yellow 15k" | unset tokens.page.red | invalid_config_value | tokens.page.yellow: 15000 — must be below tokens.page.red (10000) |
       |                                                                                     | set agents codex                | config_key_not_settable | agents is a list setting: edit .wiki/config.yml by hand, or run wikeeper init --agents |
       |                                                                                     | unset hooks.pre_ingest          | config_key_not_settable | hooks.pre_ingest is a list setting: edit .wiki/config.yml by hand |
-      |                                                                                     | set content_dir wiki            | config_key_not_settable | move pages/, raw/, log/ and index.md to the new folder |
+      |                                                                                     | set content_dir wiki            | config_key_not_settable | move pages/, archive/, raw/, log/ and index.md to the new folder |
 
   @data
   Scenario Outline: set works on every config.yml shape loadConfig accepts
