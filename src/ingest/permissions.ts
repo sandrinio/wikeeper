@@ -1,6 +1,7 @@
 // Contract C2 — permission evaluation (owner STORY-003-02). Frozen exports.
 import { homedir } from "node:os";
 import type { WikeeperConfig } from "../core/config.js";
+import { formatLimit, levelOf } from "../core/tokens.js";
 import type { TokenLevel } from "../core/tokens.js";
 import { normalizeKindId } from "./kind-rules.js";
 import type { OriginType } from "./registry.js";
@@ -163,10 +164,16 @@ export interface SizeCheck {
   reached: boolean;
 }
 
-export function checkSourceSize(_counted: { tokens: number; rough: boolean }, _limits: SourceLimits): SizeCheck {
-  throw new Error("contract stub C2");
+export function checkSourceSize(counted: { tokens: number; rough: boolean }, limits: SourceLimits): SizeCheck {
+  const level = levelOf(counted.tokens, limits);
+  const confirmAt = limits.confirm_at;
+  const limit = confirmAt === "never" ? null : limits[confirmAt];
+  const reached =
+    (confirmAt === "yellow" && (level === "yellow" || level === "red")) || (confirmAt === "red" && level === "red");
+  return { tokens: counted.tokens, rough: counted.rough, level, limit, confirm_at: confirmAt, reached };
 }
 
-export function sizeLimitText(_check: SizeCheck): string {
-  throw new Error("contract stub C2");
+export function sizeLimitText(check: SizeCheck): string {
+  const limit = check.limit === null ? "never" : formatLimit(check.limit);
+  return `at or above the approval limit tokens.source.${check.confirm_at} (${limit})`;
 }
