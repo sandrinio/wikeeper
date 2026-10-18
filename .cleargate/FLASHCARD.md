@@ -6,6 +6,10 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-18 · #qa #cli #npx · npx cannot run a .tgz directly (`npx -y <tgz>` fails, permission denied); test an npx install with `npx -y --package=<tgz> -- wikeeper …`.
+2026-10-18 · #windows #cli · Node >= 24 prints DEP0190 when spawn gets an args array with shell: true; join the checked constant args into one command line and spawn it with no args array.
+2026-10-18 · #cli #contract · Every runner call after an install step needs its own catch: an uncaught rejection surfaces as error.code = err.code (e.g. ENOENT) with details null, outside the command's frozen error codes.
+2026-10-18 · #qa #scratch · A scratch vitest or npm probe needs its own folder with its own package.json and cacheDir: the shared scratchpad can hold another agent's package.json and a dangling node_modules link.
 2026-10-18 · #test-harness #hook · runIngestUpdateCheck(new Command()) throws at getOutputContext (program IO not bound) and its own catch swallows it, so the test passes without testing anything; test hooks through runCli/createProgram (runIngest in the harness) with io.cwd.
 2026-10-18 · #red-test #search #archive · An archived search hit keeps path without archive/ and carries file .wiki/archive/… and archived: true (K11): match archived hits on file or archived, never on an archive/ path.
 2026-10-18 · #git #merge #contract · git can merge two pushes into the same array (formatReport) without a conflict but in the wrong order; after a re-sync, run the order test (lines[i+1]) even when merge-tree is clean
