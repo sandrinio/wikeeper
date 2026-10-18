@@ -43,7 +43,7 @@
     "build": "tsc -p tsconfig.build.json && node scripts/build-info.mjs dist",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --exclude \"**/*-perf.red.node.test.ts\"",
-    "test:perf": "vitest run --no-file-parallelism --exclude \"**/.worktrees/**\" test/search/search-perf.red.node.test.ts test/search/cache-perf.red.node.test.ts test/statusline-perf.red.node.test.ts",
+    "test:perf": "vitest run --no-file-parallelism --exclude \"**/.worktrees/**\" test/search/search-perf.red.node.test.ts test/search/cache-perf.red.node.test.ts test/statusline-perf.red.node.test.ts test/update-check-perf.red.node.test.ts",
     "prepublishOnly": "npm run typecheck && npm test && npm run build"
   },
   "publishConfig": {

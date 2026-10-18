@@ -16,6 +16,7 @@ export interface WikeeperConfig {
   content_dir: string;
   private: string[];
   enforce: boolean;
+  update_check: boolean;
   ingest: {
     permission: IngestPermission;
     whitelist: { kinds: string[]; origins: string[] };
@@ -55,6 +56,7 @@ const SCHEMA: Record<string, Node> = {
   content_dir: { type: "content_dir", default: ".wiki" },
   private: { type: "string[]", default: [] },
   enforce: { type: "boolean", default: false },
+  update_check: { type: "boolean", default: true },
   ingest: {
     type: "map",
     children: {

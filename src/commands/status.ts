@@ -22,6 +22,11 @@ import { loadInstructions } from "../kb/parse-instructions.js";
 import { listDecisions } from "../kb/rule-decisions.js";
 import type { CommandModule } from "../program.js";
 import { plural } from "./doctor.js";
+import { readManifest } from "../core/manifest.js";
+import { readPackageVersion } from "../core/templates.js";
+import { compareVersions, npmVersion } from "../core/version.js";
+import { availableMessage, newerVersion, readSavedCheck, updateCheckEnabled, versionMismatch } from "../core/update-check.js";
+import type { ConfigIssue } from "../core/config.js";
 
 export interface StatusData {
   open_ingest: LockInfo | null;
@@ -49,6 +54,13 @@ export interface StatusData {
     | { path: string; reason: "size"; tokens: number }
     | { path: string; reason: "final_status"; status: string; entity: string; last_dated: string }
   >;
+  version: { installed: string; latest: string | null; files: string | null };
+}
+
+export interface StatusVersionOptions {
+  installed?: string;
+  env?: NodeJS.ProcessEnv;
+  configIssues?: readonly ConfigIssue[];
 }
 
 async function exists(file: string): Promise<boolean> {
@@ -84,6 +96,7 @@ export async function collectStatus(
   paths: ResolvedPaths,
   config: WikeeperConfig,
   now: Date,
+  opts: StatusVersionOptions = {},
 ): Promise<{ data: StatusData; warnings: string[] }> {
   const warnings: string[] = [];
   const lock = await readLock(paths, now);
@@ -197,6 +210,27 @@ export async function collectStatus(
   }
   archiveCandidates.sort((a, b) => compareCodeUnits(a.path, b.path));
 
+  // version (STORY-009-01)
+  let installed = opts.installed ?? "";
+  if (opts.installed === undefined) {
+    try {
+      installed = npmVersion(readPackageVersion());
+    } catch {
+      installed = "";
+    }
+  }
+  let manifest: Awaited<ReturnType<typeof readManifest>> = null;
+  try {
+    manifest = await readManifest(paths.manifestFile);
+  } catch {
+    manifest = null;
+  }
+  const pv = manifest?.package_version;
+  const files = pv !== undefined && compareVersions(pv, pv) !== null ? npmVersion(pv) : null;
+  const latest = updateCheckEnabled(config, opts.env ?? process.env, opts.configIssues)
+    ? newerVersion(await readSavedCheck(paths), installed)
+    : null;
+
   const data: StatusData = {
     open_ingest: lock.lock,
     stale_lock: lock.stale,
@@ -212,6 +246,7 @@ export async function collectStatus(
     tokens,
     archive,
     archive_candidates: archiveCandidates,
+    version: { installed, latest, files },
   };
   return { data, warnings };
 }
@@ -297,10 +332,16 @@ function renderStatus(data: StatusData, ageMs: number | null, staleAfterDays: nu
         (anySize ? "; to raise the page limit instead, run wikeeper config set tokens.page.red <n>" : ""),
     );
   }
+  const v = data.version;
+  if (v.latest !== null) out.push(`version: ${availableMessage(v.latest, v.installed)}`);
+  const mm = versionMismatch(v.installed, v.files);
+  if (mm !== null) out.push(`version: ${mm.message}`);
   return out;
 }
 
-export function createStatusCommand(deps: { now?: () => Date } = {}): CommandModule {
+export function createStatusCommand(
+  deps: { now?: () => Date; installed?: string; env?: NodeJS.ProcessEnv } = {},
+): CommandModule {
   const now = deps.now ?? (() => new Date());
   return {
     register(program: Command): void {
@@ -310,11 +351,15 @@ export function createStatusCommand(deps: { now?: () => Date } = {}): CommandMod
         .action(async (_opts: unknown, command: Command) => {
           const ctx = getOutputContext(command);
           const root = findRepoRoot(ctx.cwd);
-          const { config } = await loadConfig(root);
+          const { config, errors } = await loadConfig(root);
           const paths = resolvePaths(root, config);
           await assertInitialised(paths);
           const at = now();
-          const { data, warnings } = await collectStatus(paths, config, at);
+          const { data, warnings } = await collectStatus(paths, config, at, {
+            installed: deps.installed,
+            env: deps.env,
+            configIssues: errors,
+          });
           const ageMs =
             data.open_ingest === null ? null : at.getTime() - Date.parse(data.open_ingest.acquired_at);
           emitResult(ctx, { command: "status", data, warnings, message: renderStatus(data, ageMs, config.lint.stale_after_days) });

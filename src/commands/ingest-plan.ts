@@ -7,6 +7,7 @@ import { loadConfig } from "../core/config.js";
 import { ExitCode, WikeeperError } from "../core/exit-codes.js";
 import { emitResult, getOutputContext } from "../core/output.js";
 import { assertInitialised, findRepoRoot, resolvePaths } from "../core/paths.js";
+import { updateNotice } from "../core/update-check.js";
 import { isValidKindId, normalizeKindId } from "../ingest/kind-rules.js";
 import { formatTokens } from "../core/tokens.js";
 import { planDirectory } from "../ingest/plan.js";
@@ -81,7 +82,10 @@ export const ingestPlanCommand: IngestSubcommand = {
         const kind = opts.kind === undefined ? null : normalizeKindId(opts.kind);
 
         const plan = await planDirectory(paths, config, dirAbs, { kind });
-        emitResult(ctx, { command: "ingest plan", data: plan, message: renderPlan(plan) });
+        const warnings: string[] = [];
+        const notice = updateNotice(command);
+        if (notice !== null) warnings.push(notice);
+        emitResult(ctx, { command: "ingest plan", data: plan, warnings, message: renderPlan(plan) });
       });
   },
 };

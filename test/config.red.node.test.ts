@@ -38,6 +38,7 @@ describe("config (red)", () => {
         page: { yellow: 4000, red: 10000 },
         source: { yellow: 20000, red: 60000, confirm_at: "yellow" },
       },
+      update_check: true,
     });
   });
 
