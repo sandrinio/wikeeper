@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parsePage } from "../../src/wiki/parse-page.js";
-import { countContradictions, formatReport, formatSize } from "../../src/ingest/report.js";
+import { countContradictions, formatChange, formatReport, formatSize } from "../../src/ingest/report.js";
 import type { IngestReport } from "../../src/ingest/report.js";
 
 const ID = "src-2026-10-16-notes";
@@ -45,18 +45,32 @@ describe("report", () => {
     index_changed: true,
     hooks: [],
     lint: [],
+    tokens: { wiki: 66000, change: 1234, largest: { path: "projects/atlas.md", tokens: 6300, level: "yellow" } },
   };
 
-  it("renders the four report lines", () => {
+  it("renders the five report lines", () => {
     expect(formatReport(base)).toEqual([
       `✅ Ingested ${ID}`,
       "   kind meeting-notes · origin docs/notes.md · 2.0 KB · sha abcd…",
       "   rule meeting-notes v3 · permission ai",
       "   created 1 · updated 0 · deleted 2 · contradictions 1 · rule suggestions 2",
+      "   wiki ≈66k tokens (+1.2k) · largest page projects/atlas.md ≈6.3k 🟡",
     ]);
   });
 
   it("says no rule when rule_version is null", () => {
     expect(formatReport({ ...base, rule_version: null })[2]).toBe("   no rule for meeting-notes · permission ai");
+  });
+
+  it("formatChange: positive, negative, zero and null", () => {
+    expect(formatChange(1234)).toBe("+1.2k");
+    expect(formatChange(-870)).toBe("-870");
+    expect(formatChange(0)).toBe("±0");
+    expect(formatChange(null)).toBe("");
+  });
+
+  it("the wiki line leaves out the change when null and the page when there is none", () => {
+    expect(formatReport({ ...base, tokens: { wiki: 800, change: null, largest: null } })[4]).toBe("   wiki ≈800 tokens · no pages");
+    expect(formatReport({ ...base, tokens: { wiki: 0, change: 0, largest: null } })[4]).toBe("   wiki ≈0 tokens (±0) · no pages");
   });
 });

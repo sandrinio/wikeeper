@@ -8,6 +8,7 @@ import type MiniSearch from "minisearch";
 import type { AsPlainObject, Options } from "minisearch";
 import { compareCodeUnits } from "../core/compare.js";
 import { toPosixRelative } from "../core/paths.js";
+import { estimateTokens } from "../core/tokens.js";
 import type { ResolvedPaths } from "../core/paths.js";
 import { readPackageVersion } from "../core/templates.js";
 import { CITATION_RE, listPageFiles, owningEntityKey, pageEntities, parsePage } from "../wiki/parse-page.js";
@@ -35,7 +36,9 @@ export interface SearchHit {
   snippet: string;
   score: number;
   sources: string[];
+  page_tokens: number;
 }
+export type SearchHitBase = Omit<SearchHit, "page_tokens">;
 export interface FactView {
   path: string;
   entity: string;
@@ -132,6 +135,7 @@ export interface SearchCorpus {
   entities: Entity[];
   index: SearchIndex;
   warnings: string[];
+  pageTokens(path: string): number;
 }
 
 export const MINISEARCH_OPTIONS: Options<SearchDoc> = {
@@ -249,6 +253,19 @@ export async function loadSearchCorpus(
     sha256: createHash("sha256").update(bufs[i] as Buffer).digest("hex"),
   }));
   const file = searchCacheFile(paths);
+  // page_tokens (STORY-007-05): estimated when asked, from the bytes already read; never cached. UTF-8 with the BOM kept.
+  const at = new Map(files.map((f, i) => [f, i]));
+  const memo = new Map<string, number>();
+  const pageTokens = (p: string): number => {
+    const i = at.get(p);
+    if (i === undefined) return 0;
+    let n = memo.get(p);
+    if (n === undefined) {
+      n = estimateTokens((bufs[i] as Buffer).toString("utf8"));
+      memo.set(p, n);
+    }
+    return n;
+  };
 
   if (useCache) {
     try {
@@ -261,6 +278,7 @@ export async function loadSearchCorpus(
           entities: cache.pages.flatMap(pageEntities),
           index: wrapIndex(mini, cache.docs),
           warnings: [],
+          pageTokens,
         };
       }
     } catch {
@@ -294,7 +312,7 @@ export async function loadSearchCorpus(
       warnings.push(`search cache not written: ${toPosixRelative(paths.root, file)}: ${e.code ?? e.message}`);
     }
   }
-  return { pages, entities: pages.flatMap(pageEntities), index: wrapIndex(mini, docs), warnings };
+  return { pages, entities: pages.flatMap(pageEntities), index: wrapIndex(mini, docs), warnings, pageTokens };
 }
 
 const SNIPPET_MAX = 160;

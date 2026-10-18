@@ -29,6 +29,8 @@ import { unloggedChangeCheck } from "./unlogged.js";
 import { RULES_LINT_CHECKS } from "./rules-lint.js";
 // (keep this line: it separates the STORY-005-04 and STORY-005-08 imports)
 // INSERTION POINT STORY-005-08: import { staleFactCheck } from "./staleness.js";
+// INSERTION POINT STORY-007-05: import { oversizedPageCheck } from "./size.js";
+import { oversizedPageCheck } from "./size.js";
 import { staleFactCheck } from "./staleness.js";
 
 export { pagePath } from "./paths.js";
@@ -158,6 +160,8 @@ export const PAGE_CHECKS: LintCheck[] = [
   // INSERTION POINT STORY-005-03: unloggedChangeCheck,
   unloggedChangeCheck,
   // (keep this line: it separates the STORY-005-03 and STORY-005-08 entries)
+  // INSERTION POINT STORY-007-05: oversizedPageCheck,
+  oversizedPageCheck,
   // INSERTION POINT STORY-005-08: staleFactCheck,
   staleFactCheck,
 ];
