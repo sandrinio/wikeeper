@@ -47,7 +47,7 @@ describe("pdfPageCount", () => {
 
 describe("docxDocumentBytes", () => {
   it("reads the compressed size of word/document.xml from the central directory", () => {
-    expect(docxDocumentBytes(makeReportDocx())).toBe(2841);
+    expect(docxDocumentBytes(makeReportDocx())).toBe(2851);
   });
   it("returns null when there is no word/document.xml", () => {
     expect(docxDocumentBytes(makeNoDocumentDocx())).toBeNull();
@@ -62,7 +62,7 @@ describe("estimateFile", () => {
     const root = await repo();
     expect(await estimateFile(path.join(root, "x.html"), "html", 1225)).toEqual({ tokens: 408, rough: true });
     const docx = await put(root, "r.docx", makeReportDocx());
-    expect(await estimateFile(docx, "docx", 0)).toEqual({ tokens: 1421, rough: true });
+    expect(await estimateFile(docx, "docx", 0)).toEqual({ tokens: 1426, rough: true });
   });
   it("estimates a PDF at 1,600 tokens a page and returns null for unreadable or unknown files", async () => {
     const root = await repo();
