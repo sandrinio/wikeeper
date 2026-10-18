@@ -18,6 +18,8 @@ _No active sprint found._
 
 - [[SPRINT-03]] — status: Completed
 
+- [[SPRINT-04]] — status: Draft
+
 
 
 ## Recently Completed Sprints

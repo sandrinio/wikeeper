@@ -4,6 +4,10 @@
 
 ## Active
 
+- [[EPIC-007]] (epic) — Draft — Token gauges
+- [[EPIC-008]] (epic) — Draft — Fact archive
+- [[EPIC-009]] (epic) — Draft — Version check and upgrade
+- [[SPRINT-04]] (sprint) — Draft — Token gauges and fact archive
 - [[INITIATIVE-001]] (initiative) — Triaged — Wiki CLI — Karpathy-style LLM wiki for AI agents
 
 ## Archive
@@ -12,7 +16,7 @@
 - Sprints: 3 Completed · [expand](archive/sprints.md)
 - CRs: 3 Completed · [expand](archive/crs.md)
 - Bugs: 2 Completed · [expand](archive/bugs.md)
-- Spikes: 2 Completed · [expand](archive/spikes.md)
+- Spikes: 3 Completed · [expand](archive/spikes.md)
 
 ## Contradictions
 
