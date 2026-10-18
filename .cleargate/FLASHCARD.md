@@ -6,6 +6,20 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-18 · #privacy #json · settingsError(json-merge.ts:23) puts V8's JSON.parse message in the error, and V8 quotes up to about 10 characters of the file for unexpected-token errors (e.g. '..."tusLine": ~/x.sh}" is not valid JSON'). Any 'never print settings content' rule needs that detail sanitised.
+2026-10-18 · #test-harness #stdin · To check that a bounded stdin read releases a real pipe, start the built CLI from a script with stdin=PIPE and never close it, then time the node process alone. Timing a shell pipeline like '(sleep N) | node ...' measures the sleep, not node.
+2026-10-18 · #test-harness · Don't hardcode compressed zip byte counts from fixtures in tests; derive them or re-measure when the fixture changes
+2026-10-18 · #qa #red-test #fixtures · a live row that opens with a text assertion cannot show its live logic is sound on baseline; smoke it once with the text asserts stubbed in a throwaway copy, then delete the copy
+2026-10-18 · #red-test #fixtures · a status fixture page is measured with the real estimateTokens; a source link costs ~15 tokens, so keep fixtures under tokens.page.red or give the row its own config
+2026-10-18 · #qa #red-test #lint · index-drift row for 'index without archived line' passes before the check counts the archive, so assert the drift warning (red) and pin the rebuild row as the other side
+2026-10-18 · #red-test #fixtures · size fixtures must be built with the real estimateTokens (sized), never a per-word constant guess; approx 12k measured 9.7k
+2026-10-18 · #qa #fixtures · Scratch dirs in the shared scratchpad collide with other agents; use a story-unique name (qa-<story>-copy), never tb
+2026-10-18 · #qa #red-test · config-command reds assert json.command and error.code per row; at baseline an unknown `config` subcommand exits 2 with command 'wikeeper', so exit code alone proves nothing
+2026-10-18 · #qa #test-harness #perf · With several worktree suites running (load avg ~50), 5 s timeouts hit git/spawn tests in random files and search p95 fails: rerun failures alone with --testTimeout=60000, run test:perf when load drops.
+2026-10-18 · #qa #red-test · a guard row that already passes at baseline (e.g. a rename accepted today) needs a new-field assertion like data.archived to be red
+2026-10-18 · #search #qa · a fact's text keeps its trailing [[src-…]] citation; human changes lines must strip it to match the Gherkin lines
+2026-10-18 · #search #fixtures · archive pages share path and entity key with live ones; every map and key set needs a tree prefix
+2026-10-18 · #qa #red-test #cli · remove --help wraps the --purge description; normalise whitespace before asserting help text
 2026-10-18 · #templates #coverage · DOCUMENTED_FORMS counts only code spans with "wikeeper <cmd> … --flag"; a bare `--flag` bullet never satisfies checkCoverage.
 2026-10-18 · #lint #finish · The finish lint hook runs before the snapshot and lock are removed: unlogged-change judges in snapshot mode during finish.
 2026-10-18 · #lint #only · oversized-page pre-filters on ctx.only itself; a new onlyArchive filter must leave `only` set for it.
