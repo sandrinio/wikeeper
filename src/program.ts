@@ -24,6 +24,7 @@ import { rulesCommand } from "./commands/rules.js";
 import { readCommand } from "./commands/read.js";
 import { statusCommand } from "./commands/status.js";
 import { configCommand } from "./commands/config.js";
+import { statuslineCommand } from "./commands/statusline.js";
 import { ensureAgentsIntegration } from "./agents/index.js";
 
 const packageJson = JSON.parse(
@@ -51,6 +52,7 @@ export const defaultCommands: CommandModule[] = [
   readCommand,
   statusCommand,
   configCommand,
+  statuslineCommand,
 ];
 
 export function createProgram(
