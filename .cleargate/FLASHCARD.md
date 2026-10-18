@@ -6,6 +6,9 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-18 · #red-test #ts · A red test importing a module its build branch lacks breaks typecheck there: reach unbuilt code through the CLI instead.
+2026-10-18 · #contract #qa · Never catch errors from a contract stub that 'never throws': the catch turns the stub into a passing test.
+2026-10-18 · #test-harness #macos · Build expected child paths from the paths as given, not from realpath (/var resolves to /private/var).
 2026-10-18 · #fs #tokens · Buffer.toString/readFile utf8 keep a BOM, TextDecoder drops it: every page token figure must decode the same way.
 2026-10-18 · #contract #config · C1 is type-only for config: DEFAULT_CONFIG.tokens is undefined at runtime until 007-01's schema lands; red on the base is not a wiring gap.
 2026-10-18 · #red-test #tokens · read --out appends "\n": take expected token counts from data.markdown, not the written file.
