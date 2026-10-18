@@ -53,14 +53,16 @@ export function formatReport(r: IngestReport): string[] {
     `   kind ${r.kind} · origin ${r.origin} · ${formatSize(r.size)} · sha ${r.sha256.slice(0, 4)}…`,
     `   ${rule} · permission ${r.permission}`,
     `   created ${r.created.length} · updated ${r.updated.length} · deleted ${r.deleted.length} · contradictions ${r.contradictions} · rule suggestions ${r.rule_suggestions}`,
+  ];
+  if (r.archived.facts > 0 || r.archived.pages > 0) {
+    lines.push(`   archived ${plural(r.archived.facts, "fact line")} · ${plural(r.archived.pages, "page")}`);
+  }
+  lines.push(
     `   wiki ${formatTokens(r.tokens.wiki)} tokens${r.tokens.change === null ? "" : ` (${formatChange(r.tokens.change)})`} · ${
       r.tokens.largest === null
         ? "no pages"
         : `largest page ${r.tokens.largest.path} ${formatTokens(r.tokens.largest.tokens)} ${levelMark(r.tokens.largest.level)}`
     }`,
-  ];
-  if (r.archived.facts > 0 || r.archived.pages > 0) {
-    lines.push(`   archived ${plural(r.archived.facts, "fact line")} · ${plural(r.archived.pages, "page")}`);
-  }
+  );
   return lines;
 }

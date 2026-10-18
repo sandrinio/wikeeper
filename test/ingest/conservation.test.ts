@@ -190,6 +190,7 @@ describe("the archived line of the report", () => {
     updated: [],
     deleted: [],
     archived: { facts: 0, pages: 0 },
+    tokens: { wiki: 0, change: null, largest: null },
     contradictions: 0,
     rule_suggestions: 0,
     log_file: "l",
