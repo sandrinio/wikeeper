@@ -32,6 +32,12 @@ describe("paths", () => {
     expect(p.configFile).toBe(path.join(root, ".wiki", "config.yml"));
   });
 
+  it("archiveDir follows content_dir like pages/", () => {
+    expect(resolvePaths(root, DEFAULT_CONFIG).archiveDir).toBe(path.join(root, ".wiki", "archive"));
+    expect(resolvePaths(root, { content_dir: "wiki" }).archiveDir).toBe(path.join(root, "wiki", "archive"));
+    expect(resolvePaths(root, { content_dir: "." }).archiveDir).toBe(path.join(root, "archive"));
+  });
+
   it("resolvePaths defaults keep content under .wiki", () => {
     expect(resolvePaths(root, DEFAULT_CONFIG).indexFile).toBe(path.join(root, ".wiki", "index.md"));
   });

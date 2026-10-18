@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { mkdir, mkdtemp, rm, unlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -40,7 +41,7 @@ async function fixture(opts: { config?: string; initialised?: boolean } = {}): P
     opts.config ?? "# wikeeper config\nprofile: management\nsetup_completed_at: null\n",
   );
   const manifest = {
-    package_version: "0.0.1",
+    package_version: (JSON.parse(readFileSync(path.resolve(import.meta.dirname, "..", "package.json"), "utf8")) as { version: string }).version,
     files: Object.keys(FILES)
       .sort()
       .map((p) => ({ path: p, sha256: sha(FILES[p]!), kind: "system" })),
@@ -81,7 +82,7 @@ describe("STORY-001-07 doctor (red)", () => {
     const { code, json } = await runDoctorCli(root, "22.12.0");
     const checks = json.data.checks as Check[];
     const ids = checks.map((c) => c.id).filter((id, i, a) => i === 0 || a[i - 1] !== id);
-    expect(ids).toEqual(["node-version", "wiki-initialised", "config-valid", "manifest-drift", "setup-files", "test-check"]);
+    expect(ids).toEqual(["node-version", "wiki-initialised", "config-valid", "manifest-drift", "setup-files", "test-check", "version-mismatch", "update-available"]);
     expect(checks.every((c) => c.severity === "ok" || c.severity === "info")).toBe(true);
     expect(json.data.errors).toBe(0);
     expect(json.data.warnings).toBe(0);

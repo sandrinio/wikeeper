@@ -24,8 +24,10 @@ const AI_ASK_RULES = [
 
 const READ_RULES = ["Bash(npx wikeeper read *)", "Bash(wikeeper read *)"];
 
-/** Commands that write no file; allowed in every permission mode (Gate 1 decision 17). */
-export const READ_ONLY_COMMANDS = ["lint", "status", "rules list"] as const;
+/** Commands that write no file; allowed in every permission mode (Gate 1 decision 17). Exception: `statusline --install`
+ *  adds a status line to .claude/settings.local.json only where none is set, and refuses without changing a file
+ *  otherwise (SPRINT-04 Gate 1 decision 20). */
+export const READ_ONLY_COMMANDS = ["lint", "status", "rules list", "statusline", "config get"] as const;
 
 function permissionRule(list: "allow" | "ask", rule: string): EnforceItem {
   return { kind: "rule", agent: "claude", identity: `permissions.${list}[${rule}]`, value: rule };

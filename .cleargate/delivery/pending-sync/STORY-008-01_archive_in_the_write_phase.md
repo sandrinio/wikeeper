@@ -133,7 +133,7 @@ Decided while drafting (not open):
 ### 1.5 Risks
 
 - **Risk:** The archive only grows, and `apply` copies all of it on every ingest.
-- **Mitigation:** The copy has the same cost class as the `pages/` copy (`fs.cp`, local disk), and EPIC-008 §3 states no performance budget. Manual verification (§2.2) times `apply` on a copy of the acmeworks wiki with a 200-file `archive/`. If it is slow, a later change can copy only the archive files that change.
+- **Mitigation:** The copy has the same cost class as the `pages/` copy (`fs.cp`, local disk), and EPIC-008 §3 states no performance budget. Manual verification (§2.2) times `apply` on a scratch copy of the testbed (`.cleargate/sprint-runs/SPRINT-04/testbed.md`) with a 200-file `archive/`. If it is slow, a later change can copy only the archive files that change.
 - **Risk:** With `content_dir: .` or a content folder that already holds an unrelated `archive/` folder, that folder becomes the wiki archive: guarded, snapshotted, and searched by `search --archive` (STORY-008-03).
 - **Mitigation:** §1.4 Q3. The same is already true for `pages/`, `raw/` and `log/` there. The default content folder `.wiki` cannot collide. STORY-008-06 names the folder in architecture.md §4.
 - **Risk:** Between this story's merge and STORY-008-02's, `finish` accepts any archive change unchecked.

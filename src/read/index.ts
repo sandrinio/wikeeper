@@ -3,6 +3,7 @@ import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { ExitCode, WikeeperError } from "../core/exit-codes.js";
+import { PDF_TOKENS_PER_PAGE, estimateTokens } from "../core/tokens.js";
 import { readHtml } from "./html.js";
 import { fetchSource } from "./url.js";
 
@@ -18,6 +19,8 @@ export interface ReadResult {
   date: string | null;
   format: ReadFormat;
   warnings: ReadWarning[];
+  tokens: number; // estimateTokens(markdown); a likely-scanned PDF: pages × PDF_TOKENS_PER_PAGE
+  tokens_rough: boolean; // true only for that page estimate
 }
 export interface ReadOptions {
   cwd: string;
@@ -32,6 +35,7 @@ export interface Converted {
   author: string | null;
   date: string | null;
   warnings: ReadWarning[];
+  pages?: number;
 }
 
 export const DEFAULT_TIMEOUT_MS = 20_000 as const;
@@ -192,6 +196,8 @@ export async function readSource(input: string, opts: ReadOptions): Promise<Read
       break;
   }
   const markdown = normalise(format === "markdown" || format === "text" ? converted.body : withHeader(converted));
+  const rough = format === "pdf" && converted.warnings.some((w) => w.code === "likely_scanned");
+  const tokens = rough ? (converted.pages ?? 0) * PDF_TOKENS_PER_PAGE : estimateTokens(markdown);
   return {
     markdown,
     title: converted.title,
@@ -199,5 +205,7 @@ export async function readSource(input: string, opts: ReadOptions): Promise<Read
     date: converted.date,
     format,
     warnings: converted.warnings,
+    tokens,
+    tokens_rough: rough,
   };
 }

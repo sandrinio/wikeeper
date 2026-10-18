@@ -14,6 +14,8 @@ import { ingestApplyCommand } from "./ingest-apply.js";
 import { ingestAbortCommand } from "./ingest-abort.js";
 // INSERTION POINT STORY-003-09: import { ingestFinishCommand } from "./ingest-finish.js";
 import { ingestFinishCommand } from "./ingest-finish.js";
+import { runIngestUpdateCheck } from "../core/update-check.js";
+import type { UpdateCheckDeps } from "../core/update-check.js";
 
 export interface IngestSubcommand {
   register(group: Command): void;
@@ -33,12 +35,16 @@ export const ingestSubcommands: readonly IngestSubcommand[] = [
   ingestFinishCommand,
 ];
 
-export function createIngestCommand(subcommands: readonly IngestSubcommand[] = ingestSubcommands): CommandModule {
+export function createIngestCommand(
+  subcommands: readonly IngestSubcommand[] = ingestSubcommands,
+  deps: { updateCheck?: UpdateCheckDeps } = {},
+): CommandModule {
   return {
     register(program: Command): void {
       const group = program
         .command("ingest")
         .description("ingest a source into the wiki: start, facts, apply, finish");
+      group.hook("preAction", (_group, action) => runIngestUpdateCheck(action, deps.updateCheck));
       for (const sub of subcommands) sub.register(group);
     },
   };

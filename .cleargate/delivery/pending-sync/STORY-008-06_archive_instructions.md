@@ -92,8 +92,9 @@ The text names only the commands and flags that exist at the end of SPRINT-04. I
   - (c) A status-field bullet after `tokens`: "- `archive`: the size of `archive/`: its `pages` and estimated `tokens`. They are not counted in `tokens`, and a search skips them unless it runs with `--archive`."
   - (d) A status-field bullet after it: "- `archive_candidates`: pages a clean-up could shrink, each with its `reason`: `size` (at or above `tokens.page.red`) or `final_status` (an entity with a final status whose newest fact is older than `lint.stale_after_days`). Tell the user about them once in the session: for `size`, the red-page notice above, told once with it; for `final_status`, a clean-up that moves that entity's fact lines to `archive/` (the whole page when the entity is the page), or leaving it. Never start a clean-up yourself." (A final_status candidate can be a section entity on a page with live entities, STORY-008-05 R2, so "moves the whole page" was changed by the consistency audit, 2026-10-18.)
   - (c) and (d) must land in the commit that adds the `archive` and `archive_candidates` status keys (§1.4 Q2). Under the recommended answer STORY-008-05 writes them with this text (its R8 carries it verbatim), and this story checks them and changes nothing else in them.
+  - (e) The `broken-link` row (Gate 1 decision 32, STORY-008-04 Q1) becomes: "| `broken-link` | A `[[…]]` link resolves to no page, entity or alias. Fix the link in a write phase. On a page under `archive/`, never edit the line: add the old name to `aliases` of the live page that now has the entity. |"
 - **R6 — Searching the archive (K11).**
-  - (a) WIKI.md section "Search", a bullet after `--since` (`:226`): "- `--archive`: also search `archive/`, where clean-ups keep replaced and finished facts; its hits carry `archived: true`. `--since` and `--entity` always include archived facts, marked `archived: true`."
+  - (a) WIKI.md section "Search", a bullet after `--since` (`:226`): "- `--archive`: also search `archive/`, where clean-ups keep replaced and finished facts, as in `wikeeper search "launch date" --archive`; its hits carry `archived: true`. `--since` and `--entity` always include archived facts, marked `archived: true`."
   - (b) Section "Answering questions", after the numbered list (`:239`): "When a question is about the past, such as an earlier plan, date or owner, and the pages do not answer it, search again with `--archive`."
 - **R7 — wiki-search skill.** `templates/skills/wiki-search/SKILL.md:10`, after STORY-007-07's sentence, gains: "When a question about the past finds no answer, search again with `--archive` (section "Search")." Frontmatter, description and the named sections are unchanged, and the skill still says nothing of `--no-miss` (`test/templates/rules-and-search-text.red.node.test.ts:299`).
 - **R8 — Docs.**
@@ -136,6 +137,7 @@ The text names only the commands and flags that exist at the end of SPRINT-04. I
 
 Settled and not reopened: the conservation rules (K10), what default search and lint skip (K11, K12), the candidate reasons (K13), and the merge order 007-07 → 008-06 on WIKI.md, the wiki-search skill, architecture.md and README.md. "Once in the session" follows STORY-007-07 §1.4 Q3.
 
+- **Spec clarification (orchestrator, 2026-10-18, M4 plan):** R6 (a) names `wikeeper search "launch date" --archive` (following the `--status` bullet's "as in" example), because `checkCoverage` counts only spans that name the command, so `search --archive` in `DOCUMENTED_FORMS` would otherwise fail "every check is clean"; R5 (e) adds the archive alias sentence to the `broken-link` row, which Gate 1 decision 32 assigned to this story's WIKI.md text; scenario 1 and the Task Breakdown gain a row each.
 - **DRAFTS review (designer, 2026-10-18):** wording aligned with docs/ux.md — the red-page clause starts from STORY-007-07's new text and offers both choices in plain words, with the agent running `wikeeper config set tokens.page.red <n>` on a yes (R5 (a), §2.1 "telling (R5)"); the `size` reason points at the red-page notice, told once with it, still byte-equal to STORY-008-05 R8 (b) (R5 (d)); README item 2 says "keeps" for `.wiki/raw/`, so "archive" means only `archive/` (R8 (g)); the report counts take the plural helper (`archived 1 fact line · 0 pages`; §1.5, §2.1 scenario 2). No decision changed.
 
 - **Plan confirmation (human, 2026-10-18):**
@@ -193,6 +195,7 @@ Feature: Archive instructions and docs
       | refusals (R4)     | templates/system/WIKI.md              | section "Write phase"       | "`fact lines dropped`", "`archived fact lines dropped`", "exactly as it was", "no line ever leaves `archive/`", "change nothing under `pages/` or `archive/`" |
       | telling (R5)      | templates/system/WIKI.md              | section "Lint and status"   | "offer both choices", "or they ask for a clean-up", "never change a limit or start a clean-up yourself", "`final_status`", "Never start a clean-up yourself" |
       | status lines (R5) | templates/system/WIKI.md              | section "Lint and status"   | "- `archive`: ", "- `archive_candidates`: ", "`reason`", "`lint.stale_after_days`" |
+      | broken link (R5)  | templates/system/WIKI.md              | section "Lint and status"   | "On a page under `archive/`, never edit the line", "add the old name to `aliases`" |
       | search (R6)       | templates/system/WIKI.md              | section "Search"            | "`--archive`", "`archived: true`", "`--since`", "`--entity`" |
       | answering (R6)    | templates/system/WIKI.md              | section "Answering questions" | "about the past", "`--archive`" |
       | skill (R7)        | templates/skills/wiki-search/SKILL.md | body                        | "`--archive`", "about the past", "`page_tokens`" |
@@ -290,6 +293,8 @@ No new command, option or export; `DOCUMENTED_FORMS` gains `search --archive`. C
 - [ ] Edit WIKI.md "Lint and status": the red-page paragraph and `oversized-page` row; check the `archive` and `archive_candidates` bullets -> R5
 - [ ] Add the `--archive` sentence to the wiki-search skill -> R7
 - [ ] Append `search --archive` to `DOCUMENTED_FORMS` -> R9
+- [ ] Name `wikeeper search "launch date" --archive` in the R6 (a) bullet, so `checkCoverage` finds the documented form -> R6
+- [ ] Add the archive alias sentence to the `broken-link` row -> R5
 - [ ] Update architecture.md §4, §4.1, §7.3, §8, §10, §11, §13 and the README -> R8
 - [ ] Run `npm test` in full; check `test/templates.test.ts` reports no finding -> R10, R11
 

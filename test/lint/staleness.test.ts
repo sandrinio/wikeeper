@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_CONFIG } from "../../src/core/config.js";
 import { resolvePaths } from "../../src/core/paths.js";
-import { FINAL_STATUSES, staleFactCheck } from "../../src/lint/staleness.js";
+import { FINAL_STATUSES, daysSince, isFinalStatus, staleFactCheck } from "../../src/lint/staleness.js";
 import type { LintContext } from "../../src/lint/checks.js";
 import { parsePage } from "../../src/wiki/parse-page.js";
 
@@ -17,6 +17,18 @@ function ctxOf(text: string, opts: { days?: number; contentDir?: string; file?: 
 }
 const run = (text: string, o?: Parameters<typeof ctxOf>[1]) => staleFactCheck.run(ctxOf(text, o));
 const F = (d: string, k: string, t: string) => `- ${d} · ${k} · ${t} [[src-2026-10-01-hr]]`;
+
+describe("exported status helpers", () => {
+  it("daysSince counts UTC days as stale-fact does", () => {
+    expect(daysSince("2026-10-21", NOW)).toBe(30);
+    expect(daysSince("2026-10-20", NOW)).toBe(31);
+    expect(daysSince("2026-11-25", NOW)).toBe(-5);
+  });
+  it("isFinalStatus reads the first word, case-insensitively", () => {
+    expect(isFinalStatus("Done — merged")).toBe(true);
+    expect(isFinalStatus("active")).toBe(false);
+  });
+});
 
 describe("stale-fact", () => {
   it("is a pages warning with the frozen final list", () => {

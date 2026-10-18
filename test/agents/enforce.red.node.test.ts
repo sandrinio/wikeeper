@@ -53,6 +53,10 @@ const READ_ONLY_CLAUDE = [
   "Bash(wikeeper status *)",
   "Bash(npx wikeeper rules list *)",
   "Bash(wikeeper rules list *)",
+  "Bash(npx wikeeper statusline *)",
+  "Bash(wikeeper statusline *)",
+  "Bash(npx wikeeper config get *)",
+  "Bash(wikeeper config get *)",
 ];
 const READ_ONLY_CODEX = [
   'prefix_rule(pattern=["npx","wikeeper","lint"], decision="allow")',
@@ -61,6 +65,10 @@ const READ_ONLY_CODEX = [
   'prefix_rule(pattern=["wikeeper","status"], decision="allow")',
   'prefix_rule(pattern=["npx","wikeeper","rules","list"], decision="allow")',
   'prefix_rule(pattern=["wikeeper","rules","list"], decision="allow")',
+  'prefix_rule(pattern=["npx","wikeeper","statusline"], decision="allow")',
+  'prefix_rule(pattern=["wikeeper","statusline"], decision="allow")',
+  'prefix_rule(pattern=["npx","wikeeper","config","get"], decision="allow")',
+  'prefix_rule(pattern=["wikeeper","config","get"], decision="allow")',
 ];
 const ASK_CLAUDE = [
   "Bash(npx wikeeper ingest *--drop*)",
@@ -566,6 +574,10 @@ describe("STORY-002-06 writer specs and resolveEnforce units (red)", () => {
       "permissions.allow[Bash(wikeeper status *)]",
       "permissions.allow[Bash(npx wikeeper rules list *)]",
       "permissions.allow[Bash(wikeeper rules list *)]",
+      "permissions.allow[Bash(npx wikeeper statusline *)]",
+      "permissions.allow[Bash(wikeeper statusline *)]",
+      "permissions.allow[Bash(npx wikeeper config get *)]",
+      "permissions.allow[Bash(wikeeper config get *)]",
     ]);
     expect(ai[0]).toMatchObject({ kind: "hook", agent: "claude", value: { matcher: CLAUDE_MATCHER, hooks: [{ type: "command", command: "CMD" }] } });
     expect(CLAUDE_ENFORCE.items("CMD", "ask").map((i: any) => i.identity)).toEqual([
@@ -580,8 +592,12 @@ describe("STORY-002-06 writer specs and resolveEnforce units (red)", () => {
       "permissions.allow[Bash(wikeeper status *)]",
       "permissions.allow[Bash(npx wikeeper rules list *)]",
       "permissions.allow[Bash(wikeeper rules list *)]",
+      "permissions.allow[Bash(npx wikeeper statusline *)]",
+      "permissions.allow[Bash(wikeeper statusline *)]",
+      "permissions.allow[Bash(npx wikeeper config get *)]",
+      "permissions.allow[Bash(wikeeper config get *)]",
     ]);
-    expect(CLAUDE_ENFORCE.items("CMD", "whitelist")).toHaveLength(9);
+    expect(CLAUDE_ENFORCE.items("CMD", "whitelist")).toHaveLength(13);
   });
 
   it("CODEX_ENFORCE and ANTIGRAVITY_ENFORCE items", async () => {

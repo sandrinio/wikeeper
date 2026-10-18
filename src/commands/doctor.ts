@@ -1,6 +1,6 @@
 import { stat } from "node:fs/promises";
 import type { Command } from "commander";
-import { DEFAULT_CONFIG, configKeyIsSet, formatConfigIssue, loadConfig } from "../core/config.js";
+import { CONFIG_SYNTAX_FIX, DEFAULT_CONFIG, configKeyIsSet, formatConfigIssue, loadConfig } from "../core/config.js";
 import type { IngestPermission, WikeeperConfig } from "../core/config.js";
 import { ExitCode } from "../core/exit-codes.js";
 import { runIntegrations } from "../core/integrations.js";
@@ -15,7 +15,9 @@ import { readPackageVersion, templatesDir } from "../core/templates.js";
 import { KB_INSTRUCTIONS_CHECK_ID, checkKbInstructions } from "../lint/rules-lint.js";
 import { AGENT_NAMES } from "../agents/agent-names.js";
 import { compareCodeUnits } from "../core/compare.js";
-import { compareVersions } from "../core/version.js";
+import { compareVersions, npmVersion } from "../core/version.js";
+import { availableMessage, newerVersion, readSavedCheck, updateCheckOffReason, versionMismatch } from "../core/update-check.js";
+import type { ConfigIssue } from "../core/config.js";
 import type { CommandModule } from "../program.js";
 
 export interface DoctorResult {
@@ -75,7 +77,63 @@ function packageVersionOrEmpty(): string {
   }
 }
 
-export async function runDoctor(root: string, run: Run, deps: { nodeVersion?: string } = {}): Promise<DoctorResult> {
+function versionMismatchCheck(m: Manifest | null, installed: string): DoctorCheck {
+  const pv = m?.package_version;
+  if (pv === undefined || compareVersions(pv, pv) === null) {
+    return { id: "version-mismatch", severity: "info", message: "not checked: the manifest records no version" };
+  }
+  const mm = versionMismatch(installed, pv);
+  if (mm !== null) {
+    return {
+      id: "version-mismatch",
+      severity: "warning",
+      message: mm.message.replace(/: run wikeeper \w+$/, ""),
+      fix: mm.kind === "files-older" ? "run wikeeper update" : "run wikeeper upgrade",
+    };
+  }
+  return {
+    id: "version-mismatch",
+    severity: "ok",
+    message: `the project's files are from ${npmVersion(pv)}, the installed version`,
+  };
+}
+
+async function updateAvailableCheck(
+  paths: ResolvedPaths,
+  config: WikeeperConfig,
+  env: NodeJS.ProcessEnv,
+  issues: readonly ConfigIssue[],
+  installed: string,
+): Promise<DoctorCheck> {
+  const reason = updateCheckOffReason(config, env, issues);
+  if (reason !== null) {
+    return { id: "update-available", severity: "info", message: `the update check is off (${reason})` };
+  }
+  const saved = await readSavedCheck(paths);
+  if (saved === null) {
+    return {
+      id: "update-available",
+      severity: "info",
+      message: "not checked yet: ingest commands ask npm at most once a day",
+    };
+  }
+  const l = newerVersion(saved, installed);
+  if (l !== null) {
+    return {
+      id: "update-available",
+      severity: "warning",
+      message: availableMessage(l, installed).replace(/: run wikeeper upgrade$/, ""),
+      fix: "run wikeeper upgrade",
+    };
+  }
+  return { id: "update-available", severity: "ok", message: `no newer version known (checked ${saved.checked_at})` };
+}
+
+export async function runDoctor(
+  root: string,
+  run: Run,
+  deps: { nodeVersion?: string; installed?: string; env?: NodeJS.ProcessEnv } = {},
+): Promise<DoctorResult> {
   const checks: DoctorCheck[] = [];
   const guard = async (id: string, fn: () => Promise<DoctorCheck | DoctorCheck[]> | DoctorCheck | DoctorCheck[]) => {
     try {
@@ -90,6 +148,7 @@ export async function runDoctor(root: string, run: Run, deps: { nodeVersion?: st
   let paths: ResolvedPaths = resolvePaths(root, config);
   let manifest: Manifest | null = null;
   let manifestError: string | null = null;
+  let configIssues: readonly ConfigIssue[] = [];
 
   await guard("node-version", () => checkNodeVersion(deps.nodeVersion ?? process.versions.node));
 
@@ -140,11 +199,13 @@ export async function runDoctor(root: string, run: Run, deps: { nodeVersion?: st
       loaded = await loadConfig(root);
     } catch (err) {
       if ((err as { code?: string }).code === "E_CONFIG_SYNTAX") {
+        const msg = errMsg(err);
+        const tail = ": " + CONFIG_SYNTAX_FIX;
         return {
           id: "config-valid",
           severity: "error",
-          message: errMsg(err),
-          fix: "fix the YAML syntax in .wiki/config.yml",
+          message: msg.endsWith(tail) ? msg.slice(0, -tail.length) : msg,
+          fix: CONFIG_SYNTAX_FIX,
           file,
         };
       }
@@ -152,6 +213,7 @@ export async function runDoctor(root: string, run: Run, deps: { nodeVersion?: st
     }
     config = loaded.config;
     paths = resolvePaths(root, config);
+    configIssues = loaded.errors;
     if (loaded.errors.length > 0) {
       return {
         id: "config-valid",
@@ -227,6 +289,11 @@ export async function runDoctor(root: string, run: Run, deps: { nodeVersion?: st
     return (await runIntegrations("doctor", ctx)).checks;
   });
 
+  const installed = deps.installed ?? npmVersion(packageVersionOrEmpty());
+  const env = deps.env ?? process.env;
+  await guard("version-mismatch", () => versionMismatchCheck(manifest as Manifest | null, installed));
+  await guard("update-available", () => updateAvailableCheck(paths, config, env, configIssues, installed));
+
   const errors = checks.filter((c) => c.severity === "error").length;
   const warnings = checks.filter((c) => c.severity === "warning").length;
 
@@ -298,7 +365,9 @@ function render(result: DoctorResult): string[] {
   return lines;
 }
 
-export function createDoctorCommand(deps: { nodeVersion?: string } = {}): CommandModule {
+export function createDoctorCommand(
+  deps: { nodeVersion?: string; installed?: string; env?: NodeJS.ProcessEnv } = {},
+): CommandModule {
   return {
     register(program: Command): void {
       program
@@ -310,7 +379,7 @@ export function createDoctorCommand(deps: { nodeVersion?: string } = {}): Comman
           const result = await runDoctor(
             root,
             { flags: {}, json: ctx.json, interactive: ctx.isTTY && !ctx.json, io: ctx },
-            { nodeVersion: deps.nodeVersion ?? process.versions.node },
+            { ...deps, nodeVersion: deps.nodeVersion ?? process.versions.node },
           );
           emitResult(ctx, { command: "doctor", data: result, warnings: [], message: render(result) });
           ctx.setExitCode(result.errors > 0 ? ExitCode.ERROR : ExitCode.OK);

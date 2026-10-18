@@ -1,6 +1,7 @@
 // src/search/since.ts
 // Contract C12 — contract/S-02-since (owner STORY-004-04). Frozen exports: parseSince and SinceBound.
 // Consumer: STORY-004-05 (--misses --since).
+import { compareCodeUnits } from "../core/compare.js";
 import { DATE_RE, isCalendarDate } from "../core/dates.js";
 import { ExitCode, WikeeperError } from "../core/exit-codes.js";
 import type { StoredLogEvent } from "../ingest/log.js";
@@ -35,7 +36,7 @@ export function parseSince(raw: string): SinceBound {
   return { date: m[1]!, instant: new Date(ms).toISOString() };
 }
 
-export function toFactView(fact: Fact, entity: Entity, page: Page): FactView {
+export function toFactView(fact: Fact, entity: Entity, page: Page, archived = false): FactView {
   return {
     path: page.path,
     entity: entity.name,
@@ -46,20 +47,29 @@ export function toFactView(fact: Fact, entity: Entity, page: Page): FactView {
     text: fact.text,
     sources: fact.sources,
     contradiction: fact.contradiction,
+    archived,
   };
 }
 
-export function factsSince(entities: readonly Entity[], pages: readonly Page[], bound: SinceBound): FactView[] {
+/** Date descending, then path, live before archived, then line. */
+export function compareFactViews(a: FactView, b: FactView): number {
+  return (
+    (a.date < b.date ? 1 : a.date > b.date ? -1 : 0) ||
+    compareCodeUnits(a.path, b.path) ||
+    Number(a.archived) - Number(b.archived) ||
+    a.line - b.line
+  );
+}
+
+export function factsSince(entities: readonly Entity[], pages: readonly Page[], bound: SinceBound, archived = false): FactView[] {
   const pageByPath = new Map(pages.map((p) => [p.path, p]));
   const out: FactView[] = [];
   for (const e of entities) {
     const page = pageByPath.get(e.path);
     if (page === undefined) continue;
-    for (const f of e.facts) if (f.date >= bound.date) out.push(toFactView(f, e, page));
+    for (const f of e.facts) if (f.date >= bound.date) out.push(toFactView(f, e, page, archived));
   }
-  return out.sort(
-    (a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0) || (a.path < b.path ? -1 : a.path > b.path ? 1 : 0) || a.line - b.line,
-  );
+  return out.sort(compareFactViews);
 }
 
 export function pagesChangedSince(events: readonly StoredLogEvent[]): SinceChanges["pages"] {

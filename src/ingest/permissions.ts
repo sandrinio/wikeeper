@@ -1,6 +1,8 @@
 // Contract C2 — permission evaluation (owner STORY-003-02). Frozen exports.
 import { homedir } from "node:os";
 import type { WikeeperConfig } from "../core/config.js";
+import { formatLimit, levelOf } from "../core/tokens.js";
+import type { TokenLevel } from "../core/tokens.js";
 import { normalizeKindId } from "./kind-rules.js";
 import type { OriginType } from "./registry.js";
 
@@ -149,4 +151,29 @@ export function evaluatePermission(
       `Checked origin entries: ${list(origins)}. Checked kind entries: ${list(kinds)}; ` +
       `path entries support **, * and ? - add the path or the kind to ingest.whitelist in .wiki/config.yml.`,
   };
+}
+
+// Contract C2 (K5, frozen). STORY-007-03 replaces the bodies; names and types stay.
+export type SourceLimits = WikeeperConfig["tokens"]["source"];
+export interface SizeCheck {
+  tokens: number;
+  rough: boolean;
+  level: TokenLevel;
+  limit: number | null;
+  confirm_at: SourceLimits["confirm_at"];
+  reached: boolean;
+}
+
+export function checkSourceSize(counted: { tokens: number; rough: boolean }, limits: SourceLimits): SizeCheck {
+  const level = levelOf(counted.tokens, limits);
+  const confirmAt = limits.confirm_at;
+  const limit = confirmAt === "never" ? null : limits[confirmAt];
+  const reached =
+    (confirmAt === "yellow" && (level === "yellow" || level === "red")) || (confirmAt === "red" && level === "red");
+  return { tokens: counted.tokens, rough: counted.rough, level, limit, confirm_at: confirmAt, reached };
+}
+
+export function sizeLimitText(check: SizeCheck): string {
+  const limit = check.limit === null ? "never" : formatLimit(check.limit);
+  return `at or above the approval limit tokens.source.${check.confirm_at} (${limit})`;
 }

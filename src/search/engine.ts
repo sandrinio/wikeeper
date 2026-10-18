@@ -8,6 +8,7 @@ import type MiniSearch from "minisearch";
 import type { AsPlainObject, Options } from "minisearch";
 import { compareCodeUnits } from "../core/compare.js";
 import { toPosixRelative } from "../core/paths.js";
+import { estimateTokens } from "../core/tokens.js";
 import type { ResolvedPaths } from "../core/paths.js";
 import { readPackageVersion } from "../core/templates.js";
 import { CITATION_RE, listPageFiles, owningEntityKey, pageEntities, parsePage } from "../wiki/parse-page.js";
@@ -35,7 +36,10 @@ export interface SearchHit {
   snippet: string;
   score: number;
   sources: string[];
+  page_tokens: number;
+  archived: boolean;
 }
+export type SearchHitBase = Omit<SearchHit, "page_tokens">;
 export interface FactView {
   path: string;
   entity: string;
@@ -46,6 +50,7 @@ export interface FactView {
   text: string;
   sources: string[];
   contradiction: boolean;
+  archived: boolean;
 }
 export interface EntityMatch {
   key: string;
@@ -53,6 +58,7 @@ export interface EntityMatch {
   type: string | null;
   path: string;
   file: string;
+  archived: boolean;
   section: string;
   line: number;
   aliases: string[];
@@ -98,6 +104,7 @@ export interface SearchRequest {
   entity: string | null;
   misses: boolean;
   noMiss?: boolean;
+  archive?: boolean;
 }
 export interface SearchDeps {
   now?: () => Date;
@@ -117,6 +124,7 @@ export interface SearchDoc {
   entityKey: string;
   aliases: string;
   text: string;
+  archived: boolean;
 }
 export interface RankedHit {
   doc: SearchDoc;
@@ -132,6 +140,10 @@ export interface SearchCorpus {
   entities: Entity[];
   index: SearchIndex;
   warnings: string[];
+  archivePages: Page[];
+  archiveEntities: Entity[];
+  archiveDocs: SearchDoc[];
+  pageTokens(path: string, archived?: boolean): number;
 }
 
 export const MINISEARCH_OPTIONS: Options<SearchDoc> = {
@@ -140,6 +152,11 @@ export const MINISEARCH_OPTIONS: Options<SearchDoc> = {
 };
 
 export const SEARCH_CACHE_VERSION = 1 as const;
+
+/** The one place a hit or entity file is built: repo-relative POSIX under pages/ or archive/. */
+export function hitFile(paths: ResolvedPaths, rel: string, archived: boolean): string {
+  return toPosixRelative(paths.root, path.join(archived ? paths.archiveDir : paths.pagesDir, ...rel.split("/")));
+}
 
 export function searchCacheFile(paths: ResolvedPaths): string {
   return path.join(paths.wikiDir, ".cache", "search.json");
@@ -170,6 +187,7 @@ export function buildDocs(pages: readonly Page[]): SearchDoc[] {
         entityKey,
         aliases: aliasesByKey.get(entityKey) ?? "",
         text: sec.text,
+        archived: false,
       });
     }
   }
@@ -211,8 +229,11 @@ interface SearchCacheFile {
   version: typeof SEARCH_CACHE_VERSION;
   package_version: string;
   files: CacheFileKey[];
+  archive_files: CacheFileKey[];
   pages: Page[];
   docs: SearchDoc[];
+  archive_pages: Page[];
+  archive_docs: SearchDoc[];
   index: AsPlainObject;
 }
 
@@ -223,45 +244,93 @@ function packageVersion(): string {
 }
 let tmpSeq = 0;
 
-function isUsableCache(c: unknown, keys: readonly CacheFileKey[]): c is SearchCacheFile {
-  if (typeof c !== "object" || c === null) return false;
-  const o = c as Record<string, unknown>;
-  if (o.version !== SEARCH_CACHE_VERSION || o.package_version !== packageVersion()) return false;
-  if (!Array.isArray(o.pages) || !Array.isArray(o.docs)) return false;
-  if (typeof o.index !== "object" || o.index === null) return false;
-  const files = o.files;
-  if (!Array.isArray(files) || files.length !== keys.length) return false;
+function sameKeys(list: unknown, keys: readonly CacheFileKey[]): boolean {
+  if (!Array.isArray(list) || list.length !== keys.length) return false;
   return keys.every((k, i) => {
-    const f = files[i] as Partial<CacheFileKey> | null;
+    const f = list[i] as Partial<CacheFileKey> | null;
     return typeof f === "object" && f !== null && f.path === k.path && f.sha256 === k.sha256;
   });
 }
 
+function isUsableCache(
+  c: unknown,
+  keys: readonly CacheFileKey[],
+  archiveKeys: readonly CacheFileKey[] = [],
+): c is SearchCacheFile {
+  if (typeof c !== "object" || c === null) return false;
+  const o = c as Record<string, unknown>;
+  if (o.version !== SEARCH_CACHE_VERSION || o.package_version !== packageVersion()) return false;
+  if (!Array.isArray(o.pages) || !Array.isArray(o.docs)) return false;
+  if (!Array.isArray(o.archive_pages) || !Array.isArray(o.archive_docs)) return false;
+  if (typeof o.index !== "object" || o.index === null) return false;
+  return sameKeys(o.files, keys) && sameKeys(o.archive_files, archiveKeys);
+}
+
+function keyOf(files: readonly string[], bufs: readonly Buffer[]): CacheFileKey[] {
+  return files.map((p, i) => ({ path: p, sha256: createHash("sha256").update(bufs[i] as Buffer).digest("hex") }));
+}
+
 export async function loadSearchCorpus(
   paths: ResolvedPaths,
-  opts: { useCache?: boolean; onRebuild?: () => void } = {},
+  opts: { useCache?: boolean; onRebuild?: () => void; archive?: boolean } = {},
 ): Promise<SearchCorpus> {
   const useCache = opts.useCache ?? true;
-  const files = await listPageFiles(paths.pagesDir);
-  const bufs = await Promise.all(files.map((rel) => readFile(path.join(paths.pagesDir, ...rel.split("/")))));
-  const keys: CacheFileKey[] = files.map((p, i) => ({
-    path: p,
-    sha256: createHash("sha256").update(bufs[i] as Buffer).digest("hex"),
-  }));
+  const [files, archiveFiles] = await Promise.all([listPageFiles(paths.pagesDir), listPageFiles(paths.archiveDir)]);
+  const [bufs, archiveBufs] = await Promise.all([
+    Promise.all(files.map((rel) => readFile(path.join(paths.pagesDir, ...rel.split("/"))))),
+    Promise.all(archiveFiles.map((rel) => readFile(path.join(paths.archiveDir, ...rel.split("/"))))),
+  ]);
+  const keys = keyOf(files, bufs);
+  const archiveKeys = keyOf(archiveFiles, archiveBufs);
   const file = searchCacheFile(paths);
+  // page_tokens (STORY-007-05): estimated when asked, from the bytes already read; never cached. UTF-8 with the BOM kept.
+  const trees = [
+    { at: new Map(files.map((f, i) => [f, i])), bufs, memo: new Map<string, number>() },
+    { at: new Map(archiveFiles.map((f, i) => [f, i])), bufs: archiveBufs, memo: new Map<string, number>() },
+  ];
+  const pageTokens = (p: string, archived = false): number => {
+    const t = trees[archived ? 1 : 0]!;
+    const i = t.at.get(p);
+    if (i === undefined) return 0;
+    let n = t.memo.get(p);
+    if (n === undefined) {
+      n = estimateTokens((t.bufs[i] as Buffer).toString("utf8"));
+      t.memo.set(p, n);
+    }
+    return n;
+  };
+  const finish = async (
+    pages: Page[],
+    docs: SearchDoc[],
+    archivePages: Page[],
+    archiveDocs: SearchDoc[],
+    mini: MiniSearch<SearchDoc>,
+    warnings: string[],
+  ): Promise<SearchCorpus> => {
+    let index = wrapIndex(mini, docs);
+    if (opts.archive === true && archiveDocs.length > 0) {
+      const all = [...docs, ...archiveDocs.map((d) => ({ ...d, id: docs.length + d.id }))];
+      index = wrapIndex(await newMiniSearch(all), all);
+    }
+    return {
+      pages,
+      entities: pages.flatMap(pageEntities),
+      index,
+      warnings,
+      archivePages,
+      archiveEntities: archivePages.flatMap(pageEntities),
+      archiveDocs,
+      pageTokens,
+    };
+  };
 
   if (useCache) {
     try {
       const cache: unknown = JSON.parse(await readFile(file, "utf8"));
-      if (isUsableCache(cache, keys)) {
+      if (isUsableCache(cache, keys, archiveKeys)) {
         const { default: MiniSearchCtor } = await import("minisearch");
         const mini = MiniSearchCtor.loadJS(cache.index, MINISEARCH_OPTIONS);
-        return {
-          pages: cache.pages,
-          entities: cache.pages.flatMap(pageEntities),
-          index: wrapIndex(mini, cache.docs),
-          warnings: [],
-        };
+        return await finish(cache.pages, cache.docs, cache.archive_pages, cache.archive_docs, mini, []);
       }
     } catch {
       // unreadable or invalid cache: rebuild silently
@@ -270,6 +339,8 @@ export async function loadSearchCorpus(
 
   const pages = files.map((rel, i) => parsePage((bufs[i] as Buffer).toString("utf8"), rel));
   const docs = buildDocs(pages);
+  const archivePages = archiveFiles.map((rel, i) => parsePage((archiveBufs[i] as Buffer).toString("utf8"), rel));
+  const archiveDocs = buildDocs(archivePages).map((d) => ({ ...d, archived: true }));
   const mini = await newMiniSearch(docs);
   const warnings: string[] = [];
   if (useCache) {
@@ -281,8 +352,11 @@ export async function loadSearchCorpus(
         version: SEARCH_CACHE_VERSION,
         package_version: packageVersion(),
         files: keys,
+        archive_files: archiveKeys,
         pages,
         docs,
+        archive_pages: archivePages,
+        archive_docs: archiveDocs,
         index: mini.toJSON(),
       };
       await mkdir(dir, { recursive: true });
@@ -294,7 +368,7 @@ export async function loadSearchCorpus(
       warnings.push(`search cache not written: ${toPosixRelative(paths.root, file)}: ${e.code ?? e.message}`);
     }
   }
-  return { pages, entities: pages.flatMap(pageEntities), index: wrapIndex(mini, docs), warnings };
+  return finish(pages, docs, archivePages, archiveDocs, mini, warnings);
 }
 
 const SNIPPET_MAX = 160;
