@@ -428,6 +428,7 @@ ADR source: `architecture.md` §2 principles and the D-01–D-36 decision log, p
 - 2026-10-18 · Wave P: 008-06 GREEN 9c8b983 (QA-Red re-scoped the two archive-hit rows to `file`; QA PASS 24/24 rows; 2181/0; checkCoverage finds `wikeeper search "launch date" --archive`). Merging 008-06.
 - FLASHCARD-REJECT 2026-10-18 — "filter archive search hits on `file`…" — reason: duplicate of the wave O card.
 - 2026-10-18 · 008-06 merged 0665a7c (clean; templates 356/356; full suite 2184/2184). EPIC-008 complete. 13/16 Done.
+- 2026-10-18 · Wave N: 009-01 GREEN 1737395 (integrated at cc565fd; QA PASS 5/5; 2149/0; test:perf pass). Architect post-flight FAIL once, test-only: a 'does nothing outside a wiki' unit test passed without testing anything (`runIngestUpdateCheck(new Command())` throws at `getOutputContext` and its own catch swallows it), plus a missing config-syntax-error hook test; the Developer fixed both, then QA and post-flight passed. The 'red modified after QA-Red' flag was again a false positive (`git diff db1bc36 HEAD` empty). Merged 9f8e939 (clean over 008-06's WIKI.md; version-status bullet directly after archive_candidates; templates 356/356; full suite 2225/0). 14/16 Done. 1 flashcard recorded (3 flagged: 1 kept, 2 duplicates). Wave Q launched: 009-02 integrate (`src/program.ts` conflict: sprint/S-04's commands plus `upgrade` last).
 
 ## Risks & Dependencies
 
