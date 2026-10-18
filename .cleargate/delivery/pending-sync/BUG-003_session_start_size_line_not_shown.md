@@ -10,7 +10,7 @@ reporter: orchestrator (SPRINT-04 walkthrough part 4)
 approved: true
 approved_by: "human (walkthrough classification: UR:bug, fix now)"
 approved_at: 2026-10-19T00:00:00Z
-context_source: "SPRINT-04 walkthrough part 4 (2026-10-18/19, orchestrator-driven, testbed scratch copies, 0.4.0+30eb5dd): the size line was shown at session start in 1 of 5 fresh sessions, and a fresh session whose statusline showed 🔴 did not tell the user · the human classified both rows UR:bug and chose 'fix now' with this fix (reword pointer-block line 4) · verified on sprint/S-04 at 7061430: templates/agent-block.md:4 (199 of 200 UTF-16 units), src/agents/shipped-blocks.ts (SPRINT-04 entry, append-only), templates/system/WIKI.md:293, test/templates/token-instructions.red.node.test.ts:179, test/templates/writing-and-answering-text.red.node.test.ts:218 and :459, test/templates/upgrade-instructions.red.node.test.ts (R2 pins agent-block.md), test/agents/pointer-block.red.node.test.ts:54, test/agents/shipped-blocks.test.ts:8"
+context_source: "SPRINT-04 walkthrough part 4 (2026-10-18/19, orchestrator-driven, testbed scratch copies, 0.4.0+30eb5dd): the size line was shown at session start in 1 of 5 fresh sessions, and a fresh session whose statusline showed 🔴 did not tell the user · the human classified both rows UR:bug and chose 'fix now' with this fix (reword pointer-block line 4) · verified on sprint/S-04 at 7061430: templates/agent-block.md:4 (198 of 200 UTF-16 units), src/agents/shipped-blocks.ts (SPRINT-04 entry, append-only), templates/system/WIKI.md:293, test/templates/token-instructions.red.node.test.ts:179, test/templates/writing-and-answering-text.red.node.test.ts:218 and :459, test/templates/upgrade-instructions.red.node.test.ts (R2 pins agent-block.md), test/agents/pointer-block.red.node.test.ts:54, test/agents/shipped-blocks.test.ts:8"
 created_at: 2026-10-19T00:00:00Z
 updated_at: 2026-10-19T00:00:00Z
 created_at_version: strategy-phase-pre-init
@@ -19,7 +19,7 @@ server_pushed_at_version: null
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-18T20:28:38Z
+  last_gate_check: 2026-10-18T20:48:26Z
   transition: ready-for-fix
 pushed_by: null
 pushed_at: null
@@ -44,7 +44,7 @@ draft_tokens:
 
 ### Open Questions
 
-- **Question (Q1, the wording):** Pointer-block line 4 has one free UTF-16 unit and the block is at 14 of 14 lines. What does line 4 say?
+- **Question (Q1, the wording):** Pointer-block line 4 has two free UTF-16 units and the block is at 14 of 14 lines. What does line 4 say?
 - **Recommended:** `Wiki: \`.wiki/\`, content folder \`content_dir\` in \`.wiki/config.yml\`. Once set up, open each session's first reply with the line \`wikeeper statusline\` prints; on 🔴 follow WIKI.md "Lint and status".` (196 UTF-16 units). It keeps the three phrases 007-07's red test requires ("Once set up", "open each session", "`wikeeper statusline`"), says where the line goes (the first reply, so the user sees it), and names the section that says what to do on 🔴, which a question-only session otherwise never reads. It drops "This repo has a knowledge wiki in" (the heading `## Project Wiki` and line 3 already say it) and "not an error" (WIKI.md says what to do when the line is an error).
 - **Human decision:** _approved as recommended (human, 2026-10-19, walkthrough classification: "fix now" with the line-4 rewording)_
 
@@ -59,6 +59,10 @@ draft_tokens:
 - **Question (Q4, the gate):** The reproduction is behavioural (the agent missed the line in 4 of 5 fresh sessions), so the gate's "100% deterministic" criterion is not met literally. Proceed?
 - **Recommended:** Yes. The text half is checked deterministically by the red test; the behaviour is checked by a re-walk in 3 fresh sessions, which passes only if the size line is in the first reply of all 3 and the 🔴 notice is in the red one.
 - **Human decision:** _proceed as recommended (human, 2026-10-19)_
+
+- **Question (Q5, re-scopes):** The Architect (plans/M6.md) found four sealed tests to re-scope, #21–#24, two more than this bug named (#22 token-instructions.red's WIKI.md phrase, #23 archive-instructions.red's agent-block.md pin). Covered?
+- **Recommended:** Yes: the human's "proceed" approved "Architect lists the pinned tests, QA-Red re-scopes"; each is the minimal edit for the approved text (sprint-execution §C.0.2 step 6).
+- **Human decision:** _covered by the human's "proceed" (2026-10-19); recorded by the orchestrator_
 
 ## 1. The Anomaly (Expected vs. Actual)
 
@@ -98,7 +102,7 @@ C3  Bash   | wikeeper statusline; wikeeper search "v2 SDK fallback payments" --j
 C3  TEXT1: Yes, Test. It was the plan at the atlas kickoff on 2026-07-06 …   (only message)
 ```
 
-Line 4 today (`templates/agent-block.md:4`, 199 UTF-16 units):
+Line 4 today (`templates/agent-block.md:4`, 198 UTF-16 units):
 
 ```
 This repo has a knowledge wiki in `.wiki/`; its content folder is set by `content_dir` in `.wiki/config.yml`. Once set up, open each session with the size `wikeeper statusline` prints, not an error.
@@ -113,9 +117,12 @@ This repo has a knowledge wiki in `.wiki/`; its content folder is set by `conten
 - `templates/system/WIKI.md` — section "Lint and status", the one sentence of Q2.
 - `./architecture.md` — the quoted pointer block (`:263`), line 4 only.
 - `docs/ux-map.md` — row N3's quote of line 4 only.
-- QA-Red only: `test/templates/bug-003-session-line.red.node.test.ts` (new), and the re-scopes the Architect lists, at least `test/templates/writing-and-answering-text.red.node.test.ts` (`LINE_4_SPRINT_04`) and `test/templates/upgrade-instructions.red.node.test.ts` (the R2 sha256 pin of `agent-block.md`, by test name).
+- QA-Red only: `test/templates/bug-003-session-line.red.node.test.ts` (new), and the four re-scopes the Architect listed (`plans/M6.md`):
+  - #21 `test/templates/writing-and-answering-text.red.node.test.ts`: the value of `LINE_4_SPRINT_04` becomes Q1's line;
+  - #22 `test/templates/token-instructions.red.node.test.ts`: the "session (R5)" row's phrase `start of every session` becomes `first reply of every session` (Q2);
+  - #23 `test/templates/archive-instructions.red.node.test.ts` and #24 `test/templates/upgrade-instructions.red.node.test.ts`: the sha256 pin of `templates/agent-block.md`, by test name.
 
-**Read, not edited:** `src/agents/inject.ts` and `src/commands/update.ts` (how `update` replaces a recognised shipped block), `test/agents/pointer-block.red.node.test.ts`, `test/agents/block-refresh.red.node.test.ts`, `test/templates/token-instructions.red.node.test.ts` (its line-4 phrases still hold), `test/e2e/goal.test.ts`.
+**Read, not edited:** `src/agents/inject.ts` and `src/commands/update.ts` (how `update` replaces a recognised shipped block), `test/agents/pointer-block.red.node.test.ts`, `test/agents/block-refresh.red.node.test.ts`, `test/templates/token-instructions.red.node.test.ts:179` (its line-4 phrases still hold), `test/e2e/goal.test.ts`.
 
 No CLI code, command output, JSON key or exit code changes.
 
