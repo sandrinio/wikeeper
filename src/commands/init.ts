@@ -191,10 +191,7 @@ async function execInit(
       created.push(rel(abs));
     };
     await seed(paths.configFile, () =>
-      writeFile(
-        paths.configFile,
-        `# wikeeper configuration (user-owned). Missing keys use built-in defaults.\nprofile: ${profile}\nagents: []\n`,
-      ),
+      writeFile(paths.configFile, initialConfigText(profile)),
     );
     await seed(paths.kbInstructions, async () => {
       await copyTemplate(`kb_instructions.${profile}.md`, paths.kbInstructions, tplDir);
@@ -317,3 +314,23 @@ export function createInitCommand(deps: InitDeps = {}): CommandModule {
 }
 
 export const initCommand: CommandModule = createInitCommand();
+
+/** The `config.yml` a new wiki starts with: profile, agents and the commented token limits. */
+export function initialConfigText(profile: string): string {
+  return [
+    "# wikeeper configuration (user-owned). Missing keys use built-in defaults.",
+    `profile: ${profile}`,
+    "agents: []",
+    "",
+    "# Token limits. Sizes are estimates (about \u00b115%). Write 4000 or 4k; yellow must be below red.",
+    "tokens:",
+    "  page:",
+    "    yellow: 4k # a wiki page this size is yellow",
+    "    red: 10k # and this size red",
+    "  source:",
+    "    yellow: 20k # a document to ingest this size is yellow",
+    "    red: 60k # and this size red",
+    "    confirm_at: yellow # ingest start asks for approval from this level: yellow, red or never",
+    "",
+  ].join("\n");
+}

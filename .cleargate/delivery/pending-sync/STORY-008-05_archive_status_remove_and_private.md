@@ -363,4 +363,4 @@ Requirements to pass to Green (Ready for Execution):
 - [x] Existing Surfaces cites at least one source-tree path or explicitly states "none — net-new."
 - [x] Why not simpler? has both sub-bullets answered (no "TBD" / no "{}").
 
-Not yet approved: §1.4 Q1–Q4 wait for the human's decision at Gate 1, and `approved` is false.
+Approved at Gate 1 (2026-10-18): §1.4 Q1–Q4 decided as recommended (`plans/gate1-decisions.md`); `approved` is true.

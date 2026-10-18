@@ -206,6 +206,11 @@ export function createIngestFinishCommand(deps: { now?: () => Date } = {}): Inge
             pageHashes[rel] = pageHash(text);
             changedPages.push(parsePage(text, rel));
           }
+          const archiveHashes: Record<string, string> = {};
+          for (const rel of [...(diff.archive?.created ?? []), ...(diff.archive?.updated ?? [])].sort(compareCodeUnits)) {
+            if (!rel.endsWith(".md")) continue;
+            archiveHashes[rel] = pageHash(await readFile(path.join(paths.archiveDir, ...rel.split("/")), "utf8"));
+          }
           const contradictions = countContradictions(changedPages, id);
           const logFile = await writeLogEvent(paths, {
             type: "ingest",
@@ -221,6 +226,7 @@ export function createIngestFinishCommand(deps: { now?: () => Date } = {}): Inge
             contradictions,
             rule_suggestions: facts.uncovered?.length ?? 0,
             page_hashes: pageHashes,
+            ...(Object.keys(archiveHashes).length > 0 ? { archive_hashes: archiveHashes } : {}),
           });
           await regenerateLogView(paths);
 
