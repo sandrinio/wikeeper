@@ -5,10 +5,13 @@ import path from "node:path";
 import type { Command } from "commander";
 import { compareCodeUnits } from "../core/compare.js";
 import { loadConfig } from "../core/config.js";
+import type { WikeeperConfig } from "../core/config.js";
 import { ExitCode, WikeeperError } from "../core/exit-codes.js";
 import { sha256File } from "../core/manifest.js";
 import { emitResult, getOutputContext } from "../core/output.js";
 import { assertInitialised, findRepoRoot, resolvePaths, toPosixRelative } from "../core/paths.js";
+import type { ResolvedPaths } from "../core/paths.js";
+import { levelOf, measureWiki } from "../core/tokens.js";
 import { diffOutside, diffPages } from "../ingest/diff.js";
 import { factsFilePath, readFacts } from "../ingest/facts.js";
 import { normalizeKindId } from "../ingest/kind-rules.js";
@@ -22,7 +25,7 @@ import { readMeta } from "../ingest/registry.js";
 import { countContradictions, formatReport } from "../ingest/report.js";
 import type { IngestReport } from "../ingest/report.js";
 import { isSourceId } from "../ingest/source-id.js";
-import { readSnapshot, removeSnapshot } from "../ingest/snapshot.js";
+import { readSnapshot, removeSnapshot, snapshotDir } from "../ingest/snapshot.js";
 import { hookFailed, runUserHooks } from "../ingest/user-hooks.js";
 import type { UserHookResult } from "../ingest/user-hooks.js";
 import { validateIngest } from "../ingest/validate.js";
@@ -38,7 +41,20 @@ function lintLine(f: LintFinding): string {
   return `lint ${findingLine(f)}`;
 }
 
-export const FINISH_CHECKS: readonly string[] = ["broken-link", "uncited-claim", "unlogged-change"];
+async function reportTokens(paths: ResolvedPaths, id: string, config: WikeeperConfig): Promise<IngestReport["tokens"]> {
+  const live = await measureWiki(paths);
+  const snap = await readSnapshot(paths, id);
+  const before =
+    snap === null ? null : (await measureWiki({ ...paths, pagesDir: path.join(snapshotDir(paths, id), "pages") })).total;
+  const top = live.pages[0];
+  return {
+    wiki: live.total,
+    change: before === null ? null : live.total - before,
+    largest: top === undefined ? null : { ...top, level: levelOf(top.tokens, config.tokens.page) },
+  };
+}
+
+export const FINISH_CHECKS: readonly string[] = ["broken-link", "uncited-claim", "unlogged-change", "oversized-page"];
 export const finishLintHook: LintHook = async ({ paths, changed }) => {
   if (changed.length === 0) return [];
   const { config } = await loadConfig(paths.root);
@@ -101,6 +117,7 @@ export function createIngestFinishCommand(deps: { now?: () => Date } = {}): Inge
           if (prior.length > 0) {
             const idx = await writeIndex(paths);
             await regenerateLogView(paths);
+            const tokens = await reportTokens(paths, id, config);
             await removeSnapshot(paths, id);
             await releaseLock(paths, id);
             const ev = prior[0]!.event as IngestLogEvent;
@@ -121,6 +138,7 @@ export function createIngestFinishCommand(deps: { now?: () => Date } = {}): Inge
               index_changed: idx.changed,
               hooks: [],
               lint: [],
+              tokens,
             };
             emitResult(ctx, {
               command: "ingest finish",
@@ -242,6 +260,7 @@ export function createIngestFinishCommand(deps: { now?: () => Date } = {}): Inge
           }
           for (const f of lint) warnings.push(lintLine(f));
 
+          const tokens = await reportTokens(paths, id, config);
           await removeSnapshot(paths, id);
           await releaseLock(paths, id);
 
@@ -262,6 +281,7 @@ export function createIngestFinishCommand(deps: { now?: () => Date } = {}): Inge
             index_changed: idx.changed,
             hooks,
             lint,
+            tokens,
           };
           emitResult(ctx, { command: "ingest finish", data: report, warnings, message: formatReport(report) });
         });

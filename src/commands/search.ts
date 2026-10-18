@@ -17,7 +17,7 @@ import type { SinceBound } from "../search/since.js";
 import type { SinceChanges } from "../search/engine.js";
 import { buildBacklinks, normalizeName } from "../wiki/parse-page.js";
 import { EMPTY_FILTERS, hitSources, loadSearchCorpus, makeSnippet } from "../search/engine.js";
-import type { RankedHit, SearchData, SearchDeps, SearchHit, SearchRequest } from "../search/engine.js";
+import type { RankedHit, SearchData, SearchDeps, SearchHitBase, SearchRequest } from "../search/engine.js";
 import type { Entity, Page } from "../wiki/parse-page.js";
 import { describeFilters, entityHit, hasFilters, markHits, matchesFilters, parseFilterValue, parseMark, parseWhere } from "../search/filters.js";
 import { plural } from "./doctor.js";
@@ -147,7 +147,7 @@ export async function executeSearch(root: string, req: SearchRequest, deps: Sear
   const warnings: string[] = [...corpus.warnings];
   let ranked: RankedHit[] = req.query === null ? [] : corpus.index.query(req.query);
   // INSERTION POINT STORY-004-03: filter step (req.filters.type / .where / .status) on the ranked hits.
-  let entityHits: SearchHit[] | null = null;
+  let entityHits: SearchHitBase[] | null = null;
   if (hasFilters(req.filters)) {
     const pageOf = new Map(corpus.pages.map((p) => [p.path, p]));
     const passing = corpus.entities.filter((e) => matchesFilters(e, req.filters, pageOf.get(e.path)!));
@@ -166,7 +166,7 @@ export async function executeSearch(root: string, req: SearchRequest, deps: Sear
   // 4. build the data
   const pageByPath = new Map<string, Page>(corpus.pages.map((p) => [p.path, p]));
   const entityByKey = new Map<string, Entity>(corpus.entities.map((e) => [e.key, e]));
-  const toHit = (r: RankedHit): SearchHit => {
+  const toHit = (r: RankedHit): SearchHitBase => {
     const { doc } = r;
     const entity = entityByKey.get(doc.entityKey);
     return {
@@ -182,7 +182,8 @@ export async function executeSearch(root: string, req: SearchRequest, deps: Sear
       sources: hitSources(pageByPath.get(doc.path)!, doc.section),
     };
   };
-  let data: SearchData = {
+  type SearchDraft = Omit<SearchData, "results"> & { results: SearchHitBase[] };
+  let data: SearchDraft = {
     mode: "query",
     query: req.query,
     filters: req.filters,
@@ -277,19 +278,21 @@ export async function executeSearch(root: string, req: SearchRequest, deps: Sear
       events: misses.reduce((n, m) => n + m.count, 0),
     };
   }
-  if (data.mode !== "misses" && data.total === 0) {
+  // page_tokens (STORY-007-05): one pass over the final results.
+  const out: SearchData = { ...data, results: data.results.map((h) => ({ ...h, page_tokens: corpus.pageTokens(h.path) })) };
+  if (out.mode !== "misses" && out.total === 0) {
     const status = normalizeName(f.status ?? "");
     if (status === "decided" || status === "tentative") {
       warnings.push(`fact marks are filtered with --mark: wikeeper search --mark ${status}`);
     }
   }
-  if (!req.noMiss && shouldRecordMiss(data)) {
-    const miss = await recordMiss(paths, data, (deps.now ?? (() => new Date()))());
+  if (!req.noMiss && shouldRecordMiss(out)) {
+    const miss = await recordMiss(paths, out, (deps.now ?? (() => new Date()))());
     if (miss.warning !== null) warnings.push(miss.warning);
   }
   // 5.
-  warningsOf.set(data, warnings);
-  return data;
+  warningsOf.set(out, warnings);
+  return out;
 }
 
 function renderHuman(data: SearchData): string {
