@@ -440,7 +440,7 @@ describe("STORY-008-06 S2: a clean-up run as the text says is accepted", () => {
     const ids = await lintIds(root);
     for (const bad of ["broken-link", "uncited-claim", "unlogged-change"]) expect(ids, bad).not.toContain(bad);
     expect((await searchPaths(root, "2026-10-15", false)).filter((h) => String(h.path).startsWith("archive/"))).toEqual([]);
-    const hits = (await searchPaths(root, "2026-10-15", true)).filter((h) => h.path === "archive/projects/atlas.md");
+    const hits = (await searchPaths(root, "2026-10-15", true)).filter((h) => h.file === ".wiki/archive/projects/atlas.md");
     expect(hits.length).toBeGreaterThan(0);
     expect(hits.every((h) => h.archived === true)).toBe(true);
   }, T);
@@ -470,7 +470,7 @@ describe("STORY-008-06 S2: a clean-up run as the text says is accepted", () => {
     const ids = await lintIds(root);
     for (const bad of ["broken-link", "uncited-claim", "unlogged-change"]) expect(ids, bad).not.toContain(bad);
     expect((await searchPaths(root, "beta", false)).filter((h) => String(h.path).startsWith("archive/"))).toEqual([]);
-    const hits = (await searchPaths(root, "beta", true)).filter((h) => h.path === "archive/projects/beta.md");
+    const hits = (await searchPaths(root, "beta", true)).filter((h) => h.file === ".wiki/archive/projects/beta.md");
     expect(hits.length).toBeGreaterThan(0);
     expect(hits.every((h) => h.archived === true)).toBe(true);
   }, T);
