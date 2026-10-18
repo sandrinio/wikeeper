@@ -6,6 +6,7 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-19 · #qa #red-test #planning · A plan's "old" pin value can be wrong (token-instructions R14(e) was 880e3e88 at base, the plan said a69f2714): re-scope a pinned hash by its content anchor, and derive the new value by applying the plan's edits to a temp copy of templates/ and hashing that.
 2026-10-19 · #red-test #templates #pointer-block · The raw sha256 of templates/agent-block.md is pinned in archive-instructions.red R11 (e), upgrade-instructions.red R2 and writing-and-answering-text.red R14: a pointer-block change re-scopes all three, plus any WIKI.md phrase a red row checks.
 2026-10-19 · #red-test #shipped-blocks · Plant old pointer blocks with SHIPPED_BLOCKS.find(by sha256), never by index: it also catches an entry edited in place instead of appended.
 2026-10-19 · #walkthrough #instructions · "Open each session with X" reads to the agent as "run X", not "show X": say where the output goes ("in your first reply"), and put a must-tell rule where a question-only session reads it.
