@@ -6,6 +6,7 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-18 · #test-harness #hook · runIngestUpdateCheck(new Command()) throws at getOutputContext (program IO not bound) and its own catch swallows it, so the test passes without testing anything; test hooks through runCli/createProgram (runIngest in the harness) with io.cwd.
 2026-10-18 · #red-test #search #archive · An archived search hit keeps path without archive/ and carries file .wiki/archive/… and archived: true (K11): match archived hits on file or archived, never on an archive/ path.
 2026-10-18 · #git #merge #contract · git can merge two pushes into the same array (formatReport) without a conflict but in the wrong order; after a re-sync, run the order test (lines[i+1]) even when merge-tree is clean
 2026-10-18 · #pre-gate #red-test · the post-flight 'red modified after QA-Red' scan counts the QA-Red commit and the re-sync merge's red files; prove Developer edits with `git diff <qa-red-sha> HEAD` and `git diff sprint/S-NN HEAD` on each flagged file
