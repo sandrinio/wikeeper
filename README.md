@@ -134,8 +134,22 @@ Every size `wikeeper` shows is an estimate in tokens, printed with `≈` and wit
 | `wikeeper config get · set · unset` | Read and change the token limits in `.wiki/config.yml` |
 | `wikeeper statusline [--install]` | Print the wiki's size on one line; `--install` adds it to Claude Code's status line |
 | `wikeeper doctor` | Verify agent wiring, setup files (`me.md`, `project.md`), hook rules, and `kb_instructions.md` syntax |
-| `wikeeper update` | Upgrade package-owned system files and skills without touching your knowledge base |
+| `wikeeper update` | Refresh package-owned system files, skills and hooks to the installed version without touching your knowledge base |
+| `wikeeper upgrade [--check]` | Install the newest wikeeper the way you installed it (global npm, a project dependency or npx), then refresh this project's files; `--check` shows what it would run |
 | `wikeeper remove [--purge]` | Remove the wiki tooling and keep your knowledge base, archive included; `--purge` also deletes it (asks first) |
+
+---
+
+## ⬆️ Upgrading
+
+`wikeeper upgrade` installs the newest version the way you installed it (a global npm install, a project dependency or npx), then refreshes this project's files with the new version's `wikeeper update`. `wikeeper upgrade --check` shows what it would run and changes nothing.
+
+- **By hand:** `npm install -g wikeeper@latest`, then `wikeeper update` in each project. If you installed with pnpm, yarn or bun, upgrade with that manager, then run `wikeeper update`.
+- **npx:** hooks installed through npx are pinned to one version (`npx -y wikeeper@0.4.0 hook guard …`); `wikeeper upgrade` re-pins them to the new one.
+- **No `sudo`:** when npm needs administrator rights, `wikeeper upgrade` changes nothing and prints the command for you to run.
+- **The version check:** ingest commands ask the npm registry for the latest version at most once a day: one GET to `registry.npmjs.org/wikeeper/latest` (or your `npm_config_registry`), with a 1.5-second timeout. The answer is saved in `.wiki/.cache/update-check.json`, which is git-ignored. The request sends nothing about your wiki: no file names, pages or settings. When the registry can't be reached, the command runs as usual.
+- **Your agent tells you once and asks:** when a newer version is out, it tells you once in the session and upgrades only after your yes; it never upgrades on its own. `wikeeper status` and `wikeeper doctor` also say when this project's files come from another version, and your agent asks before it refreshes them.
+- **Turning it off:** `wikeeper config set update_check false`, or `WIKEEPER_NO_UPDATE_CHECK=1`, `NO_UPDATE_NOTIFIER` or `CI` in the environment. A file-version mismatch is still reported, since it needs no network.
 
 ---
 
@@ -172,7 +186,7 @@ npm run test:perf # Search, cache and status-line performance benchmarks
 npm run build     # TypeScript build + commit stamp
 ```
 
-Planned and built in the open with [ClearGate](https://www.npmjs.com/package/cleargate). Full specification and decision log (`D-01`–`D-37`) in [`architecture.md`](architecture.md).
+Planned and built in the open with [ClearGate](https://www.npmjs.com/package/cleargate). Full specification and decision log (`D-01`–`D-38`) in [`architecture.md`](architecture.md).
 
 ## License
 
