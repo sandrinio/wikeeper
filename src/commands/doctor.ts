@@ -15,8 +15,16 @@ import { readPackageVersion, templatesDir } from "../core/templates.js";
 import { KB_INSTRUCTIONS_CHECK_ID, checkKbInstructions } from "../lint/rules-lint.js";
 import { AGENT_NAMES } from "../agents/agent-names.js";
 import { compareCodeUnits } from "../core/compare.js";
-import { compareVersions, npmVersion } from "../core/version.js";
-import { availableMessage, newerVersion, readSavedCheck, updateCheckOffReason, versionMismatch } from "../core/update-check.js";
+import { compareVersions } from "../core/version.js";
+import {
+  availableMessage,
+  filesVersion,
+  installedVersion,
+  newerVersion,
+  readSavedCheck,
+  updateCheckOffReason,
+  versionMismatch,
+} from "../core/update-check.js";
 import type { ConfigIssue } from "../core/config.js";
 import type { CommandModule } from "../program.js";
 
@@ -78,11 +86,11 @@ function packageVersionOrEmpty(): string {
 }
 
 function versionMismatchCheck(m: Manifest | null, installed: string): DoctorCheck {
-  const pv = m?.package_version;
-  if (pv === undefined || compareVersions(pv, pv) === null) {
+  const files = filesVersion(m);
+  if (files === null) {
     return { id: "version-mismatch", severity: "info", message: "not checked: the manifest records no version" };
   }
-  const mm = versionMismatch(installed, pv);
+  const mm = versionMismatch(installed, files);
   if (mm !== null) {
     return {
       id: "version-mismatch",
@@ -94,7 +102,7 @@ function versionMismatchCheck(m: Manifest | null, installed: string): DoctorChec
   return {
     id: "version-mismatch",
     severity: "ok",
-    message: `the project's files are from ${npmVersion(pv)}, the installed version`,
+    message: `the project's files are from ${files}, the installed version`,
   };
 }
 
@@ -289,7 +297,7 @@ export async function runDoctor(
     return (await runIntegrations("doctor", ctx)).checks;
   });
 
-  const installed = deps.installed ?? npmVersion(packageVersionOrEmpty());
+  const installed = deps.installed ?? installedVersion();
   const env = deps.env ?? process.env;
   await guard("version-mismatch", () => versionMismatchCheck(manifest as Manifest | null, installed));
   await guard("update-available", () => updateAvailableCheck(paths, config, env, configIssues, installed));

@@ -4,12 +4,11 @@ import path from "node:path";
 import type { Command } from "commander";
 import { loadConfig } from "../core/config.js";
 import { ExitCode, WikeeperError } from "../core/exit-codes.js";
-import { readManifest } from "../core/manifest.js";
 import { emitResult, getOutputContext } from "../core/output.js";
 import { findRepoRoot, resolvePaths } from "../core/paths.js";
 import type { ResolvedPaths } from "../core/paths.js";
 import { findPackageRoot, readPackageVersion } from "../core/templates.js";
-import { fetchLatestVersion, versionMismatch, writeSavedCheck } from "../core/update-check.js";
+import { fetchLatestVersion, readFilesVersion, versionMismatch, writeSavedCheck } from "../core/update-check.js";
 import { compareVersions, npmVersion } from "../core/version.js";
 import type { CommandModule } from "../program.js";
 import { runUpdate } from "./update.js";
@@ -379,12 +378,7 @@ export function createUpgradeCommand(deps: UpgradeDeps = {}): CommandModule {
               installed,
               latest,
             });
-            try {
-              const manifest = await readManifest(paths.manifestFile);
-              files = manifest ? npmVersion(manifest.package_version) : null;
-            } catch {
-              files = null;
-            }
+            files = await readFilesVersion(paths);
           }
           const mismatch = inWiki ? versionMismatch(installed, files) : null;
           const filesOlder = mismatch?.kind === "files-older";
@@ -396,25 +390,21 @@ export function createUpgradeCommand(deps: UpgradeDeps = {}): CommandModule {
           // ---- R7: nothing newer ----
           if (!newer) {
             const install = detectInstall(packageDir, { root, env, platform });
-            let message: string;
-            if (opts.check) {
-              message = compareVersions(latest, installed) === 0
+            const base =
+              compareVersions(latest, installed) === 0
                 ? `wikeeper ${installed} is the latest version`
                 : `no newer version on npm (latest ${latest}, installed ${installed})`;
-              if (filesOlder) message += "; wikeeper upgrade would run: wikeeper update";
+            if (opts.check) {
+              const message = filesOlder ? `${base}; wikeeper upgrade would run: wikeeper update` : base;
               const data: UpgradeCheckResult = {
                 installed, latest, newer: false, install, command: filesOlder ? "wikeeper update" : null,
               };
               emitResult(ctx, { command: "upgrade", data, message, warnings });
               return;
             }
-            const equal = compareVersions(latest, installed) === 0;
-            const base = equal
-              ? `wikeeper ${installed} is the latest version`
-              : `no newer version on npm (latest ${latest}, installed ${installed})`;
             let updated = false;
             let commandsRun: string[] = [];
-            message = base;
+            let message = base;
             if (filesOlder && paths) {
               const result = await runUpdate(
                 root,
@@ -491,6 +481,8 @@ export function createUpgradeCommand(deps: UpgradeDeps = {}): CommandModule {
               : { command: null, reason: "a source checkout or a linked folder" };
           }
 
+          const npxNoWiki = `nothing to upgrade here: npx runs the version you name, so run npx -y wikeeper@${v}; there is no wiki project here to update`;
+
           // ---- --check (R9) ----
           if (opts.check) {
             const first = plan.unsupported ? plan.unsupported.command : (plan.npmCommand ?? (inWiki ? plan.updateShown : null));
@@ -501,7 +493,7 @@ export function createUpgradeCommand(deps: UpgradeDeps = {}): CommandModule {
             if (plan.unsupported) {
               message = `${head}wikeeper upgrade does not handle this install: ${handNext(plan.unsupported.command, thenForFail)}`;
             } else if (kind === "npx" && !inWiki) {
-              message = `nothing to upgrade here: npx runs the version you name, so run npx -y wikeeper@${v}; there is no wiki project here to update`;
+              message = npxNoWiki;
             } else {
               message = `${head}wikeeper upgrade would run: ${steps}`;
             }
@@ -521,12 +513,7 @@ export function createUpgradeCommand(deps: UpgradeDeps = {}): CommandModule {
 
           if (kind === "npx" && !inWiki) {
             const data: UpgradeResult = { installed, latest, upgraded: false, install: kind, commands_run: [], updated: false };
-            emitResult(ctx, {
-              command: "upgrade",
-              data,
-              message: `nothing to upgrade here: npx runs the version you name, so run npx -y wikeeper@${v}; there is no wiki project here to update`,
-              warnings,
-            });
+            emitResult(ctx, { command: "upgrade", data, message: npxNoWiki, warnings });
             return;
           }
 

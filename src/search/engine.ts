@@ -11,6 +11,7 @@ import { toPosixRelative } from "../core/paths.js";
 import { estimateTokens } from "../core/tokens.js";
 import type { ResolvedPaths } from "../core/paths.js";
 import { readPackageVersion } from "../core/templates.js";
+import { archivePath, pagePath } from "../lint/paths.js";
 import { CITATION_RE, listPageFiles, owningEntityKey, pageEntities, parsePage } from "../wiki/parse-page.js";
 import type { Entity, Page } from "../wiki/parse-page.js";
 
@@ -153,9 +154,9 @@ export const MINISEARCH_OPTIONS: Options<SearchDoc> = {
 
 export const SEARCH_CACHE_VERSION = 1 as const;
 
-/** The one place a hit or entity file is built: repo-relative POSIX under pages/ or archive/. */
+/** The one place a hit or entity file is built: repo-relative POSIX under pages/ or archive/, as lint reports it. */
 export function hitFile(paths: ResolvedPaths, rel: string, archived: boolean): string {
-  return toPosixRelative(paths.root, path.join(archived ? paths.archiveDir : paths.pagesDir, ...rel.split("/")));
+  return archived ? archivePath(paths, rel) : pagePath(paths, rel);
 }
 
 export function searchCacheFile(paths: ResolvedPaths): string {

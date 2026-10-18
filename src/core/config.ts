@@ -406,8 +406,6 @@ export function parseConfigValue(keyPath: string, raw: string): unknown {
       else if (/^false$/i.test(raw)) value = false;
       break;
     case "integer":
-      if (/^\d+$/.test(raw)) value = Number(raw);
-      break;
     case "token-count":
       if (/^\d+$/.test(raw)) value = Number(raw);
       break;

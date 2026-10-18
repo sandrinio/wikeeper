@@ -5,7 +5,9 @@ import { fetchSource } from "../read/url.js";
 import { loadConfig } from "./config.js";
 import type { ConfigIssue, WikeeperConfig } from "./config.js";
 import { WikeeperError } from "./exit-codes.js";
-import { getOutputContext } from "./output.js";
+import { readManifest } from "./manifest.js";
+import type { Manifest } from "./manifest.js";
+import { getOutputContext, rootOf } from "./output.js";
 import { findRepoRoot, resolvePaths } from "./paths.js";
 import type { ResolvedPaths } from "./paths.js";
 import { readPackageVersion } from "./templates.js";
@@ -34,11 +36,27 @@ export type VersionMismatch =
   | { kind: "files-older"; files: string; installed: string; message: string }
   | { kind: "files-newer"; files: string; installed: string; message: string };
 
-function installedVersion(): string {
+/** The installed registry version, or "" when package.json cannot be read. */
+export function installedVersion(): string {
   try {
     return npmVersion(readPackageVersion());
   } catch {
     return "";
+  }
+}
+
+/** The version the project's files are from (the manifest's package_version without its build part), or null. */
+export function filesVersion(manifest: Manifest | null): string | null {
+  const pv = manifest?.package_version;
+  return pv !== undefined && compareVersions(pv, pv) !== null ? npmVersion(pv) : null;
+}
+
+/** filesVersion of the project's manifest; null when it is missing or unreadable. */
+export async function readFilesVersion(paths: ResolvedPaths): Promise<string | null> {
+  try {
+    return filesVersion(await readManifest(paths.manifestFile));
+  } catch {
+    return null;
   }
 }
 
@@ -219,11 +237,6 @@ export function versionMismatch(installed: string, files: string | null): Versio
 }
 
 const notices = new WeakMap<Command, string | null>();
-function rootOf(command: Command): Command {
-  let c = command;
-  while (c.parent) c = c.parent;
-  return c;
-}
 
 export function rememberUpdateNotice(command: Command, notice: string | null): void {
   notices.set(rootOf(command), notice);

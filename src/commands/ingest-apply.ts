@@ -13,6 +13,7 @@ import type { LockInfo } from "../ingest/lock.js";
 import { readLogEvents } from "../ingest/log.js";
 import { readMeta } from "../ingest/registry.js";
 import { readSnapshot, removeSnapshot, snapshotDir, takeSnapshot } from "../ingest/snapshot.js";
+import type { SnapshotInfo } from "../ingest/snapshot.js";
 import type { IngestSubcommand } from "./ingest.js";
 
 export function buildBrief(id: string): string {
@@ -66,18 +67,23 @@ export const ingestApplyCommand: IngestSubcommand = {
         const warnings: string[] = [];
         let snapshot: ApplyData["snapshot"];
 
+        const summary = (snap: SnapshotInfo): ApplyData["snapshot"] => ({
+          dir: toPosixRelative(root, snapshotDir(paths, id)),
+          pages: Object.keys(snap.pages).length,
+          archive: Object.keys(snap.archive).length,
+        });
+
         if (got.already_held) {
           const snap = await readSnapshot(paths, id);
           if (snap === null) {
             snapshot = null;
             warnings.push(`snapshot missing; wikeeper ingest abort ${id} will not restore pages`);
           } else {
-            snapshot = { dir: toPosixRelative(root, snapshotDir(paths, id)), pages: Object.keys(snap.pages).length, archive: Object.keys(snap.archive).length };
+            snapshot = summary(snap);
           }
         } else {
           try {
-            const snap = await takeSnapshot(paths, id, factsSha, now);
-            snapshot = { dir: toPosixRelative(root, snapshotDir(paths, id)), pages: Object.keys(snap.pages).length, archive: Object.keys(snap.archive).length };
+            snapshot = summary(await takeSnapshot(paths, id, factsSha, now));
           } catch (err) {
             await releaseLock(paths, id);
             await removeSnapshot(paths, id);

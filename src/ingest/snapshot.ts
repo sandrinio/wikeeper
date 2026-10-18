@@ -69,6 +69,19 @@ export async function hashOutside(paths: ResolvedPaths): Promise<Record<string, 
   return sortedRecord(out);
 }
 
+/** Copies `from` into `to` (created first), skipping symbolic links; a missing `from` leaves `to` empty. */
+async function copyTree(from: string, to: string): Promise<void> {
+  await mkdir(to, { recursive: true });
+  try {
+    await cp(from, to, {
+      recursive: true,
+      filter: async (src) => !(await lstat(src)).isSymbolicLink(),
+    });
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
+  }
+}
+
 export async function takeSnapshot(
   paths: ResolvedPaths,
   sourceId: string,
@@ -78,25 +91,9 @@ export async function takeSnapshot(
   const dir = snapshotDir(paths, sourceId);
   await rm(dir, { recursive: true, force: true, maxRetries: 3 });
   const copy = path.join(dir, "pages");
-  await mkdir(copy, { recursive: true });
-  try {
-    await cp(paths.pagesDir, copy, {
-      recursive: true,
-      filter: async (src) => !(await lstat(src)).isSymbolicLink(),
-    });
-  } catch (err) {
-    if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
-  }
+  await copyTree(paths.pagesDir, copy);
   const archiveCopy = path.join(dir, "archive");
-  await mkdir(archiveCopy, { recursive: true });
-  try {
-    await cp(paths.archiveDir, archiveCopy, {
-      recursive: true,
-      filter: async (src) => !(await lstat(src)).isSymbolicLink(),
-    });
-  } catch (err) {
-    if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
-  }
+  await copyTree(paths.archiveDir, archiveCopy);
   const info: SnapshotInfo = {
     source_id: sourceId,
     taken_at: now.toISOString(),

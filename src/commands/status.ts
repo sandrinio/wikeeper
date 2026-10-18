@@ -22,10 +22,15 @@ import { loadInstructions } from "../kb/parse-instructions.js";
 import { listDecisions } from "../kb/rule-decisions.js";
 import type { CommandModule } from "../program.js";
 import { plural } from "./doctor.js";
-import { readManifest } from "../core/manifest.js";
-import { readPackageVersion } from "../core/templates.js";
-import { compareVersions, npmVersion } from "../core/version.js";
-import { availableMessage, newerVersion, readSavedCheck, updateCheckEnabled, versionMismatch } from "../core/update-check.js";
+import {
+  availableMessage,
+  installedVersion,
+  newerVersion,
+  readFilesVersion,
+  readSavedCheck,
+  updateCheckEnabled,
+  versionMismatch,
+} from "../core/update-check.js";
 import type { ConfigIssue } from "../core/config.js";
 
 export interface StatusData {
@@ -211,22 +216,8 @@ export async function collectStatus(
   archiveCandidates.sort((a, b) => compareCodeUnits(a.path, b.path));
 
   // version (STORY-009-01)
-  let installed = opts.installed ?? "";
-  if (opts.installed === undefined) {
-    try {
-      installed = npmVersion(readPackageVersion());
-    } catch {
-      installed = "";
-    }
-  }
-  let manifest: Awaited<ReturnType<typeof readManifest>> = null;
-  try {
-    manifest = await readManifest(paths.manifestFile);
-  } catch {
-    manifest = null;
-  }
-  const pv = manifest?.package_version;
-  const files = pv !== undefined && compareVersions(pv, pv) !== null ? npmVersion(pv) : null;
+  const installed = opts.installed ?? installedVersion();
+  const files = await readFilesVersion(paths);
   const latest = updateCheckEnabled(config, opts.env ?? process.env, opts.configIssues)
     ? newerVersion(await readSavedCheck(paths), installed)
     : null;

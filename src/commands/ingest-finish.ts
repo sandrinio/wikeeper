@@ -220,8 +220,9 @@ export function createIngestFinishCommand(deps: { now?: () => Date } = {}): Inge
             pageHashes[rel] = pageHash(text);
             changedPages.push(parsePage(text, rel));
           }
+          const archiveChanged = [...(diff.archive?.created ?? []), ...(diff.archive?.updated ?? [])].sort(compareCodeUnits);
           const archiveHashes: Record<string, string> = {};
-          for (const rel of [...(diff.archive?.created ?? []), ...(diff.archive?.updated ?? [])].sort(compareCodeUnits)) {
+          for (const rel of archiveChanged) {
             if (!rel.endsWith(".md")) continue;
             archiveHashes[rel] = pageHash(await readFile(path.join(paths.archiveDir, ...rel.split("/")), "utf8"));
           }
@@ -268,7 +269,7 @@ export function createIngestFinishCommand(deps: { now?: () => Date } = {}): Inge
               paths,
               sourceId: id,
               changed: [...diff.created, ...diff.updated].sort(compareCodeUnits),
-              archiveChanged: [...(diff.archive?.created ?? []), ...(diff.archive?.updated ?? [])].sort(compareCodeUnits),
+              archiveChanged,
             });
           } catch (err) {
             warnings.push(`lint hook failed: ${msg(err)}`);
