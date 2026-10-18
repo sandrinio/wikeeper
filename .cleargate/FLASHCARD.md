@@ -6,6 +6,13 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-18 · #templates #coverage · DOCUMENTED_FORMS counts only code spans with "wikeeper <cmd> … --flag"; a bare `--flag` bullet never satisfies checkCoverage.
+2026-10-18 · #lint #finish · The finish lint hook runs before the snapshot and lock are removed: unlogged-change judges in snapshot mode during finish.
+2026-10-18 · #lint #only · oversized-page pre-filters on ctx.only itself; a new onlyArchive filter must leave `only` set for it.
+2026-10-18 · #vitest #config · vitest 5 reads vitest.config.* from its root only (no parent lookup): a worktree without the file runs without its test.env.
+2026-10-18 · #esm #cycle · doctor → update-check → read/url → ingest/report → doctor once report imports plural: never call an imported function at module top level there.
+2026-10-18 · #ux #doctor · A doctor message ending ": run …" plus a fix: line prints the step twice (decision 66); check every new doctor check.
+2026-10-18 · #red-test #ts · Call a widened factory through a cast or `as never` deps, so typecheck stays green at the QA-Red commit.
 2026-10-18 · #templates #walkthrough #update · A project reads its own .wiki/system/WIKI.md, which only update replaces: text about stale files reaches the agent one release late; test it with updated files and a hand-set manifest version.
 2026-10-18 · #contract #red-test · A story built on a text contract lacks parallel chains' code: merge the sprint branch before QA-Red when its red file imports their modules.
 2026-10-18 · #qa #red-test #ci · CI checks out at fetch depth 1, so a red test cannot git show <base>:path; pin LF-normalised sha256s in a named it().
