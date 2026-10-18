@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { Command } from "commander";
 import { afterEach, describe, expect, it } from "vitest";
+import { cleanup, latest041, makeWiki, readSaved, runIngest } from "./update-check-harness.js";
 import { DEFAULT_CONFIG } from "../src/core/config.js";
 import type { WikeeperConfig } from "../src/core/config.js";
 import { resolvePaths } from "../src/core/paths.js";
@@ -26,6 +27,7 @@ import {
 
 const dirs: string[] = [];
 afterEach(async () => {
+  await cleanup();
   while (dirs.length) await rm(dirs.pop()!, { recursive: true, force: true });
 });
 const config = () => structuredClone(DEFAULT_CONFIG) as WikeeperConfig;
@@ -211,10 +213,36 @@ describe("per-run notice and hook", () => {
     const root = await mkdtemp(path.join(os.tmpdir(), "wk-uc-none-"));
     dirs.push(root);
     await mkdir(path.join(root, ".git"));
-    const r = reply('{"version":"0.4.1"}');
-    const cmd = new Command();
-    await runIngestUpdateCheck(cmd, { env: {}, fetch: r.f, installed: "0.4.0" });
-    expect(r.urls).toEqual([]);
-    expect(updateNotice(cmd)).toBeNull();
+    const f = latest041();
+    const r = await runIngest(root, ["ingest", "plan", "docs", "--json"], { env: {}, fetch: f.fetch, installed: "0.4.0" });
+    expect(r.json.ok).toBe(false);
+    expect(r.json.error.code).toBe("not_initialised");
+    expect(f.urls).toEqual([]);
+    expect(await readSaved(root)).toBeNull();
+  });
+  it("sends no request when the config has a syntax error", async () => {
+    const root = await makeWiki();
+    await writeFile(path.join(root, ".wiki", "config.yml"), "ingest: [unclosed\n  : : bad\n");
+    const f = latest041();
+    const r = await runIngest(root, ["ingest", "plan", "docs", "--json"], { env: {}, fetch: f.fetch, installed: "0.4.0" });
+    expect(r.code).not.toBe(0);
+    expect(f.urls).toEqual([]);
+    expect(await readSaved(root)).toBeNull();
+  });
+  it("sends no request on a usage error or --help", async () => {
+    const root = await makeWiki();
+    const f = latest041();
+    const bad = await runIngest(root, ["ingest", "plan", "--json"], { env: {}, fetch: f.fetch, installed: "0.4.0" });
+    expect(bad.code).toBe(2);
+    expect(f.urls).toEqual([]);
+    expect(await readSaved(root)).toBeNull();
+    const help = await runIngest(root, ["ingest", "plan", "--help"], { env: {}, fetch: f.fetch, installed: "0.4.0" });
+    expect(help.code).toBe(0);
+    expect(f.urls).toEqual([]);
+    expect(await readSaved(root)).toBeNull();
+  });
+  it("keeps the WIKI.md version bullet that 009-03 anchors on", async () => {
+    const text = await readFile(path.join(import.meta.dirname, "..", "templates", "system", "WIKI.md"), "utf8");
+    expect(text.split("\n")).toContain("- `version`: `installed` is the version that ran this command; `latest` is a newer version on npm, from the check that ingest commands make at most once a day (null when none is known or the check is off); `files` is the version this project's files come from, as the manifest records it (null when it records none). Handle them as said above.");
   });
 });
