@@ -11,11 +11,11 @@ import { runCli } from "../../src/program.js";
 
 // Red tests for BUG-003: pointer-block line 4 says the size line goes in the first reply,
 // WIKI.md says the same, and init/update write the new block.
-// Pins only line 4: a later sprint that rewords it re-scopes LINE_4_BUG_003 here.
+// Pins only line 4: a later sprint that rewords it re-scopes LINE_4_BUG_003 here (BUG-004 re-scope #25: Q6's line).
 
 const PKG = path.resolve(import.meta.dirname, "..", "..");
 const LINE_4_BUG_003 =
-  "Wiki: `.wiki/`, content folder `content_dir` in `.wiki/config.yml`. Once set up, open each session's first reply with the line `wikeeper statusline` prints; on 🔴 follow WIKI.md \"Lint and status\".";
+  "Wiki: `.wiki/`, content folder `content_dir` in `.wiki/config.yml`. Once set up, open each session with the line `wikeeper statusline` prints, before any text; on 🔴 follow WIKI.md \"Lint and status\".";
 const SHA_SPRINT_03 = "c6fc17d0ef7079d7cf7e6f88f6e5c28e8152cdb74880118167bb29eaf333e168";
 const SHA_SPRINT_04_UNRELEASED = "054466b79532cec78d6ca94b0985eaeae2b7a3fa3d8ec706e8ea54689cf1382a";
 const TEAM = "# Team rules\n\nKeep it short.\n";
@@ -112,7 +112,7 @@ describe("BUG-003: the agent shows the size line in its first reply and tells ab
     for (const l of lines) expect(l.length, `line over 200 UTF-16 units: ${l}`).toBeLessThanOrEqual(200);
     expect(raw).not.toMatch(/wikeeper status(?!line)/);
     expect(lines[3]).toBe(LINE_4_BUG_003);
-    for (const phrase of ["Once set up", "open each session", "first reply", "`wikeeper statusline`", "🔴"]) {
+    for (const phrase of ["Once set up", "open each session", "before any text", "`wikeeper statusline`", "🔴"]) {
       expect(lines[3]).toContain(phrase);
     }
   });
@@ -122,7 +122,7 @@ describe("BUG-003: the agent shows the size line in its first reply and tells ab
     const sections = splitSections(wiki);
     const lint = sections.find((s) => s.name === "Lint and status");
     expect(lint, 'WIKI.md has no section "Lint and status"').toBeDefined();
-    expect(lint!.text).toContain("Show it to the user in your first reply of every session.");
+    expect(lint!.text).toContain("Show it to the user as the first text you write in every session, before any other words.");
     expect(wiki).not.toContain("Show it to the user at the start of every session.");
     const line4 = lf(await readFile(path.join(templatesDir(), "agent-block.md"), "utf8")).split("\n")[3]!;
     const m = /WIKI\.md "([^"]+)"/.exec(line4);

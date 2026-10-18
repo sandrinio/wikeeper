@@ -4,3 +4,5 @@ description: Set up the project wiki. Use when .wiki/config.yml has no setup_com
 ---
 
 Follow `.wiki/system/SETUP.md` step by step, from step 1 to step 8, and finish with `wikeeper setup --done`.
+
+Talk to the user in plain words: `.wiki/system/WIKI.md`, section "Talking to the user".
