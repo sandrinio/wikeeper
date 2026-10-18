@@ -73,12 +73,22 @@ One source at a time. A `wiki-writer` works from the facts file and the brief in
 3. Create new pages in the shapes of section "Page format", with the page names and entity types listed under Entities in `.wiki/kb_instructions.md`.
 4. Only `sources/<id>.md` starts from `.wiki/system/templates/source.md`.
 5. End every claim with the citation `[[<id>]]`. Cite only what the source says: the rules in `.wiki/kb_instructions.md` and the project brief are not sources, so nothing that comes only from them goes on a page.
-6. Flag a contradiction with both sources; never overwrite the earlier fact. Keep every fact line an updated page had at apply. An update or a correction is a new dated line, and the old line stays as it was: never reword, redate or re-mark it, and never move it to another page. Moving a line within the page, or changing its list marker or spacing, is fine.
-7. Write nothing outside `pages/`.
+6. Flag a contradiction with both sources; never overwrite the earlier fact. Keep every fact line an updated page had at apply. An update or a correction is a new dated line, and the old line stays as it was: never reword, redate or re-mark it, and never move it to another page. Moving a line within the page, or changing its list marker or spacing, is fine. Only merging a duplicate page and a clean-up move lines off a page (below).
+7. Write nothing outside `pages/`, except `archive/` in a clean-up (below).
 8. Write and edit pages only with your file-edit tools: Write or Edit in Claude Code, `apply_patch` in Codex, `write_to_file` or `replace_file_content` in Antigravity. Never write a page from the shell: no redirection, heredoc or `sed`. With `enforce` on, the write guard sees only the file-edit tools, so a shell write is not blocked, and `wikeeper lint` reports it later as an `unlogged-change` finding.
 9. Run `wikeeper ingest finish <id>` and show the user its report. The report holds metadata only. It also lists the lint findings for the pages this ingest changed; they never fail `finish`, and section "Lint and status" says what to do with them. Its `wiki ≈… tokens` line gives the wiki's size after the ingest, the change and the largest page.
 
-If `finish` fails, fix the pages it names and rerun it, or run `wikeeper ingest abort <id>` (`--drop` also deletes the registered source). When `finish` refuses with `fact lines dropped`, put each named line back exactly as it was and run `wikeeper ingest finish <id>` again; the lock is still held. Deleting a whole page stays allowed, and the report counts it. Once `finish` exits 0 the ingest is closed: change nothing under `pages/`. A correction after `finish` comes in as a chat-excerpt ingest: run `wikeeper ingest start -` with the user's correction on stdin, then triage and the write phase, so every page change has a source and a log entry; its write phase adds the corrected fact as a new line (step 6). Pages never change outside this phase. If `wikeeper ingest` cannot run, write nothing and tell the user.
+If `finish` fails, fix the pages it names and rerun it, or run `wikeeper ingest abort <id>` (`--drop` also deletes the registered source). When `finish` refuses with `fact lines dropped`, put each named line back exactly as it was or, in a clean-up, add it unchanged to `archive/<path>`; then run `wikeeper ingest finish <id>` again; the lock is still held. When it refuses with `archived fact lines dropped`, put each named line back in its archive page exactly as it was, or restore the deleted archive page: no line ever leaves `archive/`. Before you delete a page, for example to merge a duplicate into another page, copy each of its fact lines unchanged to the page it merges into; in a clean-up you may move them to `archive/` instead. `finish` refuses a deleted page whose fact lines are nowhere else in `pages/` or `archive/`, with `fact lines dropped`, naming the page and its lines. Once `finish` exits 0 the ingest is closed: change nothing under `pages/` or `archive/`. A correction after `finish` comes in as a chat-excerpt ingest: run `wikeeper ingest start -` with the user's correction on stdin, then triage and the write phase, so every page change has a source and a log entry; its write phase adds the corrected fact as a new line (step 6). Pages never change outside this phase. If `wikeeper ingest` cannot run, write nothing and tell the user.
+
+A clean-up moves facts the user no longer needs on a page into `archive/`, which keeps them. Run one only when the user asks for it, and never start one yourself; an ordinary ingest moves nothing to `archive/`. In a clean-up:
+
+- Pick what to move: fact lines that a newer line on the same page replaced, and the fact lines of entities with a final status, such as shipped, closed or done (the whole page when the page is that entity). Keep the newest line of each fact and everything still open. Show the user the lines and pages, and move only what they approve.
+- Run `wikeeper ingest start -` with the user's decision on stdin, adding `--kind <kind>` as section "Ambient offers" says, then `wikeeper ingest facts <id>` with a facts file whose `facts` list is empty, then the write phase. Do it yourself: a `wiki-writer` writes only under `pages/`.
+- To move a fact line, cut it from `pages/<path>` and add it unchanged to `archive/<path>`, the same path under `archive/`. An archive page has the page's frontmatter, a `summary` saying it holds archived facts, and the moved lines under `## Facts`, oldest first; on a multi-entry page, keep each line under its entry's `##` heading. On the page, put the typed line `archive:: [[archive/<path>]]` with its typed links, `<path>` written without `.md` (for example `archive:: [[archive/projects/atlas]]`); it is the one link written by path, because it names the archive page, not an entity. Rewrite the Summary if it named a moved fact, and add the clean-up's source id to `sources`.
+- To move a whole page, create `archive/<path>` with all of its text and delete `pages/<path>`. Links to it still resolve.
+- Write `sources/<id>.md` and run `wikeeper ingest finish <id>`. Its report adds `archived N fact lines · M pages`. When a page is still 🔴, tell the user.
+
+A later source about an archived entity gets a new page in `pages/`; leave its archive page as it is.
 
 ## Facts file
 
@@ -139,7 +149,7 @@ focus:     dates and owners; ignore the budget appendix
 Every page starts with frontmatter: `type`, `title`, `summary`, `aliases`, `sources` and `updated`. It must be valid YAML, or `wikeeper ingest finish` refuses the page: quote a value that contains `: `, as in `summary: "Atlas: the portal relaunch"`. Below it are two layers.
 
 - Summary: rewritten on every ingest so it is true today.
-- Facts: one dated line each, marked `decided` or `tentative`, with a citation. A replaced fact stays in the list; the newer line carries the change. Fact lines are ordered by date, oldest first; a new line goes in at its date.
+- Facts: one dated line each, marked `decided` or `tentative`, with a citation. A replaced fact stays in the list; the newer line carries the change. Only a clean-up the user asks for moves facts to `archive/` (section "Write phase"). Fact lines are ordered by date, oldest first; a new line goes in at its date.
 
 Typed links are lines of the form `key:: [[target]]`. Link an entity by its name or an alias (`[[Product Lead]]`), never by path, because `wikeeper search --entity` resolves names and aliases.
 
@@ -225,6 +235,7 @@ On approval, run `wikeeper ingest start -` with the excerpt on stdin, then conti
 - `--mark <decided|tentative>`: only fact lines with that mark. It combines with `--type`, `--where`, `--status`, `--entity` and `--since`; a search with a text query refuses it (exit code 2).
 - `--entity <name>`: a name or an alias; returns the entity, its facts, its backlinks and other matches. It is not combined with a query, `--type`, `--where` or `--status`; it combines with `--since` and `--mark`.
 - `--since <date>`: YYYY-MM-DD or an ISO date-time; dated facts and pages changed by an ingest.
+- `--archive`: also search `archive/`, where clean-ups keep replaced and finished facts, as in `wikeeper search "launch date" --archive`; its hits carry `archived: true`. `--since` and `--entity` always include archived facts, marked `archived: true`.
 - `--misses`: list the queries that found nothing.
 - `--no-miss`: do not record a miss when the search finds nothing. Use it for triage and routing searches, so that a miss records only a question someone asked the wiki.
 - `--limit <n>`: cap the results.
@@ -240,6 +251,8 @@ Use search at triage and to answer questions.
 2. Read the pages it returns.
 3. Answer from them, citing the sources as `[[src-…]]`.
 4. When the wiki does not know, say so plainly. Do not guess.
+
+When a question is about the past, such as an earlier plan, date or owner, and the pages do not answer it, search again with `--archive`.
 
 When no page answers, you may quote `.wiki/project.md`, labelled as uncited context from the project brief. The core terms in `.wiki/project.md` are the brief; term pages written by ingests hold cited terms. When the two disagree, the cited page wins: answer from it and offer the user an update to `.wiki/project.md`.
 
@@ -281,7 +294,7 @@ Sizes are estimated tokens: how much of a context a document or a page fills. Ea
 
 `wikeeper config get tokens` shows the limits and marks the values that come from the defaults. Change a limit only when the user asks, with `wikeeper config set <key> <value>`, for example `wikeeper config set tokens.page.red 12k`; `wikeeper config unset <key>` returns a key to its default. A value is a whole number or a short form such as `20k`, and yellow stays below red. `tokens.source.confirm_at` is `yellow`, `red` or `never`: the level at which `wikeeper ingest start` asks before a source is read.
 
-When a page reaches 🔴 (the `finish` report's largest page, `tokens.largest` in `wikeeper status --json`, `wikeeper statusline` or an `oversized-page` finding), tell the user once in the session, however many of these show it: name the page and its size, and offer to raise the page limit for them; on a yes, run `wikeeper config set tokens.page.red <n>`. Do not bring it up again in that session unless the user asks, and never change a limit yourself.
+When a page reaches 🔴 (the `finish` report's largest page, `tokens.largest` in `wikeeper status --json`, `wikeeper statusline` or an `oversized-page` finding), tell the user once in the session, however many of these show it: name the page and its size, and offer both choices in plain words: you raise the page limit for them (on a yes, `wikeeper config set tokens.page.red <n>`), or they ask for a clean-up, which moves replaced and finished facts to `archive/` and keeps them (section "Write phase"). Do not bring it up again in that session unless the user asks, and never change a limit or start a clean-up yourself.
 
 The fields of the `--json` output of `wikeeper status`, and what to do with each:
 
@@ -303,13 +316,13 @@ The fields of the `--json` output of `wikeeper status`, and what to do with each
 
 | Finding | What to do |
 |---|---|
-| `broken-link` | A `[[…]]` link resolves to no page, entity or alias. Fix the link in a write phase. |
+| `broken-link` | A `[[…]]` link resolves to no page, entity or alias. Fix the link in a write phase. On a page under `archive/`, never edit the line: add the old name to `aliases` of the live page that now has the entity. |
 | `uncited-claim` | A claim or fact line has no `[[src-…]]` citation. In a write phase, cite the source that supports it, or remove the claim when no source does. |
 | `orphan-page` | No other page links to the page. Link it from a related page in a write phase, or tell the user. |
 | `index-drift` | `.wiki/index.md` is out of date. Run `wikeeper index rebuild`. |
 | `unlogged-change` | The page changed outside an ingest: a shell write the guard cannot see (section "Write phase"), a hand edit, a `post_ingest` hook, or a git merge that combined two ingests' edits. Show the user the change. To keep a hand or shell edit, record it with a chat-excerpt ingest whose write phase updates that page, for example by adding the cited fact line; an ingest that leaves the page as it was at apply does not clear the finding. To drop the edit, restore the page's last ingested version from git, with the user's approval. A merged page stays reported until the next ingest updates it: tell the user, and do not restore it, because that would lose one branch's ingest. Hooks in `hooks.post_ingest` of `.wiki/config.yml` must not edit pages: page hashes are taken before the hooks run. |
 | `stale-fact` | A status, or a tentative planned date, was last dated more than `lint.stale_after_days` days ago (default 30). Ask the user whether it still holds, or offer to ingest a newer source; a confirmation the user gives in chat is ingested as a chat excerpt whose write phase adds a dated fact line. |
-| `oversized-page` | A page is at or above `tokens.page.red`. Tell the user once in the session, as said above; an ordinary ingest never shrinks a page. |
+| `oversized-page` | A page is at or above `tokens.page.red`. Tell the user once in the session, as said above: they raise the limit or ask for a clean-up; an ordinary ingest never shrinks a page. |
 
 Pages change only in a write phase, so a page finding is fixed in the next ingest that touches the page or, when the user wants it fixed now, in a chat-excerpt ingest of their instruction. `index-drift` is the one exception.
 
