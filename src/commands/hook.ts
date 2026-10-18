@@ -48,7 +48,10 @@ export async function runGuard(input: GuardInput): Promise<HookResponse> {
     const root = findRepoRoot(t.cwd);
     const { config } = await loadConfig(root);
     const paths = resolvePaths(root, config);
-    const hit = t.paths.some((p) => isInside(paths.pagesDir, resolveTarget(t.cwd, p)));
+    const hit = t.paths.some((p) => {
+      const abs = resolveTarget(t.cwd, p);
+      return isInside(paths.pagesDir, abs) || isInside(paths.archiveDir, abs);
+    });
     if (!hit || existsSync(paths.lockFile)) return adapter.allow();
     return adapter.deny(GUARD_REASON);
   } catch (err) {

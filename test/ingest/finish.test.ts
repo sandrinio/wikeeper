@@ -33,6 +33,7 @@ async function setup() {
     taken_at: "2026-10-16T10:00:00.000Z",
     facts_sha256: "x",
     pages: await hashTree(paths.pagesDir),
+    archive: {},
     outside: await hashOutside(paths),
   });
   return { root, paths, put, snap };
@@ -49,7 +50,10 @@ describe("diff", () => {
     await put(path.join(paths.pagesDir, "c/d.md"), "d");
     await put(path.join(paths.pagesDir, ".DS_Store"), "junk");
     await rm(path.join(paths.pagesDir, "b.md"));
-    expect(await diffPages(paths, s)).toEqual({ created: ["c/d.md"], updated: ["a.md"], deleted: ["b.md"] });
+    expect(await diffPages(paths, s)).toEqual({
+      created: ["c/d.md"], updated: ["a.md"], deleted: ["b.md"],
+      archive: { created: [], updated: [], deleted: [] },
+    });
   });
 
   it("flags modified and deleted outside files but allows new ones", async () => {

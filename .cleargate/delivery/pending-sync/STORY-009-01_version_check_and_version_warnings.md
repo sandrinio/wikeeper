@@ -128,11 +128,11 @@ As a wikeeper user whose agent runs the ingest commands, I want those commands t
   - Equal versions, `files` null, or an unparsable side → null. A different build stamp (`0.4.0+dev` and `0.4.0+abc1234`) is not a mismatch.
 - **R10 — Doctor (K15; §1.4 Q5).** `runDoctor` (`src/commands/doctor.ts:87`) always appends both checks, after the integration checks (`:215`), in this order:
   - **`version-mismatch`:**
-    - a mismatch → `warning` with the R9 message, fix `run wikeeper update` (files older) or `run wikeeper upgrade` (files newer);
+    - a mismatch → `warning` with the R9 message without its `: run wikeeper …` step, fix `run wikeeper update` (files older) or `run wikeeper upgrade` (files newer), so the step prints once, on the `fix:` line (Gate 1 decision 66's rule; `status` keeps the full message);
     - matching versions → `ok`: `the project's files are from <v>, the installed version`;
     - no manifest version → `info`: `not checked: the manifest records no version`.
   - **`update-available`:**
-    - a newer version is known → `warning` with the `availableMessage` text, fix `run wikeeper upgrade`;
+    - a newer version is known → `warning` with the `availableMessage` text without its `: run wikeeper upgrade` step, fix `run wikeeper upgrade` (the same rule);
     - a saved result shows nothing newer → `ok`: `no newer version known (checked <checked_at>)`;
     - no saved result → `info`: `not checked yet: ingest commands ask npm at most once a day`;
     - the check is off → `info`: `the update check is off (<reason>)`, where `<reason>` is `update_check: false`, `WIKEEPER_NO_UPDATE_CHECK`, `NO_UPDATE_NOTIFIER` or `CI`.
@@ -191,7 +191,7 @@ As a wikeeper user whose agent runs the ingest commands, I want those commands t
 - **Human decision:** _approved as recommended (human, 2026-10-18, Gate 1; `plans/gate1-decisions.md`)_
 
 - **Question (Q7, contract deviation):** The decomposition gives `templates/system/WIKI.md` to STORY-009-03 only. But `test/templates/sprint-03-commands.red.node.test.ts:307` requires the status bullets in WIKI.md to equal the keys of `status --json`, so this story's tree fails until a `version` bullet exists. Who writes it?
-- **Recommended:** This story, in the commit that adds the key (R8). STORY-007-05 does the same for `tokens` (its R10), and STORY-008-05 for `archive` and `archive_candidates` (STORY-008-06 Q2). STORY-009-03 checks the bullet and changes nothing in it. WIKI.md order: 007-05 → 008-05 → 009-01 → 007-07 → 008-06 → 009-03.
+- **Recommended:** This story, in the commit that adds the key (R8). STORY-007-05 does the same for `tokens` (its R10), and STORY-008-05 for `archive` and `archive_candidates` (STORY-008-06 Q2). STORY-009-03 checks the bullet and changes nothing in it. WIKI.md order: 007-05 → 008-05 → 007-07 → {009-01, 008-06} → 009-03 (sprint plan §2.2; in wave 4, 007-07 merges before 009-01).
 - **Human decision:** _approved as recommended (human, 2026-10-18, Gate 1; `plans/gate1-decisions.md`)_
 
 - **Question (Q8):** `update_check: no` is a likely hand edit. YAML reads it as the string `"no"`, `loadConfig` reports an error and falls back to the default `true`, so the check would run against the user's intent. Treat an invalid value as off?
@@ -202,6 +202,7 @@ As a wikeeper user whose agent runs the ingest commands, I want those commands t
 - **Recommended:** Yes, by content anchor and only as the table lists (FLASHCARD 2026-10-17 `#qa #red-test`). The `config.red` edit sits on STORY-007-01's re-scope of the same assertion.
 - **Human decision:** _approved as recommended (human, 2026-10-18, Gate 1; `plans/gate1-decisions.md`)_
 
+- **Spec clarification (orchestrator, 2026-10-18, M4 plan):** R10's two doctor warnings print the next step once, on the `fix:` line (the rule of Gate 1 decision 66); the Q7 WIKI.md order now matches the sprint plan (007-07 before 009-01); §2.2's manual check may make one real registry request from a scratch copy (the product's own behaviour; rule 1 binds tests only).
 - **DRAFTS review (designer, 2026-10-18):** wording aligned with docs/ux.md — the K14 hints name the command bare, with no quotes (`run wikeeper upgrade`, `run wikeeper update`; R9, §2.1 scenarios 1 and 4, §2.2); the two `status` version lines carry the label `version: ` (R8, §2.1 scenario 4, §2.2). No decision changed. Round 2: from R2-H1, as the human decided at plan confirmation (decision 66), `src/commands/doctor.ts` is now shared with STORY-007-02, which changes the `config-valid` syntax-error branch first; §1.5 and §3.2 ("Doctor") say that this story keeps that branch at its re-sync. Nothing else here changes.
 
 ### 1.5 Risks

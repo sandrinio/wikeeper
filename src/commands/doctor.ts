@@ -1,6 +1,6 @@
 import { stat } from "node:fs/promises";
 import type { Command } from "commander";
-import { DEFAULT_CONFIG, configKeyIsSet, formatConfigIssue, loadConfig } from "../core/config.js";
+import { CONFIG_SYNTAX_FIX, DEFAULT_CONFIG, configKeyIsSet, formatConfigIssue, loadConfig } from "../core/config.js";
 import type { IngestPermission, WikeeperConfig } from "../core/config.js";
 import { ExitCode } from "../core/exit-codes.js";
 import { runIntegrations } from "../core/integrations.js";
@@ -149,11 +149,13 @@ export async function runDoctor(root: string, run: Run, deps: { nodeVersion?: st
       loaded = await loadConfig(root);
     } catch (err) {
       if ((err as { code?: string }).code === "E_CONFIG_SYNTAX") {
+        const msg = errMsg(err);
+        const tail = ": " + CONFIG_SYNTAX_FIX;
         return {
           id: "config-valid",
           severity: "error",
-          message: errMsg(err),
-          fix: "fix the YAML syntax in .wiki/config.yml",
+          message: msg.endsWith(tail) ? msg.slice(0, -tail.length) : msg,
+          fix: CONFIG_SYNTAX_FIX,
           file,
         };
       }
