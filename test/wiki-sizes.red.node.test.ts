@@ -3,10 +3,11 @@ import os from "node:os";
 import path from "node:path";
 import { Readable } from "node:stream";
 import { fileURLToPath } from "node:url";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { setConfigValue } from "../src/core/config.js";
 import { estimateTokens, formatTokens, levelMark, levelOf } from "../src/core/tokens.js";
 import { writeFacts } from "../src/ingest/facts.js";
+import { finishLintHook } from "../src/commands/ingest-finish.js";
 import { setLintHook } from "../src/ingest/lint-hook.js";
 import { writeLogEvent } from "../src/ingest/log.js";
 import { registerSource } from "../src/ingest/registry.js";
@@ -26,6 +27,9 @@ const DEFAULT_LIMITS = {
 const WIKI_MD = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "templates", "system", "WIKI.md");
 
 const tmpDirs: string[] = [];
+beforeEach(() => {
+  setLintHook(finishLintHook);
+});
 afterEach(async () => {
   setLintHook(null);
   while (tmpDirs.length) await rm(tmpDirs.pop()!, { recursive: true, force: true });
