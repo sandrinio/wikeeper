@@ -160,7 +160,7 @@ describe("STORY-007-07 S1: each size instruction lands in its file and part", ()
     [
       "session (R5)",
       "Lint and status",
-      ["`wiki ≈66k tokens · 43 pages · largest page ≈6.3k 🟡`", "start of every session", "`.claude/settings.local.json`", "never replaces"],
+      ["`wiki ≈66k tokens · 43 pages · largest page ≈6.3k 🟡`", "first reply of every session", "`.claude/settings.local.json`", "never replaces"],
     ],
     [
       "limits (R5)",
