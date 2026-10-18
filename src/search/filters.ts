@@ -7,7 +7,7 @@ import type { ResolvedPaths } from "../core/paths.js";
 import { normalizeName } from "../wiki/parse-page.js";
 import type { Entity, Page } from "../wiki/parse-page.js";
 import { hitSources } from "./engine.js";
-import type { SearchFilters, SearchHit, WhereFilter } from "./engine.js";
+import type { SearchFilters, SearchHitBase, WhereFilter } from "./engine.js";
 import { compareCodeUnits } from "../core/compare.js";
 
 const SNIPPET_LIMIT = 160;
@@ -112,7 +112,7 @@ export function matchesFilters(entity: Entity, filters: SearchFilters, page: Pag
 }
 
 /** One `SearchHit` for an entity that passed the filters (no query). */
-export function entityHit(entity: Entity, page: Page, root: string, paths: ResolvedPaths): SearchHit {
+export function entityHit(entity: Entity, page: Page, root: string, paths: ResolvedPaths): SearchHitBase {
   const section = page.sections[entity.section];
   let text = entity.summary;
   if (text === null || text.trim() === "") {
@@ -151,10 +151,10 @@ export function markHits(
   filters: SearchFilters,
   root: string,
   paths: ResolvedPaths,
-): SearchHit[] {
+): SearchHitBase[] {
   const pageOf = new Map(pages.map((p) => [p.path, p]));
   const filtered = hasFilters(filters);
-  const hits: Array<SearchHit & { date: string }> = [];
+  const hits: Array<SearchHitBase & { date: string }> = [];
   for (const e of entities) {
     const page = pageOf.get(e.path);
     if (page === undefined) continue;

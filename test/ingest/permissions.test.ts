@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { evaluatePermission, matchesKind, matchesOrigin } from "../../src/ingest/permissions.js";
+import { checkSourceSize, evaluatePermission, matchesKind, matchesOrigin, sizeLimitText } from "../../src/ingest/permissions.js";
 
 const H = { homeDir: "/home/t" };
 
@@ -66,5 +66,36 @@ describe("whitelist order", () => {
     expect(r.decision).toBe("denied");
     expect(r.reason).toContain("no kind");
     expect(r.reason).toContain("path entries support");
+  });
+});
+
+describe("checkSourceSize and sizeLimitText", () => {
+  const base = { yellow: 1000, red: 3000 };
+  const levels = [
+    [500, "green"],
+    [1000, "yellow"],
+    [3000, "red"],
+  ] as const;
+  const reachedAt = {
+    yellow: { green: false, yellow: true, red: true },
+    red: { green: false, yellow: false, red: true },
+    never: { green: false, yellow: false, red: false },
+  } as const;
+  for (const confirmAt of ["yellow", "red", "never"] as const) {
+    it.each(levels)(`confirm_at ${confirmAt}: %i tokens is %s`, (tokens, level) => {
+      const c = checkSourceSize({ tokens, rough: false }, { ...base, confirm_at: confirmAt });
+      expect(c.level).toBe(level);
+      expect(c.reached).toBe(reachedAt[confirmAt][level]);
+      expect(c.limit).toBe(confirmAt === "never" ? null : base[confirmAt]);
+      expect(c.confirm_at).toBe(confirmAt);
+    });
+  }
+  it("checks a rough count like an exact one", () => {
+    const c = checkSourceSize({ tokens: 4800, rough: true }, { ...base, confirm_at: "yellow" });
+    expect(c).toMatchObject({ rough: true, reached: true, level: "red" });
+  });
+  it("names the limit with formatLimit", () => {
+    const c = checkSourceSize({ tokens: 25000, rough: false }, { yellow: 20000, red: 60000, confirm_at: "yellow" });
+    expect(sizeLimitText(c)).toBe("at or above the approval limit tokens.source.yellow (20k)");
   });
 });

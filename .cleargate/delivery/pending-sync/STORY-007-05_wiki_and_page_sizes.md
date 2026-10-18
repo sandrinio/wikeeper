@@ -317,14 +317,14 @@ Consumed (frozen, K1/K2 from STORY-007-01): `estimateTokens`, `levelOf`, `format
 
 ## Task Breakdown
 
-- [ ] Add `tokens` to `StatusData`, fill it in `collectStatus` from `measureWiki`, and add the R2 human lines with K1's `formatLimit` -> R1, R2
-- [ ] Add `IngestReport.tokens`, `formatChange` and the fifth report line in `src/ingest/report.ts`; update `test/ingest/report.test.ts` -> R5
-- [ ] Build the report figures in both finish paths, before the snapshot is removed -> R3, R4
-- [ ] Add `SearchCorpus.pageTokens`, `SearchHitBase`, and the single `page_tokens` pass in `executeSearch` -> R6
-- [ ] Write `src/lint/size.ts`, register it in `PAGE_CHECKS` after `unloggedChangeCheck` and before `staleFactCheck`, add its `LINT_FIXTURES` entry, and add it to `FINISH_CHECKS`; update `test/ingest/finish-lint.test.ts` -> R7, R8
-- [ ] Add the `tokens` status bullet and the `oversized-page` finding row to WIKI.md "Lint and status", with the R10 text -> R10
-- [ ] QA-Red writes `test/wiki-sizes.red.node.test.ts` from the five scenarios, the first with the repository hash before and after; the Developer writes the §4.1 unit tests in the four new test files -> R9
-- [ ] Run `npm run test:perf` with the file run alone, and check that both search perf files still pass -> R6
+- [x] Add `tokens` to `StatusData`, fill it in `collectStatus` from `measureWiki`, and add the R2 human lines with K1's `formatLimit` -> R1, R2
+- [x] Add `IngestReport.tokens`, `formatChange` and the fifth report line in `src/ingest/report.ts`; update `test/ingest/report.test.ts` -> R5
+- [x] Build the report figures in both finish paths, before the snapshot is removed -> R3, R4
+- [x] Add `SearchCorpus.pageTokens`, `SearchHitBase`, and the single `page_tokens` pass in `executeSearch` -> R6
+- [x] Write `src/lint/size.ts`, register it in `PAGE_CHECKS` after `unloggedChangeCheck` and before `staleFactCheck`, add its `LINT_FIXTURES` entry, and add it to `FINISH_CHECKS`; update `test/ingest/finish-lint.test.ts` -> R7, R8
+- [x] Add the `tokens` status bullet and the `oversized-page` finding row to WIKI.md "Lint and status", with the R10 text -> R10
+- [x] QA-Red writes `test/wiki-sizes.red.node.test.ts` from the five scenarios, the first with the repository hash before and after; the Developer writes the §4.1 unit tests in the four new test files -> R9
+- [x] Run `npm run test:perf` with the file run alone, and check that both search perf files still pass -> R6
 
 ## 4. Quality Gates
 
