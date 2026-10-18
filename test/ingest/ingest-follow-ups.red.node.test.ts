@@ -173,6 +173,8 @@ describe("STORY-003-12 S2 which edits count as dropped", () => {
     const r = await repo();
     await applied(r, [TL]);
     await rm(path.join(r.paths.pagesDir, "roadmap.md"));
+    await mkdir(r.paths.archiveDir, { recursive: true });
+    await writeFile(path.join(r.paths.archiveDir, "roadmap.md"), `---\ntype: project\n---\n${TL}\n`);
     await putPage(r, "other.md", `# Other\n${cite}`);
     const res = await run(r.root, ["ingest", "finish", ID, "--json"]);
     expect(res.code).toBe(0);
