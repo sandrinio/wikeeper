@@ -784,3 +784,8 @@
   action: "update"
   target: "SPRINT-04"
   path: ".cleargate/delivery/pending-sync/SPRINT-04_token_gauges_and_fact_archive.md"
+- timestamp: "2026-10-18T20:28:26.072Z"
+  actor: "cleargate wiki ingest"
+  action: "create"
+  target: "BUG-003"
+  path: ".cleargate/delivery/pending-sync/BUG-003_session_start_size_line_not_shown.md"

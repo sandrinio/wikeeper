@@ -10,6 +10,7 @@
 - [[SPRINT-04]] (sprint) — Active — Token gauges and fact archive
 - [[INITIATIVE-001]] (initiative) — Triaged — Wiki CLI — Karpathy-style LLM wiki for AI agents
 - [[CR-004]] (cr) — Draft — Designer review for CLI output and agent instructions
+- [[BUG-003]] (bug) — Triaged — The agent runs the size line at session start but does not show it, and misses a 🔴 page
 
 ## Archive
 
