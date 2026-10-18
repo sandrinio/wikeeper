@@ -24,7 +24,7 @@ const SECTIONS = [
   "Lint and status",
   "Log and index",
 ];
-const COMMANDS = new Set(["init", "update", "remove", "doctor", "setup", "hook", "ingest", "index", "search", "read", "lint", "status", "rules", "config", "statusline"]);
+const COMMANDS = new Set(["init", "update", "remove", "doctor", "setup", "hook", "ingest", "index", "search", "read", "lint", "status", "rules", "config", "statusline", "upgrade"]);
 const VERBS = new Set(["start", "plan", "facts", "apply", "finish", "abort"]);
 
 async function readWiki(): Promise<string> {

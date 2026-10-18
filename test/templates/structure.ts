@@ -485,6 +485,7 @@ export const DOCUMENTED_FORMS: readonly string[] = [
   "config set",
   "config unset",
   "search --archive",
+  "upgrade",
 ];
 
 export async function checkCoverage(dir: string): Promise<Finding[]> {

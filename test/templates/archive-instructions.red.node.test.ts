@@ -155,9 +155,12 @@ describe("STORY-008-06 S1: each archive instruction lands in its file and part",
   });
   it("README (R8): .wiki/archive/, --archive, D-37, raw is kept not archived, update and remove have their own rows", async () => {
     const readme = await readRoot("README.md");
-    for (const p of [".wiki/archive/", "--archive", "D-37", "`D-01`–`D-37`", "**Fact archive.**", "keeps the immutable original in `.wiki/raw/`"]) {
+    for (const p of [".wiki/archive/", "--archive", "**Fact archive.**", "keeps the immutable original in `.wiki/raw/`"]) {
       expect(readme, p).toContain(p);
     }
+    const range = readme.match(/`D-01`–`D-(\d+)`/);
+    expect(range, "decision range").not.toBeNull();
+    expect(Number(range![1]), "decision range end").toBeGreaterThanOrEqual(37);
     expect(readme).not.toContain("archives the immutable original");
     const rows = readme.split("\n").filter((l) => l.startsWith("|"));
     expect(rows.some((r) => r.startsWith("| `wikeeper update` |")), "update row").toBe(true);
