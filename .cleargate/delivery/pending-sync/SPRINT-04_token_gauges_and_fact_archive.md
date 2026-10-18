@@ -6,25 +6,28 @@ carry_over: false
 lifecycle_init_mode: warn
 remote_id: null
 source_tool: null
-status: Draft
-start_date: null
+status: Active
+approved: true
+approved_by: Sandro Suladze
+approved_at: 2026-10-18T15:49:22Z
+start_date: 2026-10-18
 end_date: null
 synced_at: null
 created_at: 2026-10-18T07:40:00Z
-updated_at: 2026-10-18T07:40:00Z
+updated_at: 2026-10-18T15:51:26Z
 created_at_version: strategy-phase-pre-init
-updated_at_version: strategy-phase-pre-init
+updated_at_version: 7546528-dirty
 cached_gate_result:
   pass: true
   failing_criteria: []
-  last_gate_check: 2026-10-18T07:43:59Z
+  last_gate_check: 2026-10-18T15:51:26Z
   transition: ready-for-execution
 epics:
   - EPIC-007
   - EPIC-008
   - EPIC-009
 proposals: []
-context_source: "Carries EPIC-007 (Token gauges) and EPIC-008 (Fact archive), both approved by the human on 2026-10-18, after SPIKE-003 (Completed 2026-10-18, Win: a dependency-free estimate within ±15% of Claude Opus 5.5's real counts). Decomposed into 13 stories (STORY-007-01…07, STORY-008-01…06) from plans/decomposition.md (story set, file ownership, contracts K1–K13). EPIC-009 (Version check and upgrade, requested and approved 2026-10-18) adds STORY-009-01…03 from plans/decomposition-epic-009.md (contracts K14–K16). Sprint Design Review done 2026-10-18 before kickoff (§2, plans/waves.json); pending the human's confirmation."
+context_source: "Carries EPIC-007 (Token gauges) and EPIC-008 (Fact archive), both approved by the human on 2026-10-18, after SPIKE-003 (Completed 2026-10-18, Win: a dependency-free estimate within ±15% of Claude Opus 5.5's real counts). Decomposed into 13 stories (STORY-007-01…07, STORY-008-01…06) from plans/decomposition.md (story set, file ownership, contracts K1–K13). EPIC-009 (Version check and upgrade, requested and approved 2026-10-18) adds STORY-009-01…03 from plans/decomposition-epic-009.md (contracts K14–K16). Sprint Design Review done 2026-10-18 before kickoff (§2, plans/waves.json); plan and Goal Acceptance Check confirmed by the human 2026-10-18."
 stamp_error: no ledger rows for work_item_id SPRINT-04
 draft_tokens:
   input: null

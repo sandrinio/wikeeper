@@ -3,11 +3,11 @@ type: sprint
 id: "SPRINT-04"
 parent: ""
 children: []
-status: "Draft"
+status: "Active"
 remote_id: ""
 raw_path: ".cleargate/delivery/pending-sync/SPRINT-04_token_gauges_and_fact_archive.md"
-last_ingest: "2026-10-18T14:58:45.874Z"
-last_ingest_commit: "8988a2c33332accb4c940e26c8f087fd85ed697c"
+last_ingest: "2026-10-18T15:51:27.202Z"
+last_ingest_commit: "75465281102f22010627e5fd5abf4ba226a0e49f"
 repo: "planning"
 ---
 
