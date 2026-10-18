@@ -6,7 +6,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Readable } from "node:stream";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { DEFAULT_CONFIG } from "../../src/core/config.js";
 import { registerIntegration, resetIntegrations } from "../../src/core/integrations.js";
+import { estimateTokens, levelOf } from "../../src/core/tokens.js";
+import { formatSize } from "../../src/ingest/report.js";
+import { describeTokens } from "../../src/ingest/source-size.js";
 import { runCli } from "../../src/program.js";
 import { startFixtureServer, type FixtureServer } from "./http-server.js";
 
@@ -192,7 +196,10 @@ describe("STORY-003-10 S2: the article keeps its structure on stdout, in --out a
     expect(bytes.subarray(0, 3).equals(Buffer.from([0xef, 0xbb, 0xbf]))).toBe(false);
     expect(bytes.includes(0x0d)).toBe(false);
     expect(bytes.toString("utf8")).toBe(first.stdout);
-    expect(outRun.stdout).toBe(`wrote page.md (${bytes.length} bytes, html)\n`);
+    const pageTokens = estimateTokens(first.stdout.replace(/\n$/, ""));
+    expect(outRun.stdout).toBe(
+      `wrote page.md (${describeTokens(pageTokens, levelOf(pageTokens, DEFAULT_CONFIG.tokens.source), false)} · ${formatSize(bytes.length)} · html)\n`,
+    );
 
     const outside = await tmp("wikeeper-read-out-");
     const target = path.join(outside, "page2.md");
