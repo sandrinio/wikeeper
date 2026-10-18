@@ -148,6 +148,7 @@ Settled and not reopened: the K3–K8 surfaces, the defaults (EPIC-007 §2), and
 
 - **DRAFTS review (designer, 2026-10-18):** wording aligned with docs/ux.md — line 4 said "the size line `wikeeper statusline` prints, not an error", then 199 characters under the 200 cap (R1; replaced at plan confirmation, below); a 🔴 source's helper is offered in plain words, with `wiki-extractor` never named to the user (R2 (c)); the status-line example puts the mark after its figure (R5 (b) 2, §2.1 "session (R5)"); paragraph 2 says what to do when the line is `wiki size unavailable (…)` (run `wikeeper doctor`, plain words; R13 gains `wikeeper doctor`) and, on a refusal, to name the settings file and show only the line to add (R5 (b) 2, §2.2); paragraph 4 tells a red page once however many signals show it, and offers to raise the limit, running `wikeeper config set` on a yes (R5 (b) 4). No decision changed. Round 2: the "red page (R5)" phrase is "never change a limit", a substring of this story's sentence and of STORY-008-06 R5 (a)'s rewrite, so this story's red test stays green when 008-06 merges; R5 (c) and (d) are checked by phrase, not byte for byte, because 008-06 R5 (b) rewrites the `oversized-page` row (R5, §2.1, §3.2; R2-P3).
 
+- **Spec clarification (orchestrator, 2026-10-18, integration):** "(default)" marks a key that is not set in config.yml (STORY-007-02's approved `from_default`); STORY-007-01's init writes all five limits, so on a fresh wiki only an unset key is marked. Scenario 1's config row now expects `tokens.page.red` marked after the unset, and QA-Red re-scopes that one red row. No code change; R5 (b) 3's text stays true.
 - **Spec clarification (orchestrator, 2026-10-18, M2 plan):** Gate 1 decision 22 (§1.4 Q7) was approved but missing from the body: R2 (e) carries the `likely_scanned` row text, R13 names `data.tokens_rough`, and scenario 1 gains the "scanned PDF (R2, Q7)" row.
 - **Spec clarification (orchestrator, 2026-10-18, M1 plan):** R5 (e) adds `oversized-page` to WIKI.md's list of findings `ingest finish` reports; 007-05 adds the check but may not edit that sentence.
 - **Plan confirmation (human, 2026-10-18):**
@@ -226,7 +227,7 @@ Feature: Token instructions, allow rules for statusline and config get, docs and
     Then it exits 0 and prints one line of the form the "Lint and status" example shows
     When the agent runs the section's "wikeeper config set tokens.page.red 12k" form, then "wikeeper config get tokens.page.red"
     Then .wiki/config.yml holds tokens.page.red 12000, and after "wikeeper config unset tokens.page.red" the get prints 10000
-    And "wikeeper config get tokens" exits 0 and marks its values as defaults
+    And "wikeeper config get tokens" exits 0 and marks tokens.page.red " (default)", the key the unset removed; init wrote the other four limits into config.yml, so they print without the mark (STORY-007-01 R7, STORY-007-02 `from_default`)
     And the fields that open a status bullet in section "Lint and status" are exactly the keys of "wikeeper status --json" data, "tokens" among them
     And the finding table has one row per PAGE_CHECKS id, "oversized-page" among them
     And WIKI.md keeps its fourteen sections in order and at most 400 lines, and the files R14 (e) names are byte-identical to the base

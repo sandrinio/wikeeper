@@ -6,6 +6,12 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-18 · #red-test #search #archive · An archived search hit keeps path without archive/ and carries file .wiki/archive/… and archived: true (K11): match archived hits on file or archived, never on an archive/ path.
+2026-10-18 · #git #merge #contract · git can merge two pushes into the same array (formatReport) without a conflict but in the wrong order; after a re-sync, run the order test (lines[i+1]) even when merge-tree is clean
+2026-10-18 · #pre-gate #red-test · the post-flight 'red modified after QA-Red' scan counts the QA-Red commit and the re-sync merge's red files; prove Developer edits with `git diff <qa-red-sha> HEAD` and `git diff sprint/S-NN HEAD` on each flagged file
+2026-10-18 · #qa #testbed · testbed beta.md has no status:: or frontmatter status, so the final_status manual check cannot list beta without adding one
+2026-10-18 · #qa #fixtures · A red file that shares one tokens.page.red: 100 config across size and final_status scenarios turns a long section-entity fixture into a size candidate too; give final_status rows a limit above the page's measured tokens
+2026-10-18 · #init #config #red-test · init writes the tokens block, so `config get` (from_default = key unset) never marks fresh-repo values as default
 2026-10-18 · #privacy #json · settingsError(json-merge.ts:23) puts V8's JSON.parse message in the error, and V8 quotes up to about 10 characters of the file for unexpected-token errors (e.g. '..."tusLine": ~/x.sh}" is not valid JSON'). Any 'never print settings content' rule needs that detail sanitised.
 2026-10-18 · #test-harness #stdin · To check that a bounded stdin read releases a real pipe, start the built CLI from a script with stdin=PIPE and never close it, then time the node process alone. Timing a shell pipeline like '(sleep N) | node ...' measures the sleep, not node.
 2026-10-18 · #test-harness · Don't hardcode compressed zip byte counts from fixtures in tests; derive them or re-measure when the fixture changes
