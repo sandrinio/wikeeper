@@ -4,7 +4,7 @@ parent_ref: STORY-007-07
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: Triaged
+status: "Completed"
 severity: P1-High
 reporter: orchestrator (SPRINT-04 walkthrough part 4)
 approved: true

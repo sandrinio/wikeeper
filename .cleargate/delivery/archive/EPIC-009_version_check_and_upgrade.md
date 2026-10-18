@@ -4,7 +4,7 @@ parent_ref: null
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: Draft
+status: Completed
 approved: true
 approved_by: Sandro Suladze
 approved_at: 2026-10-18T09:45:20Z

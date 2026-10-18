@@ -6,7 +6,7 @@ carry_over: false
 lifecycle_init_mode: warn
 remote_id: null
 source_tool: null
-status: Active
+status: Completed
 approved: true
 approved_by: Sandro Suladze
 approved_at: 2026-10-18T15:49:22Z
