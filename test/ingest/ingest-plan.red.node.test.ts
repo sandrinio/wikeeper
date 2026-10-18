@@ -6,6 +6,7 @@ import { Readable } from "node:stream";
 import { afterEach, describe, expect, it } from "vitest";
 import { resolvePaths } from "../../src/core/paths.js";
 import { registerSource } from "../../src/ingest/registry.js";
+import { estimateTokens } from "../../src/core/tokens.js";
 
 const tmpDirs: string[] = [];
 afterEach(async () => {
@@ -125,7 +126,7 @@ describe("STORY-003-05 ingest plan (red)", () => {
     expect(d.entries[1].prior.id).toBe("src-2026-10-16-b");
     expect(d.entries[1].prior.match).toBe("sha256");
     expect(d.entries[2].reason).toContain("docs/notes.md");
-    expect(d.totals).toEqual({ new: 1, duplicate: 1, denied: 1, needs_approval: 0 });
+    expect(d.totals).toEqual({ new: 1, duplicate: 1, denied: 1, needs_approval: 0, tokens: estimateTokens("alpha"), tokens_rough: false, not_estimated: 0 });
     expect(await wikiState(root)).toEqual(before);
 
     const h = await run(root, ["ingest", "plan", "docs"]);
