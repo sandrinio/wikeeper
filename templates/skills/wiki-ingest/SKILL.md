@@ -19,3 +19,5 @@ In short: read a URL, a DOCX, an HTML file or a PDF with `wikeeper read` first, 
 - If `ingest.delegate` is `never` in the config, or your agent has no sub-agents, do both the extraction and the writing yourself, following the same sections of WIKI.md.
 
 Sub-agents do not always start with your context, so tell them everything they need in the task you give them.
+
+Talk to the user in plain words: `.wiki/system/WIKI.md`, section "Talking to the user".

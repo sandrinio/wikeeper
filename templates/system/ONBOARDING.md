@@ -1,5 +1,7 @@
 # Onboarding
 
+Talk to the user in plain words: `.wiki/system/WIKI.md`, section "Talking to the user". Coming from SETUP.md, these steps are all its step 1: do not number them to the user.
+
 Run this once per person, with the user, in conversation. You get here in two ways: from `.wiki/system/SETUP.md` step 1, and on its own whenever there is a missing `.wiki/me.md` at session start. Do the steps in order. `.wiki/me.md` is personal and is never committed.
 
 ## 1. Who the user is
@@ -39,10 +41,10 @@ Done when `.wiki/me.md` is written and approved.
 
 Run `wikeeper doctor`.
 
-- If its `setup-files` check reports `.wiki/me.md` as committed or not ignored, quote the finding and tell the user not to commit `me.md`. Offer to follow the finding's `fix:` line, which names the cause: a committed file, a missing ignore block, or a rule that re-includes the file. Follow it only with the user's approval; never remove a file from git or edit `.gitignore` without it.
+- If its `setup-files` check reports `.wiki/me.md` as committed or not ignored, tell the user in plain words what doctor found and not to commit `me.md`. Offer to follow the finding's `fix:` line yourself, which names the cause: a committed file, a missing ignore block, or a rule that re-includes the file; a `fix:` line that names a command is yours to run, not the user's. Follow it only with the user's approval; never remove a file from git or edit `.gitignore` without it.
 - Check that doctor reports the WIKI block in every agent file.
 
-Tell the user that from the next session on the agent reads `me.md` at the start and addresses them by their chosen name, and that if it does not, they should run `wikeeper doctor`. SETUP.md step 6 re-checks this together with `project.md`.
+Tell the user that from the next session on the agent reads `me.md` at the start and addresses them by their chosen name, and that if it does not, they can tell you and you will check the setup. SETUP.md step 6 re-checks this together with `project.md`.
 
 Done when doctor reports no finding about `.wiki/me.md` and the WIKI block is present everywhere.
 
