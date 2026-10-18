@@ -205,4 +205,69 @@ describe("STORY-009-02 npm flags and wording", () => {
       expect(j.error.message).toContain(hand.split(", then")[0]);
     });
   }
+
+  it("EPERM on a global install on linux gets sudo", async () => {
+    const root = await tmp();
+    await mkdir(path.join(root, ".git"), { recursive: true });
+    const dir = await pkg(path.join(await tmp(), "lib", "node_modules", "wikeeper"));
+    let out = "";
+    const io = {
+      cwd: root, stdin: Readable.from([]),
+      stdout: new Writable({ write(c, _e, cb) { out += String(c); cb(); } }),
+      stderr: new Writable({ write(_c, _e, cb) { cb(); } }),
+    };
+    const cmd = createUpgradeCommand({
+      installed: "0.4.0", platform: "linux", packageDir: dir, env: {}, execPath: process.execPath,
+      fetch: (async () => new Response(JSON.stringify({ version: "0.4.1" }))) as unknown as typeof fetch,
+      run: async (_c, a) =>
+        a[0] === "root" ? { code: 1, stdout: "", stderr: "" } : { code: 243, stdout: "", stderr: "npm error code EPERM" },
+    });
+    await runCli(["upgrade", "--json"], { commands: [cmd], io: io as never });
+    const j = JSON.parse(out.trim().split("\n").pop() as string);
+    expect(j.error.code).toBe("npm_failed");
+    expect(j.error.details.command).toBe("sudo npm install -g wikeeper@0.4.1");
+  });
+});
+
+describe("STORY-009-02 update step rejections", () => {
+  async function go(kind: "global" | "npx", reject: Error) {
+    const root = await tmp();
+    await mkdir(path.join(root, ".wiki"), { recursive: true });
+    await writeFile(path.join(root, ".wiki", "config.yml"), "");
+    const dir =
+      kind === "global"
+        ? await pkg(path.join(await tmp(), "lib", "node_modules", "wikeeper"))
+        : await pkg(path.join(await tmp(), ".npm", "_npx", "ab", "node_modules", "wikeeper"));
+    let out = "";
+    const io = {
+      cwd: root, stdin: Readable.from([]),
+      stdout: new Writable({ write(c, _e, cb) { out += String(c); cb(); } }),
+      stderr: new Writable({ write(_c, _e, cb) { cb(); } }),
+    };
+    const cmd = createUpgradeCommand({
+      installed: "0.4.0", platform: "linux", packageDir: dir, env: {}, execPath: process.execPath,
+      fetch: (async () => new Response(JSON.stringify({ version: "0.4.1" }))) as unknown as typeof fetch,
+      run: async (c, a) => {
+        if (a[0] === "root") return { code: 1, stdout: "", stderr: "" };
+        if (c === "npm") return { code: 0, stdout: "", stderr: "" };
+        throw reject;
+      },
+    });
+    await runCli(["upgrade", "--json"], { commands: [cmd], io: io as never });
+    return JSON.parse(out.trim().split("\n").pop() as string);
+  }
+  it("global: the update call rejected gives update_failed with upgraded true", async () => {
+    const j = await go("global", new Error("spawn exploded"));
+    expect(j.error.code).toBe("update_failed");
+    expect(j.error.details.upgraded).toBe(true);
+    expect(j.error.details.then).toBeNull();
+    expect(j.error.message).toContain("spawn exploded");
+  });
+  it("npx: ENOENT gives npm_missing with the hand step", async () => {
+    const j = await go("npx", Object.assign(new Error("npx could not be started"), { code: "ENOENT" }));
+    expect(j.error.code).toBe("npm_missing");
+    expect(j.error.details.command).toBe("npx -y wikeeper@0.4.1 update");
+    expect(j.error.details.then).toBeNull();
+    expect(j.error.details.install).toBe("npx");
+  });
 });

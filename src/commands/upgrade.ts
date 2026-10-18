@@ -222,7 +222,9 @@ export const execRunner: CommandRunner = (cmd, args, opts) =>
     }
     let stdout = "";
     let stderr = "";
-    const child = spawn(spec.file, spec.args, { cwd: opts.cwd, env: opts.env, shell: spec.shell, windowsHide: true });
+    const child = spec.shell
+      ? spawn([spec.file, ...spec.args].join(" "), { cwd: opts.cwd, env: opts.env, shell: true, windowsHide: true })
+      : spawn(spec.file, spec.args, { cwd: opts.cwd, env: opts.env, windowsHide: true });
     child.stdout?.on("data", (c: Buffer) => {
       if (stdout.length < MAX_OUTPUT) stdout += c.toString("utf8");
     });
@@ -399,6 +401,7 @@ export function createUpgradeCommand(deps: UpgradeDeps = {}): CommandModule {
               message = compareVersions(latest, installed) === 0
                 ? `wikeeper ${installed} is the latest version`
                 : `no newer version on npm (latest ${latest}, installed ${installed})`;
+              if (filesOlder) message += "; wikeeper upgrade would run: wikeeper update";
               const data: UpgradeCheckResult = {
                 installed, latest, newer: false, install, command: filesOlder ? "wikeeper update" : null,
               };
@@ -493,9 +496,15 @@ export function createUpgradeCommand(deps: UpgradeDeps = {}): CommandModule {
             const first = plan.unsupported ? plan.unsupported.command : (plan.npmCommand ?? (inWiki ? plan.updateShown : null));
             const data: UpgradeCheckResult = { installed, latest, newer: true, install: kind, command: first };
             const steps = plan.unsupported || !first ? first : [first, ...(plan.npmCommand && plan.updateShown && inWiki ? [plan.updateShown] : [])].join(", then ");
-            const message = first
-              ? `wikeeper ${v} is available (installed ${installed}); wikeeper upgrade would run: ${steps}`
-              : `wikeeper ${v} is available (installed ${installed}); no command to run here`;
+            const head = `wikeeper ${v} is available (installed ${installed}); `;
+            let message: string;
+            if (plan.unsupported) {
+              message = `${head}wikeeper upgrade does not handle this install: ${handNext(plan.unsupported.command, thenForFail)}`;
+            } else if (kind === "npx" && !inWiki) {
+              message = `nothing to upgrade here: npx runs the version you name, so run npx -y wikeeper@${v}; there is no wiki project here to update`;
+            } else {
+              message = `${head}wikeeper upgrade would run: ${steps}`;
+            }
             emitResult(ctx, { command: "upgrade", data, message, warnings });
             return;
           }
@@ -563,16 +572,33 @@ export function createUpgradeCommand(deps: UpgradeDeps = {}): CommandModule {
           let updated = false;
           if (inWiki && plan.updateShown) {
             let r: RunResult;
-            if (kind === "npx") {
-              r = await run("npx", ["-y", `wikeeper@${v}`, "update", "--json"], { cwd, env });
-            } else {
-              let bin = "dist/cli.js";
-              try {
-                bin = binOf(readFileSync(path.join(plan.packageFolder, "package.json"), "utf8"));
-              } catch {
-                // the default bin
+            try {
+              if (kind === "npx") {
+                r = await run("npx", ["-y", `wikeeper@${v}`, "update", "--json"], { cwd, env });
+              } else {
+                let bin = "dist/cli.js";
+                try {
+                  bin = binOf(readFileSync(path.join(plan.packageFolder, "package.json"), "utf8"));
+                } catch {
+                  // the default bin
+                }
+                r = await run(execPath, [path.join(plan.packageFolder, bin), "update", "--json"], { cwd, env });
               }
-              r = await run(execPath, [path.join(plan.packageFolder, bin), "update", "--json"], { cwd, env });
+            } catch (err) {
+              if (kind === "npx" && (err as { code?: unknown }).code === "ENOENT") {
+                throw fail(
+                  "npm_missing",
+                  `npx was not found; nothing was changed: ${handNext(plan.updateShown, null)}`,
+                  [],
+                  { command: plan.updateShown, then: null, install: kind },
+                );
+              }
+              throw fail(
+                "update_failed",
+                `wikeeper ${v} is installed, but its update failed: run ${plan.updateShown} in this project`,
+                [err instanceof Error ? err.message : String(err)],
+                { upgraded, install: kind, commands_run: commandsRun, command: plan.updateShown, then: null },
+              );
             }
             commandsRun.push(plan.updateShown);
             const env2 = lastJson(r.stdout);
