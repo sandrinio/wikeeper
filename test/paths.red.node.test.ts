@@ -51,6 +51,7 @@ describe("paths (red)", () => {
       lockFile: path.join(w, ".lock"),
       contentDir: w,
       pagesDir: path.join(w, "pages"),
+      archiveDir: path.join(w, "archive"),
       rawDir: path.join(w, "raw"),
       logDir: path.join(w, "log"),
       indexFile: path.join(w, "index.md"),

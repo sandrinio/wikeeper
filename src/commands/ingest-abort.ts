@@ -14,7 +14,7 @@ import { plural } from "./doctor.js";
 import type { IngestSubcommand } from "./ingest.js";
 
 const ABORT_HELP =
-  "After apply, abort restores pages/ from the snapshot and releases the lock. Before apply nothing is locked: abort records the abort in log/. --drop deletes raw/<id>.* (original, text, meta and facts), so the same source can be registered again. A finished ingest cannot be aborted.";
+  "After apply, abort restores pages/ and archive/ from the snapshot and releases the lock. Before apply nothing is locked: abort records the abort in log/. --drop deletes raw/<id>.* (original, text, meta and facts), so the same source can be registered again. A finished ingest cannot be aborted.";
 
 export const ingestAbortCommand: IngestSubcommand = {
   register(group: Command): void {
@@ -61,13 +61,24 @@ export const ingestAbortCommand: IngestSubcommand = {
         const warnings: string[] = [];
         let restored: string[] = [];
         let removed: string[] = [];
+        let archiveRestored: string[] = [];
+        let archiveRemoved: string[] = [];
         if (mine) {
           const snap = await readSnapshot(paths, id);
           if (snap === null) {
             warnings.push("snapshot missing; pages were not restored");
             await releaseLock(paths, id);
           } else {
-            ({ restored, removed } = await restoreSnapshot(paths, id));
+            const res = await restoreSnapshot(paths, id);
+            ({ restored, removed } = res);
+            if (res.archive === null) {
+              warnings.push(
+                `the snapshot of ${id} was taken by an older wikeeper, so archive/ was not restored: run wikeeper lint to find archive files this ingest left`,
+              );
+            } else {
+              archiveRestored = res.archive.restored;
+              archiveRemoved = res.archive.removed;
+            }
             await removeSnapshot(paths, id);
             await releaseLock(paths, id);
           }
@@ -85,23 +96,27 @@ export const ingestAbortCommand: IngestSubcommand = {
         const dropped = opts.drop === true;
         if (dropped) droppedFiles = await removeSource(paths, id);
 
+        const archiveChanged = [...archiveRestored, ...archiveRemoved].sort(compareCodeUnits);
         const logFile = await writeLogEvent(paths, {
           type: "abort",
           at: now.toISOString(),
           source_id: id,
           dropped,
           restored: [...restored, ...removed].sort(compareCodeUnits),
+          ...(archiveChanged.length > 0 ? { archive_restored: archiveChanged } : {}),
         });
         const data = {
           source_id: id,
           restored,
           removed,
+          archive: { restored: archiveRestored, removed: archiveRemoved },
           dropped,
           dropped_files: droppedFiles,
           log_file: logFile,
         };
         const lines = [
           `aborted ${id}: ${plural(restored.length, "page")} restored, ${removed.length} removed` +
+            `${archiveChanged.length > 0 ? `, archive/: ${archiveRestored.length} restored, ${archiveRemoved.length} removed` : ""}` +
             `${dropped ? `, ${plural(droppedFiles.length, "file")} dropped from raw/` : ""}`,
         ];
         emitResult(ctx, { command: "ingest abort", data, warnings, message: lines });
