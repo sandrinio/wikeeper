@@ -192,7 +192,7 @@ describe("STORY-008-05 S1: archive size and pages at or above the red limit (red
 });
 
 describe("STORY-008-05 S2: entities with a final status and no recent fact (red)", () => {
-  const rows: Array<{ name: string; files: Array<[string, string]>; candidates: unknown[] }> = [
+  const rows: Array<{ name: string; files: Array<[string, string]>; candidates: unknown[]; config?: string }> = [
     {
       name: "shipped, newest fact 31 days ago",
       files: [["pages/projects/beta.md", beta("status: shipped", [fact("2026-09-17")])]],
@@ -215,6 +215,8 @@ describe("STORY-008-05 S2: entities with a final status and no recent fact (red)
     },
     {
       name: "section entity with a final status",
+      // the page measures 109 tokens; a higher red limit keeps the row on final_status alone
+      config: CONFIG.replace("red: 100", "red: 200"),
       files: [
         [
           "pages/roadmap.md",
@@ -251,6 +253,7 @@ describe("STORY-008-05 S2: entities with a final status and no recent fact (red)
   ];
   it.each(rows)("$name", async (row) => {
     const root = await statusRepo();
+    if (row.config) await put(root, ".wiki/config.yml", row.config);
     for (const [rel, text] of row.files) await put(root, `.wiki/${rel}`, text);
     const res = await status(root);
     expect(res.code, res.err).toBe(0);
