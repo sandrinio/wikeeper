@@ -67,7 +67,7 @@ describe("OWN_LINE_RE", () => {
 
 describe("user settings file", () => {
   it("shows the home directory as ~", () => {
-    expect(shownUserFile(path.join("/h", ".claude", "settings.json"), "/h")).toBe("~/.claude/settings.json");
+    expect(shownUserFile(path.join("/h", ".claude", "settings.json"), path.join("/h"))).toBe("~/.claude/settings.json");
     expect(shownUserFile("/elsewhere/settings.json", "/h")).toBe("/elsewhere/settings.json");
   });
   it("honours CLAUDE_CONFIG_DIR", () => {
