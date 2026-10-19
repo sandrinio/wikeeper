@@ -1,192 +1,61 @@
-<div align="center">
-
-![wikeeper — Karpathy-Style LLM Wiki CLI for AI Coding Agents](docs/assets/hero-banner.svg)
-
 # wikeeper
-
-### **Give Claude Code, OpenAI Codex, and Google Antigravity a memory they maintain themselves.**
-
-*A deterministic, Git-native **Karpathy-style LLM Wiki CLI** that turns your PDFs, Word docs, links, and chat decisions into an interlinked, cited Markdown knowledge base—with **zero LLM API keys** and **no vector database**.*
 
 [![npm version](https://img.shields.io/npm/v/wikeeper?color=10b981&label=npm)](https://www.npmjs.com/package/wikeeper)
 [![CI](https://github.com/sandrinio/wikeeper/actions/workflows/ci.yml/badge.svg)](https://github.com/sandrinio/wikeeper/actions/workflows/ci.yml)
 [![Node](https://img.shields.io/badge/node-%3E%3D22.12-38bdf8.svg)](https://nodejs.org)
-[![License: MIT](https://github.com/sandrinio/wikeeper/blob/main/LICENSE)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-[**Quickstart**](#-60-second-quickstart) · [**Why Not Just Prompts or RAG?**](#-why-wikeeper-instead-of-rag-or-raw-markdown) · [**How It Works**](#-how-it-works-the-agent-thinks-the-cli-enforces) · [**Commands**](#-cli-command-reference) · [**Architecture**](architecture.md)
+**A project wiki your coding agent keeps up to date, with every fact tied to its source.**
 
-</div>
+Give Claude Code, OpenAI Codex or Google Antigravity your project's material: meeting notes, PDFs, Word documents, web pages. The agent reads it and writes what matters onto plain Markdown pages in your repository: decisions, dates, owners and risks, each linked to the source it came from. wikeeper is the tool the agent works through. It checks every change, so facts don't get lost, overwritten or left without a source.
 
----
+It's for people who run projects, such as leads, product managers and managers, and already use a coding agent as an assistant. It's the Karpathy-style LLM wiki, with the checks that a folder of notes lacks.
 
-## 🧠 The Problem: AI Agents Have Amnesia (and Unchecked Wikis Decay)
+## Start
 
-Every session with **Claude Code**, **Codex**, or **Antigravity** starts from zero.
-
-If you stuff everything into `CLAUDE.md` or `AGENTS.md`, you bloat every prompt. If you tell an agent *"just maintain a folder of Markdown notes"* (the raw **Karpathy LLM Wiki** pattern), it works for the first 10 files—and then decays:
-- Agents **silently overwrite** historical facts when rewriting a page.
-- Claims lose provenance—you can't tell *which* meeting note or PDF a date came from.
-- Broken `[[wikilinks]]`, orphan pages, and stale statuses pile up undetected.
-
-**`wikeeper` fixes the decay mechanically.** Your coding agent still does all the reading, extraction, and writing—while the `wikeeper` CLI enforces **permissions, transactional write locks, snapshots, source citations, full-text search, and wiki linting**.
-
----
-
-## ⚡ 60-Second Quickstart
-
-Install and wire up your repository with a single command:
+In your project folder:
 
 ```bash
 npx wikeeper init
 ```
 
-`wikeeper init` scaffolds `.wiki/`, injects a short pointer block into your existing `CLAUDE.md`, `AGENTS.md`, or `GEMINI.md`, and installs native agent skills (`wiki-ingest`, `wiki-search`) and sub-agents (`wiki-extractor`, `wiki-writer`).
-
-Next, open **Claude Code**, **Codex**, or **Antigravity** and talk naturally:
+Then open your agent and talk to it as usual:
 
 ```text
-You:   "Hi! Let's finish setting up the wiki."
-Agent: → Runs interactive onboarding (.wiki/me.md + .wiki/project.md)
-       → Tailors capture rules in .wiki/kb_instructions.md
+You:   Let's finish setting up the wiki.
+Agent: asks who you are and what the project is, then sets up what to capture.
 
-You:   "Here is our Q4 roadmap PDF and the notes from yesterday's standup."
-Agent: → Converts PDF via `wikeeper read`
-       → Extracts cited facts via `wikeeper ingest`
-       → Updates .wiki/pages/projects/atlas.md & .wiki/pages/risks.md
+You:   Here's our Q4 roadmap PDF and yesterday's standup notes.
+Agent: asks before it adds each one, then updates the project and risk pages.
 
-You:   "What slipped since October 1st, and who owns the vendor risk?"
-Agent: → Queries `wikeeper search --since 2026-10-01`
-       → Answers with exact source citations: [[src-2026-10-16-q4-status]]
+You:   What slipped since October 1st, and who owns the vendor risk?
+Agent: answers from the wiki and links each fact to its source.
 ```
 
----
+## What you can count on
 
-## 🛡️ How It Works: The Agent Thinks, The CLI Enforces
+- **Every fact names its source.** A page change that adds a fact without a link to its source is refused.
+- **Nothing is lost.** A change that drops an existing fact is refused. Old facts move to an archive only when you ask for a clean-up, and they stay searchable there.
+- **Contradictions are kept, not overwritten.** When a new source disagrees with an old one, both stay, and the conflict is marked.
+- **You decide what goes in.** By default the agent asks before it adds each source. You can trust certain folders or sites instead, or let it add freely.
+- **Sizes stay visible.** Sources and pages show their size in tokens, and a large document needs your yes before the agent reads it.
+- **The wiki stays healthy.** Broken links, facts without sources, stale facts and pages that grow too large are caught and reported.
+- **Plain files, no API keys.** Pages are Markdown with `[[links]]`: they open in Obsidian and diff in git, with no database. wikeeper calls no AI service; the agent you already run does the reading.
 
-![wikeeper 3-Phase Transactional Ingest Pipeline](docs/assets/ingest-pipeline.svg)
+## Works with
 
-1. **Read Anything (`wikeeper read`):** Converts **PDFs** (with scanned-deck detection), **DOCX** (preserving GFM tables), **web URLs**, **HTML**, and **CSV/text** into clean Markdown with title, author, and date headers.
-2. **Pre-Hook Gate (`wikeeper ingest start`):** Checks SHA-256 duplicates, enforces your permission mode (`ai` / `ask` / `whitelist`), and keeps the immutable original in `.wiki/raw/`.
-3. **Structured Triage (`wikeeper ingest facts`):** Your agent extracts dated facts (`decided` or `tentative`) governed by your `.wiki/kb_instructions.md` rules and validates them against a strict JSON schema.
-4. **Locked Write Phase (`wikeeper ingest apply` → `finish`):**
-   - Takes an exclusive write lock and snapshots `.wiki/pages/` and `.wiki/archive/`.
-   - **Never loses history:** `finish` **refuses** any page edit that drops an existing fact line or omits a `[[src-...]]` citation, unless the identical line moves to `.wiki/archive/` in a clean-up you asked for. Contradictions are flagged (`contradicts:: [[src-...]]`), never overwritten.
-   - Automatically rebuilds `.wiki/index.md`, writes a merge-safe event to `.wiki/log/`, and runs post-ingest lint checks.
+Claude Code, OpenAI Codex and Google Antigravity, and a mixed team can share one wiki through git. `wikeeper init` adds a short block to your `CLAUDE.md`, `AGENTS.md` or `GEMINI.md` and installs the agent's skills. With `wikeeper init --enforce`, Claude Code and Codex are also blocked from editing wiki pages directly, outside wikeeper's checks.
 
----
+## Updates and privacy
 
-## 🖥️ Terminal Preview: Search, Read, Lint & Status
+When a newer wikeeper is out, your agent tells you once and upgrades only after your yes. To find out, wikeeper asks the npm registry at most once a day; the request sends nothing about your wiki. To turn it off, run `wikeeper config set update_check false` or set `WIKEEPER_NO_UPDATE_CHECK=1`.
 
-![wikeeper CLI terminal output for search, lint, and status](docs/assets/terminal-preview.svg)
+## More
 
-Every command outputs human-friendly reports in the terminal and supports `--json` for deterministic agent parsing.
+- [Reference](https://github.com/sandrinio/wikeeper/blob/main/docs/reference.md): every command, permission modes, size limits, the fact archive, upgrading and development.
+- [Architecture](https://github.com/sandrinio/wikeeper/blob/main/architecture.md): the full design and its decision log (`D-01`–`D-38`).
 
----
-
-## 🔍 Why `wikeeper` Instead of RAG or Raw Markdown?
-
-| Feature | Vector RAG / Cloud Memory *(Mem0, Letta)* | Prompt-Only Markdown Wiki *(Raw Karpathy Gist)* | **`wikeeper`** |
-| :--- | :--- | :--- | :--- |
-| **API Keys / LLM Cost in Tool** | Requires OpenAI / Anthropic API keys & DB | None | **Zero.** Uses the coding agent you already run |
-| **Storage Format** | Opaque vector embeddings / SQLite / Cloud | Local `.md` files | **100% Git-native `.md` + Obsidian `[[links]]`** |
-| **Accidental Fact Deletion** | Black-box memory mutation | Agents lazily overwrite old bullets | **Blocked by `finish` snapshot diff check** |
-| **Source Provenance** | Fuzzy chunk similarity | Honor-system citations | **Enforced `[[src-...]]` citation on every claim** |
-| **Direct File-Edit Protection** | N/A | None | **Opt-in `--enforce` tool hooks block rogue edits** |
-| **Wiki Health & Decay** | Silent embedding drift | Broken links & orphan pages pile up | **`wikeeper lint` & `lint --rules` catch decay** |
-| **Capture Rule Evolution** | Hardcoded extraction prompts | Static prompt | **Versioned `kb_instructions.md` + fingerprinted rule memory** |
-
----
-
-## 🔐 Permission Modes & Harness Enforcement
-
-You control what enters your knowledge base via `ingest.permission` in `.wiki/config.yml`:
-
-| Mode | Behavior |
-| :--- | :--- |
-| **`ask`** *(default)* | Every ingest pauses and shows source metadata (`size`, `kind`, matched rule version) for your approval before storing. |
-| **`whitelist`** | Sources matching your trusted path globs (`docs/meetings/**`) or domains (`*.example.com`) and kinds run automatically; everything else is denied. |
-| **`ai`** | Your agent ingests autonomously—while still prompting before destructive actions (`abort --drop` or `apply --force-unlock`). |
-
-> [!TIP]
-> **Mechanical Guardrails (`--enforce`):** Run `wikeeper init --enforce` to install native `PreToolUse` hooks and permission rules into Claude Code and Codex. If an agent tries to edit `.wiki/pages/` outside a locked write phase, the hook blocks the edit automatically—and `wikeeper lint` backs it up with SHA-256 `unlogged-change` detection.
-
----
-
-## 📏 Token Gauges
-
-Every size `wikeeper` shows is an estimate in tokens, printed with `≈` and within about ±15% of Claude's count. A source is 🟢, 🟡 or 🔴 against `tokens.source` (20k and 60k by default), a page against `tokens.page` (4k and 10k); the wiki total has no level. When a source reaches `tokens.source.confirm_at` (yellow by default), `wikeeper ingest start` asks for your approval before the source is read, in every permission mode. Change a limit with `wikeeper config set`, for example `wikeeper config set tokens.page.red 12k`; `wikeeper statusline` prints the wiki's size on one line.
-
-**Fact archive.** Ordinary ingests keep every fact on its page. When a page turns 🔴, the agent offers a clean-up or a higher limit; a clean-up you ask for moves replaced and finished facts to `.wiki/archive/`, which `wikeeper search --archive` and history searches still find. Nothing is deleted.
-
----
-
-## 🧰 CLI Command Reference
-
-| Command | Description |
-| :--- | :--- |
-| `wikeeper init [--profile management] [--enforce]` | Scaffold `.wiki/`, wire up `CLAUDE.md` / `AGENTS.md` / `GEMINI.md`, and install skills & sub-agents |
-| `wikeeper read <file\|url> [--out <file>]` | Convert PDF, DOCX, web URLs, HTML, Markdown, or CSV into clean Markdown, with its estimated size |
-| `wikeeper ingest start · plan · facts · apply · finish · abort` | Run the 3-phase transactional ingest pipeline (or `--dry-run` on `facts` to preview rule changes) |
-| `wikeeper search [query]` | Full-text BM25 + structured search (`--type`, `--where`, `--status`, `--mark decided\|tentative`, `--entity`, `--since`, `--archive`, `--misses`) |
-| `wikeeper lint [--rules] [--check <id>]` | Check pages (`broken-link`, `uncited-claim`, `orphan-page`, `index-drift`, `unlogged-change`, `stale-fact`, `oversized-page`) or validate `kb_instructions.md` |
-| `wikeeper status` | Show active locks, unfinished sources, re-ingest candidates (from rule upgrades), pending rule suggestions, search misses, and the `tokens` section (the wiki's size and its largest pages) |
-| `wikeeper rules record · list` | Record `--accepted` or `--rejected` rule proposals with SHA-256 fingerprints so rejected ideas are never re-offered |
-| `wikeeper config get · set · unset` | Read and change the token limits in `.wiki/config.yml` |
-| `wikeeper statusline [--install]` | Print the wiki's size on one line; `--install` adds it to Claude Code's status line |
-| `wikeeper doctor` | Verify agent wiring, setup files (`me.md`, `project.md`), hook rules, and `kb_instructions.md` syntax |
-| `wikeeper update` | Refresh package-owned system files, skills and hooks to the installed version without touching your knowledge base |
-| `wikeeper upgrade [--check]` | Install the newest wikeeper the way you installed it (global npm, a project dependency or npx), then refresh this project's files; `--check` shows what it would run |
-| `wikeeper remove [--purge]` | Remove the wiki tooling and keep your knowledge base, archive included; `--purge` also deletes it (asks first) |
-
----
-
-## ⬆️ Upgrading
-
-`wikeeper upgrade` installs the newest version the way you installed it (a global npm install, a project dependency or npx), then refreshes this project's files with the new version's `wikeeper update`. `wikeeper upgrade --check` shows what it would run and changes nothing.
-
-- **By hand:** `npm install -g wikeeper@latest`, then `wikeeper update` in each project. If you installed with pnpm, yarn or bun, upgrade with that manager, then run `wikeeper update`.
-- **npx:** hooks installed through npx are pinned to one version (`npx -y wikeeper@0.4.0 hook guard …`); `wikeeper upgrade` re-pins them to the new one.
-- **No `sudo`:** when npm needs administrator rights, `wikeeper upgrade` changes nothing and prints the command for you to run.
-- **The version check:** ingest commands ask the npm registry for the latest version at most once a day: one GET to `registry.npmjs.org/wikeeper/latest` (or your `npm_config_registry`), with a 1.5-second timeout. The answer is saved in `.wiki/.cache/update-check.json`, which is git-ignored. The request sends nothing about your wiki: no file names, pages or settings. When the registry can't be reached, the command runs as usual.
-- **Your agent tells you once and asks:** when a newer version is out, it tells you once in the session and upgrades only after your yes; it never upgrades on its own. `wikeeper status` and `wikeeper doctor` also say when this project's files come from another version, and your agent asks before it refreshes them.
-- **Turning it off:** `wikeeper config set update_check false`, or `WIKEEPER_NO_UPDATE_CHECK=1`, `NO_UPDATE_NOTIFIER` or `CI` in the environment. A file-version mismatch is still reported, since it needs no network.
-
----
-
-## 🤝 Multi-Agent Compatibility
-
-`wikeeper` works identically across the three major AI coding harnesses—and lets mixed teams collaborate on the same Git wiki:
-
-| Capability | Claude Code | OpenAI Codex | Google Antigravity |
-| :--- | :--- | :--- | :--- |
-| **Root Instructions** | `CLAUDE.md` | `AGENTS.md` | `AGENTS.md` / `GEMINI.md` |
-| **Installed Skills** | `.claude/skills/` | `.agents/skills/` | `.agents/skills/` |
-| **Extractor & Writer Sub-Agents** | `.claude/agents/` | `.codex/agents/` | `.agents/agents/` |
-| **Harness Enforcement (`--enforce`)** | `.claude/settings.json` (`PreToolUse` + `allow`/`ask`) | `.codex/hooks.json` + `.codex/rules/wikeeper.rules` | CLI gate + `unlogged-change` lint check |
-
----
-
-## 📋 Built for Technical Management, Product & Engineering
-
-Out of the box, `wikeeper` ships with the **Management** profile:
-- **Personal Context (`.wiki/me.md`):** Gitignored profile of your name, role, and aliases—so *"Action: PM to send budget"* in meeting notes is recognized as **your** action item.
-- **Shared Project Brief (`.wiki/project.md`):** Committed core terms and scope shared across the repo.
-- **Self-Evolving Rules (`.wiki/kb_instructions.md`):** Maps your key questions (`Q1`, `Q2`...) to entities (`project`, `person`, `risk`, `decision`) and versioned source kinds (`meeting-notes (v2)`). When you upgrade a rule from `v1` to `v2`, `wikeeper status` automatically flags older sources as re-ingest candidates and lets you preview the diff with `wikeeper ingest facts <id> --dry-run`.
-
----
-
-## 📦 Requirements & Development
-
-- **Node.js** `>= 22.12.0`
-
-```bash
-npm install
-npm test          # Unit, structural, and acceptance suite
-npm run test:perf # Search, cache and status-line performance benchmarks
-npm run build     # TypeScript build + commit stamp
-```
-
-Planned and built in the open with [ClearGate](https://www.npmjs.com/package/cleargate). Full specification and decision log (`D-01`–`D-38`) in [`architecture.md`](architecture.md).
+Requires Node.js 22.12 or later. Planned and built in the open with [ClearGate](https://www.npmjs.com/package/cleargate).
 
 ## License
 
