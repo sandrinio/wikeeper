@@ -103,7 +103,9 @@ async function arch(which: "2" | "3" | "7.7" | "10" | "11" | "13"): Promise<stri
   const t = await archText();
   return which === "7.7" ? archBlock(t, "### 7.7 ", 3) : archBlock(t, `## ${which}. `, 2);
 }
-const readme = async (): Promise<string> => lf(await readFile(path.join(PKG, "README.md"), "utf8"));
+// README detail moved to docs/reference.md in CR-005, so the readme place reads both.
+const readme = async (): Promise<string> =>
+  lf(await readFile(path.join(PKG, "README.md"), "utf8")) + "\n" + lf(await readFile(path.join(PKG, "docs", "reference.md"), "utf8"));
 
 /** Field names that open a column-0 status bullet: "- `a`: " or "- `a` and `b`: ". */
 function statusFields(text: string): string[] {
