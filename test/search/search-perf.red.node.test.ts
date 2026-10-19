@@ -24,8 +24,13 @@ const req = () => ({
   misses: false,
 });
 
+// CR-006: macOS and Windows CI runners are up to twice as slow as a developer machine and vary run to run,
+// so the 500 ms rule runs locally and on Linux CI.
+const ciEnv = process.env.CI;
+const slowCi = ciEnv !== undefined && !["false", "0"].includes(ciEnv.toLowerCase()) && process.platform !== "linux";
+
 describe("Scenario: Search stays within the performance budget", () => {
-  it("p95 of 30 in-process runs (cache off, after one warm-up) on 500 pages is under 500 ms", async () => {
+  it.skipIf(slowCi)("p95 of 30 in-process runs (cache off, after one warm-up) on 500 pages is under 500 ms", async () => {
     const warm = await executeSearch(root, req(), { useCache: false });
     expect(warm.total).toBeGreaterThan(0);
     const times: number[] = [];

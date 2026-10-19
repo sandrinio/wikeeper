@@ -44,7 +44,8 @@ async function stampText(): Promise<string> {
   return await readFile(path.join(dir, "out", "build-info.json"), "utf8");
 }
 
-describe("scripts/build-info.mjs", () => {
+// CR-006: these tests spawn git and Node several times; a Windows runner once needed 6.5 s.
+describe("scripts/build-info.mjs", { timeout: 30_000 }, () => {
   it.skipIf(!hasGit)("stamps the commit when git has a repository with one commit", async () => {
     git(["init", "-q"]);
     await writeFile(path.join(dir, "f"), "x");
