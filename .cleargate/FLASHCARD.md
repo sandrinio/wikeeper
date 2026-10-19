@@ -6,6 +6,8 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-19 · #qa #red-test #templates · A pointer-block line change also breaks phrase pins ("open each session", "before any text") and whole-line maps, not only the line constants: grep the phrases, then prove the re-scope set by applying the template edits to a temp copy of the worktree and running the full suite there.
+2026-10-19 · #walkthrough #instructions · An agent told to show a command's output "before any text" still batches the command with others and narrates first; say when to write it ("start each session with X and write its line before any other step or text").
 2026-10-19 · #qa #red-test #planning · A plan's "old" pin value can be wrong (token-instructions R14(e) was 880e3e88 at base, the plan said a69f2714): re-scope a pinned hash by its content anchor, and derive the new value by applying the plan's edits to a temp copy of templates/ and hashing that.
 2026-10-19 · #red-test #templates #pointer-block · The raw sha256 of templates/agent-block.md is pinned in archive-instructions.red R11 (e), upgrade-instructions.red R2 and writing-and-answering-text.red R14: a pointer-block change re-scopes all three, plus any WIKI.md phrase a red row checks.
 2026-10-19 · #red-test #shipped-blocks · Plant old pointer blocks with SHIPPED_BLOCKS.find(by sha256), never by index: it also catches an entry edited in place instead of appended.
