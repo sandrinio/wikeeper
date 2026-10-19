@@ -12,6 +12,7 @@ const SHIPPED_BLOCK_SHA256: readonly string[] = [
   "054466b79532cec78d6ca94b0985eaeae2b7a3fa3d8ec706e8ea54689cf1382a",
   "74d67dd01401ffe3477d331f98c57512e51056fd5557b37775c79663d2d2ba06",
   "3ecca095227fd64ebaab33c1cf3a14f934a1407a864f97afcfa49fde2da4b662",
+  "acb4dfa9692987da3fddbd0387768fbd93f9b8ad7330729f993b7045c98b99b5",
 ];
 
 const sha = (s: string): string => createHash("sha256").update(s, "utf8").digest("hex");

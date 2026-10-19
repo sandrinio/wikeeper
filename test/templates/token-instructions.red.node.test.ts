@@ -160,7 +160,7 @@ describe("STORY-007-07 S1: each size instruction lands in its file and part", ()
     [
       "session (R5)",
       "Lint and status",
-      ["`wiki ≈66k tokens · 43 pages · largest page ≈6.3k 🟡`", "first text you write in every session", "`.claude/settings.local.json`", "never replaces"],
+      ["`wiki ≈66k tokens · 43 pages · largest page ≈6.3k 🟡`", "Run it first in every session", "`.claude/settings.local.json`", "never replaces"],
     ],
     [
       "limits (R5)",
@@ -178,7 +178,7 @@ describe("STORY-007-07 S1: each size instruction lands in its file and part", ()
 
   it("session (R1): line 4 of templates/agent-block.md holds its phrases and the block stays at 14 lines of at most 200 characters", async () => {
     const lines = (await readTemplate("agent-block.md")).replace(/\n$/, "").split("\n");
-    expectPhrases(lines[3]!, ["Once set up", "open each session", "`wikeeper statusline`"], "session (R1)");
+    expectPhrases(lines[3]!, ["Once set up", "start each session", "`wikeeper statusline`"], "session (R1)");
     expect(lines).toHaveLength(14);
     for (const l of lines) expect(l.length).toBeLessThanOrEqual(200);
   });
