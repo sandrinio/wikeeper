@@ -67,6 +67,7 @@ describe("STORY-001-04 gitignore (red)", () => {
       ".wiki/.snapshots/",
       ".wiki/.cache/",
       ".wiki/log.md",
+      ".wiki/archive/team.md",
       ".wiki/pages/team.md",
     ]);
   });

@@ -1,4 +1,4 @@
-// src/read/url.ts -- the only network code in wikeeper (STORY-003-10 R6).
+// src/read/url.ts -- one of wikeeper's two network uses (STORY-003-10 R6); the other is the version check in src/core/update-check.ts, which calls fetchSource.
 import { ExitCode, WikeeperError } from "../core/exit-codes.js";
 import { formatSize } from "../ingest/report.js";
 

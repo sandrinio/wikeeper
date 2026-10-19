@@ -28,3 +28,15 @@ export function fullVersion(): string {
 export function npmVersion(v: string): string {
   return v.replace(/\+.*$/, "");
 }
+
+export function compareVersions(a: string, b: string): number | null {
+  const re = /^v?(\d+)\.(\d+)\.(\d+)/;
+  const ma = re.exec(a);
+  const mb = re.exec(b);
+  if (!ma || !mb) return null;
+  for (let i = 1; i <= 3; i++) {
+    const d = Number(ma[i]) - Number(mb[i]);
+    if (d !== 0) return d < 0 ? -1 : 1;
+  }
+  return 0;
+}

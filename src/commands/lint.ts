@@ -37,15 +37,20 @@ export function createLintCommand(deps: { now?: () => Date } = {}): CommandModul
           const paths = resolvePaths(root, config);
           await assertInitialised(paths);
           const pages = await loadPages(paths.pagesDir);
+          const archivePages = await loadPages(paths.archiveDir);
           const kb = (await loadInstructions(paths))?.kb ?? null;
           const { events, skipped } = await readLogEvents(paths);
-          const lintCtx: LintContext = { paths, config, pages, kb, log: events, now: (deps.now ?? (() => new Date()))() };
+          const lintCtx: LintContext = { paths, config, pages, archivePages, kb, log: events, now: (deps.now ?? (() => new Date()))() };
           const scope: LintScope = opts.rules === true ? "rules" : "pages";
           const findings = await runLint(lintCtx, { scope, ...(opts.check ? { checks: opts.check } : {}) });
           const reg = scope === "pages" ? PAGE_CHECKS : RULE_CHECKS;
           const k = reg.filter((c) => !opts.check || opts.check.includes(c.id)).length;
           const counts = countFindings(findings);
-          const subject = scope === "pages" ? plural(pages.length, "page") : toPosixRelative(root, paths.kbInstructions);
+          const pagesSubject =
+            archivePages.length > 0
+              ? `${plural(pages.length, "page")} and ${plural(archivePages.length, "archived page")}`
+              : plural(pages.length, "page");
+          const subject = scope === "pages" ? pagesSubject : toPosixRelative(root, paths.kbInstructions);
           const message = [
             `checked ${subject} with ${plural(k, "check")}`,
             ...findings.map(findingLine),

@@ -5,10 +5,13 @@ import path from "node:path";
 import type { Command } from "commander";
 import { compareCodeUnits } from "../core/compare.js";
 import { loadConfig } from "../core/config.js";
+import type { WikeeperConfig } from "../core/config.js";
 import { ExitCode, WikeeperError } from "../core/exit-codes.js";
 import { sha256File } from "../core/manifest.js";
 import { emitResult, getOutputContext } from "../core/output.js";
 import { assertInitialised, findRepoRoot, resolvePaths, toPosixRelative } from "../core/paths.js";
+import type { ResolvedPaths } from "../core/paths.js";
+import { levelOf, measureWiki } from "../core/tokens.js";
 import { diffOutside, diffPages } from "../ingest/diff.js";
 import { factsFilePath, readFacts } from "../ingest/facts.js";
 import { normalizeKindId } from "../ingest/kind-rules.js";
@@ -22,7 +25,7 @@ import { readMeta } from "../ingest/registry.js";
 import { countContradictions, formatReport } from "../ingest/report.js";
 import type { IngestReport } from "../ingest/report.js";
 import { isSourceId } from "../ingest/source-id.js";
-import { readSnapshot, removeSnapshot } from "../ingest/snapshot.js";
+import { readSnapshot, removeSnapshot, snapshotDir } from "../ingest/snapshot.js";
 import { hookFailed, runUserHooks } from "../ingest/user-hooks.js";
 import type { UserHookResult } from "../ingest/user-hooks.js";
 import { validateIngest } from "../ingest/validate.js";
@@ -38,14 +41,28 @@ function lintLine(f: LintFinding): string {
   return `lint ${findingLine(f)}`;
 }
 
-export const FINISH_CHECKS: readonly string[] = ["broken-link", "uncited-claim", "unlogged-change"];
-export const finishLintHook: LintHook = async ({ paths, changed }) => {
-  if (changed.length === 0) return [];
+async function reportTokens(paths: ResolvedPaths, id: string, config: WikeeperConfig): Promise<IngestReport["tokens"]> {
+  const live = await measureWiki(paths);
+  const snap = await readSnapshot(paths, id);
+  const before =
+    snap === null ? null : (await measureWiki({ ...paths, pagesDir: path.join(snapshotDir(paths, id), "pages") })).total;
+  const top = live.pages[0];
+  return {
+    wiki: live.total,
+    change: before === null ? null : live.total - before,
+    largest: top === undefined ? null : { ...top, level: levelOf(top.tokens, config.tokens.page) },
+  };
+}
+
+export const FINISH_CHECKS: readonly string[] = ["broken-link", "uncited-claim", "unlogged-change", "oversized-page"];
+export const finishLintHook: LintHook = async ({ paths, changed, archiveChanged = [] }) => {
+  if (changed.length === 0 && archiveChanged.length === 0) return [];
   const { config } = await loadConfig(paths.root);
   const pages = await loadPages(paths.pagesDir);
+  const archivePages = await loadPages(paths.archiveDir);
   const log = (await readLogEvents(paths)).events;
   return runLint(
-    { paths, config, pages, kb: null, log, now: new Date(), only: changed },
+    { paths, config, pages, archivePages, kb: null, log, now: new Date(), only: changed, onlyArchive: archiveChanged },
     { scope: "pages", checks: [...FINISH_CHECKS] },
   );
 };
@@ -101,6 +118,7 @@ export function createIngestFinishCommand(deps: { now?: () => Date } = {}): Inge
           if (prior.length > 0) {
             const idx = await writeIndex(paths);
             await regenerateLogView(paths);
+            const tokens = await reportTokens(paths, id, config);
             await removeSnapshot(paths, id);
             await releaseLock(paths, id);
             const ev = prior[0]!.event as IngestLogEvent;
@@ -115,12 +133,14 @@ export function createIngestFinishCommand(deps: { now?: () => Date } = {}): Inge
               created: ev.created,
               updated: ev.updated,
               deleted: ev.deleted,
+              archived: { facts: 0, pages: 0 },
               contradictions: ev.contradictions,
               rule_suggestions: ev.rule_suggestions,
               log_file: prior[0]!.file,
               index_changed: idx.changed,
               hooks: [],
               lint: [],
+              tokens,
             };
             emitResult(ctx, {
               command: "ingest finish",
@@ -164,13 +184,25 @@ export function createIngestFinishCommand(deps: { now?: () => Date } = {}): Inge
               const byPath = new Map<string, string[]>();
               for (const d of v.dropped) byPath.set(d.path, [...(byPath.get(d.path) ?? []), `"${d.line}"`]);
               const groups = [...byPath].map(([p, ls]) => `${p} (${ls.join(", ")})`).join(", ");
-              parts.push(`fact lines dropped (a replaced fact stays in the list): ${groups}`);
+              parts.push(
+                `fact lines dropped (a replaced fact stays in the list; a clean-up moves it unchanged to archive/<same path>): ${groups}`,
+              );
+            }
+            if (v.archived_dropped.length > 0) {
+              const byPath = new Map<string, string[]>();
+              for (const d of v.archived_dropped) {
+                byPath.set(d.path, [...(byPath.get(d.path) ?? []), ...(d.line === "" ? [] : [`"${d.line}"`])]);
+              }
+              const groups = [...byPath]
+                .map(([p, ls]) => `archive/${p} (${ls.length === 0 ? "page deleted" : ls.join(", ")})`)
+                .join(", ");
+              parts.push(`archived fact lines dropped (no line leaves archive/): ${groups}`);
             }
             throw new WikeeperError(
               ExitCode.ERROR,
               "validation_failed",
               `finish refused for ${id}: ${parts.join("; ")}. Fix them and rerun wikeeper ingest finish ${id}, or run wikeeper ingest abort ${id}`,
-              { uncited: v.uncited, outside: v.outside, invalid: v.invalid, dropped: v.dropped },
+              { uncited: v.uncited, outside: v.outside, invalid: v.invalid, dropped: v.dropped, archived_dropped: v.archived_dropped },
             );
           }
 
@@ -188,6 +220,12 @@ export function createIngestFinishCommand(deps: { now?: () => Date } = {}): Inge
             pageHashes[rel] = pageHash(text);
             changedPages.push(parsePage(text, rel));
           }
+          const archiveChanged = [...(diff.archive?.created ?? []), ...(diff.archive?.updated ?? [])].sort(compareCodeUnits);
+          const archiveHashes: Record<string, string> = {};
+          for (const rel of archiveChanged) {
+            if (!rel.endsWith(".md")) continue;
+            archiveHashes[rel] = pageHash(await readFile(path.join(paths.archiveDir, ...rel.split("/")), "utf8"));
+          }
           const contradictions = countContradictions(changedPages, id);
           const logFile = await writeLogEvent(paths, {
             type: "ingest",
@@ -203,6 +241,7 @@ export function createIngestFinishCommand(deps: { now?: () => Date } = {}): Inge
             contradictions,
             rule_suggestions: facts.uncovered?.length ?? 0,
             page_hashes: pageHashes,
+            ...(Object.keys(archiveHashes).length > 0 ? { archive_hashes: archiveHashes } : {}),
           });
           await regenerateLogView(paths);
 
@@ -230,12 +269,14 @@ export function createIngestFinishCommand(deps: { now?: () => Date } = {}): Inge
               paths,
               sourceId: id,
               changed: [...diff.created, ...diff.updated].sort(compareCodeUnits),
+              archiveChanged,
             });
           } catch (err) {
             warnings.push(`lint hook failed: ${msg(err)}`);
           }
           for (const f of lint) warnings.push(lintLine(f));
 
+          const tokens = await reportTokens(paths, id, config);
           await removeSnapshot(paths, id);
           await releaseLock(paths, id);
 
@@ -250,12 +291,14 @@ export function createIngestFinishCommand(deps: { now?: () => Date } = {}): Inge
             created: diff.created,
             updated: diff.updated,
             deleted: diff.deleted,
+            archived: v.archived,
             contradictions,
             rule_suggestions: facts.uncovered?.length ?? 0,
             log_file: logFile,
             index_changed: idx.changed,
             hooks,
             lint,
+            tokens,
           };
           emitResult(ctx, { command: "ingest finish", data: report, warnings, message: formatReport(report) });
         });

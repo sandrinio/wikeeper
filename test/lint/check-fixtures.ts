@@ -49,13 +49,14 @@ interface PagesOptions {
   pages: Record<string, string>;
   index?: "built" | "stale" | "missing";
   log?: "hashes" | "none";
+  config?: WikeeperConfig;
 }
 
 /** Writes the pages (and index.md, ingest log event) to a temp root and loads them like the CLI does. */
 async function pagesContext(opts: PagesOptions): Promise<LintContext> {
   const root = await mkdtemp(path.join(os.tmpdir(), "wk-lint-fx-"));
   roots.push(root);
-  const config: WikeeperConfig = DEFAULT_CONFIG;
+  const config: WikeeperConfig = opts.config ?? DEFAULT_CONFIG;
   const paths = resolvePaths(root, config);
   await mkdir(paths.pagesDir, { recursive: true });
   for (const [rel, text] of Object.entries(opts.pages)) {
@@ -136,6 +137,10 @@ export const LINT_FIXTURES: Record<string, LintFixture> = {
   "orphan-page": pageFixture({ pages: { ...cleanPages(), [`sources/${SRC}.md`]: `# ${SRC}\n\nnote:: none\n` } }),
   "index-drift": pageFixture({ pages: cleanPages(), index: "stale" }),
   "unlogged-change": pageFixture({ pages: cleanPages(), log: "none" }),
+  "oversized-page": pageFixture({
+    pages: cleanPages(),
+    config: { ...DEFAULT_CONFIG, tokens: { ...DEFAULT_CONFIG.tokens, page: { yellow: 10, red: 20 } } },
+  }),
   "stale-fact": pageFixture({
     pages: { ...cleanPages(), "atlas.md": `# Atlas\n\nstatus:: Open\n\n## Facts\n\n- 2026-10-01 · decided · Plan agreed. [[${SRC}]]\n` },
   }),

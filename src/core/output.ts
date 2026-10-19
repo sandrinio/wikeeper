@@ -42,7 +42,8 @@ interface ProgramState {
 }
 const states = new WeakMap<Command, ProgramState>();
 
-function rootOf(command: Command): Command {
+/** The program a (sub)command belongs to. */
+export function rootOf(command: Command): Command {
   let c = command;
   while (c.parent) c = c.parent;
   return c;

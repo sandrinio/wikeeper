@@ -13,7 +13,7 @@ An npm package that installs a Karpathy-style LLM wiki into any repository. The 
 
 ## 2. Principles
 
-1. **The agent thinks, the CLI enforces.** The CLI is deterministic: scaffolding, source registration, hashing, permission checks, diffing, index/log maintenance, lint, search. It makes no LLM calls and needs no API keys. Reading, judging and writing are done by the user's own agent. **[Proposed]**
+1. **The agent thinks, the CLI enforces.** The CLI is deterministic: scaffolding, source registration, hashing, permission checks, diffing, index/log maintenance, lint, search. It makes no LLM calls and needs no API keys. It reaches the network only for `read` of a URL and for the daily version check (§3), and runs npm only in `upgrade`. Reading, judging and writing are done by the user's own agent. **[Proposed]**
 2. **Instructions are advice; the CLI is the gate.** Anything that must hold — permissions, accurate ingest reports — is enforced by a CLI command, not by prompt text. **[Proposed]**
 3. **Every fact is traceable** to an immutable raw source, chat excerpts included. **[Proposed]**
 4. **The user owns the knowledge.** `update` may replace package-owned files; it never touches user-owned files. `remove` never deletes knowledge. **[Proposed]**
@@ -24,7 +24,12 @@ An npm package that installs a Karpathy-style LLM wiki into any repository. The 
 
 - Published to npm as **`wikeeper`** (binary `wikeeper`), MIT licence, public repo `github.com/sandrinio/wikeeper`. **[Agreed]**
 - Everything the agent needs — instructions, profiles, templates, commands, scripts — ships with the package and is scaffolded under `.wiki/`. **[Agreed]** Exception: the agent wiring files in §6.3, which must sit where each agent looks for them. **[Proposed]**
-- Lifecycle: `init`, `update`, `remove`. **[Agreed]**
+- Lifecycle: `init`, `update`, `upgrade`, `remove`. **[Agreed]**
+- Version check and upgrade **[Built — SPRINT-04]**:
+  - *Check.* Before each `ingest` subcommand, at most once a day per project, one GET goes to `https://registry.npmjs.org/wikeeper/latest` (or to the registry in `npm_config_registry`). The request sends nothing about the wiki: no file names, pages or settings. It times out after 1.5 s and reads at most 64 KB. The answer, success or failure, is saved for 24 hours in `.wiki/.cache/update-check.json`, in the wiki's git-ignored cache folder. A failed check is silent and never fails, blocks or changes a command.
+  - *Who shows it.* `ingest plan` and `ingest start` add the warning `wikeeper <latest> is available (installed <installed>): run wikeeper upgrade`. `status` (`version.latest` and its `version:` line) and `doctor` (the `update-available` check) report the saved answer and never use the network. Without the network, both also report when the manifest's `package_version` differs from the installed version (`version.files`, the `version-mismatch` check): `run wikeeper update` when the files are older, `run wikeeper upgrade` when the installed version is older.
+  - *Off switches.* `update_check: false` in `.wiki/config.yml`, or `WIKEEPER_NO_UPDATE_CHECK`, `NO_UPDATE_NOTIFIER` or `CI` in the environment, turn the check off. `status` and `doctor` then hide a newer version but still report files from another version.
+  - *`upgrade`.* It installs the newest version the way the running copy was installed: `npm install -g` for a global npm install; `npm install --save-dev`, `--save-prod` or `--save-optional` in the project for a project dependency, as `package.json` lists it; and no install for npx, whose pinned hooks the new version's `update` re-pins. It then runs the new version's `update` in a child process, or in-process when nothing is newer but the files are older. pnpm, yarn and bun installs, source checkouts and linked folders get the command to run by hand, and so does an npm install that needs `sudo`: `upgrade` never runs `sudo`. `upgrade --check` shows what it would run and changes nothing. The agent runs `upgrade` and `update` only after the user agrees (D-38).
 
 ## 4. Directory layout
 
@@ -44,12 +49,13 @@ An npm package that installs a Karpathy-style LLM wiki into any repository. The 
 ├── index.md                   # CLI-generated catalog of pages (deterministic; rebuildable)
 ├── log/                       # one file per event — merge-safe; `log.md` is a generated, gitignored view
 ├── raw/                       # immutable: <id>.<ext> (original), <id>.meta.json, <id>.facts.json, <id>.md (optional)
+├── archive/                   # facts moved out of pages/ in a clean-up; same paths and page format (§8)
 └── pages/                     # agent-written knowledge; page names come from kb_instructions.md
     ├── <pages named in kb_instructions.md, Entities>
     └── sources/<source-id>.md   # the only page the package names (one per ingest)
 ```
 
-**[Agreed]** Obsidian (Karpathy's suggested viewer) ignores dot-folders, so `.wiki/pages/` is invisible to it. A `content_dir` config key moves `pages/`, `raw/`, `index.md` and `log/` to a visible folder; the default stays `.wiki/`.
+**[Agreed]** Obsidian (Karpathy's suggested viewer) ignores dot-folders, so `.wiki/pages/` is invisible to it. A `content_dir` config key moves `archive/`, `pages/`, `raw/`, `index.md` and `log/` to a visible folder; the default stays `.wiki/`.
 
 ### 4.1 Ownership matrix **[Proposed]**
 
@@ -63,7 +69,7 @@ An npm package that installs a Karpathy-style LLM wiki into any repository. The 
 | `me.md` (gitignored) | user | written during onboarding | never | keep | delete |
 | `project.md` | user | written during setup | never | keep | delete |
 | `index.md`, `log/` | user (CLI-maintained) | create if missing | never | keep | delete |
-| `raw/**`, `pages/**` | user | create dirs | never | keep | delete |
+| `raw/**`, `pages/**`, `archive/**` | user | create dirs | never | keep | delete |
 
 `--purge` requires typed confirmation. New config options introduced by `update` get defaults in code, so `config.yml` never needs rewriting.
 
@@ -253,8 +259,8 @@ The block is a short pointer that rarely changes; the real protocol lives in `sy
 ```md
 <!-- WIKI:START v1 — managed by wikeeper -->
 ## Project Wiki
-Managed by wikeeper — edit outside this block only.
-This repo has a knowledge wiki in `.wiki/`; its content folder is set by `content_dir` in `.wiki/config.yml`.
+Managed by wikeeper — edit outside this block only. Wiki: `.wiki/`, content folder `content_dir` in `.wiki/config.yml`.
+Once set up, start each session with `wikeeper statusline` and write its line before any other step or text; on 🔴 follow WIKI.md "Lint and status".
 If `.wiki/config.yml` has no `setup_completed_at`, follow `.wiki/system/SETUP.md` first.
 Otherwise read `.wiki/system/WIKI.md` before ingesting, searching or editing anything in the wiki (skills: `wiki-ingest`, `wiki-search`).
 At the start of every session read `.wiki/me.md` and `.wiki/project.md`; if `.wiki/me.md` is missing, first onboard the user with `.wiki/system/ONBOARDING.md`.
@@ -324,20 +330,21 @@ wikeeper ingest facts <id> < facts.json
                                 validate against the facts schema; store raw/<id>.facts.json
 
 WRITE — writer agent, one source at a time (§7.4)
-wikeeper ingest apply <id>      take lock, snapshot pages, print the brief's ingest line
+wikeeper ingest apply <id>      take lock, snapshot pages and archive, print the brief's ingest line
                                 + facts (the writer's task carries the rest of the brief)
   … writer updates pages …
 wikeeper ingest finish <id>
   POST-HOOK
   1. diff pages against snapshot → created / updated / deleted
   2. validate: every changed page cites the source id and has valid frontmatter;
-     no writes outside pages/
+     no writes outside pages/ and archive/; conservation: no fact line leaves
+     pages/ without reaching archive/ (or another page), none leaves archive/
   3. regenerate index.md; write a log entry (log/<timestamp>-<id>.md)
   4. run user post_ingest hooks (e.g. git commit)
   5. lint
   6. print metadata report, release lock
 
-wikeeper ingest abort <id>      restore pages from snapshot, release lock;
+wikeeper ingest abort <id>      restore pages and archive from snapshot, release lock;
                                 --drop also deletes the registered source
 ```
 
@@ -422,7 +429,7 @@ Generated by the CLI from the diff, so it reflects what actually changed rather 
 
 ### 7.7 Reading helper — `wikeeper read` **[Built — SPRINT-03]**
 
-Conversion is not part of ingest: the CLI stores originals as they are. `wikeeper read <file|url>` prints markdown for formats the agent can't read well itself (`--out <file>` writes it to a file for `ingest start --text-file`; `--json` adds title, author, date, format and warning codes). `read` is the only command that uses the network.
+Conversion is not part of ingest: the CLI stores originals as they are. `wikeeper read <file|url>` prints markdown for formats the agent can't read well itself (`--out <file>` writes it to a file for `ingest start --text-file`; `--json` adds title, author, date, format and warning codes). `read` and the daily version check (§3) are wikeeper's only network uses.
 
 | Input | Libraries |
 |---|---|
@@ -438,10 +445,26 @@ Limits, handed back to the agent:
 - **Pages needing JavaScript or a login** — the agent uses its own browser and passes the text on stdin.
 - **`.doc`, `.pptx`, `.xlsx`** — not supported; the `unsupported` error (exit 2) says what to ask for instead (a .docx, a PDF export, a CSV export).
 
+### 7.8 Token gauges **[Built — SPRINT-04]**
+
+Every size the user sees is an estimate in tokens: how much of a context a document or a page fills.
+
+- **What is measured.** A source's text, each page, and the wiki total, with `index.md` reported beside it. Not measured: what the agent loads or spends in a session.
+- **Method.** SPIKE-003's weighted character count, within ±15% of Claude Opus 5.5's count. Claude counts the most of the measured models; GPT-6 counts 0.46–0.75× as many; Gemini was not measured. A PDF with no text layer is counted at about 1,600 tokens a page and marked rough. Every count is printed with `≈`.
+- **Levels.** A source or a page is 🟢, 🟡 or 🔴 against two limits. The wiki total has no level.
+- **Defaults.** Page 4k (yellow) and 10k (red); source 20k and 60k; `confirm_at: yellow`. They are sized for a usable window of about 250k tokens, the smallest among the supported agents.
+- **Size approval.** `wikeeper ingest start` exits 3 (`needs_approval`) with `cause` `permission`, `size` or `both` when a source's estimate reaches the level `confirm_at` names (`tokens.source.confirm_at`), in every permission mode. A denied source stays denied.
+- **Plan estimates.** `wikeeper ingest plan` shows each file's estimate and the total, and marks rough ones.
+- **Where sizes show.** `read`, `ingest start`, `ingest plan`, the `finish` report, search `page_tokens`, `status` (`tokens`), `statusline` and the `oversized-page` warning.
+- **Limits.** `wikeeper config get [key]`, `wikeeper config set <key> <value>` and `wikeeper config unset <key>` read and change `tokens.*` in `.wiki/config.yml`.
+- **Status line.** `wikeeper statusline` prints one line; `wikeeper statusline --install` adds it to Claude Code's status line in `.claude/settings.local.json`, and refuses to replace a status line that is already set.
+- **Agent instructions.** The pointer block opens each session with the size line (R1); WIKI.md tells the agent to ask with the estimate before a large document is read, to offer a helper or selected parts for a 🔴 source, to tell the user once per session when a page turns 🔴, and to change a limit only when the user asks.
+
 ## 8. Knowledge model **[Proposed]**
 
 - **Pages are organized by entity** (person, project, risk, decision), not by source, so knowledge from different sources accumulates in one place.
-- **Two layers per page.** A *Summary* compiled from the facts and rewritten on every ingest; below it, *Facts* — each dated, marked decided or tentative, and cited. Replaced facts are kept, not deleted, so "what changed since…" is answerable.
+- **Two layers per page.** A *Summary* compiled from the facts and rewritten on every ingest; below it, *Facts* — each dated, marked decided or tentative, and cited. Replaced facts stay until a clean-up the user asks for moves them to `archive/`, so "what changed since…" is answerable.
+- **Archive.** `archive/` holds facts a clean-up moved: same paths and page format as `pages/`. A dropped fact line must be in `archive/` at the same path, a deleted page's lines must be somewhere in `pages/` or `archive/`, and no line leaves `archive/`. The index, default search and page lint skip it; `search --archive`, `--since` and `--entity` include it; `status` lists clean-up candidates. The agent judges what is outdated, the CLI checks that nothing is lost.
 - **Aliases** in frontmatter ("PL", "the lead", "Product L.") so one person or project never becomes three pages.
 - **Typed links** (`owner:: [[Product Lead]]`, `risks:: [[vendor-delay]]`) the CLI can parse, enabling structured search.
 - **Source pages** (`sources/<id>.md`) answer "what did this document change?"
@@ -466,14 +489,17 @@ Each proposal is a small diff the user approves. Approved → rule version bumpe
 |---|---|---|
 | `init [--profile management] [--agents …]` | scaffold `.wiki/`, inject agent blocks | Agreed |
 | `update` | replace package-owned files | Agreed |
-| `remove [--purge]` | remove tooling; `--purge` also deletes knowledge | Agreed |
+| `upgrade [--check]` | install the newest wikeeper the way it was installed, then `update` this project (§3) | Built (SPRINT-04) |
+| `remove [--purge]` | remove tooling and keep knowledge, `archive/` included; `--purge` also deletes it | Agreed |
 | `ingest start / plan / facts / apply / finish / abort` | gated, three-phase ingest (§7.3) | Agreed (hooks, phases) |
-| `read <file\|url>` | markdown for formats the agent can't read itself (§7.7) | Built (SPRINT-03) |
-| `status` | open ingest and stale lock, unfinished sources, re-ingest candidates (outdated rule versions), pending rule suggestions, misses | Built (SPRINT-03) |
-| `lint [--rules]` | broken links, uncited claims, orphan pages, index drift, unlogged changes, stale facts; with `--rules`, rule problems (§9) | Built (SPRINT-03) |
+| `read <file\|url>` | markdown for formats the agent can't read itself (§7.7); reports the text's token estimate and level (§7.8) | Built (SPRINT-03) |
+| `status` | open ingest and stale lock, unfinished sources, re-ingest candidates (outdated rule versions), pending rule suggestions, misses, and the `tokens` section (§7.8), versions (installed, newer on npm, the project's files) | Built (SPRINT-03) |
+| `lint [--rules]` | broken links, uncited claims, orphan pages, index drift, unlogged changes, stale facts, oversized pages; with `--rules`, rule problems (§9) | Built (SPRINT-03) |
 | `rules record / list` | remember the user's decisions on proposed rule changes (§9) | Built (SPRINT-03) |
-| `search <query>` | **wiki_search** — query the wiki; also used by ingest to find pages to update; `--entity`, `--type`, `--where`, `--status`, `--mark`, `--since`, `--no-miss`, `--misses` | Built |
-| `doctor` | agent wiring, duplicate blocks, config validity, setup files (`me.md` ignored and not committed, `project.md` present and not ignored), `kb_instructions.md` parse | Built |
+| `search <query>` | **wiki_search** — query the wiki; also used by ingest to find pages to update; `--entity`, `--type`, `--where`, `--status`, `--mark`, `--since`, `--archive`, `--no-miss`, `--misses` | Built |
+| `config get [key] / set <key> <value> / unset <key>` | read and change the `tokens` limits in `.wiki/config.yml` (§7.8) | Built (SPRINT-04) |
+| `statusline [--install]` | one line with the wiki's size; `--install` adds it to Claude Code's status line (§7.8) | Built (SPRINT-04) |
+| `doctor` | agent wiring, duplicate blocks, config validity, setup files (`me.md` ignored and not committed, `project.md` present and not ignored), `kb_instructions.md` parse, version checks | Built |
 | `setup --done` | mark setup complete | Built |
 
 Every command supports `--json`: the agent is the main consumer. **[Built]**
@@ -485,9 +511,19 @@ Every command supports `--json`: the agent is the main consumer. **[Built]**
 profile: management
 setup_completed_at: null
 agents: [claude, codex, antigravity]
-content_dir: .wiki              # move pages/, raw/, index.md, log/ to a visible folder (§4)
+content_dir: .wiki              # move archive/, pages/, raw/, index.md, log/ to a visible folder (§4)
 private: []                     # pages kept out of git, e.g. [people.md] (§5.3)
 enforce: false                  # harness hooks + permission rules (§6.6)
+update_check: true              # ingest commands ask npm once a day for a newer version (§3)
+
+tokens:                        # estimated-token limits (§7.8); 20k or 20000
+  page:
+    yellow: 4k                 # a page at or above this is 🟡
+    red: 10k                   # a page at or above this is 🔴; `oversized-page` warns
+  source:
+    yellow: 20k                # a source at or above this is 🟡
+    red: 60k                   # a source at or above this is 🔴
+    confirm_at: yellow         # yellow | red | never: the level at which `ingest start` asks first
 
 ingest:
   permission: ask              # ai | ask | whitelist
@@ -548,3 +584,5 @@ None. All questions were resolved on 2026-10-16 (D-20, D-21, D-24 – D-31).
 | D-34 | No fixed pages: the package names only `sources/<id>.md`; questions, entity types and pages come from the setup conversation and the first sources. |
 | D-35 | `project.md` is a committed per-repo brief of stable facts, written during setup and read at every session start. |
 | D-36 | `ONBOARDING.md` runs once per person and writes their gitignored `me.md`; the pointer block sends the agent there when `me.md` is missing. |
+| D-37 | Outdated facts move from pages/ to archive/ only in a clean-up the user asks for. `ingest finish` refuses a fact line that leaves pages/ without reaching archive/, and any line that leaves archive/. |
+| D-38 | Ingest commands check npm for a newer wikeeper at most once a day, opt-out and never failing a command; `wikeeper upgrade` runs npm only when the user asks, never with `sudo`, and then runs the new version's `update`. |

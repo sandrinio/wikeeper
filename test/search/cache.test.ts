@@ -93,4 +93,39 @@ describe("search cache", () => {
     expect(n).toBe(0);
     await expect(readFile(searchCacheFile(paths))).rejects.toThrow();
   });
+
+  it("covers the archive tree: archive_files in the key, a change in either tree rebuilds once", async () => {
+    const paths = await wiki({ "a.md": page("Atlas", "atlas rocket") });
+    await mkdir(paths.archiveDir, { recursive: true });
+    await writeFile(path.join(paths.archiveDir, "a.md"), page("Atlas", "old launch"));
+    let n = 0;
+    await loadSearchCorpus(paths, { onRebuild: () => n++ });
+    const cache = JSON.parse(await readFile(searchCacheFile(paths), "utf8"));
+    expect(cache.files.map((f: { path: string }) => f.path)).toEqual(["a.md"]);
+    expect(cache.archive_files.map((f: { path: string }) => f.path)).toEqual(["a.md"]);
+    await loadSearchCorpus(paths, { onRebuild: () => n++ });
+    expect(n).toBe(1);
+    await writeFile(path.join(paths.archiveDir, "a.md"), page("Atlas", "older launch"));
+    await loadSearchCorpus(paths, { onRebuild: () => n++ });
+    expect(n).toBe(2);
+    await writeFile(path.join(paths.archiveDir, "b.md"), page("Beta", "beta"));
+    await loadSearchCorpus(paths, { onRebuild: () => n++ });
+    expect(n).toBe(3);
+  });
+
+  it("rebuilds a cache that has no archive_files (written before the archive existed)", async () => {
+    const paths = await wiki({ "a.md": page("Atlas", "atlas rocket") });
+    let n = 0;
+    await loadSearchCorpus(paths, { onRebuild: () => n++ });
+    const file = searchCacheFile(paths);
+    const cache = JSON.parse(await readFile(file, "utf8"));
+    delete cache.archive_files;
+    await writeFile(file, JSON.stringify(cache));
+    await loadSearchCorpus(paths, { onRebuild: () => n++ });
+    expect(n).toBe(2);
+    cache.archive_files = [{ path: "x.md", sha256: "0" }];
+    await writeFile(file, JSON.stringify(cache));
+    await loadSearchCorpus(paths, { onRebuild: () => n++ });
+    expect(n).toBe(3);
+  });
 });

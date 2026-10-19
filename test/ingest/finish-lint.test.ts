@@ -7,7 +7,7 @@ import { runLintHook } from "../../src/ingest/lint-hook.js";
 
 describe("finish lint hook (STORY-005-03 R5)", () => {
   it("FINISH_CHECKS names existing page checks and not stale-fact", () => {
-    expect([...FINISH_CHECKS]).toEqual(["broken-link", "uncited-claim", "unlogged-change"]);
+    expect([...FINISH_CHECKS]).toEqual(["broken-link", "uncited-claim", "unlogged-change", "oversized-page"]);
     const ids = PAGE_CHECKS.map((c) => c.id);
     for (const id of FINISH_CHECKS) expect(ids).toContain(id);
   });

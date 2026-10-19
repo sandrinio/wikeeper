@@ -213,6 +213,11 @@ const BLOCK_LINES = [
   "Package-owned, never edit: `.wiki/system/`, the wiki skills, the wiki sub-agents and wikeeper's entries in agent settings files.",
   "<!-- WIKI:END -->",
 ];
+// SPRINT-04 (STORY-007-07 R1, reworded by BUG-003 Q1 and BUG-004 Q6): only line 4 differs from the SPRINT-03 block above
+const LINE_4_SPRINT_04 =
+  "Once set up, start each session with `wikeeper statusline` and write its line before any other step or text; on 🔴 follow WIKI.md \"Lint and status\".";
+const LINE_3_SPRINT_04 =
+  "Managed by wikeeper — edit outside this block only. Wiki: `.wiki/`, content folder `content_dir` in `.wiki/config.yml`.";
 const PINS = [
   "4f32351f65f803b265a2bbca697724e6f06738c71680622e8267efc23078fb1b",
   "9bc080837857cacb59c42db9907fad82a148e1c000973d5f08792a7d62295d66",
@@ -456,11 +461,12 @@ describe("STORY-006-12 S4: examples and templates keep their shape", () => {
 
   it("templates/agent-block.md is exactly R14's 14 lines", async () => {
     const raw = await readFile(path.join(TPL, "agent-block.md"), "utf8");
-    expect(raw).toBe(BLOCK_LINES.join("\n") + "\n");
-    for (const l of BLOCK_LINES) expect(l.length).toBeLessThanOrEqual(200);
+    const sprint04Lines = BLOCK_LINES.map((l, i) => (i === 2 ? LINE_3_SPRINT_04 : i === 3 ? LINE_4_SPRINT_04 : l));
+    expect(raw).toBe(sprint04Lines.join("\n") + "\n");
+    for (const l of sprint04Lines) expect(l.length).toBeLessThanOrEqual(200);
     expect(BLOCK_LINES.length).toBe(14);
     expect(raw.split("\n")[0]).toBe("<!-- WIKI:START v1 — managed by wikeeper -->");
-    expect(raw).not.toContain("wikeeper status");
+    expect(raw).not.toMatch(/wikeeper status(?!line)/);
     expect(sha(BLOCK_LINES.join("\n"))).toBe(PINS[2]);
   });
 

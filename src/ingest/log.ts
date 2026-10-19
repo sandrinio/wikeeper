@@ -24,6 +24,7 @@ export interface IngestLogEvent {
   contradictions: number;
   rule_suggestions: number;
   page_hashes?: Record<string, string>; // created ∪ updated .md pages, keys relative to pages/
+  archive_hashes?: Record<string, string>; // created ∪ updated .md archive files, keys relative to archive/
 }
 export interface AbortLogEvent {
   type: "abort";
@@ -31,6 +32,7 @@ export interface AbortLogEvent {
   source_id: string;
   dropped: boolean;
   restored: string[]; // paths relative to pages/, POSIX
+  archive_restored?: string[]; // archive files restored or removed, relative to archive/
 }
 export interface MissLogEvent {
   type: "miss";
@@ -63,9 +65,9 @@ export interface LogReadResult {
 const KEY_ORDER: Record<string, readonly string[]> = {
   ingest: [
     "type", "at", "source_id", "kind", "rule_version", "permission", "origin",
-    "created", "updated", "deleted", "contradictions", "rule_suggestions", "page_hashes",
+    "created", "updated", "deleted", "contradictions", "rule_suggestions", "page_hashes", "archive_hashes",
   ],
-  abort: ["type", "at", "source_id", "dropped", "restored"],
+  abort: ["type", "at", "source_id", "dropped", "restored", "archive_restored"],
   miss: ["type", "at", "query", "filters"],
 };
 
@@ -100,11 +102,13 @@ function validate(event: LogEvent): void {
       need(isNum(e["contradictions"]), "contradictions");
       need(isNum(e["rule_suggestions"]), "rule_suggestions");
       need(e["page_hashes"] === undefined || isPageHashes(e["page_hashes"]), "page_hashes");
+      need(e["archive_hashes"] === undefined || isPageHashes(e["archive_hashes"]), "archive_hashes");
       break;
     case "abort":
       need(isStr(e["source_id"]), "source_id");
       need(typeof e["dropped"] === "boolean", "dropped");
       need(isStrArr(e["restored"]), "restored");
+      need(e["archive_restored"] === undefined || isStrArr(e["archive_restored"]), "archive_restored");
       break;
     case "miss":
       need(isStr(e["query"]), "query");

@@ -6,6 +6,70 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-19 · #qa #red-test #templates · A pointer-block line change also breaks phrase pins ("open each session", "before any text") and whole-line maps, not only the line constants: grep the phrases, then prove the re-scope set by applying the template edits to a temp copy of the worktree and running the full suite there.
+2026-10-19 · #walkthrough #instructions · An agent told to show a command's output "before any text" still batches the command with others and narrates first; say when to write it ("start each session with X and write its line before any other step or text").
+2026-10-19 · #qa #red-test #planning · A plan's "old" pin value can be wrong (token-instructions R14(e) was 880e3e88 at base, the plan said a69f2714): re-scope a pinned hash by its content anchor, and derive the new value by applying the plan's edits to a temp copy of templates/ and hashing that.
+2026-10-19 · #red-test #templates #pointer-block · The raw sha256 of templates/agent-block.md is pinned in archive-instructions.red R11 (e), upgrade-instructions.red R2 and writing-and-answering-text.red R14: a pointer-block change re-scopes all three, plus any WIKI.md phrase a red row checks.
+2026-10-19 · #red-test #shipped-blocks · Plant old pointer blocks with SHIPPED_BLOCKS.find(by sha256), never by index: it also catches an entry edited in place instead of appended.
+2026-10-19 · #walkthrough #instructions · "Open each session with X" reads to the agent as "run X", not "show X": say where the output goes ("in your first reply"), and put a must-tell rule where a question-only session reads it.
+2026-10-18 · #red-test #docs #planning · A red row that pins a growing range (README's `D-01`–`D-NN`) breaks when a later story in the sprint adds an entry; pin "ends at NN or later" and drop any bare `D-NN` phrase that only the range contained, or plan the re-scope with the later story at Gate 1.
+2026-10-18 · #qa #cli #npx · npx cannot run a .tgz directly (`npx -y <tgz>` fails, permission denied); test an npx install with `npx -y --package=<tgz> -- wikeeper …`.
+2026-10-18 · #windows #cli · Node >= 24 prints DEP0190 when spawn gets an args array with shell: true; join the checked constant args into one command line and spawn it with no args array.
+2026-10-18 · #cli #contract · Every runner call after an install step needs its own catch: an uncaught rejection surfaces as error.code = err.code (e.g. ENOENT) with details null, outside the command's frozen error codes.
+2026-10-18 · #qa #scratch · A scratch vitest or npm probe needs its own folder with its own package.json and cacheDir: the shared scratchpad can hold another agent's package.json and a dangling node_modules link.
+2026-10-18 · #test-harness #hook · runIngestUpdateCheck(new Command()) throws at getOutputContext (program IO not bound) and its own catch swallows it, so the test passes without testing anything; test hooks through runCli/createProgram (runIngest in the harness) with io.cwd.
+2026-10-18 · #red-test #search #archive · An archived search hit keeps path without archive/ and carries file .wiki/archive/… and archived: true (K11): match archived hits on file or archived, never on an archive/ path.
+2026-10-18 · #git #merge #contract · git can merge two pushes into the same array (formatReport) without a conflict but in the wrong order; after a re-sync, run the order test (lines[i+1]) even when merge-tree is clean
+2026-10-18 · #pre-gate #red-test · the post-flight 'red modified after QA-Red' scan counts the QA-Red commit and the re-sync merge's red files; prove Developer edits with `git diff <qa-red-sha> HEAD` and `git diff sprint/S-NN HEAD` on each flagged file
+2026-10-18 · #qa #testbed · testbed beta.md has no status:: or frontmatter status, so the final_status manual check cannot list beta without adding one
+2026-10-18 · #qa #fixtures · A red file that shares one tokens.page.red: 100 config across size and final_status scenarios turns a long section-entity fixture into a size candidate too; give final_status rows a limit above the page's measured tokens
+2026-10-18 · #init #config #red-test · init writes the tokens block, so `config get` (from_default = key unset) never marks fresh-repo values as default
+2026-10-18 · #privacy #json · settingsError(json-merge.ts:23) puts V8's JSON.parse message in the error, and V8 quotes up to about 10 characters of the file for unexpected-token errors (e.g. '..."tusLine": ~/x.sh}" is not valid JSON'). Any 'never print settings content' rule needs that detail sanitised.
+2026-10-18 · #test-harness #stdin · To check that a bounded stdin read releases a real pipe, start the built CLI from a script with stdin=PIPE and never close it, then time the node process alone. Timing a shell pipeline like '(sleep N) | node ...' measures the sleep, not node.
+2026-10-18 · #test-harness · Don't hardcode compressed zip byte counts from fixtures in tests; derive them or re-measure when the fixture changes
+2026-10-18 · #qa #red-test #fixtures · a live row that opens with a text assertion cannot show its live logic is sound on baseline; smoke it once with the text asserts stubbed in a throwaway copy, then delete the copy
+2026-10-18 · #red-test #fixtures · a status fixture page is measured with the real estimateTokens; a source link costs ~15 tokens, so keep fixtures under tokens.page.red or give the row its own config
+2026-10-18 · #qa #red-test #lint · index-drift row for 'index without archived line' passes before the check counts the archive, so assert the drift warning (red) and pin the rebuild row as the other side
+2026-10-18 · #red-test #fixtures · size fixtures must be built with the real estimateTokens (sized), never a per-word constant guess; approx 12k measured 9.7k
+2026-10-18 · #qa #fixtures · Scratch dirs in the shared scratchpad collide with other agents; use a story-unique name (qa-<story>-copy), never tb
+2026-10-18 · #qa #red-test · config-command reds assert json.command and error.code per row; at baseline an unknown `config` subcommand exits 2 with command 'wikeeper', so exit code alone proves nothing
+2026-10-18 · #qa #test-harness #perf · With several worktree suites running (load avg ~50), 5 s timeouts hit git/spawn tests in random files and search p95 fails: rerun failures alone with --testTimeout=60000, run test:perf when load drops.
+2026-10-18 · #qa #red-test · a guard row that already passes at baseline (e.g. a rename accepted today) needs a new-field assertion like data.archived to be red
+2026-10-18 · #search #qa · a fact's text keeps its trailing [[src-…]] citation; human changes lines must strip it to match the Gherkin lines
+2026-10-18 · #search #fixtures · archive pages share path and entity key with live ones; every map and key set needs a tree prefix
+2026-10-18 · #qa #red-test #cli · remove --help wraps the --purge description; normalise whitespace before asserting help text
+2026-10-18 · #templates #coverage · DOCUMENTED_FORMS counts only code spans with "wikeeper <cmd> … --flag"; a bare `--flag` bullet never satisfies checkCoverage.
+2026-10-18 · #lint #finish · The finish lint hook runs before the snapshot and lock are removed: unlogged-change judges in snapshot mode during finish.
+2026-10-18 · #lint #only · oversized-page pre-filters on ctx.only itself; a new onlyArchive filter must leave `only` set for it.
+2026-10-18 · #vitest #config · vitest 5 reads vitest.config.* from its root only (no parent lookup): a worktree without the file runs without its test.env.
+2026-10-18 · #esm #cycle · doctor → update-check → read/url → ingest/report → doctor once report imports plural: never call an imported function at module top level there.
+2026-10-18 · #ux #doctor · A doctor message ending ": run …" plus a fix: line prints the step twice (decision 66); check every new doctor check.
+2026-10-18 · #red-test #ts · Call a widened factory through a cast or `as never` deps, so typecheck stays green at the QA-Red commit.
+2026-10-18 · #templates #walkthrough #update · A project reads its own .wiki/system/WIKI.md, which only update replaces: text about stale files reaches the agent one release late; test it with updated files and a hand-set manifest version.
+2026-10-18 · #contract #red-test · A story built on a text contract lacks parallel chains' code: merge the sprint branch before QA-Red when its red file imports their modules.
+2026-10-18 · #qa #red-test #ci · CI checks out at fetch depth 1, so a red test cannot git show <base>:path; pin LF-normalised sha256s in a named it().
+2026-10-18 · #docs #test-harness · architecture.md has '## ' lines inside ```md fences: a section splitter must skip fenced blocks.
+2026-10-18 · #readme #unicode · README emoji headings may carry U+FE0F and ranges use U+2013: write red literals with \u escapes.
+2026-10-18 · #red-test #test-harness · snapshotTree helpers must skip symlinks: init --agents claude links skills dirs, readFile gives EISDIR
+2026-10-18 · #qa #red-test #fixtures · Story 007-04 quotes fixture sizes (report docx document.xml 2841 B, article.html 1225 B) that differ from the repo (2851 B, 1237 B); compute expected figures from the fixture bytes, never hardcode them
+2026-10-18 · #red-test #contract · Red tests that size fixtures with estimateTokens fail on the C1 stub before reaching the code under test; the real estimator is only exercised after STORY-007-01 is merged in.
+2026-10-18 · #red-test #lint #test-harness · afterEach setLintHook(null) with no beforeEach restore makes finish lint warnings order-dependent
+2026-10-18 · #test-harness #git · macOS sed has no \n in replacements; use python for multi-line source edits
+2026-10-18 · #qa #red-test #templates · When a red test pins a shipped block, keep BLOCK_LINES and PINS as the old release and add a separate new-line constant for the re-scoped template compare
+2026-10-18 · #qa #test-harness #enforce · init does not create CLAUDE.md or AGENTS.md on its own: write a team file first when a test needs the pointer block
+2026-10-18 · #qa #red-test #contract · a literal dynamic import of a module that does not exist yet leaves one tsc TS2307 error on the red file until the Developer creates the module; expected, not a defect
+2026-10-18 · #test-harness #worktree · A worktree's node_modules holds only caches (packages resolve from the main checkout): run npm ci in it before tests that build with tsc or install the packed package.
+2026-10-18 · #red-test #ts · A red test importing a module its build branch lacks breaks typecheck there: reach unbuilt code through the CLI instead.
+2026-10-18 · #contract #qa · Never catch errors from a contract stub that 'never throws': the catch turns the stub into a passing test.
+2026-10-18 · #test-harness #macos · Build expected child paths from the paths as given, not from realpath (/var resolves to /private/var).
+2026-10-18 · #fs #tokens · Buffer.toString/readFile utf8 keep a BOM, TextDecoder drops it: every page token figure must decode the same way.
+2026-10-18 · #contract #config · C1 is type-only for config: DEFAULT_CONFIG.tokens is undefined at runtime until 007-01's schema lands; red on the base is not a wiring gap.
+2026-10-18 · #red-test #tokens · read --out appends "\n": take expected token counts from data.markdown, not the written file.
+2026-10-18 · #cli #stdin · Destroying stdin on a race timeout rejects the pending for-await read: catch the read promise before racing.
+2026-10-18 · #search #archive · A combined --archive index must renumber archive doc ids: wrapIndex looks hits up by docs[r.id] (src/search/engine.ts).
+2026-10-18 · #search #aliases · Backlinks for an archive-only entity need an empty page list, or a live page at the same path is taken for the entity's own.
+2026-10-18 · #contract #esm · check `src/core/version.ts` already exists before writing a new file; contract steps append, never overwrite
+2026-10-18 · #test-harness · setup-files.red S5 can time out at 5s under full-suite load; rerun before blaming a change
 2026-10-18 · #templates #qa · A story's red phrase breaks when a later story edits that sentence in place; pin only the part that survives.
 2026-10-18 · #ux #templates · Agent text for a failed command must cover every error code; 'otherwise try again later' strands the ones it forgot.
 2026-10-18 · #ux #wording · Story-drafted CLI messages drift: they quote commands and end in periods. Spec hints as `run wikeeper x`, lowercase, no period (docs/ux.md §3.2–3.3).

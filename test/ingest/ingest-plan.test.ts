@@ -40,7 +40,7 @@ describe("planDirectory", () => {
     const plan = await planDirectory(resolvePaths(root, config), config, path.join(root, "empty"), { kind: null });
     expect(plan.entries).toEqual([]);
     expect(plan.skipped).toEqual([]);
-    expect(plan.totals).toEqual({ new: 0, duplicate: 0, denied: 0, needs_approval: 0 });
+    expect(plan.totals).toEqual({ new: 0, duplicate: 0, denied: 0, needs_approval: 0, tokens: 0, tokens_rough: false, not_estimated: 0 });
   });
 
   it("does not apply the hidden rule to segments of the planned directory itself", async () => {

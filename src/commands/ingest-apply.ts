@@ -1,5 +1,5 @@
 // src/commands/ingest-apply.ts
-// `wikeeper ingest apply <id>`: open the write phase — take the lock, snapshot pages/, print the brief's ingest line and the facts.
+// `wikeeper ingest apply <id>`: open the write phase — take the lock, snapshot pages/ and archive/, print the brief's ingest line and the facts.
 import type { Command } from "commander";
 import { loadConfig } from "../core/config.js";
 import { ExitCode, WikeeperError } from "../core/exit-codes.js";
@@ -13,6 +13,7 @@ import type { LockInfo } from "../ingest/lock.js";
 import { readLogEvents } from "../ingest/log.js";
 import { readMeta } from "../ingest/registry.js";
 import { readSnapshot, removeSnapshot, snapshotDir, takeSnapshot } from "../ingest/snapshot.js";
+import type { SnapshotInfo } from "../ingest/snapshot.js";
 import type { IngestSubcommand } from "./ingest.js";
 
 export function buildBrief(id: string): string {
@@ -23,7 +24,7 @@ export interface ApplyData {
   source_id: string;
   already_applied: boolean;
   lock: LockInfo;
-  snapshot: { dir: string; pages: number } | null;
+  snapshot: { dir: string; pages: number; archive: number } | null;
   facts_file: string;
   facts: FactsFile;
   brief: string;
@@ -33,7 +34,7 @@ export const ingestApplyCommand: IngestSubcommand = {
   register(group: Command): void {
     group
       .command("apply")
-      .description("open the write phase for a source: take the lock, snapshot pages/, print the facts")
+      .description("open the write phase for a source: take the lock, snapshot pages/ and archive/, print the facts")
       .argument("<id>", "source id from wikeeper ingest start")
       .option("--force-unlock", "take over a stale lock held by another ingest")
       .action(async (id: string, opts: { forceUnlock?: boolean }, command: Command) => {
@@ -66,25 +67,30 @@ export const ingestApplyCommand: IngestSubcommand = {
         const warnings: string[] = [];
         let snapshot: ApplyData["snapshot"];
 
+        const summary = (snap: SnapshotInfo): ApplyData["snapshot"] => ({
+          dir: toPosixRelative(root, snapshotDir(paths, id)),
+          pages: Object.keys(snap.pages).length,
+          archive: Object.keys(snap.archive).length,
+        });
+
         if (got.already_held) {
           const snap = await readSnapshot(paths, id);
           if (snap === null) {
             snapshot = null;
             warnings.push(`snapshot missing; wikeeper ingest abort ${id} will not restore pages`);
           } else {
-            snapshot = { dir: toPosixRelative(root, snapshotDir(paths, id)), pages: Object.keys(snap.pages).length };
+            snapshot = summary(snap);
           }
         } else {
           try {
-            const snap = await takeSnapshot(paths, id, factsSha, now);
-            snapshot = { dir: toPosixRelative(root, snapshotDir(paths, id)), pages: Object.keys(snap.pages).length };
+            snapshot = summary(await takeSnapshot(paths, id, factsSha, now));
           } catch (err) {
             await releaseLock(paths, id);
             await removeSnapshot(paths, id);
             throw new WikeeperError(
               ExitCode.ERROR,
               "snapshot_failed",
-              `could not snapshot pages/: ${err instanceof Error ? err.message : String(err)}`,
+              `could not snapshot pages/ and archive/: ${err instanceof Error ? err.message : String(err)}`,
             );
           }
           if (got.replaced !== null) {

@@ -2,22 +2,21 @@
 // Contract C10 (owner STORY-004-02). Consumers write only at their own INSERTION POINT lines; the owner keeps
 // every anchor line exactly as written.
 import { access } from "node:fs/promises";
-import path from "node:path";
 import type { Command } from "commander";
 import { compareCodeUnits } from "../core/compare.js";
 import { loadConfig } from "../core/config.js";
 import { ExitCode, WikeeperError } from "../core/exit-codes.js";
 import { emitResult, getOutputContext } from "../core/output.js";
-import { findRepoRoot, resolvePaths, toPosixRelative } from "../core/paths.js";
+import { findRepoRoot, resolvePaths } from "../core/paths.js";
 import type { CommandModule } from "../program.js";
 import { readLogEvents } from "../ingest/log.js";
-import { resolveEntity, toEntityMatch } from "../search/aliases.js";
-import { factsSince, pagesChangedSince, parseSince } from "../search/since.js";
+import { archiveCounterpart, resolveEntity, toEntityMatch } from "../search/aliases.js";
+import { compareFactViews, factsSince, pagesChangedSince, parseSince } from "../search/since.js";
 import type { SinceBound } from "../search/since.js";
-import type { SinceChanges } from "../search/engine.js";
-import { buildBacklinks, normalizeName } from "../wiki/parse-page.js";
-import { EMPTY_FILTERS, hitSources, loadSearchCorpus, makeSnippet } from "../search/engine.js";
-import type { RankedHit, SearchData, SearchDeps, SearchHit, SearchRequest } from "../search/engine.js";
+import type { FactView, SinceChanges } from "../search/engine.js";
+import { CITATION_RE, buildBacklinks, normalizeName } from "../wiki/parse-page.js";
+import { EMPTY_FILTERS, hitFile, hitSources, loadSearchCorpus, makeSnippet } from "../search/engine.js";
+import type { RankedHit, SearchData, SearchDeps, SearchHitBase, SearchRequest } from "../search/engine.js";
 import type { Entity, Page } from "../wiki/parse-page.js";
 import { describeFilters, entityHit, hasFilters, markHits, matchesFilters, parseFilterValue, parseMark, parseWhere } from "../search/filters.js";
 import { plural } from "./doctor.js";
@@ -45,12 +44,22 @@ function where(path: string, section: string): string {
   return section === "" ? path : `${path} › ${section}`;
 }
 
+/** Trailing citation links are shown in `sources`, not in a changes line. */
+function withoutCitations(text: string): string {
+  let t = text.trimEnd();
+  for (;;) {
+    const m = /\s*\[\[([^\]|]+)(?:\|[^\]]*)?\]\]$/.exec(t);
+    if (m === null || !CITATION_RE.test(m[1]!.trim())) return t;
+    t = t.slice(0, m.index).trimEnd();
+  }
+}
+
 function renderChanges(c: SinceChanges): string {
   if (c.facts.length === 0 && c.pages.length === 0) return `no changes since ${c.since}`;
   const lines = [
     `changes since ${c.since}: ${plural(c.facts_total ?? c.facts.length, "fact")}, ${plural(c.pages_total ?? c.pages.length, "page change")}`,
   ];
-  for (const f of c.facts) lines.push(`- ${f.date} · ${f.status} · ${f.text} (${where(f.path, f.section)})`);
+  for (const f of c.facts) lines.push(`- ${f.date} · ${f.status} · ${withoutCitations(f.text)} (${where(f.path, f.section)}${f.archived ? ", archived" : ""})`);
   for (const p of c.pages) lines.push(`- ${p.change} ${p.path} · ${p.source_id ?? "no source"} · ${p.at}`);
   return lines.join("\n");
 }
@@ -59,12 +68,12 @@ function renderEntity(data: SearchData): string {
   const e = data.entity;
   if (e === null) return `no entity named "${data.entity_query ?? ""}"`;
   const lines = [
-    `${e.name}${e.type === null ? "" : ` (${e.type})`} · ${where(e.path, e.section)}${e.matched === "alias" ? ` · matched alias "${e.matched_alias ?? ""}"` : ""}`,
+    `${e.name}${e.type === null ? "" : ` (${e.type})`} · ${where(e.path, e.section)}${e.matched === "alias" ? ` · matched alias "${e.matched_alias ?? ""}"` : ""}${e.archived ? " · archived" : ""}`,
   ];
   if (e.aliases.length > 0) lines.push(`aliases: ${e.aliases.join(", ")}`);
   if (e.summary !== null && e.summary !== "") lines.push(`summary: ${e.summary}`);
   for (const t of e.typed_links) lines.push(`${t.key}:: ${t.value}`);
-  for (const f of e.facts) lines.push(`- ${f.date} · ${f.status} · ${f.text}`);
+  for (const f of e.facts) lines.push(`- ${f.date} · ${f.status} · ${f.text}${f.archived ? " (archived)" : ""}`);
   if (e.backlinks.length > 0) {
     lines.push(`linked from ${plural(e.backlinks.length, "place")}:`);
     for (const b of e.backlinks) lines.push(`  ${where(b.path, b.section)}:${b.line}  ${b.context}`);
@@ -143,35 +152,51 @@ export async function executeSearch(root: string, req: SearchRequest, deps: Sear
     throw new WikeeperError(ExitCode.ERROR, "not_initialised", "not initialised — run wikeeper init");
   }
   // 3. const corpus = await loadSearchCorpus(paths, { useCache: deps.useCache, onRebuild: deps.onRebuild });
-  const corpus = await loadSearchCorpus(paths, { useCache: deps.useCache, onRebuild: deps.onRebuild });
+  const corpus = await loadSearchCorpus(paths, { useCache: deps.useCache, onRebuild: deps.onRebuild, archive: req.archive === true });
   const warnings: string[] = [...corpus.warnings];
   let ranked: RankedHit[] = req.query === null ? [] : corpus.index.query(req.query);
   // INSERTION POINT STORY-004-03: filter step (req.filters.type / .where / .status) on the ranked hits.
-  let entityHits: SearchHit[] | null = null;
+  let entityHits: SearchHitBase[] | null = null;
+  const withArchive = req.archive === true;
+  const archiveTree = withArchive ? { entities: corpus.archiveEntities, pages: corpus.archivePages } : undefined;
+  const treeKey = (archived: boolean, key: string): string => `${archived ? "a" : "p"}\u0000${key}`;
   if (hasFilters(req.filters)) {
     const pageOf = new Map(corpus.pages.map((p) => [p.path, p]));
-    const passing = corpus.entities.filter((e) => matchesFilters(e, req.filters, pageOf.get(e.path)!));
+    const archivePageOf = new Map(corpus.archivePages.map((p) => [p.path, p]));
+    const passing = corpus.entities
+      .filter((e) => matchesFilters(e, req.filters, pageOf.get(e.path)!))
+      .map((e) => ({ e, archived: false }));
+    if (withArchive) {
+      for (const e of corpus.archiveEntities) {
+        if (matchesFilters(e, req.filters, archivePageOf.get(e.path)!)) passing.push({ e, archived: true });
+      }
+    }
     if (req.query !== null) {
-      const keys = new Set(passing.map((e) => e.key));
-      ranked = ranked.filter((h) => keys.has(h.doc.entityKey));
+      const keys = new Set(passing.map((x) => treeKey(x.archived, x.e.key)));
+      ranked = ranked.filter((h) => keys.has(treeKey(h.doc.archived, h.doc.entityKey)));
     } else {
       entityHits = passing
-        .sort((a, b) => compareCodeUnits(a.path, b.path) || a.line - b.line)
-        .map((e) => entityHit(e, pageOf.get(e.path)!, root, paths));
+        .sort((a, b) => compareCodeUnits(a.e.path, b.e.path) || Number(a.archived) - Number(b.archived) || a.e.line - b.e.line)
+        .map((x) => entityHit(x.e, (x.archived ? archivePageOf : pageOf).get(x.e.path)!, root, paths, x.archived));
     }
   }
   if (f.mark !== undefined && req.entity === null && f.since === null) {
-    entityHits = markHits(corpus.entities, corpus.pages, f.mark, req.filters, root, paths);
+    entityHits = markHits(corpus.entities, corpus.pages, f.mark, req.filters, root, paths, archiveTree);
   }
   // 4. build the data
   const pageByPath = new Map<string, Page>(corpus.pages.map((p) => [p.path, p]));
+  const archivePageByPath = new Map<string, Page>(corpus.archivePages.map((p) => [p.path, p]));
   const entityByKey = new Map<string, Entity>(corpus.entities.map((e) => [e.key, e]));
-  const toHit = (r: RankedHit): SearchHit => {
+  const archiveEntityByKey = new Map<string, Entity>(corpus.archiveEntities.map((e) => [e.key, e]));
+  const entityOf = (doc: { archived: boolean; entityKey: string }): Entity | undefined =>
+    (doc.archived ? archiveEntityByKey : entityByKey).get(doc.entityKey);
+  const toHit = (r: RankedHit): SearchHitBase => {
     const { doc } = r;
-    const entity = entityByKey.get(doc.entityKey);
+    const entity = entityOf(doc);
     return {
       path: doc.path,
-      file: toPosixRelative(root, path.join(paths.pagesDir, ...doc.path.split("/"))),
+      file: hitFile(paths, doc.path, doc.archived),
+      archived: doc.archived,
       title: doc.title,
       entity: entity?.name ?? doc.title,
       type: entity?.type ?? null,
@@ -179,10 +204,11 @@ export async function executeSearch(root: string, req: SearchRequest, deps: Sear
       line: doc.line,
       snippet: makeSnippet(doc.text, r.terms),
       score: Math.round(r.score * 1000) / 1000,
-      sources: hitSources(pageByPath.get(doc.path)!, doc.section),
+      sources: hitSources((doc.archived ? archivePageByPath : pageByPath).get(doc.path)!, doc.section),
     };
   };
-  let data: SearchData = {
+  type SearchDraft = Omit<SearchData, "results"> & { results: SearchHitBase[] };
+  let data: SearchDraft = {
     mode: "query",
     query: req.query,
     filters: req.filters,
@@ -202,12 +228,33 @@ export async function executeSearch(root: string, req: SearchRequest, deps: Sear
         : pagesChangedSince((await readLogEvents(paths, { type: "ingest", since: sinceBound.instant })).events);
     const sinceDate = sinceBound === null ? "" : sinceBound.date;
     if (req.entity !== null) {
-      const res = resolveEntity(corpus.entities, req.entity);
-      let entity = res === null ? null : toEntityMatch(res, corpus.pages, root, paths, buildBacklinks(corpus.pages));
+      const live = resolveEntity(corpus.entities, req.entity);
+      const cpEntity = live === null ? null : archiveCounterpart(live.entity, corpus.archiveEntities);
+      const cpPage = cpEntity === null ? undefined : corpus.archivePages.find((p) => p.path === cpEntity.path);
+      const arch = live === null ? resolveEntity(corpus.archiveEntities, req.entity) : null;
+      const res = live ?? arch;
+      const backlinks = buildBacklinks(corpus.pages);
+      let entity =
+        live !== null
+          ? toEntityMatch(live, corpus.pages, root, paths, backlinks, {
+              counterpart: cpEntity !== null && cpPage !== undefined ? { entity: cpEntity, page: cpPage } : null,
+            })
+          : arch !== null
+            ? toEntityMatch(arch, corpus.archivePages, root, paths, backlinks, { archived: true })
+            : null;
       let changes: SinceChanges | null = null;
       if (sinceBound !== null) {
         if (entity !== null) entity = { ...entity, facts: entity.facts.filter((x) => x.date >= sinceDate) };
-        const eFacts = res === null ? [] : factsSince([res.entity], corpus.pages, sinceBound).filter((x) => f.mark === undefined || x.status === f.mark);
+        const eAll: FactView[] =
+          live !== null
+            ? [
+                ...factsSince([live.entity], corpus.pages, sinceBound),
+                ...(cpEntity === null ? [] : factsSince([cpEntity], corpus.archivePages, sinceBound, true)),
+              ]
+            : arch !== null
+              ? factsSince([arch.entity], corpus.archivePages, sinceBound, true)
+              : [];
+        const eFacts = eAll.sort(compareFactViews).filter((x) => f.mark === undefined || x.status === f.mark);
         const ePages = res === null || f.mark !== undefined ? [] : changedPages.filter((p) => p.path === res.entity.path);
         changes = {
           since: req.filters.since!,
@@ -221,19 +268,24 @@ export async function executeSearch(root: string, req: SearchRequest, deps: Sear
       data = { ...data, mode: "entity", entity_query: req.entity, total: entity === null ? 0 : 1, results: [], entity, changes };
     } else if (sinceBound !== null) {
       const changed = new Set(changedPages.map((p) => p.path));
-      const passes = (e: Entity | undefined): e is Entity =>
-        e !== undefined && (e.facts.some((x) => x.date >= sinceDate) || changed.has(e.path));
+      const passes = (e: Entity | undefined, archived: boolean): e is Entity =>
+        e !== undefined && (e.facts.some((x) => x.date >= sinceDate) || (!archived && changed.has(e.path)));
       const sinceOnly = req.query === null && !hasFilters(req.filters);
       let kept: Entity[] = corpus.entities;
+      let keptArchive: Entity[] = corpus.archiveEntities;
       if (!sinceOnly) {
-        ranked = ranked.filter((h) => passes(entityByKey.get(h.doc.entityKey)));
-        const keys = new Set(ranked.map((h) => h.doc.entityKey));
+        ranked = ranked.filter((h) => passes(entityOf(h.doc), h.doc.archived));
+        const keys = new Set(ranked.map((h) => treeKey(h.doc.archived, h.doc.entityKey)));
         if (entityHits !== null) {
-          const byHit = new Map(corpus.entities.map((e) => [`${e.path}\u0000${e.line}\u0000${e.name}`, e]));
+          const byHit = new Map<string, { e: Entity; archived: boolean }>();
+          for (const e of corpus.entities) byHit.set(`false\u0000${e.path}\u0000${e.line}\u0000${e.name}`, { e, archived: false });
+          if (withArchive) {
+            for (const e of corpus.archiveEntities) byHit.set(`true\u0000${e.path}\u0000${e.line}\u0000${e.name}`, { e, archived: true });
+          }
           entityHits = entityHits.filter((h) => {
-            const e = byHit.get(`${h.path}\u0000${h.line}\u0000${h.entity}`);
-            if (!passes(e)) return false;
-            keys.add(e.key);
+            const x = byHit.get(`${h.archived}\u0000${h.path}\u0000${h.line}\u0000${h.entity}`);
+            if (x === undefined || !passes(x.e, x.archived)) return false;
+            keys.add(treeKey(x.archived, x.e.key));
             return true;
           });
         }
@@ -242,10 +294,21 @@ export async function executeSearch(root: string, req: SearchRequest, deps: Sear
           total: entityHits === null ? ranked.length : entityHits.length,
           results: entityHits === null ? ranked.slice(0, req.limit).map(toHit) : entityHits.slice(0, req.limit),
         };
-        kept = corpus.entities.filter((e) => keys.has(e.key));
+        kept = corpus.entities.filter((e) => keys.has(treeKey(false, e.key)));
+        const archKeep = new Set<Entity>(withArchive ? corpus.archiveEntities.filter((e) => keys.has(treeKey(true, e.key))) : []);
+        for (const e of kept) {
+          const cp = archiveCounterpart(e, corpus.archiveEntities);
+          if (cp !== null) archKeep.add(cp);
+        }
+        keptArchive = [...archKeep];
       }
       const keptPaths = new Set(kept.map((e) => e.path));
-      const facts = factsSince(kept, corpus.pages, sinceBound).filter((x) => f.mark === undefined || x.status === f.mark);
+      const facts = [
+        ...factsSince(kept, corpus.pages, sinceBound),
+        ...factsSince(keptArchive, corpus.archivePages, sinceBound, true),
+      ]
+        .sort(compareFactViews)
+        .filter((x) => f.mark === undefined || x.status === f.mark);
       const pages = f.mark !== undefined ? [] : sinceOnly ? changedPages : changedPages.filter((p) => keptPaths.has(p.path));
       data = {
         ...data,
@@ -277,19 +340,21 @@ export async function executeSearch(root: string, req: SearchRequest, deps: Sear
       events: misses.reduce((n, m) => n + m.count, 0),
     };
   }
-  if (data.mode !== "misses" && data.total === 0) {
+  // page_tokens (STORY-007-05): one pass over the final results.
+  const out: SearchData = { ...data, results: data.results.map((h) => ({ ...h, page_tokens: corpus.pageTokens(h.path, h.archived) })) };
+  if (out.mode !== "misses" && out.total === 0) {
     const status = normalizeName(f.status ?? "");
     if (status === "decided" || status === "tentative") {
       warnings.push(`fact marks are filtered with --mark: wikeeper search --mark ${status}`);
     }
   }
-  if (!req.noMiss && shouldRecordMiss(data)) {
-    const miss = await recordMiss(paths, data, (deps.now ?? (() => new Date()))());
+  if (!req.noMiss && shouldRecordMiss(out)) {
+    const miss = await recordMiss(paths, out, (deps.now ?? (() => new Date()))());
     if (miss.warning !== null) warnings.push(miss.warning);
   }
   // 5.
-  warningsOf.set(data, warnings);
-  return data;
+  warningsOf.set(out, warnings);
+  return out;
 }
 
 function renderHuman(data: SearchData): string {
@@ -297,7 +362,7 @@ function renderHuman(data: SearchData): string {
   if (data.results.length === 0) return `no results for ${label}`;
   const lines = [`${plural(data.total, "result")} for ${label}`];
   data.results.forEach((hit, i) => {
-    lines.push(`${i + 1}. ${hit.path}${hit.section === "" ? "" : ` › ${hit.section}`}`);
+    lines.push(`${i + 1}. ${hit.path}${hit.section === "" ? "" : ` › ${hit.section}`}${hit.archived ? " (archived)" : ""}`);
     if (hit.snippet !== "") lines.push(`   ${hit.snippet}`);
     if (hit.sources.length > 0) lines.push(`   sources: ${hit.sources.join(", ")}`);
   });
@@ -316,6 +381,7 @@ interface SearchOptions {
   // INSERTION POINT STORY-004-05: misses?: boolean;
   misses?: boolean;
   mark?: string;
+  archive?: boolean;
   miss: boolean;
 }
 
@@ -342,6 +408,7 @@ export function createSearchCommand(deps: SearchDeps = {}): CommandModule {
         // INSERTION POINT STORY-004-05: --misses
         .option("--misses", "list the searches that found nothing, grouped and counted (only with --since and --limit)")
         .option("--mark <mark>", "only fact lines marked decided or tentative; with --type, --where, --status, --entity or --since")
+        .option("--archive", "also search archived pages (archive/)")
         .option("--no-miss", "do not record this search as a miss when it finds nothing (for triage and routing searches)")
         .action(async (words: string[], opts: SearchOptions, command: Command) => {
           const ctx = getOutputContext(command);
@@ -362,6 +429,7 @@ export function createSearchCommand(deps: SearchDeps = {}): CommandModule {
           if (opts.entity !== undefined) req.entity = opts.entity;
           if (opts.since !== undefined) req.filters.since = opts.since;
           entitySinceBound(req);
+          if (opts.archive === true) req.archive = true;
           // INSERTION POINT STORY-004-05: req.misses from opts
           req.misses = opts.misses === true;
           missesUsage(req);
@@ -378,11 +446,11 @@ export const searchCommand: CommandModule = createSearchCommand();
 
 /** STORY-004-05 R5: --misses lists recorded misses; it combines only with --since and --limit. */
 function missesUsage(req: SearchRequest): void {
-  if (req.misses && (req.query !== null || hasFilters(req.filters) || req.filters.mark !== undefined || req.entity !== null)) {
+  if (req.misses && (req.query !== null || hasFilters(req.filters) || req.filters.mark !== undefined || req.entity !== null || req.archive === true)) {
     throw new WikeeperError(
       ExitCode.USAGE,
       "usage",
-      "--misses cannot be combined with a query, --type, --where, --status, --mark or --entity",
+      "--misses cannot be combined with a query, --type, --where, --status, --mark, --entity or --archive",
     );
   }
 }
