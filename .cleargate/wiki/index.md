@@ -10,7 +10,7 @@
 
 - Epics: 9 Completed · [expand](archive/epics.md)
 - Sprints: 4 Completed · [expand](archive/sprints.md)
-- CRs: 4 Completed · [expand](archive/crs.md)
+- CRs: 6 Completed · [expand](archive/crs.md)
 - Bugs: 5 Completed · [expand](archive/bugs.md)
 - Spikes: 3 Completed · [expand](archive/spikes.md)
 

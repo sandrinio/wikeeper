@@ -6,6 +6,8 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-19 · #ci #perf · Since CR-006, search-perf runs locally and on Linux CI only; a miss there is real, not runner noise.
+2026-10-19 · #test-harness #worktree · A fresh git worktree has no node_modules; run npm ci in it before tests, or e2e rows fail.
 2026-10-19 · #release #npm · Re-creating the GitHub repo breaks npm trusted publishing (publish PUT returns E404, no "Signed provenance" line); re-add the trusted publisher on npmjs.com, then re-run the failed release run (same tag).
 2026-10-19 · #ci #perf #macos · search-perf p95 (500 ms) fails on GitHub macOS runners about half the time (513–615 ms) with unchanged code; re-run the job, and don't read it as a regression.
 2026-10-19 · #hotfix #gate · Hotfix gate sections are positional: a `## Prior work` heading goes after Rollback, Anomaly needs `- ` bullets, Verification lines must start `- [ ]` (the template's `1. - [ ]` fails).
