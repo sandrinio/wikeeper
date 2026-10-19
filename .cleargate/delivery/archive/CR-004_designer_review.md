@@ -4,7 +4,7 @@ parent_ref: null
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: Draft
+status: "Completed"
 approved: true
 approved_by: Sandro Suladze
 approved_at: 2026-10-18T12:10:55Z
@@ -111,7 +111,7 @@ last_synced_body_sha: null
 
 - [x] Write `docs/ux.md` and `docs/ux-map.md` from the shipped code and templates, plus the SPRINT-04 journeys.
 - [x] Write `.claude/agents/designer.md` with the four modes.
-- [ ] Run DRAFTS over SPRINT-04's 16 stories; apply planner-fixable findings to the stories; bring the rest to the human with the plan confirmation.
+- [x] Run DRAFTS over SPRINT-04's 16 stories; apply planner-fixable findings to the stories; bring the rest to the human with the plan confirmation.
 - [x] Write `.claude/skills/design-review/SKILL.md` and the `CLAUDE.md` paragraph per Q1 and Q2.
 - [x] No JOURNEY before SPRINT-04's walkthrough (Q1).
 

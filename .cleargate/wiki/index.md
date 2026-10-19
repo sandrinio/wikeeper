@@ -5,13 +5,12 @@
 ## Active
 
 - [[INITIATIVE-001]] (initiative) — Triaged — Wiki CLI — Karpathy-style LLM wiki for AI agents
-- [[CR-004]] (cr) — Draft — Designer review for CLI output and agent instructions
 
 ## Archive
 
 - Epics: 9 Completed · [expand](archive/epics.md)
 - Sprints: 4 Completed · [expand](archive/sprints.md)
-- CRs: 3 Completed · [expand](archive/crs.md)
+- CRs: 4 Completed · [expand](archive/crs.md)
 - Bugs: 5 Completed · [expand](archive/bugs.md)
 - Spikes: 3 Completed · [expand](archive/spikes.md)
 
