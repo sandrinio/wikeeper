@@ -17,7 +17,7 @@ import { runCli } from "../../src/program.js";
 
 const PKG = path.resolve(import.meta.dirname, "..", "..");
 const LINE_4_BUG_004 =
-  "Wiki: `.wiki/`, content folder `content_dir` in `.wiki/config.yml`. Once set up, open each session with the line `wikeeper statusline` prints, before any text; on 🔴 follow WIKI.md \"Lint and status\".";
+  "Once set up, start each session with `wikeeper statusline` and write its line before any other step or text; on 🔴 follow WIKI.md \"Lint and status\".";
 const VOICE = "Talk to the user in plain words: `.wiki/system/WIKI.md`, section \"Talking to the user\".";
 const TALK_Q3 =
   "The commands, flags, codes, JSON and settings keys and wikeeper's own file names in these instructions are for you, not for the user. Never say one to the user, and never ask the user to run a command: run it yourself, after their yes where one is needed, and tell them in plain words what you did or found. You may name the user's own files (`me.md`, `project.md`, `config.yml`, `kb_instructions.md`) when you show or change one. The one exception is a step only the user can take, such as a command you must never run (section \"Lint and status\"): show that one command in a code span and say why you can't run it.";
@@ -312,14 +312,14 @@ describe("BUG-004: setup measures a document before reading it, and the agent sp
     for (const l of lines) expect(l.length, `line over 200 UTF-16 units: ${l}`).toBeLessThanOrEqual(200);
     expect(raw).not.toMatch(/wikeeper status(?!line)/);
     expect(lines[3]).toBe(LINE_4_BUG_004);
-    for (const phrase of ["Once set up", "open each session", "`wikeeper statusline`", "before any text", "🔴"]) {
+    for (const phrase of ["Once set up", "start each session", "`wikeeper statusline`", "before any other step or text", "🔴"]) {
       expect(lines[3], phrase).toContain(phrase);
     }
     expect(lines[3]).not.toContain("first reply");
     const wiki = await readTemplateRaw("system", "WIKI.md");
     const sections = splitSections(wiki);
     expect(sectionText(wiki, "Lint and status")).toContain(
-      "Show it to the user as the first text you write in every session, before any other words.",
+      "Run it first in every session and write its line to the user at once, before any other command or text; then go on with the request.",
     );
     expect(wiki).not.toContain("first reply of every session");
     const m = /WIKI\.md "([^"]+)"/.exec(lines[3]!);
