@@ -6,8 +6,8 @@ children: []
 status: "Completed"
 remote_id: ""
 raw_path: ".cleargate/delivery/archive/SPRINT-04_token_gauges_and_fact_archive.md"
-last_ingest: "2026-10-19T06:07:20.577Z"
-last_ingest_commit: "6cffdc71050fe2835a3706c65378b28da6d44266"
+last_ingest: "2026-10-19T06:22:48.930Z"
+last_ingest_commit: "706b88d7006b193b36f56946057061d9f7837abb"
 repo: "planning"
 ---
 
@@ -23,7 +23,7 @@ repo: "planning"
 - **Spike method:** real counts from `claude -p` on the human's subscription; no API keys.
 - **Version check and upgrade (EPIC-009, added the same day):** wikeeper checks npm for a newer version from ingest commands (at most once a day, saved, opt-out); `wikeeper upgrade` runs npm itself; in this sprint.
 
-[+70,224 bytes not shown — read .cleargate/delivery/archive/SPRINT-04_token_gauges_and_fact_archive.md]
+[+71,403 bytes not shown — read .cleargate/delivery/archive/SPRINT-04_token_gauges_and_fact_archive.md]
 
 ## Blast radius
 Affects: no parent/child refs declared in frontmatter

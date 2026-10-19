@@ -6,15 +6,13 @@
 
 - [[INITIATIVE-001]] (initiative) — Triaged — Wiki CLI — Karpathy-style LLM wiki for AI agents
 - [[CR-004]] (cr) — Draft — Designer review for CLI output and agent instructions
-- [[BUG-004]] (bug) — Triaged ⚠︎ drift — Setup reads a large document unmeasured, and the agent names commands to the user
-- [[BUG-005]] (bug) — Triaged — The size line is still not the first text of a fresh session
 
 ## Archive
 
 - Epics: 9 Completed · [expand](archive/epics.md)
 - Sprints: 4 Completed · [expand](archive/sprints.md)
 - CRs: 3 Completed · [expand](archive/crs.md)
-- Bugs: 3 Completed · [expand](archive/bugs.md)
+- Bugs: 5 Completed · [expand](archive/bugs.md)
 - Spikes: 3 Completed · [expand](archive/spikes.md)
 
 ## Contradictions

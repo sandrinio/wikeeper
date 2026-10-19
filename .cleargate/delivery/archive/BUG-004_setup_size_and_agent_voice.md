@@ -4,7 +4,7 @@ parent_ref: EPIC-007
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: Triaged
+status: "Completed"
 severity: P2-Medium
 reporter: orchestrator (SPRINT-04 new-user test, asked by the human)
 approved: true
