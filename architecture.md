@@ -259,8 +259,8 @@ The block is a short pointer that rarely changes; the real protocol lives in `sy
 ```md
 <!-- WIKI:START v1 — managed by wikeeper -->
 ## Project Wiki
-Managed by wikeeper — edit outside this block only.
-Wiki: `.wiki/`, content folder `content_dir` in `.wiki/config.yml`. Once set up, open each session with the line `wikeeper statusline` prints, before any text; on 🔴 follow WIKI.md "Lint and status".
+Managed by wikeeper — edit outside this block only. Wiki: `.wiki/`, content folder `content_dir` in `.wiki/config.yml`.
+Once set up, start each session with `wikeeper statusline` and write its line before any other step or text; on 🔴 follow WIKI.md "Lint and status".
 If `.wiki/config.yml` has no `setup_completed_at`, follow `.wiki/system/SETUP.md` first.
 Otherwise read `.wiki/system/WIKI.md` before ingesting, searching or editing anything in the wiki (skills: `wiki-ingest`, `wiki-search`).
 At the start of every session read `.wiki/me.md` and `.wiki/project.md`; if `.wiki/me.md` is missing, first onboard the user with `.wiki/system/ONBOARDING.md`.
