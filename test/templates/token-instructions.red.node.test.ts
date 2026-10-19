@@ -205,7 +205,8 @@ describe("STORY-007-07 S1: each size instruction lands in its file and part", ()
   });
 
   it("README (R11): the body holds its phrases", async () => {
-    expectPhrases(await readPkg("README.md"), ["±15%", "wikeeper config", "wikeeper statusline"], "README");
+    // README detail moved to docs/reference.md in CR-005, so the row reads both.
+    expectPhrases((await readPkg("README.md")) + "\n" + (await readPkg("docs", "reference.md")), ["±15%", "wikeeper config", "wikeeper statusline"], "README");
   });
 
   it("the status-line example in section \"Lint and status\" has the form wikeeper statusline prints", async () => {

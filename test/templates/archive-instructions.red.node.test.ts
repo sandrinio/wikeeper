@@ -154,7 +154,8 @@ describe("STORY-008-06 S1: each archive instruction lands in its file and part",
     expect(await archSection(11)).toContain("archive/");
   });
   it("README (R8): .wiki/archive/, --archive, D-37, raw is kept not archived, update and remove have their own rows", async () => {
-    const readme = await readRoot("README.md");
+    // README detail moved to docs/reference.md in CR-005, so the row reads both.
+    const readme = (await readRoot("README.md")) + "\n" + (await readRoot("docs/reference.md"));
     for (const p of [".wiki/archive/", "--archive", "**Fact archive.**", "keeps the immutable original in `.wiki/raw/`"]) {
       expect(readme, p).toContain(p);
     }
