@@ -12,6 +12,7 @@ import { fromPosixRelative, isInside, toPosixRelative } from "../../core/paths.j
 import type { AgentName } from "../agent-names.js";
 import type { AgentsExtension, AgentsState, PromptLines } from "../index.js";
 import { ANTIGRAVITY_ENFORCE } from "./antigravity.js";
+import { COPILOT_ENFORCE } from "./copilot.js";
 import { CLAUDE_ENFORCE } from "./claude.js";
 import type { AgentEnforceSpec, EnforceItem } from "./claude.js";
 import { CODEX_ENFORCE } from "./codex.js";
@@ -44,6 +45,7 @@ const SPECS: Record<AgentName, readonly AgentEnforceSpec[]> = {
   claude: [CLAUDE_ENFORCE],
   codex: CODEX_ENFORCE,
   antigravity: [ANTIGRAVITY_ENFORCE],
+  copilot: [COPILOT_ENFORCE],
 };
 
 /** The JSON settings files enforce writes (posix, relative to the repo root). */
@@ -85,20 +87,20 @@ function dropOwned(files: ManifestEntry[], entry: ManifestEntry): void {
 }
 
 const IDENTITY_RE = /^(.+?)\[(.*)\]$/;
-function guardMatch(agent: string): (el: unknown) => boolean {
-  const tail = ` hook guard --agent ${agent}`;
+function commandMatch(subcommand: string, agent: string): (el: unknown) => boolean {
+  const tail = ` hook ${subcommand} --agent ${agent}`;
   return (el) => {
     if (typeof el !== "object" || el === null || Array.isArray(el)) return false;
     const hooks = (el as { hooks?: unknown }).hooks;
     return (
       Array.isArray(hooks) &&
-      hooks.some((h) => typeof (h as { command?: unknown } | null)?.command === "string" && ((h as { command: string }).command).endsWith(tail))
+      hooks.some((h) => typeof (h as { command?: unknown } | null)?.command === "string" && ((h as { command: string }).command).includes(tail))
     );
   };
 }
 function selectorMatch(selector: string): (el: unknown) => boolean {
-  const g = /^guard:(.+)$/.exec(selector);
-  return g ? guardMatch(g[1]!) : (el) => el === selector;
+  const m = /^(guard|permit):(.+)$/.exec(selector);
+  return m ? commandMatch(m[1]!, m[2]!) : (el) => el === selector;
 }
 
 function applyJsonItem(root: JsonObject, item: EnforceItem, rel: string): void {

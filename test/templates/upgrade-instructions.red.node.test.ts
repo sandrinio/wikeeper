@@ -325,11 +325,13 @@ const PINS: Record<string, string> = {
   "agents/claude/wiki-writer.md": "090e6b4f6bb1bfe0aa4dd25118253e826f3bee160aacf51b161f82b60018cd83",
   "agents/codex/wiki-extractor.toml": "58c660375153c9d9cef0dc4674b2eef4f682e5083480bc12e53638ec12ab6407",
   "agents/codex/wiki-writer.toml": "e4c5b865f48e8e6c5203452d5d523ad21649df857029c306e7c6a79150087cbd",
+  "agents/copilot/wiki-extractor.agent.md": "fcd65e2c133d8cbeda3697518b8b65cc947b85a49bd6d28f20cc4e3d065d959c",
+  "agents/copilot/wiki-writer.agent.md": "919b25867679368ae781a8c228802cf1bac63fdfa8e0ea1ca778d87f0b6253ea",
   "skills/wiki-ingest/SKILL.md": "91eebe0479df04b61f6cc7f48c10eb9b47dea4ecf487ed0bbcb34494a96287c0",
   "skills/wiki-search/SKILL.md": "20c7fec470d7dab016baaf3e3b3395c156cb2747b80c88023a7256bee8a6ed45",
   "skills/wiki-setup/SKILL.md": "532e1a3a51410503e5b65ba2f37daea1c453be66653731fe33bf59e81683f1aa",
   "system/ONBOARDING.md": "5cc0dea373e130bdc2cb467a27c330aa2aafb759420fd38b2ab4f292ca5ecfc4",
-  "system/SETUP.md": "0eb9304b5a991309a56eda0ca8f446858e3454a4c26c4c6ff0851e50b8d44b22",
+  "system/SETUP.md": "bc1d236530370b5c1d0891d85c16c946d839bb5edb6269d61085150430f70913",
 };
 
 // ---------- S4: a wrong name in the text is reported with its line ----------

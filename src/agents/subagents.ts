@@ -22,10 +22,11 @@ import {
 
 export const SUBAGENT_NAMES = ["wiki-extractor", "wiki-writer"] as const;
 export type SubagentName = (typeof SUBAGENT_NAMES)[number];
-export const SUBAGENT_TARGETS: Readonly<Record<AgentName, { dir: string; ext: ".md" | ".toml" }>> = {
+export const SUBAGENT_TARGETS: Readonly<Record<AgentName, { dir: string; ext: ".md" | ".toml" | ".agent.md" }>> = {
   claude: { dir: ".claude/agents", ext: ".md" },
   antigravity: { dir: ".agents/agents", ext: ".md" },
   codex: { dir: ".codex/agents", ext: ".toml" },
+  copilot: { dir: ".github/agents", ext: ".agent.md" },
 };
 export interface InstallSubagentsOptions {
   root: string;

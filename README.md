@@ -7,7 +7,7 @@
 
 **A project wiki your coding agent keeps up to date, with every fact tied to its source.**
 
-Give Claude Code, OpenAI Codex or Google Antigravity your project's material: meeting notes, PDFs, Word documents, web pages. The agent reads it and writes what matters onto plain Markdown pages in your repository: decisions, dates, owners and risks, each linked to the source it came from. wikeeper is the tool the agent works through. It checks every change, so facts don't get lost, overwritten or left without a source.
+Give Claude Code, OpenAI Codex, Google Antigravity or GitHub Copilot your project's material: meeting notes, PDFs, Word documents, web pages. The agent reads it and writes what matters onto plain Markdown pages in your repository: decisions, dates, owners and risks, each linked to the source it came from. wikeeper is the tool the agent works through. It checks every change, so facts don't get lost, overwritten or left without a source.
 
 It's for people who run projects, such as leads, product managers and managers, and already use a coding agent as an assistant. It's the Karpathy-style LLM wiki, with the checks that a folder of notes lacks.
 
@@ -44,7 +44,7 @@ Agent: answers from the wiki and links each fact to its source.
 
 ## Works with
 
-Claude Code, OpenAI Codex and Google Antigravity, and a mixed team can share one wiki through git. `wikeeper init` adds a short block to your `CLAUDE.md`, `AGENTS.md` or `GEMINI.md` and installs the agent's skills. With `wikeeper init --enforce`, Claude Code and Codex are also blocked from editing wiki pages directly, outside wikeeper's checks.
+Claude Code, OpenAI Codex, Google Antigravity and GitHub Copilot, and a mixed team can share one wiki through git. `wikeeper init` adds a short block to your `CLAUDE.md`, `AGENTS.md` or `GEMINI.md` and installs the agent's skills. With `wikeeper init --enforce`, Claude Code, Codex and Copilot are also blocked from editing wiki pages directly, outside wikeeper's checks; in VS Code this covers the Copilot agent, not the Local agent.
 
 ## Updates and privacy
 

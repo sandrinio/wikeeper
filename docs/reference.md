@@ -4,6 +4,7 @@ The detail behind the [README](../README.md). Your agent runs these commands for
 
 - [CLI Command Reference](#-cli-command-reference)
 - [How It Works](#-how-it-works-the-agent-thinks-the-cli-enforces)
+- [Ingestion Models](#ingestion-models)
 - [Permission Modes & Harness Enforcement](#-permission-modes--harness-enforcement)
 - [Token Gauges](#-token-gauges)
 - [Upgrading](#-upgrading)
@@ -47,6 +48,18 @@ Every command outputs human-friendly reports in the terminal and supports `--jso
 
 ---
 
+## Ingestion Models
+
+During setup, your agent explains the two ingest jobs and asks which models should do them: reading documents to extract facts, and writing those facts into wiki pages. You can keep the current choices, choose supported alternatives, or use each harness's default. The agent explains cost/quality trade-offs and checks availability where possible; it must not promise current prices or availability it cannot verify.
+
+Once you approve, your agent saves `ingest.extractor_model` and `ingest.writer_model` in `.wiki/config.yml` and runs `wikeeper update` to refresh the helper files. These settings are shared with the team and do not change your main chat model. You are not asked again on every ingest; ask your agent whenever you want to change the choices. If a model becomes unavailable, it consults you rather than silently choosing a replacement.
+
+The built-in choices are `small` for extraction and `medium` for writing. Those tiers map to harness-specific models; in Codex they leave model selection to the harness. Claude Code, Codex and Copilot also accept explicit model IDs; Antigravity supports the tiers, not arbitrary IDs. A mixed-harness team should use compatible tiers or inheritance rather than assume one model ID works everywhere.
+
+An empty string (`""`) in either setting omits that helper's model line, allowing the harness/session default. Unsetting a key instead restores its built-in tier. When helpers are disabled or unavailable, the main agent handles ingestion itself, so helper model settings do not select a different model for that work.
+
+---
+
 ## 🔐 Permission Modes & Harness Enforcement
 
 You control what enters your knowledge base via `ingest.permission` in `.wiki/config.yml`:
@@ -58,7 +71,7 @@ You control what enters your knowledge base via `ingest.permission` in `.wiki/co
 | **`ai`** | Your agent ingests autonomously—while still prompting before destructive actions (`abort --drop` or `apply --force-unlock`). |
 
 > [!TIP]
-> **Mechanical Guardrails (`--enforce`):** Run `wikeeper init --enforce` to install native `PreToolUse` hooks and permission rules into Claude Code and Codex. If an agent tries to edit `.wiki/pages/` outside a locked write phase, the hook blocks the edit automatically—and `wikeeper lint` backs it up with SHA-256 `unlogged-change` detection.
+> **Mechanical Guardrails (`--enforce`):** Run `wikeeper init --enforce` to install native `PreToolUse` hooks and permission rules into Claude Code, Codex and Copilot (in VS Code, its Copilot agent only: see [Multi-Agent Compatibility](#-multi-agent-compatibility)). If an agent tries to edit `.wiki/pages/` outside a locked write phase, the hook blocks the edit automatically—and `wikeeper lint` backs it up with SHA-256 `unlogged-change` detection.
 
 ---
 
@@ -85,14 +98,16 @@ Every size `wikeeper` shows is an estimate in tokens, printed with `≈` and wit
 
 ## 🤝 Multi-Agent Compatibility
 
-`wikeeper` works identically across the three major AI coding harnesses—and lets mixed teams collaborate on the same Git wiki:
+`wikeeper` works identically across the four major AI coding harnesses—and lets mixed teams collaborate on the same Git wiki:
 
-| Capability | Claude Code | OpenAI Codex | Google Antigravity |
-| :--- | :--- | :--- | :--- |
-| **Root Instructions** | `CLAUDE.md` | `AGENTS.md` | `AGENTS.md` / `GEMINI.md` |
-| **Installed Skills** | `.claude/skills/` | `.agents/skills/` | `.agents/skills/` |
-| **Extractor & Writer Sub-Agents** | `.claude/agents/` | `.codex/agents/` | `.agents/agents/` |
-| **Harness Enforcement (`--enforce`)** | `.claude/settings.json` (`PreToolUse` + `allow`/`ask`) | `.codex/hooks.json` + `.codex/rules/wikeeper.rules` | CLI gate + `unlogged-change` lint check |
+| Capability | Claude Code | OpenAI Codex | Google Antigravity | GitHub Copilot |
+| :--- | :--- | :--- | :--- | :--- |
+| **Root Instructions** | `CLAUDE.md` | `AGENTS.md` | `AGENTS.md` / `GEMINI.md` | `AGENTS.md` |
+| **Installed Skills** | `.claude/skills/` | `.agents/skills/` | `.agents/skills/` | `.agents/skills/` |
+| **Extractor & Writer Sub-Agents** | `.claude/agents/` | `.codex/agents/` | `.agents/agents/` | `.github/agents/` |
+| **Harness Enforcement (`--enforce`)** | `.claude/settings.json` (`PreToolUse` + `allow`/`ask`) | `.codex/hooks.json` + `.codex/rules/wikeeper.rules` | CLI gate + `unlogged-change` lint check | `.github/hooks/wikeeper.json` (`PreToolUse` guard + permit hook) |
+
+**Copilot in VS Code:** the hooks in `.github/hooks/wikeeper.json` cover Copilot CLI and VS Code's Copilot agent, not VS Code's Local agent, which reads another hook format. With the Local agent a direct page edit is not blocked, and `wikeeper lint` still reports it as an `unlogged-change` finding. On a machine where wikeeper can't run, the hooks step aside: Copilot asks before each command as usual and page edits aren't blocked, and `wikeeper lint` still reports them.
 
 ---
 

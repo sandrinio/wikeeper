@@ -215,7 +215,7 @@ describe("STORY-002-07 units (red)", () => {
       ENFORCE_JSON_FILES: readonly string[];
       inspectOwnedEntries(root: string, mf: any): Promise<Array<{ file: string; agent: string; missing: string[]; invalid: boolean }>>;
     };
-    expect([...m.ENFORCE_JSON_FILES].sort()).toEqual([".agents/hooks.json", ".claude/settings.json", ".codex/hooks.json"]);
+    expect([...m.ENFORCE_JSON_FILES].sort()).toEqual([".agents/hooks.json", ".claude/settings.json", ".codex/hooks.json", ".github/hooks/wikeeper.json"]);
     const root = await repo();
     await init(root, ["--agents", "claude", "--enforce"]);
     const mf = { package_version: "0.0.0", files: await manifest(root) };

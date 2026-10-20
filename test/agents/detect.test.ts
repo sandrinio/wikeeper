@@ -36,7 +36,7 @@ describe("resolveTargets", () => {
     ]);
   });
   it("readersOf honours whenAbsent", () => {
-    expect(readersOf("AGENTS.md", ["CLAUDE.md"])).toEqual(["codex", "antigravity"]);
+    expect(readersOf("AGENTS.md", ["CLAUDE.md"])).toEqual(["codex", "antigravity", "copilot"]);
   });
 });
 

@@ -310,8 +310,15 @@ export async function runDoctor(
   if (m !== null) {
     for (const agent of AGENT_NAMES) {
       if (!config.agents.includes(agent)) continue;
+      // `version` is the Copilot hook file's format key, not a hook: the manifest keeps it for remove and
+      // enforce-entry-missing, but the summary counts only entries.
       const mine = m.files.filter(
-        (e) => (e.kind === "hook" || e.kind === "rule") && e.identity !== undefined && e.identity !== "backup" && e.agent === agent,
+        (e) =>
+          (e.kind === "hook" || e.kind === "rule") &&
+          e.identity !== undefined &&
+          e.identity !== "backup" &&
+          e.identity !== "version" &&
+          e.agent === agent,
       );
       if (mine.length === 0) continue;
       const paths = [...new Set(mine.map((e) => e.path))].sort(compareCodeUnits);

@@ -27,4 +27,34 @@ describe("hook-protocols", () => {
   it("failOpen is a single line", () => {
     expect(failOpen("claude", "a\nb").stderr!.trim().split("\n")).toHaveLength(1);
   });
+  it("copilot targets read the paths out of an apply_patch string", () => {
+    const t = HOOK_ADAPTERS.copilot.targets(
+      { hook_event_name: "PreToolUse", tool_name: "Edit", tool_input: "*** Begin Patch\n*** Add File: .wiki/pages/a.md\n+x\n*** End Patch\n", cwd: "/c" },
+      "/f",
+    );
+    expect(t).toEqual({ cwd: "/c", paths: [".wiki/pages/a.md"] });
+  });
+  it("copilot targets also read an object tool_input", () => {
+    const t = HOOK_ADAPTERS.copilot.targets({ tool_name: "Write", tool_input: { path: "a.md" } }, "/f");
+    expect(t).toEqual({ cwd: "/f", paths: ["a.md"] });
+  });
+  it("copilot ignores the tools it does not guard", () => {
+    const t = HOOK_ADAPTERS.copilot.targets({ tool_name: "Bash", tool_input: { command: "echo hi" }, cwd: "/c" }, "/f");
+    expect(t).toEqual({ cwd: "/c", paths: [] });
+  });
+  it("copilot denies with both decision shapes and exits 0", () => {
+    const res = HOOK_ADAPTERS.copilot.deny("because");
+    expect(res.exitCode).toBe(0); // a non-zero exit would deny every call, including the allowed ones
+    const body = JSON.parse(res.stdout!);
+    expect(body.permissionDecision).toBe("deny");
+    expect(body.hookSpecificOutput).toEqual({ hookEventName: "PreToolUse", permissionDecision: "deny", permissionDecisionReason: "because" });
+  });
+  it("copilot reads the shell command of either payload casing", () => {
+    expect(HOOK_ADAPTERS.copilot.shellCommand!({ tool_name: "Bash", tool_input: { command: "wikeeper search x" } })).toBe("wikeeper search x");
+    expect(HOOK_ADAPTERS.copilot.shellCommand!({ toolName: "bash", toolArgs: { command: "wikeeper status" } })).toBe("wikeeper status");
+    expect(HOOK_ADAPTERS.copilot.shellCommand!({ tool_name: "Edit", tool_input: "*** Begin Patch" })).toBeNull();
+  });
+  it("copilot stays silent when it has no rule", () => {
+    expect(HOOK_ADAPTERS.copilot.permit!(null, "r")).toEqual({ exitCode: 0 });
+  });
 });

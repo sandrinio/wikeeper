@@ -1,6 +1,6 @@
 # WIKI.md — the wiki protocol
 
-This file is the one procedure every agent follows to run the wiki: main agent or sub-agent, Claude Code, Codex or Antigravity. The CLI keeps the registry, the lock and the checks; you read, judge and write the pages. Pages change only in the write phase.
+This file is the one procedure every agent follows to run the wiki: main agent or sub-agent, Claude Code, Codex, Antigravity or Copilot. The CLI keeps the registry, the lock and the checks; you read, judge and write the pages. Pages change only in the write phase.
 
 ## Talking to the user
 
@@ -81,7 +81,7 @@ One source at a time. A `wiki-writer` works from the facts file and the brief in
 5. End every claim with the citation `[[<id>]]`. Cite only what the source says: the rules in `.wiki/kb_instructions.md` and the project brief are not sources, so nothing that comes only from them goes on a page.
 6. Flag a contradiction with both sources; never overwrite the earlier fact. Keep every fact line an updated page had at apply. An update or a correction is a new dated line, and the old line stays as it was: never reword, redate or re-mark it, and never move it to another page. Moving a line within the page, or changing its list marker or spacing, is fine. Only merging a duplicate page and a clean-up move lines off a page (below).
 7. Write nothing outside `pages/`, except `archive/` in a clean-up (below).
-8. Write and edit pages only with your file-edit tools: Write or Edit in Claude Code, `apply_patch` in Codex, `write_to_file` or `replace_file_content` in Antigravity. Never write a page from the shell: no redirection, heredoc or `sed`. With `enforce` on, the write guard sees only the file-edit tools, so a shell write is not blocked, and `wikeeper lint` reports it later as an `unlogged-change` finding.
+8. Write and edit pages only with your file-edit tools: Write or Edit in Claude Code, `apply_patch` in Codex, `write_to_file` or `replace_file_content` in Antigravity, `apply_patch` in Copilot. Never write a page from the shell: no redirection, heredoc or `sed`. With `enforce` on, the write guard sees only the file-edit tools, so a shell write is not blocked, and `wikeeper lint` reports it later as an `unlogged-change` finding.
 9. Run `wikeeper ingest finish <id>` and pass on its figures to the user in plain words: pages created and updated, contradictions, rule suggestions and sizes. Never paste the report, and leave out its sha, rule version and permission mode. The report holds metadata only. It also lists the lint findings for the pages this ingest changed; they never fail `finish`, and section "Lint and status" says what to do with them. Its `wiki ≈… tokens` line gives the wiki's size after the ingest, the change and the largest page.
 
 If `finish` fails, fix the pages it names and rerun it, or run `wikeeper ingest abort <id>` (`--drop` also deletes the registered source). When `finish` refuses with `fact lines dropped`, put each named line back exactly as it was or, in a clean-up, add it unchanged to `archive/<path>`; then run `wikeeper ingest finish <id>` again; the lock is still held. When it refuses with `archived fact lines dropped`, put each named line back in its archive page exactly as it was, or restore the deleted archive page: no line ever leaves `archive/`. Before you delete a page, for example to merge a duplicate into another page, copy each of its fact lines unchanged to the page it merges into; in a clean-up you may move them to `archive/` instead. `finish` refuses a deleted page whose fact lines are nowhere else in `pages/` or `archive/`, with `fact lines dropped`, naming the page and its lines. Once `finish` exits 0 the ingest is closed: change nothing under `pages/` or `archive/`. A correction after `finish` comes in as a chat-excerpt ingest: run `wikeeper ingest start -` with the user's correction on stdin, then triage and the write phase, so every page change has a source and a log entry; its write phase adds the corrected fact as a new line (step 6). Pages never change outside this phase. If `wikeeper ingest` cannot run, write nothing and tell the user.
@@ -221,9 +221,11 @@ status:: monitoring
 | Directory | one `wiki-extractor` per approved file, in parallel | `wiki-writer`, one source at a time |
 | Link | the main agent gets the text with `wikeeper read` (section "Register"); `wiki-extractor` or the main agent extracts | `wiki-writer`, or the main agent |
 
-- `wiki-extractor` (small tier) extracts and submits facts and never writes pages.
-- `wiki-writer` (medium tier) gets the brief, which the main agent writes into its task, and the facts file path — facts, not sources — and runs `wikeeper ingest apply`, writes the pages, and runs `wikeeper ingest finish`.
+- `wiki-extractor` uses `ingest.extractor_model` (default `small`), extracts and submits facts and never writes pages.
+- `wiki-writer` uses `ingest.writer_model` (default `medium`), gets the brief, which the main agent writes into its task, and the facts file path — facts, not sources — and runs `wikeeper ingest apply`, writes the pages, and runs `wikeeper ingest finish`.
 - When `ingest.delegate` is `never`, or the agent cannot delegate, the main agent runs both phases itself, with the same steps and the same facts file.
+
+The user chooses the ingest helper models during setup, in `.wiki/system/SETUP.md` step 5. Use the saved choices without asking again before every ingest. If the user asks to change them, or a selected model becomes unavailable, follow that step's consultation and approval procedure before changing configuration and running `wikeeper update`. Never silently switch models or treat a harness fallback as the user's approved choice. These settings do not change the main chat model.
 
 ## Ambient offers
 

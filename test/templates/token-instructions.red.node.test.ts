@@ -375,7 +375,7 @@ describe("STORY-007-07 S2: the size guidance matches what the commands report", 
       .split("\n")
       .filter((l) => !/^\| `(ai|ask|whitelist)` \|/.test(l))
       .join("\n");
-    expect(sha(setup), "system/SETUP.md without its three step-4 rows").toBe("577cedaaad08f54c9480622669186f60afd560366b7b356a4bdd7dd6d4fe67ed");
+    expect(sha(setup), "system/SETUP.md without its three step-4 rows").toBe("3a068110c2d35fa825611dac76c36ef6bdbdad190d9ce36ddc89ffae11110c9f");
   });
 });
 

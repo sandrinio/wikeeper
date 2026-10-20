@@ -13,7 +13,7 @@ export interface AgentFileReaders {
 }
 export const AGENT_FILE_READERS: Readonly<Record<AgentFile, AgentFileReaders>> = {
   "CLAUDE.md": { always: ["claude"] },
-  "AGENTS.md": { always: ["codex", "antigravity"], whenAbsent: { file: "CLAUDE.md", agents: ["claude"] } },
+  "AGENTS.md": { always: ["codex", "antigravity", "copilot"], whenAbsent: { file: "CLAUDE.md", agents: ["claude"] } },
   "GEMINI.md": { always: ["antigravity"] },
 };
 export const PRESELECT_BY_FILE: Readonly<Record<AgentFile, AgentName>> = {

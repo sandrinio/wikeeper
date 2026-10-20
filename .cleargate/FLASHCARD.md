@@ -6,6 +6,15 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-20 · #qa #test-harness · A test asserting exit 0 and empty stdout passes when the stub was never found; make the stub leave a marker.
+2026-10-20 · #qa #test-harness · it.each over an empty list registers no tests, so a skipped suite shows nothing; pair it with a CI-only guard test.
+2026-10-20 · #hooks #copilot #windows · Copilot CLI's .github/hooks entries take `bash`/`powershell` per platform (`command` is copied to both); `windows`/`linux`/`osx` are VS Code's and agent-scoped keys.
+2026-10-20 · #ux #doctor · doctor's human lines print `[sev] <id>: <message>` with no path; a message saying "this file" must name the file itself.
+2026-10-20 · #ux #doctor #copilot · Copilot keeps guard and permit in one hook file; Codex's "new session when the guard command changes" misses permission-mode changes.
+2026-10-20 · #ux #walkthrough · After update rewrites the pointer block, the agent describes its diff and names commands; say plainly what update refreshed.
+2026-10-20 · #security #hooks · A shell-command matcher must split words only on space and tab, as bash does; JS `\s` and trim let NBSP, U+2003 or \r forge a program name.
+2026-10-20 · #hooks #copilot · Copilot denies a tool call when a preToolUse hook exits non-zero (127 for a missing wikeeper, or an unknown subcommand); end its hook commands in a success exit.
+2026-10-20 · #ux #templates · Options named by an internal label (harness/session default, small/medium) get echoed to the user; give each one the words the user hears.
 2026-10-19 · #ci #perf · Since CR-006, search-perf runs locally and on Linux CI only; a miss there is real, not runner noise.
 2026-10-19 · #test-harness #worktree · A fresh git worktree has no node_modules; run npm ci in it before tests, or e2e rows fail.
 2026-10-19 · #release #npm · Re-creating the GitHub repo breaks npm trusted publishing (publish PUT returns E404, no "Signed provenance" line); re-add the trusted publisher on npmjs.com, then re-run the failed release run (same tag).
