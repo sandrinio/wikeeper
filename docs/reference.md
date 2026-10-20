@@ -4,6 +4,7 @@ The detail behind the [README](../README.md). Your agent runs these commands for
 
 - [CLI Command Reference](#-cli-command-reference)
 - [How It Works](#-how-it-works-the-agent-thinks-the-cli-enforces)
+- [Ingestion Models](#ingestion-models)
 - [Permission Modes & Harness Enforcement](#-permission-modes--harness-enforcement)
 - [Token Gauges](#-token-gauges)
 - [Upgrading](#-upgrading)
@@ -44,6 +45,18 @@ Every command outputs human-friendly reports in the terminal and supports `--jso
    - Takes an exclusive write lock and snapshots `.wiki/pages/` and `.wiki/archive/`.
    - **Never loses history:** `finish` **refuses** any page edit that drops an existing fact line or omits a `[[src-...]]` citation, unless the identical line moves to `.wiki/archive/` in a clean-up you asked for. Contradictions are flagged (`contradicts:: [[src-...]]`), never overwritten.
    - Automatically rebuilds `.wiki/index.md`, writes a merge-safe event to `.wiki/log/`, and runs post-ingest lint checks.
+
+---
+
+## Ingestion Models
+
+During setup, your agent explains the two ingest jobs and asks which models should do them: reading documents to extract facts, and writing those facts into wiki pages. You can keep the current choices, choose supported alternatives, or use each harness's default. The agent explains cost/quality trade-offs and checks availability where possible; it must not promise current prices or availability it cannot verify.
+
+Once you approve, your agent saves `ingest.extractor_model` and `ingest.writer_model` in `.wiki/config.yml` and runs `wikeeper update` to refresh the helper files. These settings are shared with the team and do not change your main chat model. You are not asked again on every ingest; ask your agent whenever you want to change the choices. If a model becomes unavailable, it consults you rather than silently choosing a replacement.
+
+The built-in choices are `small` for extraction and `medium` for writing. Those tiers map to harness-specific models; in Codex they leave model selection to the harness. Claude Code, Codex and Copilot also accept explicit model IDs; Antigravity supports the tiers, not arbitrary IDs. A mixed-harness team should use compatible tiers or inheritance rather than assume one model ID works everywhere.
+
+An empty string (`""`) in either setting omits that helper's model line, allowing the harness/session default. Unsetting a key instead restores its built-in tier. When helpers are disabled or unavailable, the main agent handles ingestion itself, so helper model settings do not select a different model for that work.
 
 ---
 

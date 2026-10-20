@@ -221,9 +221,11 @@ status:: monitoring
 | Directory | one `wiki-extractor` per approved file, in parallel | `wiki-writer`, one source at a time |
 | Link | the main agent gets the text with `wikeeper read` (section "Register"); `wiki-extractor` or the main agent extracts | `wiki-writer`, or the main agent |
 
-- `wiki-extractor` (small tier) extracts and submits facts and never writes pages.
-- `wiki-writer` (medium tier) gets the brief, which the main agent writes into its task, and the facts file path — facts, not sources — and runs `wikeeper ingest apply`, writes the pages, and runs `wikeeper ingest finish`.
+- `wiki-extractor` uses `ingest.extractor_model` (default `small`), extracts and submits facts and never writes pages.
+- `wiki-writer` uses `ingest.writer_model` (default `medium`), gets the brief, which the main agent writes into its task, and the facts file path — facts, not sources — and runs `wikeeper ingest apply`, writes the pages, and runs `wikeeper ingest finish`.
 - When `ingest.delegate` is `never`, or the agent cannot delegate, the main agent runs both phases itself, with the same steps and the same facts file.
+
+The user chooses the ingest helper models during setup, in `.wiki/system/SETUP.md` step 5. Use the saved choices without asking again before every ingest. If the user asks to change them, or a selected model becomes unavailable, follow that step's consultation and approval procedure before changing configuration and running `wikeeper update`. Never silently switch models or treat a harness fallback as the user's approved choice. These settings do not change the main chat model.
 
 ## Ambient offers
 

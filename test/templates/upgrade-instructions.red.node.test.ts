@@ -331,7 +331,7 @@ const PINS: Record<string, string> = {
   "skills/wiki-search/SKILL.md": "20c7fec470d7dab016baaf3e3b3395c156cb2747b80c88023a7256bee8a6ed45",
   "skills/wiki-setup/SKILL.md": "532e1a3a51410503e5b65ba2f37daea1c453be66653731fe33bf59e81683f1aa",
   "system/ONBOARDING.md": "5cc0dea373e130bdc2cb467a27c330aa2aafb759420fd38b2ab4f292ca5ecfc4",
-  "system/SETUP.md": "a6dc4c7b1fd7c1cd2a0dee5eabd664a635ca90d13d02b688d4db12501fb76ed4",
+  "system/SETUP.md": "bc1d236530370b5c1d0891d85c16c946d839bb5edb6269d61085150430f70913",
 };
 
 // ---------- S4: a wrong name in the text is reported with its line ----------
