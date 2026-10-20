@@ -32,7 +32,7 @@ draft_tokens:
   cache_creation: null
   cache_read: null
   model: null
-  last_stamp: 2026-10-20T11:15:38Z
+  last_stamp: 2026-10-20T12:48:36Z
   sessions: []
 ---
 
@@ -45,8 +45,8 @@ draft_tokens:
 - **Human decision:** dropped (2026-10-20): folder trust is VS Code's own prompt, which the user meets there; wikeeper does not tell them about it. Out of scope for this CR.
 
 - **Question:** How does doctor stop counting the Copilot file's `version` key as a hook?
-- **Recommended:** give non-entry items such as `version` their own manifest kind, so doctor counts only `hook` and `rule` entries; `wikeeper update` re-records an existing file's `version` item under the new kind.
-- **Human decision:** pending.
+- **Recommended:** leave the manifest as it is and have doctor's summary skip the file-format key, as it already skips `backup` (`src/commands/doctor.ts:314`). A new manifest kind was considered and rejected: the manifest's `version` entry is what `remove` uses to clear the key (so an emptied hook file is deleted) and what the missing-entry check (`inspectOwnedEntries`) verifies, so re-kinding it risks both. Antigravity's hook identity (`wikeeper-guard`) has no brackets, so the identity's shape can't tell hooks from file keys either.
+- **Human decision:** "doctor should work for sure" (2026-10-20): the summary must be right without putting any other doctor check, `update` or `remove` at risk. Applied as recommended.
 
 ## 1. The Context Override (Old vs. New)
 
@@ -57,14 +57,14 @@ draft_tokens:
 
 **New Logic (The New Truth):**
 - `copilot-trust` says to start a new session whenever `wikeeper update` changes the hook file (designer proposal: `… trust the folder, then start a new session whenever wikeeper update changes this file`).
-- doctor counts only real hook and rule entries: a Copilot wiki with enforce on reports `(1 hook, 1 rule)`.
+- doctor counts only real hook and rule entries: a Copilot wiki with enforce on reports `(1 hook, 1 rule)`, and `--json` lists no `version`. The manifest still records `version`; `remove`, `update` and the `enforce-entry-missing` check behave as before.
 - `docs/reference.md`'s Copilot note says what enforce does on a machine where wikeeper can't run (designer proposal: "On a machine where wikeeper can't run, the hooks step aside: Copilot asks before each command as usual and page edits aren't blocked, and `wikeeper lint` still reports them.").
 
 ## 2. Blast Radius & Invalidation
 
 - [ ] Invalidate/Update Story: none; extends [[CR-008]] (not yet Completed).
 - [ ] Invalidate/Update Epic: [[EPIC-002]] (Completed) owns doctor's enforce summary; it stays closed.
-- [x] Database schema impacts? No config change. The manifest may gain an entry kind for `version` (Open Questions).
+- [x] Database schema impacts? None: no config or manifest change.
 - Telling the user to trust the folder is out of scope (human decision, §0.5): VS Code asks for it itself.
 - Other designer notes stay out of this CR and remain recorded in `docs/ux-map.md` §4: the permit reasons' shape, the guard's `unknown --agent "undefined"`, ux.md naming `hook permit`, a word-list row for helper models, skipping the model question when helpers don't run, and `init` leaving an old pointer block.
 
@@ -72,7 +72,7 @@ draft_tokens:
 
 - **Surface:** `src/agents/doctor-checks.ts:194` — `checkCopilotTrust` and its message.
 - **Surface:** `src/commands/doctor.ts:322` — the per-file hook and rule lists behind the `enforce: on — …` summary.
-- **Surface:** `src/agents/enforce/copilot.ts` — the `version` item, recorded with kind `hook`.
+- **Surface:** `src/agents/enforce/copilot.ts` — the `version` item, recorded with kind `hook`; unchanged by this CR.
 - **Surface:** `docs/reference.md` — the "Copilot in VS Code" note under the multi-agent table.
 - **Why this CR extends rather than rebuilds:** the check, the summary and the docs note exist; only one message, one count and one docs sentence change.
 
@@ -84,11 +84,9 @@ draft_tokens:
 ## 3. Execution Sandbox
 
 **Modify:**
-- `src/agents/doctor-checks.ts`
-- `src/commands/doctor.ts`
-- `src/agents/enforce/copilot.ts`
-- `src/agents/enforce/index.ts` (only if the `version` item gets its own kind)
-- `docs/reference.md`
+- `src/agents/doctor-checks.ts` — the `copilot-trust` message.
+- `src/commands/doctor.ts` — skip the file-format key in the enforce summary.
+- `docs/reference.md` — one sentence in the Copilot note.
 
 **Add:**
 - `test/agents/copilot-notices.test.ts`
@@ -123,6 +121,13 @@ Feature: What users are told about enforce in Copilot
     And the JSON hook list does not contain "version"
 
   @rules
+  Scenario: doctor's other checks and remove are unchanged
+    Given a Copilot wiki with enforce on
+    When the version key is deleted from .github/hooks/wikeeper.json
+    Then doctor still reports enforce-entry-missing for it
+    And when Copilot is removed from the wiki's agents, update still deletes the hook file
+
+  @rules
   Scenario: The docs say what enforce does without wikeeper
     When a reader opens docs/reference.md's Copilot note
     Then it says the hooks step aside on a machine where wikeeper can't run, and lint still reports page edits
@@ -130,8 +135,8 @@ Feature: What users are told about enforce in Copilot
 
 | Test Type | Minimum Count | Notes |
 |---|---|---|
-| Unit tests | 3 | One per scenario. |
-| Integration tests | 1 | doctor through runCli on a scratch wiki for the count, human and `--json`. |
+| Unit tests | 2 | The trust message; the docs sentence. |
+| Integration tests | 2 | doctor through runCli on a scratch wiki: the count, human and `--json`; the missing-entry check and removal. |
 | E2E / acceptance tests | 0 | No real Copilot session is available; designer VERIFY runs doctor in a testbed copy. |
 
 ---
@@ -143,7 +148,7 @@ Feature: What users are told about enforce in Copilot
 ---
 
 ## ClearGate Ambiguity Gate (🟢 / 🟡 / 🔴)
-**Current Status: 🔴 High Ambiguity — draft; one open question and no approval yet**
+**Current Status: 🔴 High Ambiguity — draft; open questions resolved, awaiting approval**
 
 *Evaluate each criterion against its literal text. If you substituted an interpretation, leave the box unchecked and surface the substitution in the Brief.*
 
