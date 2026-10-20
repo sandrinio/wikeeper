@@ -259,7 +259,7 @@ describe("STORY-008-06 R11: invariants", () => {
 
   const PINS: Record<string, string> = {
     "agent-block.md": "d27dd480747918b7bff9932fc7846689b0697dfa8bd3c94bfc461111e0e805de",
-    "system/SETUP.md": "0eb9304b5a991309a56eda0ca8f446858e3454a4c26c4c6ff0851e50b8d44b22",
+    "system/SETUP.md": "a6dc4c7b1fd7c1cd2a0dee5eabd664a635ca90d13d02b688d4db12501fb76ed4",
     "agents/claude/wiki-extractor.md": "1ef88fd2aa1a3cf42255b7ec9548be3d87dd92582ba76499672a7dcbe9b53977",
     "agents/claude/wiki-writer.md": "090e6b4f6bb1bfe0aa4dd25118253e826f3bee160aacf51b161f82b60018cd83",
     "agents/antigravity/wiki-extractor.md": "da3dce3faffc413b6139440b87d184362d2f98ee0d7e3c6903c1e29d528cb0c9",

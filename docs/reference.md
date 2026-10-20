@@ -58,7 +58,7 @@ You control what enters your knowledge base via `ingest.permission` in `.wiki/co
 | **`ai`** | Your agent ingests autonomously—while still prompting before destructive actions (`abort --drop` or `apply --force-unlock`). |
 
 > [!TIP]
-> **Mechanical Guardrails (`--enforce`):** Run `wikeeper init --enforce` to install native `PreToolUse` hooks and permission rules into Claude Code and Codex. If an agent tries to edit `.wiki/pages/` outside a locked write phase, the hook blocks the edit automatically—and `wikeeper lint` backs it up with SHA-256 `unlogged-change` detection.
+> **Mechanical Guardrails (`--enforce`):** Run `wikeeper init --enforce` to install native `PreToolUse` hooks and permission rules into Claude Code, Codex and Copilot (in VS Code, its Copilot agent only: see [Multi-Agent Compatibility](#-multi-agent-compatibility)). If an agent tries to edit `.wiki/pages/` outside a locked write phase, the hook blocks the edit automatically—and `wikeeper lint` backs it up with SHA-256 `unlogged-change` detection.
 
 ---
 
@@ -85,14 +85,16 @@ Every size `wikeeper` shows is an estimate in tokens, printed with `≈` and wit
 
 ## 🤝 Multi-Agent Compatibility
 
-`wikeeper` works identically across the three major AI coding harnesses—and lets mixed teams collaborate on the same Git wiki:
+`wikeeper` works identically across the four major AI coding harnesses—and lets mixed teams collaborate on the same Git wiki:
 
-| Capability | Claude Code | OpenAI Codex | Google Antigravity |
-| :--- | :--- | :--- | :--- |
-| **Root Instructions** | `CLAUDE.md` | `AGENTS.md` | `AGENTS.md` / `GEMINI.md` |
-| **Installed Skills** | `.claude/skills/` | `.agents/skills/` | `.agents/skills/` |
-| **Extractor & Writer Sub-Agents** | `.claude/agents/` | `.codex/agents/` | `.agents/agents/` |
-| **Harness Enforcement (`--enforce`)** | `.claude/settings.json` (`PreToolUse` + `allow`/`ask`) | `.codex/hooks.json` + `.codex/rules/wikeeper.rules` | CLI gate + `unlogged-change` lint check |
+| Capability | Claude Code | OpenAI Codex | Google Antigravity | GitHub Copilot |
+| :--- | :--- | :--- | :--- | :--- |
+| **Root Instructions** | `CLAUDE.md` | `AGENTS.md` | `AGENTS.md` / `GEMINI.md` | `AGENTS.md` |
+| **Installed Skills** | `.claude/skills/` | `.agents/skills/` | `.agents/skills/` | `.agents/skills/` |
+| **Extractor & Writer Sub-Agents** | `.claude/agents/` | `.codex/agents/` | `.agents/agents/` | `.github/agents/` |
+| **Harness Enforcement (`--enforce`)** | `.claude/settings.json` (`PreToolUse` + `allow`/`ask`) | `.codex/hooks.json` + `.codex/rules/wikeeper.rules` | CLI gate + `unlogged-change` lint check | `.github/hooks/wikeeper.json` (`PreToolUse` guard + permit hook) |
+
+**Copilot in VS Code:** the hooks in `.github/hooks/wikeeper.json` cover Copilot CLI and VS Code's Copilot agent, not VS Code's Local agent, which reads another hook format. With the Local agent a direct page edit is not blocked, and `wikeeper lint` still reports it as an `unlogged-change` finding.
 
 ---
 

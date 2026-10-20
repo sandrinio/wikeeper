@@ -60,6 +60,11 @@ export function resolveGuardForm(o: ResolveGuardOptions): GuardForm {
   return "npx";
 }
 
+/** The permit form of a built guard command: same resolution (path, local or npx), other subcommand. */
+export function toPermitCommand(guardCmd: string): string {
+  return guardCmd.replace(" hook guard --agent ", " hook permit --agent ");
+}
+
 export function guardCommand(form: GuardForm, agent: AgentName, packageVersion: string): string {
   const tail = `hook guard --agent ${agent}`;
   switch (form) {

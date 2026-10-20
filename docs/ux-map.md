@@ -25,7 +25,7 @@ each one appears. On a word, `docs/ux.md` §6 wins.
 | Role | Who | What they see |
 |---|---|---|
 | **User** | The person working with their agent, for example a product manager. Not technical about the CLI. | Only what the agent says. |
-| **Agent** | The main agent in Claude Code, Codex or Antigravity, following the pointer block and `WIKI.md`. | The CLI's human output or `--json`. |
+| **Agent** | The main agent in Claude Code, Codex, Antigravity or Copilot, following the pointer block and `WIKI.md`. | The CLI's human output or `--json`. |
 | **Helpers** | `wiki-extractor` (small tier) and `wiki-writer` (medium tier) sub-agents. | Their task text and the CLI. They never talk to the user. |
 | **Installer** | Whoever runs `npx wikeeper init` in a terminal (README quickstart). | The CLI's human output and its prompts. |
 
@@ -42,7 +42,7 @@ each one appears. On a word, `docs/ux.md` §6 wins.
 | # | User says | Agent runs | CLI prints | Agent tells the user | Next |
 |---|---|---|---|---|---|
 | 1 | (Installer, in a terminal) | `npx wikeeper init` | the prompts `Which agents do you use? …` and `Enable --enforce …? [y/N]`, then `initialised .wiki/: 31 created, 0 updated, 0 unchanged` and `next: ask your agent to read .wiki/system/SETUP.md` | — | 3 |
-| 1b | "Set up a project wiki here." | `wikeeper init` (no terminal) | exit 5 `needs_input`: `no agents configured: re-run with --agents <list> (choices: claude, codex, antigravity)`; `details.choices` | "Which coding agents does your team use here: Claude Code, Codex, Antigravity?" | 2 |
+| 1b | "Set up a project wiki here." | `wikeeper init` (no terminal) | exit 5 `needs_input`: `no agents configured: re-run with --agents <list> (choices: claude, codex, antigravity, copilot)`; `details.choices` | "Which coding agents does your team use here: Claude Code, Codex, Antigravity, Copilot?" | 2 |
 | 2 | "Claude Code and Codex." | `wikeeper init --agents claude,codex --yes` | the line of step 1 | "The wiki is installed. Let's set it up: a few questions about you first." | 3 |
 | — | (SPRINT-04, STORY-007-01) | `init` | `config.yml` now holds the commented `tokens:` block | — | — |
 | 3 | "Let's finish setting up the wiki." | reads the pointer block: no `setup_completed_at`, no `me.md` | — | "What's your name, how should I address you, and what's your role?" (it may suggest the git user name, and writes it only after a yes) | 4 |
@@ -217,6 +217,24 @@ each one appears. On a word, `docs/ux.md` §6 wins.
 
 - **Ends with:** the tools gone and the knowledge kept, or, after an explicit yes, everything gone.
 
+### H — Hooks under `enforce` (no user turn)
+- **Starts:** with `enforce` on, the coding agent runs wikeeper's hooks before a file edit or a shell command.
+  Hooks follow each agent's protocol, not ux.md §4–§5. The user meets only the agent's own prompt, or nothing.
+- **Seen** 2026-10-20 in a build of the uncommitted CR-008 tree, by piping payloads into the hooks and
+  running the installed commands through `sh`. No real Copilot session was run, and the `windows` form was not run.
+
+| # | When | Hook runs | CLI prints | What the agent and the user meet |
+|---|---|---|---|---|
+| H1 | Copilot edits a page outside an ingest | `wikeeper hook guard --agent copilot \|\| true` (`.github/hooks/wikeeper.json`; `windows`: `…; exit 0`) | stdout `` {"permissionDecision":"deny","permissionDecisionReason":"Wiki pages can only change during an ingest's write phase. Run `wikeeper ingest apply <id>` first — see .wiki/system/WIKI.md, section \"Write phase\".","hookSpecificOutput":{…the same…}} ``, exit 0 (A.12 shape) | the edit is refused; the agent starts the write phase (WIKI.md "Write phase"), or J2's declined page write |
+| H2 | Copilot runs a shell command | `wikeeper hook permit --agent copilot --permission <mode> \|\| true` | a wikeeper command it has a rule for: `` {"permissionDecision":"allow","permissionDecisionReason":"Allowed by the wiki's permission mode `ingest.permission` in .wiki/config.yml.",…} ``, or `"ask"` with `` "The wiki's permission mode `ingest.permission` in .wiki/config.yml asks you before this command." `` (`ingest start` in `ask`; `--drop` and `--force-unlock` in `ai`); any other command, including `npx --package=… wikeeper …` and a path to a wikeeper: nothing, exit 0 | allow: no prompt; ask: Copilot's own prompt, showing that reason; nothing: Copilot's own permission flow |
+| H3 | the permit hook cannot decide | as H2 | stdout empty, exit 0, stderr `warning: wikeeper hook permit left the command to the agent's permission settings: <detail>`, where `<detail>` is `no --agent given` (also for a bare `--agent`), `unknown --agent "cursor"`, `no permit hook for --agent "claude"`, `no payload on stdin`, `payload larger than 1 MB`, `payload is not valid JSON`, or the error on one line, such as `config.yml syntax error at line 18: …: fix the YAML syntax in .wiki/config.yml`. `--json` changes nothing. No command or payload text appears in it (canary checked). | Copilot's own permission flow |
+| H4 | a teammate whose wikeeper is missing, or older than `hook permit` (0.4.0) | as H1, H2 | stderr `sh: wikeeper: command not found`, or `error: unknown command 'permit'` and `warning: wikeeper hook guard allowed the write: unknown --agent "copilot"`; `\|\| true` makes each hook exit 0 with nothing on stdout | Copilot is not blocked: it shows its own prompts for wikeeper commands, and page edits are not guarded (lint's `unlogged-change` still finds them). For an older wikeeper the next step is J7 step 7, from `status` or `doctor` |
+| H5 | the guard cannot decide | `wikeeper hook guard` | `warning: wikeeper hook guard allowed the write: <detail>`; a missing `--agent` prints `unknown --agent "undefined"` (§4) | — |
+| H6 | `doctor` in a Copilot wiki with `enforce` on | `wikeeper doctor` | `enforce: on — …; copilot: .github/hooks/wikeeper.json (2 hooks, 1 rule)` (the count includes the file's `version` key, §4); `[info] copilot-trust: Copilot runs .github/hooks only after this folder is trusted, and reads the file once per session: trust the folder, then start a new session whenever wikeeper update changes the guard command`; in `ask` also `[info] copilot-ask-fallback: Copilot cannot ask when nobody is there to answer, so an ingest that needs approval is refused in an autopilot or cloud session; start it from an interactive session` | nothing by itself: SETUP.md step 5 fixes errors only (§4) |
+
+- **Ends with:** the agent's own permission flow deciding whatever wikeeper does not, and a teammate
+  without a working wikeeper never blocked by the hooks.
+
 ---
 
 ## 3. Session-start notices
@@ -288,6 +306,13 @@ never blocks the story under review.
 | 2026-10-18 | seeding the map | §3 collision 2: when the files are older and a newer version is out, ask once, to upgrade. (Planned in SPRINT-04: STORY-009-03 R1.) | One question for upgrade and refresh |
 | 2026-10-18 | seeding the map | §3 collision 3: skip the size line until setup is done. (Decided at the plan confirmation, decision 65; STORY-007-07 R1.) | Size line after setup |
 | 2026-10-18 | seeding the map | ux.md Appendix A.21–A.23: SETUP.md and ONBOARDING.md name commands to the user, and WIKI.md shows the raw report. | Plain words in setup and reports |
+| 2026-10-20 | CR-008 PLAN | The permit hook's reasons (H2) have A.12's shape: a capital letter, a final period and a key in backticks. The `ask` reason shows in Copilot's own prompt and names `ingest.permission` and `.wiki/config.yml`. Left alone so it keeps one shape with `GUARD_REASON`. Proposed: `allowed by the wiki's permission mode (ingest.permission in .wiki/config.yml)` and `the wiki asks for your OK before this command (ingest.permission in .wiki/config.yml)`, with the guard's reason changed the same way. | One shape and plain words for the reasons wikeeper gives harness prompts |
+| 2026-10-20 | CR-008 PLAN | The guard prints `unknown --agent "undefined"` when `--agent` is missing, a value nobody gave (ux.md §3.6); the permit hook says `no --agent given` (H5, H3). | Hook fallbacks say "no --agent given" |
+| 2026-10-20 | CR-008 PLAN | ux.md §5 and §2.4 name only `hook guard` as following the hook protocol and having no `--json`; `hook permit` does the same (H3: `--json` changes nothing). | Name hook permit in the guide's hook exceptions |
+| 2026-10-20 | CR-008 VERIFY | `copilot-trust` (H6) says to start a new session "whenever wikeeper update changes the guard command". In Copilot the permit hook's command changes too, with every permission change: seen as `--permission ask` → `--permission ai` after `update`. Copilot reads the file once per session, so the old mode holds until a new session. Harmless today, because the CLI still asks in `ask`. The copied Codex wording is right for Codex only, whose rules are a separate file. Proposed: `… trust the folder, then start a new session whenever wikeeper update changes this file`. | Copilot trust note covers the permit hook |
+| 2026-10-20 | CR-008 VERIFY | The trust step reaches nobody. `init --enforce` prints nothing about it, SETUP.md step 5 fixes only doctor errors, and step 6 passes on only `setup-files` findings. So a Copilot, Codex or Antigravity user is never told to trust the folder, and without that step the hooks don't run. The same holds for Codex and Antigravity today. | Tell the user to trust the folder when enforce is on |
+| 2026-10-20 | CR-008 VERIFY | doctor counts the hook file's `version` key as a hook: `copilot: .github/hooks/wikeeper.json (2 hooks, 1 rule)` for a file holding the guard and the permit hook; JSON `state.enforce.agents[].files[].hooks` is `["hooks.PreToolUse[guard:copilot]", "version"]`. An agent passing it on (ux.md §1.7) gives a wrong count. | Doctor counts only real hooks |
+| 2026-10-20 | CR-008 VERIFY | Because every Copilot hook command ends in `\|\| true` (decided 2026-10-20), a teammate whose wikeeper is missing or old is not blocked (H4), as in Claude Code. The README and the reference's enforce tip still say only that the hook blocks direct edits. Proposed sentence for the reference's Copilot note: "On a machine where wikeeper can't run, the hooks step aside: Copilot asks before each command as usual and page edits aren't blocked, and `wikeeper lint` still reports them." | Say what enforce does on a teammate without wikeeper |
 
 ---
 

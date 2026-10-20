@@ -132,7 +132,7 @@ describe("STORY-002-02 detect + targets (red)", () => {
     const r = await m.resolveAgents({ config: noConfig, isTTY: true, json: false, existing: [], ask });
     expect(r).toEqual({ status: "resolved", agents: ["claude", "codex"], source: "prompt" });
     expect(ask).toHaveBeenCalledTimes(1);
-    expect(ask.mock.calls[0]![0]).toMatchObject({ choices: ["claude", "codex", "antigravity"], preselected: [], files: [] });
+    expect(ask.mock.calls[0]![0]).toMatchObject({ choices: ["claude", "codex", "antigravity", "copilot"], preselected: [], files: [] });
     if (r.status === "resolved") expect(m.resolveTargets(r.agents, [])).toEqual([{ path: "AGENTS.md", create: true }]);
   });
 
@@ -172,7 +172,7 @@ describe("STORY-002-02 detect + targets (red)", () => {
     expect(res.code).toBe(5);
     const obj = JSON.parse(res.out);
     expect(obj.error.code).toBe("needs_input");
-    expect(obj.error.details.choices).toEqual(["claude", "codex", "antigravity"]);
+    expect(obj.error.details.choices).toEqual(["claude", "codex", "antigravity", "copilot"]);
     expect(obj.error.details.files).toEqual([]);
     expect(ask).not.toHaveBeenCalled();
     expect(await readdir(root)).toEqual(before);
@@ -181,7 +181,7 @@ describe("STORY-002-02 detect + targets (red)", () => {
   it("needs_input lists files found", async () => {
     const m = await load();
     const r = await m.resolveAgents({ config: noConfig, isTTY: false, json: false, existing: ["GEMINI.md"], ask: vi.fn() });
-    expect(r).toMatchObject({ status: "needs_input", choices: ["claude", "codex", "antigravity"], files: ["GEMINI.md"] });
+    expect(r).toMatchObject({ status: "needs_input", choices: ["claude", "codex", "antigravity", "copilot"], files: ["GEMINI.md"] });
   });
 
   it("S5: unknown agent in --agents -> exit 2 naming it and allowed values", async () => {

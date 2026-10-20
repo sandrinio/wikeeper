@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { parse as parseYaml } from "yaml";
 
-type Agent = "claude" | "codex" | "antigravity";
+type Agent = "claude" | "codex" | "antigravity" | "copilot";
 interface Mapping { model?: string; warning?: string }
 interface TiersModule { mapModel(agent: Agent, value: string): Mapping }
 interface SubModule {
@@ -54,6 +54,12 @@ describe("mapModel", () => {
       expect(codex).toEqual({});
     });
   }
+  it("maps the copilot tiers to ids a user can override", async () => {
+    const { mapModel } = await loadTiers();
+    expect(mapModel("copilot", "small")).toEqual({ model: "gpt-6-luna" });
+    expect(mapModel("copilot", "medium")).toEqual({ model: "claude-sonnet-5.5" });
+    expect(mapModel("copilot", "claude-haiku-4.5")).toEqual({ model: "claude-haiku-4.5" });
+  });
   it("explicit id: as-is for claude/codex, inherit + warning for antigravity", async () => {
     const { mapModel } = await loadTiers();
     expect(mapModel("claude", "gpt-6-luna")).toEqual({ model: "gpt-6-luna" });

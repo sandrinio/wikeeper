@@ -22,6 +22,11 @@ export interface HookAdapter {
   targets(payload: unknown, fallbackCwd: string): GuardTargets | null;
   allow(): HookResponse;
   deny(reason: string): HookResponse;
+  /** The shell command a payload is asking to run, for harnesses whose permission rules are a hook
+   *  rather than a settings file. Undefined on harnesses that keep their rules in a file. */
+  shellCommand?(payload: unknown): string | null;
+  /** Answers a permission request. `null` leaves the decision to the harness. */
+  permit?(decision: "allow" | "ask" | null, reason: string): HookResponse;
 }
 
 type Obj = Record<string, unknown>;
@@ -95,7 +100,65 @@ const antigravity: HookAdapter = {
   deny: (reason) => ({ stdout: JSON.stringify({ decision: "deny", reason }) + "\n", exitCode: 0 }),
 };
 
-export const HOOK_ADAPTERS: Readonly<Record<AgentName, HookAdapter>> = { claude, codex, antigravity };
+/** Copilot (VS Code and Copilot CLI) via the PascalCase `PreToolUse` event, which both surfaces accept.
+ *  Its payload is Claude-shaped (snake_case, Claude tool names), but a file write arrives as an
+ *  apply_patch string in `tool_input` rather than an object, so paths come from the patch body. */
+const copilot: HookAdapter = {
+  agent: "copilot",
+  tools: ["Edit", "Write", "NotebookEdit"],
+  targets(payload, fallbackCwd) {
+    if (!isObj(payload) || typeof payload.tool_name !== "string") return null;
+    const cwd = typeof payload.cwd === "string" ? payload.cwd : fallbackCwd;
+    if (!this.tools.includes(payload.tool_name)) return { cwd, paths: [] };
+    const input = payload.tool_input;
+    if (typeof input === "string") return { cwd, paths: parsePatchPaths(input) };
+    if (!isObj(input)) return null;
+    // Object form: the editor tools of a surface that passes arguments rather than a patch.
+    for (const key of ["file_path", "path", "notebook_path"]) {
+      const p = input[key];
+      if (typeof p === "string" && p.length > 0) return { cwd, paths: [p] };
+    }
+    for (const key of ["patch", "input", "command"]) {
+      const p = input[key];
+      if (typeof p === "string" && p.length > 0) return { cwd, paths: parsePatchPaths(p) };
+    }
+    return null;
+  },
+  allow: () => ({ exitCode: 0 }),
+  shellCommand(payload) {
+    if (!isObj(payload)) return null;
+    const name = typeof payload.tool_name === "string" ? payload.tool_name : payload.toolName;
+    if (typeof name !== "string" || name.toLowerCase() !== "bash") return null;
+    const input = isObj(payload.tool_input) ? payload.tool_input : isObj(payload.toolArgs) ? payload.toolArgs : null;
+    const cmd = input?.command;
+    return typeof cmd === "string" && cmd.length > 0 ? cmd : null;
+  },
+  permit(decision, reason) {
+    if (decision === null) return { exitCode: 0 };
+    return {
+      stdout:
+        JSON.stringify({
+          permissionDecision: decision,
+          permissionDecisionReason: reason,
+          hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: decision, permissionDecisionReason: reason },
+        }) + "\n",
+      exitCode: 0,
+    };
+  },
+  // VS Code reads hookSpecificOutput; Copilot CLI reads the top-level pair. One object serves both.
+  // The exit code stays 0: a non-zero exit from a Copilot PreToolUse hook denies the call outright.
+  deny: (reason) => ({
+    stdout:
+      JSON.stringify({
+        permissionDecision: "deny",
+        permissionDecisionReason: reason,
+        hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: "deny", permissionDecisionReason: reason },
+      }) + "\n",
+    exitCode: 0,
+  }),
+};
+
+export const HOOK_ADAPTERS: Readonly<Record<AgentName, HookAdapter>> = { claude, codex, antigravity, copilot };
 
 export function failOpen(agent: AgentName | undefined, detail: string): HookResponse {
   const res: HookResponse = {

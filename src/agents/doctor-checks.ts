@@ -15,6 +15,7 @@ export const AGENT_CHECK_IDS = [
   "claude-agents-md-only", "skill-link-broken", "codex-trust",
   // INSERTION POINT 3 (002-06): "antigravity-trust", "antigravity-ask-fallback",
   "antigravity-trust", "antigravity-ask-fallback",
+  "copilot-trust", "copilot-ask-fallback",
   "enforce-entry-missing", "enforce-settings-invalid", "backup-orphaned", "backup-stale",
 ] as const;
 export type AgentCheckId = (typeof AGENT_CHECK_IDS)[number];
@@ -190,6 +191,31 @@ export async function checkAntigravityAskFallback(input: AgentCheckInput): Promi
     },
   ];
 }
+export async function checkCopilotTrust(input: AgentCheckInput): Promise<DoctorCheck[]> {
+  if (!input.agents.includes("copilot") || input.config.enforce !== true) return [];
+  return [
+    {
+      id: "copilot-trust",
+      severity: "info",
+      message:
+        "Copilot runs .github/hooks only after this folder is trusted, and reads the file once per session: trust the folder, then start a new session whenever wikeeper update changes the guard command",
+      file: ".github/hooks/wikeeper.json",
+    },
+  ];
+}
+
+export async function checkCopilotAskFallback(input: AgentCheckInput): Promise<DoctorCheck[]> {
+  if (!input.agents.includes("copilot") || input.config.enforce !== true || input.config.ingest.permission !== "ask") return [];
+  return [
+    {
+      id: "copilot-ask-fallback",
+      severity: "info",
+      message:
+        "Copilot cannot ask when nobody is there to answer, so an ingest that needs approval is refused in an autopilot or cloud session; start it from an interactive session",
+      file: ".github/hooks/wikeeper.json",
+    },
+  ];
+}
 export async function checkEnforceEntries(input: AgentCheckInput): Promise<DoctorCheck[]> {
   if (input.config.enforce !== true) return [];
   const out: DoctorCheck[] = [];
@@ -252,5 +278,6 @@ export const AGENT_CHECKS: readonly AgentCheck[] = [
   checkAgentBlocks, checkClaudeAgentsMdOnly, checkSkillLinks, checkCodexTrust,
   // INSERTION POINT 5 (002-06): checkAntigravityTrust, checkAntigravityAskFallback,
   checkAntigravityTrust, checkAntigravityAskFallback,
+  checkCopilotTrust, checkCopilotAskFallback,
   checkEnforceEntries, checkBackups,
 ];
