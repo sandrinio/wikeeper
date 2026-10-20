@@ -1024,3 +1024,8 @@
   action: "update"
   target: "CR-008"
   path: ".cleargate/delivery/pending-sync/CR-008_copilot_agent_support.md"
+- timestamp: "2026-10-20T13:46:47.529Z"
+  actor: "cleargate wiki ingest"
+  action: "update"
+  target: "CR-010"
+  path: ".cleargate/delivery/pending-sync/CR-010_copilot_windows_hook_commands.md"

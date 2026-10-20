@@ -109,7 +109,7 @@ draft_tokens:
 
 - [x] Write the red tests: the entry fields and the PowerShell text for each form; the PowerShell run test.
 - [x] Build the PowerShell form for the path, npx and local forms, and write it to `powershell` and `windows`.
-- [ ] Run the PowerShell test where a PowerShell exists; push to the draft PR and read the Windows CI result.
+- [x] Run the PowerShell test where a PowerShell exists; push to the draft PR and read the Windows CI result.
 - [x] Mark CR-008's known-limit line superseded.
 
 ## 4. Verification Protocol
@@ -169,7 +169,8 @@ Feature: Copilot hook commands that run on Windows
 - `npm run typecheck`, `npm test` (190 files, 2363 passed, 2 skipped), `npm run build` and `git diff --check`: pass (QA-Verify PASS, 4/4 scenarios mapped, no gaps).
 - No PowerShell on the maintainer's Mac, so the real-PowerShell cases run only on CI (draft PR #3: ubuntu, macos, windows); a CI-only test fails the job if CI finds no PowerShell. The stub that exits 1 now leaves a marker, so that case proves the stub ran (QA advisory).
 - Manual check in a scratch copy of the testbed: `init --agents claude,copilot --enforce` writes `powershell` and `windows`; a hook file reverted to the CR-008 shape is rewritten by `update`; doctor reports `0 errors, 0 warnings`.
-- Pending: the Windows CI result on PR #3, and the human's check in Copilot CLI on Windows (separate session).
+- CI on PR #3 (run 39432849256, commit f586736): all six jobs pass. `copilot-powershell.node.test.ts` ran 27 tests on windows-latest (pwsh and Windows PowerShell 5.1) and 17 on ubuntu and macos (pwsh): the payload reaches wikeeper through PowerShell's stdin, its decision passes through, and a missing or failing wikeeper exits 0 with no output.
+- Pending: the human's check in Copilot CLI on Windows (separate session).
 
 ---
 
