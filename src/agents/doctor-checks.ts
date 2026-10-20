@@ -198,7 +198,7 @@ export async function checkCopilotTrust(input: AgentCheckInput): Promise<DoctorC
       id: "copilot-trust",
       severity: "info",
       message:
-        "Copilot runs .github/hooks only after this folder is trusted, and reads the file once per session: trust the folder, then start a new session whenever wikeeper update changes the guard command",
+        "Copilot runs .github/hooks only after this folder is trusted, and reads the file once per session: trust the folder, then start a new session whenever wikeeper update changes this file",
       file: ".github/hooks/wikeeper.json",
     },
   ];

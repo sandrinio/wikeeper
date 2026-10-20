@@ -4,9 +4,9 @@ parent_ref: CR-008
 parent_cleargate_id: null
 sprint_cleargate_id: null
 carry_over: false
-status: Draft
-approved: false
-context_source: Designer PLAN/VERIFY cross-flow notes on CR-008 (2026-10-20, docs/ux-map.md §4 and table H); the user chose four to become a CR on 2026-10-20 ("do as you recommend") and dropped the folder-trust one the same day. Not yet approved for implementation.
+status: Approved
+approved: true
+context_source: Designer PLAN/VERIFY cross-flow notes on CR-008 (2026-10-20, docs/ux-map.md §4 and table H); the user chose four to become a CR on 2026-10-20 ("do as you recommend") and dropped the folder-trust one the same day. Approved for implementation on 2026-10-20 ("go ahead").
 created_at: 2026-10-20T11:14:49Z
 updated_at: 2026-10-20T11:14:49Z
 created_at_version: strategy-phase-pre-init
@@ -25,15 +25,21 @@ last_remote_update: null
 source: local-authored
 last_synced_status: null
 last_synced_body_sha: null
-stamp_error: no ledger rows for work_item_id CR-009
 draft_tokens:
-  input: null
-  output: null
-  cache_creation: null
-  cache_read: null
-  model: null
-  last_stamp: 2026-10-20T12:48:36Z
-  sessions: []
+  input: 0
+  output: 0
+  cache_creation: 0
+  cache_read: 0
+  model: claude-opus-5-5
+  last_stamp: 2026-10-20T13:22:27Z
+  sessions:
+    - session: eb8400d2-bb8a-4f0e-85f7-1cd886731bab
+      model: claude-opus-5-5
+      input: 0
+      output: 0
+      cache_read: 0
+      cache_creation: 0
+      ts: 2026-10-20T13:14:27Z
 ---
 
 # CR-009: What users are told about enforce in Copilot
@@ -139,6 +145,12 @@ Feature: What users are told about enforce in Copilot
 | Integration tests | 2 | doctor through runCli on a scratch wiki: the count, human and `--json`; the missing-entry check and removal. |
 | E2E / acceptance tests | 0 | No real Copilot session is available; designer VERIFY runs doctor in a testbed copy. |
 
+**Verification results (2026-10-20):**
+- `npm run typecheck`, `npm test` (189 files, 2357 passed, 1 skipped), `npm run build` and `git diff --check`: pass (QA-Verify, 4/4 scenarios, no regressions).
+- Designer VERIFY passed with no findings (27 transcripts from a scratch build in testbed copies; no real Copilot or VS Code session). doctor prints the new trust note and `copilot: .github/hooks/wikeeper.json (1 hook, 1 rule)`; `--json` lists no `version`; with `version` deleted, `enforce-entry-missing` names it and `update` restores it; removing Copilot deletes the hook file; with no runnable wikeeper both hooks exit 0 with no output and `lint` reports the edit as `unlogged-change`. `docs/ux-map.md` H4, H6 and §4 updated.
+- Cross-flow notes (not blocking), for the human to make CRs of or drop: `config set ingest.permission` with enforce on leaves the agents' files on the old mode with no next step; doctor's human lines show no path, so "this file" names no file; doctor calls the permit hook a "rule" where the docs call it a hook; the "no wikeeper" sentence sits only under the Copilot note.
+- After this CR: GitHub's hooks reference (read again 2026-10-20) lists `bash`/`powershell` as the per-platform fields of a `.github/hooks` entry, and `windows` only for VS Code and agent-scoped hooks, so Copilot CLI on Windows likely runs the POSIX `command`. Follow-up CR drafted.
+
 ---
 
 ## Context Source
@@ -148,7 +160,7 @@ Feature: What users are told about enforce in Copilot
 ---
 
 ## ClearGate Ambiguity Gate (🟢 / 🟡 / 🔴)
-**Current Status: 🔴 High Ambiguity — draft; open questions resolved, awaiting approval**
+**Current Status: 🟡 Medium Ambiguity — approved with an explicit downstream-reset exception (EPIC-002 is Completed and stays closed)**
 
 *Evaluate each criterion against its literal text. If you substituted an interpretation, leave the box unchecked and surface the substitution in the Brief.*
 
@@ -157,5 +169,5 @@ Requirements to pass to Green (Ready for Execution):
 - [ ] All impacted downstream Epics/Stories are identified and reverted to 🔴 High Ambiguity.
 - [x] Execution Sandbox contains exact file paths.
 - [x] Verification command is provided.
-- [ ] `approved: true` is set in the YAML frontmatter.
+- [x] `approved: true` is set in the YAML frontmatter.
 - [x] Existing Surfaces cites at least one source-tree path the CR extends.

@@ -107,7 +107,7 @@ Every size `wikeeper` shows is an estimate in tokens, printed with `≈` and wit
 | **Extractor & Writer Sub-Agents** | `.claude/agents/` | `.codex/agents/` | `.agents/agents/` | `.github/agents/` |
 | **Harness Enforcement (`--enforce`)** | `.claude/settings.json` (`PreToolUse` + `allow`/`ask`) | `.codex/hooks.json` + `.codex/rules/wikeeper.rules` | CLI gate + `unlogged-change` lint check | `.github/hooks/wikeeper.json` (`PreToolUse` guard + permit hook) |
 
-**Copilot in VS Code:** the hooks in `.github/hooks/wikeeper.json` cover Copilot CLI and VS Code's Copilot agent, not VS Code's Local agent, which reads another hook format. With the Local agent a direct page edit is not blocked, and `wikeeper lint` still reports it as an `unlogged-change` finding.
+**Copilot in VS Code:** the hooks in `.github/hooks/wikeeper.json` cover Copilot CLI and VS Code's Copilot agent, not VS Code's Local agent, which reads another hook format. With the Local agent a direct page edit is not blocked, and `wikeeper lint` still reports it as an `unlogged-change` finding. On a machine where wikeeper can't run, the hooks step aside: Copilot asks before each command as usual and page edits aren't blocked, and `wikeeper lint` still reports them.
 
 ---
 

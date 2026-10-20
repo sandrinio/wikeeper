@@ -6,6 +6,8 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-20 · #hooks #copilot #windows · Copilot CLI's .github/hooks entries take `bash`/`powershell` per platform (`command` is copied to both); `windows`/`linux`/`osx` are VS Code's and agent-scoped keys.
+2026-10-20 · #ux #doctor · doctor's human lines print `[sev] <id>: <message>` with no path; a message saying "this file" must name the file itself.
 2026-10-20 · #ux #doctor #copilot · Copilot keeps guard and permit in one hook file; Codex's "new session when the guard command changes" misses permission-mode changes.
 2026-10-20 · #ux #walkthrough · After update rewrites the pointer block, the agent describes its diff and names commands; say plainly what update refreshed.
 2026-10-20 · #security #hooks · A shell-command matcher must split words only on space and tab, as bash does; JS `\s` and trim let NBSP, U+2003 or \r forge a program name.
