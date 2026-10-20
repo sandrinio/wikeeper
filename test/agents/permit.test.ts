@@ -126,17 +126,16 @@ describe("Copilot hooks never block when wikeeper cannot run (CR-008)", () => {
   // success exit; wikeeper's own decisions are on stdout with exit 0, so they still apply.
   const hooks = COPILOT_ENFORCE.items("wikeeper hook guard --agent copilot", "ai")
     .filter((i) => i.identity.startsWith("hooks."))
-    .map((i) => (i.value as { hooks: Array<{ command: string; windows: string }> }).hooks[0]!);
+    .map((i) => (i.value as { hooks: Array<{ command: string; powershell: string; windows: string }> }).hooks[0]!);
   it("installs the guard and the permit hook", () => {
     expect(hooks.map((h) => h.command)).toEqual([
       "wikeeper hook guard --agent copilot || true",
       "wikeeper hook permit --agent copilot --permission ai || true",
     ]);
   });
-  it("gives Windows the same commands in PowerShell form", () => {
-    expect(hooks.map((h) => h.windows)).toEqual([
-      "wikeeper hook guard --agent copilot; exit 0",
-      "wikeeper hook permit --agent copilot --permission ai; exit 0",
-    ]);
+  it("gives Windows the same commands in PowerShell form, for Copilot CLI and for VS Code (CR-010)", () => {
+    const ps = ["wikeeper.cmd hook guard --agent copilot; exit 0", "wikeeper.cmd hook permit --agent copilot --permission ai; exit 0"];
+    expect(hooks.map((h) => h.powershell)).toEqual(ps);
+    expect(hooks.map((h) => h.windows)).toEqual(ps);
   });
 });

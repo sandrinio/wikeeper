@@ -1,5 +1,5 @@
 import type { AgentEnforceSpec } from "./claude.js";
-import { toPermitCommand } from "./guard-command.js";
+import { toPermitCommand, toPowerShellCommand } from "./guard-command.js";
 
 /** Copilot names its file tools as Claude does in the PreToolUse payload, patch body and all. */
 export const COPILOT_MATCHER = "Edit|Write|NotebookEdit";
@@ -7,9 +7,10 @@ export const COPILOT_MATCHER = "Edit|Write|NotebookEdit";
 /** Copilot denies a tool call when a preToolUse hook exits non-zero, so a teammate whose wikeeper is missing
  *  or predates a subcommand would be refused every shell command and edit. Each command ends in a success
  *  exit instead: wikeeper's own decisions are JSON on stdout with exit 0, so they still apply. `command`
- *  runs in a POSIX shell; `windows` overrides it with the PowerShell form. */
+ *  runs in a POSIX shell; on Windows, Copilot CLI runs `powershell` and VS Code runs `windows`. */
 function hookEntry(matcher: string, cmd: string): unknown {
-  return { matcher, hooks: [{ type: "command", command: `${cmd} || true`, windows: `${cmd}; exit 0`, timeout: 10 }] };
+  const ps = `${toPowerShellCommand(cmd)}; exit 0`;
+  return { matcher, hooks: [{ type: "command", command: `${cmd} || true`, powershell: ps, windows: ps, timeout: 10 }] };
 }
 
 export const COPILOT_ENFORCE: AgentEnforceSpec = {

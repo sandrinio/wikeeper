@@ -65,6 +65,19 @@ export function toPermitCommand(guardCmd: string): string {
   return guardCmd.replace(" hook guard --agent ", " hook permit --agent ");
 }
 
+const GIT_TOP = "$(git rev-parse --show-toplevel)";
+const LOCAL_BIN = "/node_modules/.bin/wikeeper";
+
+/** The PowerShell form of a built non-Claude hook command. It calls npm's .cmd shims: for a bare name
+ *  PowerShell picks the .ps1 shim, which Windows PowerShell's default script policy refuses to run. */
+export function toPowerShellCommand(cmd: string): string {
+  const local = `"${GIT_TOP}"${LOCAL_BIN} `;
+  if (cmd.startsWith(local)) return `& "${GIT_TOP}${LOCAL_BIN}.cmd" ${cmd.slice(local.length)}`;
+  if (cmd.startsWith("npx ")) return `npx.cmd ${cmd.slice("npx ".length)}`;
+  if (cmd.startsWith("wikeeper ")) return `wikeeper.cmd ${cmd.slice("wikeeper ".length)}`;
+  throw new Error(`no PowerShell form for the hook command: ${cmd}`);
+}
+
 export function guardCommand(form: GuardForm, agent: AgentName, packageVersion: string): string {
   const tail = `hook guard --agent ${agent}`;
   switch (form) {
@@ -72,8 +85,8 @@ export function guardCommand(form: GuardForm, agent: AgentName, packageVersion: 
       return `wikeeper ${tail}`;
     case "local":
       return agent === "claude"
-        ? `"$CLAUDE_PROJECT_DIR"/node_modules/.bin/wikeeper ${tail}`
-        : `"$(git rev-parse --show-toplevel)"/node_modules/.bin/wikeeper ${tail}`;
+        ? `"$CLAUDE_PROJECT_DIR"${LOCAL_BIN} ${tail}`
+        : `"${GIT_TOP}"${LOCAL_BIN} ${tail}`;
     case "npx":
       return `npx -y wikeeper@${npmVersion(packageVersion)} ${tail}`;
   }

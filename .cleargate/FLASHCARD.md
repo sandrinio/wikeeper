@@ -6,6 +6,8 @@ Format: `YYYY-MM-DD · #tags · [marker]? lesson`
 
 ---
 
+2026-10-20 · #qa #test-harness · A test asserting exit 0 and empty stdout passes when the stub was never found; make the stub leave a marker.
+2026-10-20 · #qa #test-harness · it.each over an empty list registers no tests, so a skipped suite shows nothing; pair it with a CI-only guard test.
 2026-10-20 · #hooks #copilot #windows · Copilot CLI's .github/hooks entries take `bash`/`powershell` per platform (`command` is copied to both); `windows`/`linux`/`osx` are VS Code's and agent-scoped keys.
 2026-10-20 · #ux #doctor · doctor's human lines print `[sev] <id>: <message>` with no path; a message saying "this file" must name the file itself.
 2026-10-20 · #ux #doctor #copilot · Copilot keeps guard and permit in one hook file; Codex's "new session when the guard command changes" misses permission-mode changes.

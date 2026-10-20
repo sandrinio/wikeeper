@@ -7,7 +7,8 @@
 - [[INITIATIVE-001]] (initiative) — Triaged — Wiki CLI — Karpathy-style LLM wiki for AI agents
 - [[CR-007]] (cr) — Approved ⚠︎ drift — User-approved ingestion models
 - [[CR-008]] (cr) — Approved ⚠︎ drift — GitHub Copilot as a fourth agent, with the review fixes
-- [[CR-009]] (cr) — Approved — What users are told about enforce in Copilot
+- [[CR-009]] (cr) — Approved ⚠︎ drift — What users are told about enforce in Copilot
+- [[CR-010]] (cr) — Approved — Copilot hook commands that run on Windows
 
 ## Archive
 

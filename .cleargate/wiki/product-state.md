@@ -9,7 +9,7 @@
 | Epics | 9 | 0 | 9 |
 | Sprints | 4 | 0 | 4 |
 | Proposals | 0 | 0 | 0 |
-| CRs | 9 | 0 | 6 |
+| CRs | 10 | 0 | 6 |
 | Bugs | 5 | 0 | 5 |
 | Spikes | 3 | 0 | 2 |
 

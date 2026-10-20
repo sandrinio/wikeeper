@@ -31,7 +31,7 @@ draft_tokens:
   cache_creation: 0
   cache_read: 0
   model: claude-opus-5-5
-  last_stamp: 2026-10-20T10:30:28Z
+  last_stamp: 2026-10-20T13:38:50Z
   sessions:
     - session: eb8400d2-bb8a-4f0e-85f7-1cd886731bab
       model: claude-opus-5-5
@@ -88,7 +88,7 @@ draft_tokens:
 - [x] Database schema impacts? No. `AGENT_NAMES` gains `copilot`; config keys are unchanged.
 - Shares `templates/system/SETUP.md` and its hash pins with [[CR-007]], which is also uncommitted. The two cannot be committed separately without splitting hunks.
 - Sealed red tests from closed stories were edited to add `copilot` to agent lists and file lists (`detect.red`, `subagents.red`, `doctor-reporting.red`, `upgrade-instructions.red`). They are recorded here as re-scopes.
-- Known limit: on Windows, the project-local guard form (`"$(git rev-parse --show-toplevel)"/node_modules/.bin/wikeeper`) is POSIX shell syntax, as it already is for Codex and Antigravity; the `windows` override cannot rescue a command PowerShell cannot parse. Recorded only.
+- Known limit: on Windows, the project-local guard form (`"$(git rev-parse --show-toplevel)"/node_modules/.bin/wikeeper`) is POSIX shell syntax, as it already is for Codex and Antigravity; the `windows` override cannot rescue a command PowerShell cannot parse. Recorded only. **Superseded by [[CR-010]]:** Copilot CLI reads `powershell`, not `windows`, and a command that doesn't parse fails closed; CR-010 adds `powershell` and a PowerShell form for each guard form. Codex and Antigravity are unchanged.
 - In a repo set up for Claude Code and Copilot, Copilot CLI also runs the Claude hooks in `.claude/settings.json`. The Claude guard fails open, with a warning, on Copilot's patch-string edits; the Copilot guard still blocks them. Recorded only; not changed here.
 
 ## Existing Surfaces
