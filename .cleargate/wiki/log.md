@@ -924,3 +924,8 @@
   action: "create"
   target: "CR-009"
   path: ".cleargate/delivery/pending-sync/CR-009_copilot_enforce_notices.md"
+- timestamp: "2026-10-20T12:38:08.422Z"
+  actor: "cleargate wiki ingest"
+  action: "update"
+  target: "CR-009"
+  path: ".cleargate/delivery/pending-sync/CR-009_copilot_enforce_notices.md"
